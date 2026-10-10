@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: './',
+  base: '/Interactive-Cursor-Tracking-Portfolio/',
   plugins: [
     tailwindcss(),
     react(),
