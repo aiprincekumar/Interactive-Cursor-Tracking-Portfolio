@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Sparkles, Code2, Server, Globe, Cpu, CheckCircle2, ChevronRight, Terminal } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 
 const SKILL_DATA = {

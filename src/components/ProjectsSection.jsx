@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ExternalLink, Sparkles, Layers, Cpu, Code2, ArrowUpRight, CheckCircle2, Shield, FileText, Activity, Terminal, Check, X, RefreshCw } from 'lucide-react';
+import { Sparkles, ArrowUpRight, Check, X, RefreshCw } from 'lucide-react';
 import { GithubIcon } from './Icons';
 import { soundFX } from '../utils/audio';
 
@@ -38,7 +38,6 @@ const COMPANION_PROJECTS = [
 
 export default function ProjectsSection() {
   // State for Project 01 PolicyGuard Interactive Mockup
-  const [activePolicyTab, setActivePolicyTab] = useState('audit');
   const [isAuditing, setIsAuditing] = useState(false);
   const [scanLatency, setScanLatency] = useState(210);
 

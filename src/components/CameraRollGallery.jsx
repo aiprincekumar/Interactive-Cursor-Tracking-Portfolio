@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, Sparkles, Download, Heart, ZoomIn, X, Share2 } from 'lucide-react';
+import { Camera, Download, Heart, ZoomIn, X, Share2 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 
 const BASE_URL = import.meta.env.BASE_URL || './';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Award, Trophy, Code2, Sparkles, ExternalLink, Zap } from 'lucide-react';
+import { Trophy, Zap } from 'lucide-react';
 
 const PLATFORM_STATS = [
   {

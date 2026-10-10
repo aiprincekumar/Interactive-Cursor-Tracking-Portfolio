@@ -17,17 +17,20 @@ import confetti from 'canvas-confetti';
  * - Sleek dark pill "Shoot a look 📸" button in Bottom-Right
  */
 const BASE_URL = import.meta.env.BASE_URL || './';
+const IMG_IDLE = `${BASE_URL}assets/character-idle.jpg`;
 const IMG_CENTER = `${BASE_URL}assets/character-center.jpg`;
-const IMG_LEFT = `${BASE_URL}assets/character-left.jpg`;
-const IMG_RIGHT = `${BASE_URL}assets/character-right.jpg`;
+const IMG_UPPER_CENTER = `${BASE_URL}assets/character-upper-center.jpg`;
+const IMG_LOWER_CENTER = `${BASE_URL}assets/character-lower-center.jpg`;
+const IMG_UPPER_LEFT = `${BASE_URL}assets/character-upper-left.jpg`;
+const IMG_LOWER_LEFT = `${BASE_URL}assets/character-lower-left.jpg`;
+const IMG_UPPER_RIGHT = `${BASE_URL}assets/character-upper-right.jpg`;
+const IMG_LOWER_RIGHT = `${BASE_URL}assets/character-lower-right.jpg`;
 
 export default function HeroSection({
   heroRef,
   isInsideHero,
   setIsInsideHero,
   onPhotoCaptured,
-  soundEnabled,
-  setSoundEnabled,
   forcedState,
   reducedMotion
 }) {
@@ -37,9 +40,14 @@ export default function HeroSection({
   // Direct DOM references for 120 FPS zero-render GPU updates
   const sectionRef = useRef(null);
   const stageRef = useRef(null);
+  const imgIdleRef = useRef(null);
   const imgCenterRef = useRef(null);
-  const imgLeftRef = useRef(null);
-  const imgRightRef = useRef(null);
+  const imgUpperCenterRef = useRef(null);
+  const imgLowerCenterRef = useRef(null);
+  const imgUpperLeftRef = useRef(null);
+  const imgLowerLeftRef = useRef(null);
+  const imgUpperRightRef = useRef(null);
+  const imgLowerRightRef = useRef(null);
   const reticleRef = useRef(null);
 
   // Tracking state store
@@ -50,14 +58,24 @@ export default function HeroSection({
     currentNormY: 0,
     pointerX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
     pointerY: typeof window !== 'undefined' ? window.innerHeight / 2 : 400,
-    activePose: 'center', // 'left' | 'center' | 'right'
+    activePose: 'idle',
     isHovered: false,
+    hoverWeight: 0,
     rafId: null
   });
 
   // Preload high-res character pose assets immediately
   useEffect(() => {
-    [IMG_CENTER, IMG_LEFT, IMG_RIGHT].forEach(src => {
+    [
+      IMG_IDLE,
+      IMG_CENTER,
+      IMG_UPPER_CENTER,
+      IMG_LOWER_CENTER,
+      IMG_UPPER_LEFT,
+      IMG_LOWER_LEFT,
+      IMG_UPPER_RIGHT,
+      IMG_LOWER_RIGHT
+    ].forEach(src => {
       const img = new Image();
       img.src = src;
     });
@@ -66,97 +84,156 @@ export default function HeroSection({
   // Continuous 120 FPS rAF Animation Loop
   useEffect(() => {
     let active = true;
+    let localRafId = null;
+
+    if (reducedMotion) {
+      if (stageRef.current) {
+        stageRef.current.style.transform = 'none';
+      }
+      const p = forcedState || (isInsideHero ? 'center' : 'idle');
+      if (imgIdleRef.current) imgIdleRef.current.style.opacity = p === 'idle' ? '1' : '0';
+      if (imgCenterRef.current) imgCenterRef.current.style.opacity = p === 'center' ? '1' : '0';
+      if (imgUpperCenterRef.current) imgUpperCenterRef.current.style.opacity = p === 'upper-center' ? '1' : '0';
+      if (imgLowerCenterRef.current) imgLowerCenterRef.current.style.opacity = p === 'lower-center' ? '1' : '0';
+      if (imgUpperLeftRef.current) imgUpperLeftRef.current.style.opacity = p === 'upper-left' ? '1' : '0';
+      if (imgLowerLeftRef.current) imgLowerLeftRef.current.style.opacity = p === 'lower-left' ? '1' : '0';
+      if (imgUpperRightRef.current) imgUpperRightRef.current.style.opacity = p === 'upper-right' ? '1' : '0';
+      if (imgLowerRightRef.current) imgLowerRightRef.current.style.opacity = p === 'lower-right' ? '1' : '0';
+      animStateRef.current.activePose = p;
+      return () => {
+        active = false;
+      };
+    }
 
     const tick = () => {
       if (!active) return;
       const state = animStateRef.current;
 
-      if (!reducedMotion) {
-        // High-precision damping lerp (exponential decay for smooth inertia)
-        const lerpRate = 0.085;
-        state.currentNormX += (state.targetNormX - state.currentNormX) * lerpRate;
-        state.currentNormY += (state.targetNormY - state.currentNormY) * lerpRate;
+      // High-precision damping lerp (exponential decay for smooth inertia)
+      const lerpRate = 0.085;
+      state.currentNormX += (state.targetNormX - state.currentNormX) * lerpRate;
+      state.currentNormY += (state.targetNormY - state.currentNormY) * lerpRate;
 
-        const curX = state.currentNormX;
-        const curY = state.currentNormY;
+      // Smooth hover blend: 0 when cursor is outside hero, 1 when inside hero
+      const targetHover = state.isHovered ? 1 : 0;
+      state.hoverWeight += (targetHover - state.hoverWeight) * 0.1;
 
-        // 1. Smooth 2.5D perspective tilt and subtle micro-parallax camera dolly
-        if (stageRef.current) {
-          const rotateY = (curX * 18).toFixed(2);   // -9 deg to +9 deg yaw
-          const rotateX = (-curY * 12).toFixed(2);  // -6 deg to +6 deg pitch
-          const transX = (curX * 14).toFixed(1);    // subtle horizontal shift
-          const transY = (curY * 10).toFixed(1);    // subtle vertical shift
-          
-          stageRef.current.style.transform = `perspective(1200px) rotateY(${rotateY}deg) rotateX(${rotateX}deg) translate3d(${transX}px, ${transY}px, 0) scale(1.06)`;
-        }
+      const curX = state.currentNormX;
+      const curY = state.currentNormY;
 
-        // 2. Continuous Pose Crossfading with Cubic Hermite Smoothstep
-        let centerOp = 1;
-        let leftOp = 0;
-        let rightOp = 0;
-
-        if (forcedState) {
-          // Explicit manual state override from physics playground
-          centerOp = forcedState === 'center' ? 1 : 0;
-          leftOp = forcedState === 'left' ? 1 : 0;
-          rightOp = forcedState === 'right' ? 1 : 0;
-          state.activePose = forcedState;
-        } else {
-          // Automatic cursor gaze zones:
-          // Center deadband [-0.08, +0.08] keeps character smiling straight
-          // Smoothstep transition in ranges [-0.28, -0.08] and [+0.08, +0.28]
-          if (curX < -0.08) {
-            // Turning left
-            const t = Math.min(1, Math.max(0, (-curX - 0.08) / 0.20));
-            const smooth = t * t * (3 - 2 * t);
-            leftOp = smooth;
-            centerOp = 1 - smooth;
-            rightOp = 0;
-          } else if (curX > 0.08) {
-            // Turning right
-            const t = Math.min(1, Math.max(0, (curX - 0.08) / 0.20));
-            const smooth = t * t * (3 - 2 * t);
-            rightOp = smooth;
-            centerOp = 1 - smooth;
-            leftOp = 0;
-          } else {
-            centerOp = 1;
-            leftOp = 0;
-            rightOp = 0;
-          }
-
-          // Hysteresis for dominant active pose tag
-          if (leftOp > 0.6) {
-            state.activePose = 'left';
-          } else if (rightOp > 0.6) {
-            state.activePose = 'right';
-          } else if (centerOp > 0.6) {
-            state.activePose = 'center';
-          }
-        }
-
-        // Apply opacities directly to DOM (0 React re-renders)
-        if (imgCenterRef.current) imgCenterRef.current.style.opacity = centerOp.toFixed(3);
-        if (imgLeftRef.current) imgLeftRef.current.style.opacity = leftOp.toFixed(3);
-        if (imgRightRef.current) imgRightRef.current.style.opacity = rightOp.toFixed(3);
-
-        // 3. Smooth Viewfinder Reticle follow
-        if (reticleRef.current && state.isHovered) {
-          reticleRef.current.style.transform = `translate3d(${state.pointerX}px, ${state.pointerY}px, 0)`;
-        }
+      // 1. Smooth 2.5D perspective tilt and subtle micro-parallax camera dolly (damped by hoverWeight)
+      if (stageRef.current) {
+        const tiltIntensity = 0.25 + 0.75 * state.hoverWeight;
+        const rotateY = (curX * 18 * tiltIntensity).toFixed(2);   // yaw
+        const rotateX = (-curY * 12 * tiltIntensity).toFixed(2);  // pitch
+        const transX = (curX * 14 * tiltIntensity).toFixed(1);    // horizontal shift
+        const transY = (curY * 10 * tiltIntensity).toFixed(1);    // vertical shift
+        
+        stageRef.current.style.transform = `perspective(1200px) rotateY(${rotateY}deg) rotateX(${rotateX}deg) translate3d(${transX}px, ${transY}px, 0) scale(1.06)`;
       }
 
-      state.rafId = requestAnimationFrame(tick);
+      // 2. Continuous Pose Crossfading with Cubic Hermite Smoothstep
+      let idleOp = 1 - state.hoverWeight;
+      let centerOp = 0;
+      let upCenterOp = 0;
+      let lowCenterOp = 0;
+      let upLeftOp = 0;
+      let lowLeftOp = 0;
+      let upRightOp = 0;
+      let lowRightOp = 0;
+
+      if (forcedState) {
+        idleOp = forcedState === 'idle' ? 1 : 0;
+        centerOp = forcedState === 'center' ? 1 : 0;
+        upCenterOp = forcedState === 'upper-center' ? 1 : 0;
+        lowCenterOp = forcedState === 'lower-center' ? 1 : 0;
+        upLeftOp = forcedState === 'upper-left' ? 1 : 0;
+        lowLeftOp = forcedState === 'lower-left' ? 1 : 0;
+        upRightOp = forcedState === 'upper-right' ? 1 : 0;
+        lowRightOp = forcedState === 'lower-right' ? 1 : 0;
+        state.activePose = forcedState;
+      } else {
+        const smoothstep = (min, max, value) => {
+          const x = Math.max(0, Math.min(1, (value - min) / (max - min)));
+          return x * x * (3 - 2 * x);
+        };
+
+        // Horizontal weights
+        const leftW = smoothstep(-0.05, -0.25, curX);
+        const rightW = smoothstep(0.05, 0.25, curX);
+        const centerHW = Math.max(0, 1 - leftW - rightW);
+
+        // Side Vertical Weights (Up/Down split)
+        const sideUpW = smoothstep(0.1, -0.1, curY);
+        const sideDownW = 1 - sideUpW;
+
+        // Center Column 3-Way Vertical Weights: Upper-Center, Center, Lower-Center
+        // curY ranges from -0.5 (top) to +0.5 (bottom)
+        const centerUp = smoothstep(-0.06, -0.24, curY);
+        const centerDown = smoothstep(0.06, 0.24, curY);
+        const centerMid = Math.max(0, 1 - centerUp - centerDown);
+
+        const activeTrackingWeight = state.hoverWeight;
+
+        upLeftOp = leftW * sideUpW * activeTrackingWeight;
+        lowLeftOp = leftW * sideDownW * activeTrackingWeight;
+        upRightOp = rightW * sideUpW * activeTrackingWeight;
+        lowRightOp = rightW * sideDownW * activeTrackingWeight;
+
+        upCenterOp = centerHW * centerUp * activeTrackingWeight;
+        lowCenterOp = centerHW * centerDown * activeTrackingWeight;
+        centerOp = centerHW * centerMid * activeTrackingWeight;
+
+        const ops = {
+          'idle': idleOp,
+          'center': centerOp,
+          'upper-center': upCenterOp,
+          'lower-center': lowCenterOp,
+          'upper-left': upLeftOp,
+          'lower-left': lowLeftOp,
+          'upper-right': upRightOp,
+          'lower-right': lowRightOp
+        };
+
+        let maxOp = -1;
+        let domPose = 'idle';
+        for (const p in ops) {
+          if (ops[p] > maxOp) {
+            maxOp = ops[p];
+            domPose = p;
+          }
+        }
+        state.activePose = domPose;
+      }
+
+      // Apply opacities directly to DOM (0 React re-renders)
+      if (imgIdleRef.current) imgIdleRef.current.style.opacity = idleOp.toFixed(3);
+      if (imgCenterRef.current) imgCenterRef.current.style.opacity = centerOp.toFixed(3);
+      if (imgUpperCenterRef.current) imgUpperCenterRef.current.style.opacity = upCenterOp.toFixed(3);
+      if (imgLowerCenterRef.current) imgLowerCenterRef.current.style.opacity = lowCenterOp.toFixed(3);
+      if (imgUpperLeftRef.current) imgUpperLeftRef.current.style.opacity = upLeftOp.toFixed(3);
+      if (imgLowerLeftRef.current) imgLowerLeftRef.current.style.opacity = lowLeftOp.toFixed(3);
+      if (imgUpperRightRef.current) imgUpperRightRef.current.style.opacity = upRightOp.toFixed(3);
+      if (imgLowerRightRef.current) imgLowerRightRef.current.style.opacity = lowRightOp.toFixed(3);
+
+      // 3. Smooth Viewfinder Reticle follow
+      if (reticleRef.current && state.isHovered) {
+        reticleRef.current.style.transform = `translate3d(${state.pointerX}px, ${state.pointerY}px, 0)`;
+      }
+
+      localRafId = requestAnimationFrame(tick);
+      state.rafId = localRafId;
     };
 
-    animStateRef.current.rafId = requestAnimationFrame(tick);
+    localRafId = requestAnimationFrame(tick);
+    animStateRef.current.rafId = localRafId;
     return () => {
       active = false;
-      if (animStateRef.current.rafId) {
-        cancelAnimationFrame(animStateRef.current.rafId);
+      if (localRafId) {
+        cancelAnimationFrame(localRafId);
       }
     };
-  }, [reducedMotion, forcedState]);
+  }, [reducedMotion, forcedState, isInsideHero]);
 
   // Pointer move handler with passive normalized calculation
   const handlePointerMove = useCallback((e) => {
@@ -195,20 +272,25 @@ export default function HeroSection({
 
     const activePose = animStateRef.current.activePose;
     if (onPhotoCaptured) {
+      const poseMap = {
+        'idle': { src: IMG_IDLE, title: 'Relaxed Idle Portrait' },
+        'center': { src: IMG_CENTER, title: 'Signature Center Portrait' },
+        'upper-center': { src: IMG_UPPER_CENTER, title: 'Upper Center Gaze' },
+        'lower-center': { src: IMG_LOWER_CENTER, title: 'Lower Center Glance' },
+        'upper-left': { src: IMG_UPPER_LEFT, title: 'Upper Left Glance' },
+        'lower-left': { src: IMG_LOWER_LEFT, title: 'Lower Left Glance' },
+        'upper-right': { src: IMG_UPPER_RIGHT, title: 'Upper Right Glance' },
+        'lower-right': { src: IMG_LOWER_RIGHT, title: 'Lower Right Glance' }
+      };
+      
+      const poseData = poseMap[activePose] || poseMap['center'];
+      
       onPhotoCaptured({
         id: Date.now(),
         state: activePose,
-        imageSrc: activePose === 'left'
-          ? IMG_LEFT
-          : activePose === 'right'
-            ? IMG_RIGHT
-            : IMG_CENTER,
+        imageSrc: poseData.src,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        title: activePose === 'left'
-          ? 'Candid Left Glance'
-          : activePose === 'right'
-            ? 'Right Framing Smile'
-            : 'Signature Center Portrait',
+        title: poseData.title,
         likes: Math.floor(Math.random() * 25) + 10
       });
     }
@@ -260,33 +342,73 @@ export default function HeroSection({
         }}
       >
         <div className="relative w-full h-full overflow-hidden">
-          {/* Pose 1: Center (Smiling straight forward, full cover) */}
           <img
-            ref={imgCenterRef}
-            src={IMG_CENTER}
-            alt="Sushmitha Dasari Center Pose"
+            ref={imgIdleRef}
+            src={IMG_IDLE}
+            alt="Idle Pose"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
             style={{ opacity: 1, willChange: 'opacity' }}
             loading="eager"
             decoding="async"
           />
-
-          {/* Pose 2: Left (Aiming camera left, full cover) */}
           <img
-            ref={imgLeftRef}
-            src={IMG_LEFT}
-            alt="Sushmitha Dasari Left Pose"
+            ref={imgCenterRef}
+            src={IMG_CENTER}
+            alt="Center Pose"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
             style={{ opacity: 0, willChange: 'opacity' }}
             loading="eager"
             decoding="async"
           />
-
-          {/* Pose 3: Right (Aiming camera right, full cover) */}
           <img
-            ref={imgRightRef}
-            src={IMG_RIGHT}
-            alt="Sushmitha Dasari Right Pose"
+            ref={imgUpperCenterRef}
+            src={IMG_UPPER_CENTER}
+            alt="Upper Center Pose"
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
+            style={{ opacity: 0, willChange: 'opacity' }}
+            loading="eager"
+            decoding="async"
+          />
+          <img
+            ref={imgLowerCenterRef}
+            src={IMG_LOWER_CENTER}
+            alt="Lower Center Pose"
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
+            style={{ opacity: 0, willChange: 'opacity' }}
+            loading="eager"
+            decoding="async"
+          />
+          <img
+            ref={imgUpperLeftRef}
+            src={IMG_UPPER_LEFT}
+            alt="Upper Left Pose"
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
+            style={{ opacity: 0, willChange: 'opacity' }}
+            loading="eager"
+            decoding="async"
+          />
+          <img
+            ref={imgLowerLeftRef}
+            src={IMG_LOWER_LEFT}
+            alt="Lower Left Pose"
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
+            style={{ opacity: 0, willChange: 'opacity' }}
+            loading="eager"
+            decoding="async"
+          />
+          <img
+            ref={imgUpperRightRef}
+            src={IMG_UPPER_RIGHT}
+            alt="Upper Right Pose"
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
+            style={{ opacity: 0, willChange: 'opacity' }}
+            loading="eager"
+            decoding="async"
+          />
+          <img
+            ref={imgLowerRightRef}
+            src={IMG_LOWER_RIGHT}
+            alt="Lower Right Pose"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
             style={{ opacity: 0, willChange: 'opacity' }}
             loading="eager"

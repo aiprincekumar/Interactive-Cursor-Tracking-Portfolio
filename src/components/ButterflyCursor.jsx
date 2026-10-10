@@ -87,8 +87,8 @@ export default function ButterflyCursor({
     };
 
     // Burst sparkles on any click across the page
-    const handlePointerDown = (e) => {
-      if (!trailEnabled) return;
+    const handlePointerDown = () => {
+      if (!trailEnabledRef.current) return;
       const state = posRef.current;
       const burstPalette = [
         'rgba(255, 77, 109,',

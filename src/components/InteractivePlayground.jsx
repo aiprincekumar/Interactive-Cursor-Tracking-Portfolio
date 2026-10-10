@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sliders, Sparkles, Zap, Eye, Wind, Volume2, VolumeX } from 'lucide-react';
+import { Sliders, Sparkles, Eye, Wind } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 
 export default function InteractivePlayground({
@@ -100,12 +100,17 @@ export default function InteractivePlayground({
                 {forcedState || 'Auto-Track'}
               </span>
             </div>
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="flex flex-wrap gap-1.5">
               {[
                 { label: 'Auto', val: null },
-                { label: 'Left', val: 'left' },
+                { label: 'Idle', val: 'idle' },
                 { label: 'Center', val: 'center' },
-                { label: 'Right', val: 'right' }
+                { label: 'Up-Center', val: 'upper-center' },
+                { label: 'Down-Center', val: 'lower-center' },
+                { label: 'Up-Left', val: 'upper-left' },
+                { label: 'Down-Left', val: 'lower-left' },
+                { label: 'Up-Right', val: 'upper-right' },
+                { label: 'Down-Right', val: 'lower-right' }
               ].map(item => (
                 <button
                   key={item.label}

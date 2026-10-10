@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, MapPin, GraduationCap, Terminal, Heart, Code2, ArrowUpRight } from 'lucide-react';
+import { MapPin, GraduationCap, Terminal } from 'lucide-react';
 
 export default function AboutSection() {
   return (

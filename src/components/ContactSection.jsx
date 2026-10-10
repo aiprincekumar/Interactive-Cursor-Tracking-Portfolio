@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Check, Send, Sparkles, ArrowUpRight, Copy } from 'lucide-react';
+import { Mail, Check, Send, ArrowUpRight, Copy } from 'lucide-react';
 import { InstagramIcon, GithubIcon, LinkedinIcon, NotionIcon } from './Icons';
 import { soundFX } from '../utils/audio';
 

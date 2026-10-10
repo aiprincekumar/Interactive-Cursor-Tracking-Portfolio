@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, Volume2, VolumeX, Menu, X, Sparkles, FileText } from 'lucide-react';
+import { Volume2, VolumeX, Menu, X, FileText } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 
 export default function Navbar({ soundEnabled, setSoundEnabled }) {
