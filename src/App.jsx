@@ -1,0 +1,123 @@
+import React, { useState, useRef, useEffect } from 'react';
+import Navbar from './components/Navbar';
+import HeroSection from './components/HeroSection';
+import ButterflyCursor from './components/ButterflyCursor';
+import TechMarqueeBanner from './components/TechMarqueeBanner';
+import AboutSection from './components/AboutSection';
+import SkillsSection from './components/SkillsSection';
+import ProjectsSection from './components/ProjectsSection';
+import CodingAchievementsSection from './components/CodingAchievementsSection';
+import CameraRollGallery from './components/CameraRollGallery';
+import InteractivePlayground from './components/InteractivePlayground';
+import ContactSection from './components/ContactSection';
+import Footer from './components/Footer';
+
+export default function App() {
+  const heroRef = useRef(null);
+  const [isInsideHero, setIsInsideHero] = useState(false);
+  const [capturedPhotos, setCapturedPhotos] = useState([]);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [butterflySpeed, setButterflySpeed] = useState(0.14);
+  const [trailEnabled, setTrailEnabled] = useState(true);
+  const [butterflyScale, setButterflyScale] = useState(1);
+  const [forcedState, setForcedState] = useState(null);
+  const [reducedMotion, setReducedMotion] = useState(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleChange = (e) => setReducedMotion(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  const handlePhotoCaptured = (newPhoto) => {
+    setCapturedPhotos((prev) => [newPhoto, ...prev]);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FAF8F5] text-[#18181B] relative selection:bg-[#FF4D6D] selection:text-white overflow-x-hidden">
+      {/* Background Subtle Mesh Dots */}
+      <div className="fixed inset-0 bg-dot-pattern opacity-50 pointer-events-none z-0" />
+
+      {/* Realistic Interactive Butterfly Cursor (Active across full page) */}
+      {!reducedMotion && (
+        <ButterflyCursor
+          heroRef={heroRef}
+          isInsideHero={isInsideHero}
+          speed={butterflySpeed}
+          trailEnabled={trailEnabled}
+          scale={butterflyScale}
+        />
+      )}
+
+      {/* Top Navbar */}
+      <Navbar
+        soundEnabled={soundEnabled}
+        setSoundEnabled={setSoundEnabled}
+      />
+
+      {/* Main Content Area - In Exact Instagram Reel Chronological Sequence */}
+      <main className="relative z-10">
+        {/* 1. Interactive Cursor-Tracking Hero Section (Reel t=0s - 7.5s) */}
+        <HeroSection
+          heroRef={heroRef}
+          isInsideHero={isInsideHero}
+          setIsInsideHero={setIsInsideHero}
+          onPhotoCaptured={handlePhotoCaptured}
+          soundEnabled={soundEnabled}
+          setSoundEnabled={setSoundEnabled}
+          forcedState={forcedState}
+          reducedMotion={reducedMotion}
+        />
+
+        {/* 2. Diagonal Crossed Marquee Ribbons with Butterfly Delimiters (Reel t=7.85s) */}
+        <TechMarqueeBanner />
+
+        {/* 3. "Who I am" / Personal Narrative & Education (Reel t=8.3s - 9.2s) */}
+        <AboutSection />
+
+        {/* 4. "What I work with" / Interactive Skill Matrix & Dark Card (Reel t=9.3s - 11.8s) */}
+        <SkillsSection />
+
+        {/* 5. "Selected work" / PolicyGuard AI & Payment Gateway System (Reel t=12.0s - 14.8s) */}
+        <ProjectsSection />
+
+        {/* 6. Competitive Programming & Coding Records (Reel t=15.0s - 16.0s) */}
+        <CodingAchievementsSection />
+
+        {/* 7. Interactive Polaroid Studio & Camera Roll Memories */}
+        <CameraRollGallery
+          capturedPhotos={capturedPhotos}
+        />
+
+        {/* 8. Real-Time Physics & Cursor Tuner Lab */}
+        <InteractivePlayground
+          butterflySpeed={butterflySpeed}
+          setButterflySpeed={setButterflySpeed}
+          trailEnabled={trailEnabled}
+          setTrailEnabled={setTrailEnabled}
+          butterflyScale={butterflyScale}
+          setButterflyScale={setButterflyScale}
+          forcedState={forcedState}
+          setForcedState={setForcedState}
+          soundEnabled={soundEnabled}
+          setSoundEnabled={setSoundEnabled}
+          reducedMotion={reducedMotion}
+          setReducedMotion={setReducedMotion}
+        />
+
+        {/* 9. Contact: "Let's build something meaningful." (Reel t=16.1s - 16.9s) */}
+        <ContactSection />
+      </main>
+
+      {/* 10. Dark Plum Footer with Watermark Name (Reel t=16.8s) */}
+      <Footer />
+    </div>
+  );
+}

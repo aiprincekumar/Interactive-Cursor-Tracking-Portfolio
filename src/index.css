@@ -1,0 +1,200 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-outfit: "Outfit", sans-serif;
+  --font-handwriting: "Caveat", cursive;
+
+  --color-brand-primary: #FF4D6D;
+  --color-brand-hover: #E03554;
+  --color-brand-light: #FFF0F3;
+  --color-brand-soft: #FFE4E8;
+  --color-brand-bg: #FAF8F5;
+  --color-charcoal-dark: #18181B;
+  --color-charcoal-muted: #27272A;
+}
+
+@layer base {
+  :root {
+    --primary: #FF4D6D;
+    --primary-hover: #E03554;
+    --primary-light: #FFF0F3;
+    --primary-soft: #FFE4E8;
+    --bg-page: #FAF8F5;
+    --primary-glow: rgba(255, 77, 109, 0.25);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background-color: #FAF8F5;
+    color: #18181B;
+  }
+
+  body {
+    background-color: #FAF8F5;
+    color: #18181B;
+    overflow-x: hidden;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F4EFEA;
+}
+::-webkit-scrollbar-thumb {
+  background: #D8D2C8;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FF4D6D;
+}
+
+/* Minimalist Clean Surfaces & Glassmorphism */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(228, 224, 216, 0.7);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+}
+
+.glass-card {
+  background: #FFFFFF;
+  border: 1px solid #ECE7DF;
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.08);
+  border-color: #E2DBD0;
+}
+
+/* Shutter flash overlay animation */
+@keyframes cameraFlash {
+  0% { opacity: 0; }
+  15% { opacity: 0.95; }
+  100% { opacity: 0; }
+}
+
+.camera-flash-active {
+  animation: cameraFlash 0.45s ease-out forwards;
+}
+
+/* Butterfly 3D Wing Flutter System (120 FPS Hardware-Accelerated) */
+.butterfly-perspective-stage {
+  perspective: 700px;
+  transform-style: preserve-3d;
+}
+
+@keyframes wingFlap3DLeft {
+  0%, 100% {
+    transform: rotateY(0deg) rotateZ(0deg) translateZ(0);
+  }
+  50% {
+    transform: rotateY(-66deg) rotateZ(-3.5deg) translateZ(2.5px);
+  }
+}
+
+@keyframes wingFlap3DRight {
+  0%, 100% {
+    transform: rotateY(0deg) rotateZ(0deg) translateZ(0);
+  }
+  50% {
+    transform: rotateY(66deg) rotateZ(3.5deg) translateZ(2.5px);
+  }
+}
+
+.flutter-wing-left {
+  transform-origin: right center;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+  will-change: transform;
+  animation: wingFlap3DLeft var(--flutter-duration, 0.12s) infinite cubic-bezier(0.42, 0.05, 0.58, 0.95);
+}
+
+.flutter-wing-right {
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+  will-change: transform;
+  animation: wingFlap3DRight var(--flutter-duration, 0.12s) infinite cubic-bezier(0.42, 0.05, 0.58, 0.95);
+}
+
+/* Floating animation */
+@keyframes softFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(1.5deg); }
+}
+
+.animate-float {
+  animation: softFloat 4.5s ease-in-out infinite;
+}
+
+/* Grid & Dots backgrounds with subtle neutral tone */
+.bg-dot-pattern {
+  background-image: radial-gradient(rgba(24, 24, 27, 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.font-handwriting {
+  font-family: 'Caveat', cursive;
+}
+
+/* Responsive Touch Interaction */
+.touch-pan-y {
+  touch-action: pan-y;
+}
+
+/* Continuous Dual Marquee Ribbons (Opposite directions) */
+@keyframes marqueeScrollLeft {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marqueeScrollRight {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee-left {
+  animation: marqueeScrollLeft 24s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-right {
+  animation: marqueeScrollRight 28s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-left:hover,
+.animate-marquee-right:hover {
+  animation-play-state: paused;
+}
+
+/* Accessibility: prefers-reduced-motion calm static fallback */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .flutter-wing-left,
+  .flutter-wing-right,
+  .animate-float,
+  .camera-flash-active,
+  .animate-marquee-left,
+  .animate-marquee-right {
+    animation: none !important;
+  }
+}
