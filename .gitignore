@@ -44,3 +44,6 @@ changes_log
 extracted_character_data.json
 frame_analysis.json
 extract_frames.cjs
+
+# CI / Workflows requiring elevated scopes
+.github/
