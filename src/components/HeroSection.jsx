@@ -64,7 +64,12 @@ export default function HeroSection({
     rafId: null
   });
 
-  // Preload high-res character pose assets immediately
+  const isInsideHeroRef = useRef(isInsideHero);
+  useEffect(() => {
+    isInsideHeroRef.current = isInsideHero;
+  }, [isInsideHero]);
+
+  // Preload and immediately decode high-res character pose assets into GPU memory
   useEffect(() => {
     [
       IMG_IDLE,
@@ -78,19 +83,23 @@ export default function HeroSection({
     ].forEach(src => {
       const img = new Image();
       img.src = src;
+      if (typeof img.decode === 'function') {
+        img.decode().catch(() => {});
+      }
     });
   }, []);
 
-  // Continuous 120 FPS rAF Animation Loop
+  // Continuous frame-rate independent rAF Animation Loop with delta time
   useEffect(() => {
     let active = true;
     let localRafId = null;
+    let lastTime = performance.now();
 
     if (reducedMotion) {
       if (stageRef.current) {
         stageRef.current.style.transform = 'none';
       }
-      const p = forcedState || (isInsideHero ? 'center' : 'idle');
+      const p = forcedState || (isInsideHeroRef.current ? 'center' : 'idle');
       if (imgIdleRef.current) imgIdleRef.current.style.opacity = p === 'idle' ? '1' : '0';
       if (imgCenterRef.current) imgCenterRef.current.style.opacity = p === 'center' ? '1' : '0';
       if (imgUpperCenterRef.current) imgUpperCenterRef.current.style.opacity = p === 'upper-center' ? '1' : '0';
@@ -105,18 +114,23 @@ export default function HeroSection({
       };
     }
 
-    const tick = () => {
+    const tick = (currentTime) => {
       if (!active) return;
       const state = animStateRef.current;
 
-      // High-precision damping lerp (exponential decay for smooth inertia)
-      const lerpRate = 0.085;
-      state.currentNormX += (state.targetNormX - state.currentNormX) * lerpRate;
-      state.currentNormY += (state.targetNormY - state.currentNormY) * lerpRate;
+      // Delta time in seconds, clamped between 1ms and 50ms
+      const dt = Math.min(Math.max((currentTime - lastTime) / 1000, 0.001), 0.05);
+      lastTime = currentTime;
 
-      // Smooth hover blend: 0 when cursor is outside hero, 1 when inside hero
+      // Frame-rate independent exponential damping (lambda = 15.0 for swift, buttery-smooth follow)
+      const lerpFactor = 1.0 - Math.exp(-15.0 * dt);
+      state.currentNormX += (state.targetNormX - state.currentNormX) * lerpFactor;
+      state.currentNormY += (state.targetNormY - state.currentNormY) * lerpFactor;
+
+      // Fast, responsive hover blend: 0 when cursor outside hero, 1 when inside
       const targetHover = state.isHovered ? 1 : 0;
-      state.hoverWeight += (targetHover - state.hoverWeight) * 0.1;
+      const hoverLerp = 1.0 - Math.exp(-18.0 * dt);
+      state.hoverWeight += (targetHover - state.hoverWeight) * hoverLerp;
 
       const curX = state.currentNormX;
       const curY = state.currentNormY;
@@ -133,7 +147,7 @@ export default function HeroSection({
       }
 
       // 2. Continuous Pose Crossfading with Cubic Hermite Smoothstep
-      let idleOp = 1 - state.hoverWeight;
+      let idleOp = Math.max(0, 1 - state.hoverWeight);
       let centerOp = 0;
       let upCenterOp = 0;
       let lowCenterOp = 0;
@@ -233,26 +247,56 @@ export default function HeroSection({
         cancelAnimationFrame(localRafId);
       }
     };
-  }, [reducedMotion, forcedState, isInsideHero]);
+  }, [reducedMotion, forcedState]);
 
-  // Pointer move handler with passive normalized calculation
-  const handlePointerMove = useCallback((e) => {
+  // High-performance passive window pointer tracking (0ms input latency, no React event queue overhead)
+  useEffect(() => {
     if (reducedMotion) return;
-    const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
-    const clientY = e.clientY ?? (e.touches && e.touches[0]?.clientY);
-    if (clientX === undefined || clientY === undefined) return;
 
-    const state = animStateRef.current;
-    state.pointerX = clientX;
-    state.pointerY = clientY;
+    const handleWindowPointer = (e) => {
+      const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
+      const clientY = e.clientY ?? (e.touches && e.touches[0]?.clientY);
+      if (clientX === undefined || clientY === undefined) return;
 
-    const w = window.innerWidth || 1920;
-    const h = window.innerHeight || 1080;
+      const state = animStateRef.current;
+      state.pointerX = clientX;
+      state.pointerY = clientY;
 
-    // Normalized coordinates from -0.5 to +0.5
-    state.targetNormX = Math.max(-0.5, Math.min(0.5, (clientX / w) - 0.5));
-    state.targetNormY = Math.max(-0.5, Math.min(0.5, (clientY / h) - 0.5));
-  }, [reducedMotion]);
+      const section = sectionRef.current;
+      if (!section) return;
+
+      const rect = section.getBoundingClientRect();
+      const isInside = (
+        clientX >= rect.left &&
+        clientX <= rect.right &&
+        clientY >= rect.top &&
+        clientY <= rect.bottom
+      );
+
+      if (isInside !== state.isHovered) {
+        state.isHovered = isInside;
+        setIsInsideHero(isInside);
+      }
+
+      if (isInside) {
+        const w = rect.width || window.innerWidth || 1920;
+        const h = rect.height || window.innerHeight || 1080;
+        state.targetNormX = Math.max(-0.5, Math.min(0.5, (clientX - rect.left) / w - 0.5));
+        state.targetNormY = Math.max(-0.5, Math.min(0.5, (clientY - rect.top) / h - 0.5));
+      } else {
+        state.targetNormX = 0;
+        state.targetNormY = 0;
+      }
+    };
+
+    window.addEventListener('pointermove', handleWindowPointer, { passive: true });
+    window.addEventListener('touchmove', handleWindowPointer, { passive: true });
+
+    return () => {
+      window.removeEventListener('pointermove', handleWindowPointer);
+      window.removeEventListener('touchmove', handleWindowPointer);
+    };
+  }, [reducedMotion, setIsInsideHero]);
 
   // Trigger Shutter Snap Action
   const triggerCapture = useCallback(() => {
@@ -318,7 +362,6 @@ export default function HeroSection({
         state.targetNormX = 0;
         state.targetNormY = 0;
       }}
-      onPointerMove={handlePointerMove}
       onClick={triggerCapture}
       className={`relative w-full h-screen min-h-screen overflow-hidden select-none bg-[#FAF8F5] flex items-center justify-center cursor-pointer ${
         isInsideHero && !reducedMotion ? 'cursor-none' : ''
@@ -341,78 +384,78 @@ export default function HeroSection({
           transformOrigin: 'center center'
         }}
       >
-        <div className="relative w-full h-full overflow-hidden">
+        <div className="relative w-full h-full overflow-hidden filter contrast-[1.04] brightness-[1.02]">
           <img
             ref={imgIdleRef}
             src={IMG_IDLE}
             alt="Idle Pose"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
-            style={{ opacity: 1, willChange: 'opacity' }}
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            style={{ opacity: 1, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
-            decoding="async"
+            decoding="sync"
           />
           <img
             ref={imgCenterRef}
             src={IMG_CENTER}
             alt="Center Pose"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
-            style={{ opacity: 0, willChange: 'opacity' }}
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
-            decoding="async"
+            decoding="sync"
           />
           <img
             ref={imgUpperCenterRef}
             src={IMG_UPPER_CENTER}
             alt="Upper Center Pose"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
-            style={{ opacity: 0, willChange: 'opacity' }}
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
-            decoding="async"
+            decoding="sync"
           />
           <img
             ref={imgLowerCenterRef}
             src={IMG_LOWER_CENTER}
             alt="Lower Center Pose"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
-            style={{ opacity: 0, willChange: 'opacity' }}
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
-            decoding="async"
+            decoding="sync"
           />
           <img
             ref={imgUpperLeftRef}
             src={IMG_UPPER_LEFT}
             alt="Upper Left Pose"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
-            style={{ opacity: 0, willChange: 'opacity' }}
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
-            decoding="async"
+            decoding="sync"
           />
           <img
             ref={imgLowerLeftRef}
             src={IMG_LOWER_LEFT}
             alt="Lower Left Pose"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
-            style={{ opacity: 0, willChange: 'opacity' }}
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
-            decoding="async"
+            decoding="sync"
           />
           <img
             ref={imgUpperRightRef}
             src={IMG_UPPER_RIGHT}
             alt="Upper Right Pose"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
-            style={{ opacity: 0, willChange: 'opacity' }}
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
-            decoding="async"
+            decoding="sync"
           />
           <img
             ref={imgLowerRightRef}
             src={IMG_LOWER_RIGHT}
             alt="Lower Right Pose"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none filter contrast-[1.04] brightness-[1.02]"
-            style={{ opacity: 0, willChange: 'opacity' }}
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
-            decoding="async"
+            decoding="sync"
           />
         </div>
       </div>
