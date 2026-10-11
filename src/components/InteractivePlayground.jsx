@@ -105,6 +105,8 @@ export default function InteractivePlayground({
                 { label: 'Auto', val: null },
                 { label: 'Idle', val: 'idle' },
                 { label: 'Center', val: 'center' },
+                { label: 'Left', val: 'left' },
+                { label: 'Right', val: 'right' },
                 { label: 'Up-Center', val: 'upper-center' },
                 { label: 'Down-Center', val: 'lower-center' },
                 { label: 'Up-Left', val: 'upper-left' },

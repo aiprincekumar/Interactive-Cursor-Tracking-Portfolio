@@ -21,6 +21,8 @@ const IMG_IDLE = `${BASE_URL}assets/character-idle.jpg`;
 const IMG_CENTER = `${BASE_URL}assets/character-center.jpg`;
 const IMG_UPPER_CENTER = `${BASE_URL}assets/character-upper-center.jpg`;
 const IMG_LOWER_CENTER = `${BASE_URL}assets/character-lower-center.jpg`;
+const IMG_LEFT = `${BASE_URL}assets/character-left.jpg`;
+const IMG_RIGHT = `${BASE_URL}assets/character-right.jpg`;
 const IMG_UPPER_LEFT = `${BASE_URL}assets/character-upper-left.jpg`;
 const IMG_LOWER_LEFT = `${BASE_URL}assets/character-lower-left.jpg`;
 const IMG_UPPER_RIGHT = `${BASE_URL}assets/character-upper-right.jpg`;
@@ -37,13 +39,15 @@ export default function HeroSection({
   const [isFlashing, setIsFlashing] = useState(false);
   const [photosCount, setPhotosCount] = useState(0);
 
-  // Direct DOM references for 120 FPS zero-render GPU updates
+  // Direct DOM references for 120 FPS zero-render GPU updates (10 Total: 9 Directions + 1 Idle)
   const sectionRef = useRef(null);
   const stageRef = useRef(null);
   const imgIdleRef = useRef(null);
   const imgCenterRef = useRef(null);
   const imgUpperCenterRef = useRef(null);
   const imgLowerCenterRef = useRef(null);
+  const imgLeftRef = useRef(null);
+  const imgRightRef = useRef(null);
   const imgUpperLeftRef = useRef(null);
   const imgLowerLeftRef = useRef(null);
   const imgUpperRightRef = useRef(null);
@@ -69,13 +73,15 @@ export default function HeroSection({
     isInsideHeroRef.current = isInsideHero;
   }, [isInsideHero]);
 
-  // Preload and immediately decode high-res character pose assets into GPU memory
+  // Preload and immediately decode all 10 character pose assets (9 Directional + 1 Idle) into GPU memory
   useEffect(() => {
     [
       IMG_IDLE,
       IMG_CENTER,
       IMG_UPPER_CENTER,
       IMG_LOWER_CENTER,
+      IMG_LEFT,
+      IMG_RIGHT,
       IMG_UPPER_LEFT,
       IMG_LOWER_LEFT,
       IMG_UPPER_RIGHT,
@@ -104,6 +110,8 @@ export default function HeroSection({
       if (imgCenterRef.current) imgCenterRef.current.style.opacity = p === 'center' ? '1' : '0';
       if (imgUpperCenterRef.current) imgUpperCenterRef.current.style.opacity = p === 'upper-center' ? '1' : '0';
       if (imgLowerCenterRef.current) imgLowerCenterRef.current.style.opacity = p === 'lower-center' ? '1' : '0';
+      if (imgLeftRef.current) imgLeftRef.current.style.opacity = p === 'left' ? '1' : '0';
+      if (imgRightRef.current) imgRightRef.current.style.opacity = p === 'right' ? '1' : '0';
       if (imgUpperLeftRef.current) imgUpperLeftRef.current.style.opacity = p === 'upper-left' ? '1' : '0';
       if (imgLowerLeftRef.current) imgLowerLeftRef.current.style.opacity = p === 'lower-left' ? '1' : '0';
       if (imgUpperRightRef.current) imgUpperRightRef.current.style.opacity = p === 'upper-right' ? '1' : '0';
@@ -146,11 +154,13 @@ export default function HeroSection({
         stageRef.current.style.transform = `perspective(1200px) rotateY(${rotateY}deg) rotateX(${rotateX}deg) translate3d(${transX}px, ${transY}px, 0) scale(1.06)`;
       }
 
-      // 2. Continuous Pose Crossfading with Cubic Hermite Smoothstep
+      // 2. Continuous 9-Direction Pose Crossfading with Cubic Hermite Smoothstep
       let idleOp = Math.max(0, 1 - state.hoverWeight);
       let centerOp = 0;
       let upCenterOp = 0;
       let lowCenterOp = 0;
+      let leftOp = 0;
+      let rightOp = 0;
       let upLeftOp = 0;
       let lowLeftOp = 0;
       let upRightOp = 0;
@@ -161,6 +171,8 @@ export default function HeroSection({
         centerOp = forcedState === 'center' ? 1 : 0;
         upCenterOp = forcedState === 'upper-center' ? 1 : 0;
         lowCenterOp = forcedState === 'lower-center' ? 1 : 0;
+        leftOp = forcedState === 'left' ? 1 : 0;
+        rightOp = forcedState === 'right' ? 1 : 0;
         upLeftOp = forcedState === 'upper-left' ? 1 : 0;
         lowLeftOp = forcedState === 'lower-left' ? 1 : 0;
         upRightOp = forcedState === 'upper-right' ? 1 : 0;
@@ -172,37 +184,40 @@ export default function HeroSection({
           return x * x * (3 - 2 * x);
         };
 
-        // Horizontal weights
-        const leftW = smoothstep(-0.05, -0.25, curX);
-        const rightW = smoothstep(0.05, 0.25, curX);
-        const centerHW = Math.max(0, 1 - leftW - rightW);
+        // 3 Horizontal Zones (Left, Center, Right)
+        const colLeft = smoothstep(-0.06, -0.22, curX);
+        const colRight = smoothstep(0.06, 0.22, curX);
+        const colCenter = Math.max(0, 1 - colLeft - colRight);
 
-        // Side Vertical Weights (Up/Down split)
-        const sideUpW = smoothstep(0.1, -0.1, curY);
-        const sideDownW = 1 - sideUpW;
-
-        // Center Column 3-Way Vertical Weights: Upper-Center, Center, Lower-Center
-        // curY ranges from -0.5 (top) to +0.5 (bottom)
-        const centerUp = smoothstep(-0.06, -0.24, curY);
-        const centerDown = smoothstep(0.06, 0.24, curY);
-        const centerMid = Math.max(0, 1 - centerUp - centerDown);
+        // 3 Vertical Zones (Upper, Middle, Lower)
+        const rowUp = smoothstep(-0.06, -0.22, curY);
+        const rowDown = smoothstep(0.06, 0.22, curY);
+        const rowMid = Math.max(0, 1 - rowUp - rowDown);
 
         const activeTrackingWeight = state.hoverWeight;
 
-        upLeftOp = leftW * sideUpW * activeTrackingWeight;
-        lowLeftOp = leftW * sideDownW * activeTrackingWeight;
-        upRightOp = rightW * sideUpW * activeTrackingWeight;
-        lowRightOp = rightW * sideDownW * activeTrackingWeight;
+        // Top row
+        upLeftOp = colLeft * rowUp * activeTrackingWeight;
+        upCenterOp = colCenter * rowUp * activeTrackingWeight;
+        upRightOp = colRight * rowUp * activeTrackingWeight;
 
-        upCenterOp = centerHW * centerUp * activeTrackingWeight;
-        lowCenterOp = centerHW * centerDown * activeTrackingWeight;
-        centerOp = centerHW * centerMid * activeTrackingWeight;
+        // Middle row
+        leftOp = colLeft * rowMid * activeTrackingWeight;
+        centerOp = colCenter * rowMid * activeTrackingWeight;
+        rightOp = colRight * rowMid * activeTrackingWeight;
+
+        // Bottom row
+        lowLeftOp = colLeft * rowDown * activeTrackingWeight;
+        lowCenterOp = colCenter * rowDown * activeTrackingWeight;
+        lowRightOp = colRight * rowDown * activeTrackingWeight;
 
         const ops = {
           'idle': idleOp,
           'center': centerOp,
           'upper-center': upCenterOp,
           'lower-center': lowCenterOp,
+          'left': leftOp,
+          'right': rightOp,
           'upper-left': upLeftOp,
           'lower-left': lowLeftOp,
           'upper-right': upRightOp,
@@ -225,6 +240,8 @@ export default function HeroSection({
       if (imgCenterRef.current) imgCenterRef.current.style.opacity = centerOp.toFixed(3);
       if (imgUpperCenterRef.current) imgUpperCenterRef.current.style.opacity = upCenterOp.toFixed(3);
       if (imgLowerCenterRef.current) imgLowerCenterRef.current.style.opacity = lowCenterOp.toFixed(3);
+      if (imgLeftRef.current) imgLeftRef.current.style.opacity = leftOp.toFixed(3);
+      if (imgRightRef.current) imgRightRef.current.style.opacity = rightOp.toFixed(3);
       if (imgUpperLeftRef.current) imgUpperLeftRef.current.style.opacity = upLeftOp.toFixed(3);
       if (imgLowerLeftRef.current) imgLowerLeftRef.current.style.opacity = lowLeftOp.toFixed(3);
       if (imgUpperRightRef.current) imgUpperRightRef.current.style.opacity = upRightOp.toFixed(3);
@@ -321,6 +338,8 @@ export default function HeroSection({
         'center': { src: IMG_CENTER, title: 'Signature Center Portrait' },
         'upper-center': { src: IMG_UPPER_CENTER, title: 'Upper Center Gaze' },
         'lower-center': { src: IMG_LOWER_CENTER, title: 'Lower Center Glance' },
+        'left': { src: IMG_LEFT, title: 'Profile Left Gaze' },
+        'right': { src: IMG_RIGHT, title: 'Profile Right Gaze' },
         'upper-left': { src: IMG_UPPER_LEFT, title: 'Upper Left Glance' },
         'lower-left': { src: IMG_LOWER_LEFT, title: 'Lower Left Glance' },
         'upper-right': { src: IMG_UPPER_RIGHT, title: 'Upper Right Glance' },
@@ -375,7 +394,7 @@ export default function HeroSection({
         }`}
       />
 
-      {/* 2. Full-Bleed Full-Width Character 2.5D Stage (Covers entire Hero Viewport) */}
+      {/* 2. Full-Bleed Full-Width Character 2.5D Stage (Covers entire Hero Viewport - 10 Total Poses) */}
       <div
         ref={stageRef}
         className="absolute inset-0 w-full h-full flex items-center justify-center will-change-transform pointer-events-none z-10 overflow-hidden"
@@ -416,6 +435,24 @@ export default function HeroSection({
             ref={imgLowerCenterRef}
             src={IMG_LOWER_CENTER}
             alt="Lower Center Pose"
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
+            loading="eager"
+            decoding="sync"
+          />
+          <img
+            ref={imgLeftRef}
+            src={IMG_LEFT}
+            alt="Left Pose"
+            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
+            loading="eager"
+            decoding="sync"
+          />
+          <img
+            ref={imgRightRef}
+            src={IMG_RIGHT}
+            alt="Right Pose"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
