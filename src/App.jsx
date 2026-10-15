@@ -117,7 +117,7 @@ export default function App() {
         <TechMarqueeBanner />
 
         {/* 3. "Who I am" / Personal Narrative & Education (Reel t=8.3s - 9.2s) */}
-        <AboutSection />
+        <AboutSection soundEnabled={soundEnabled} />
 
         {/* 4. "What I work with" / Interactive Skill Matrix & Dark Card (Reel t=9.3s - 11.8s) */}
         <SkillsSection />

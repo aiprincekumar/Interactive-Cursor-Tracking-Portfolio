@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Check, Send, ArrowUpRight, Copy } from 'lucide-react';
+import { Mail, MapPin, Check, Send, ArrowUpRight, Copy } from 'lucide-react';
 import {
   GithubIcon,
   LinkedinIcon,
@@ -14,49 +14,49 @@ import { soundFX } from '../utils/audio';
 const SOCIAL_LINKS = [
   {
     name: 'GitHub',
-    url: 'https://github.com/Sushmitha-Dasari',
+    url: '#',
     icon: GithubIcon,
-    ariaLabel: 'Visit GitHub Profile (Sushmitha-Dasari)',
+    ariaLabel: 'Visit GitHub Profile',
     hoverClass: 'hover:bg-[#18181B] hover:text-white hover:border-[#18181B]'
   },
   {
     name: 'LinkedIn',
-    url: 'https://www.linkedin.com/in/sushmitha-dasari-237a42284/',
+    url: '#',
     icon: LinkedinIcon,
-    ariaLabel: 'Visit LinkedIn Profile (sushmitha-dasari)',
+    ariaLabel: 'Visit LinkedIn Profile',
     hoverClass: 'hover:bg-[#0A66C2] hover:text-white hover:border-[#0A66C2]'
   },
   {
     name: 'Notion',
-    url: 'https://notion.so',
+    url: '#',
     icon: NotionIcon,
     ariaLabel: 'Visit Notion Workspace',
     hoverClass: 'hover:bg-[#2F3437] hover:text-white hover:border-[#2F3437]'
   },
   {
     name: 'Instagram',
-    url: 'https://instagram.com/srii_tech_',
+    url: '#',
     icon: InstagramIcon,
-    ariaLabel: 'Visit Instagram Profile (@srii_tech_)',
+    ariaLabel: 'Visit Instagram Profile',
     hoverClass: 'hover:bg-gradient-to-r hover:from-[#833AB4] hover:via-[#FD1D1D] hover:to-[#FCB045] hover:text-white hover:border-transparent'
   },
   {
     name: 'YouTube',
-    url: 'https://youtube.com',
+    url: '#',
     icon: YoutubeIcon,
     ariaLabel: 'Visit YouTube Channel',
     hoverClass: 'hover:bg-[#FF0000] hover:text-white hover:border-[#FF0000]'
   },
   {
     name: 'X (Twitter)',
-    url: 'https://x.com',
+    url: '#',
     icon: TwitterIcon,
     ariaLabel: 'Visit X (formerly Twitter) Profile',
     hoverClass: 'hover:bg-[#000000] hover:text-white hover:border-black'
   },
   {
     name: 'Facebook',
-    url: 'https://facebook.com',
+    url: '#',
     icon: FacebookIcon,
     ariaLabel: 'Visit Facebook Profile',
     hoverClass: 'hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2]'
@@ -68,7 +68,7 @@ export default function ContactSection() {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
 
-  const email = 'sushmitadasari17@gmail.com';
+  const email = 'Atulravi2015@gmail.com';
 
   const copyEmail = () => {
     navigator.clipboard.writeText(email);
@@ -109,7 +109,7 @@ export default function ContactSection() {
             </p>
 
             {/* Huge Hot Pink Email Pill CTA matching Reel t=16.5s */}
-            <div className="flex flex-wrap items-center gap-3 mb-10">
+            <div className="flex flex-wrap items-center gap-3 mb-6">
               <a
                 href={`mailto:${email}`}
                 className="inline-flex items-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-[#FF4D6D] hover:bg-[#E03554] text-white font-bold text-xs sm:text-sm tracking-wide shadow-xl shadow-pink-600/30 transition-all duration-200 active:scale-95 group"
@@ -128,6 +128,35 @@ export default function ContactSection() {
               >
                 {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
               </button>
+            </div>
+
+            {/* Contact Details: Direct Email & Location Card */}
+            <div className="space-y-3 mb-10">
+              <a
+                href={`mailto:${email}`}
+                className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E7E2D8] hover:border-[#FF4D6D]/40 text-stone-700 transition-all group"
+              >
+                <div className="w-9 h-9 rounded-xl bg-pink-50 border border-pink-100 flex items-center justify-center text-[#FF4D6D] group-hover:scale-105 transition-transform shrink-0">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <div className="text-[10px] font-mono text-stone-400 uppercase tracking-wider font-bold">Direct Email</div>
+                  <div className="text-xs sm:text-sm font-bold text-[#18181B] truncate">{email}</div>
+                </div>
+              </a>
+
+              {/* Standardized Location Card */}
+              <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E7E2D8] text-stone-700">
+                <div className="w-9 h-9 rounded-xl bg-pink-50 border border-pink-100 flex items-center justify-center text-[#FF4D6D] shrink-0 mt-0.5">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <div className="text-[10px] font-mono text-stone-400 uppercase tracking-wider font-bold">Location / Address</div>
+                  <div className="text-xs sm:text-sm font-bold text-[#18181B] leading-snug">
+                    Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Social Channels matching Reel & Hero Section */}
@@ -181,7 +210,7 @@ export default function ContactSection() {
                   <Check className="w-5 h-5" />
                 </div>
                 <div className="font-bold text-sm">Message Sent!</div>
-                <div className="text-xs text-emerald-700 mt-1">Thank you for reaching out, Sushmitha will respond shortly!</div>
+                <div className="text-xs text-emerald-700 mt-1">Thank you for reaching out, Atul will respond shortly!</div>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-3.5">

@@ -13,7 +13,7 @@ export default function Footer() {
       {/* Giant Faint Watermark Text matching Reel t=16.8s */}
       <div className="absolute inset-x-0 bottom-2 text-center pointer-events-none select-none overflow-hidden opacity-[0.06]">
         <span className="text-[14vw] font-black uppercase tracking-tighter text-white font-['Outfit',sans-serif] whitespace-nowrap">
-          SUSHMITHA DASARI
+          ATUL KANT VERMA
         </span>
       </div>
 
@@ -25,20 +25,12 @@ export default function Footer() {
           </div>
           <div>
             <div className="text-base font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
-              Sushmitha Dasari • Interactive Portfolio
+              Atul Kant Verma • Interactive Portfolio
             </div>
             <div className="text-xs text-stone-400 flex items-center gap-1.5 justify-center sm:justify-start mt-0.5">
-              <span>Full-Stack &amp; AI Undergraduate</span>
+              <span>Accountant &amp; Tax Consultant</span>
               <span className="text-stone-600">•</span>
-              <span>Based on</span>
-              <a
-                href="https://instagram.com/srii_tech_"
-                target="_blank"
-                rel="noreferrer"
-                className="font-bold text-[#FF4D6D] hover:underline"
-              >
-                @srii_tech_
-              </a>
+              <span>Business Development &amp; Office Administrator</span>
             </div>
           </div>
         </div>
@@ -52,7 +44,7 @@ export default function Footer() {
 
         {/* Right Links & Back to Top */}
         <div className="flex items-center gap-4">
-          <span className="text-xs text-stone-400 font-mono">© 2024 Sushmitha Dasari</span>
+          <span className="text-xs text-stone-400 font-mono">© 2026 Atul Kant Verma. All rights reserved.</span>
           <button
             type="button"
             onClick={scrollToTop}

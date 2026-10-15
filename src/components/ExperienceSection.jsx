@@ -5,53 +5,110 @@ import { soundFX } from '../utils/audio';
 const EXPERIENCES = [
   {
     id: 'exp-01',
-    period: '2024 — PRESENT',
-    status: 'Current Role',
-    role: 'Lead Creative Developer',
-    company: 'Independent & Studio Works',
-    location: 'Remote / Hybrid',
-    description: 'Architecting cinematic high-framerate web applications, 2.5D cursor kinematics, and AI compliance dashboards.',
+    period: '2023 — PRESENT',
+    status: 'Active Practice (3+ Yrs)',
+    role: 'GST & Income Tax Consultant',
+    company: 'Independent Tax Consultancy Practice',
+    location: 'Daltonganj, Jharkhand',
+    description: 'Managing end-to-end statutory taxation, monthly GSTR compliance, individual and business income tax returns, and client tax advisory.',
     deliverables: [
-      'Engineered multi-variant interactive cursor physics with spring kinematics at 120 FPS',
-      'Designed accessible zero-runtime design token system and responsive layout engine',
-      'Integrated procedural Web Audio synthesis for instantaneous tactile haptics'
+      'Filed 100+ monthly/quarterly GSTR-1 and GSTR-3B returns with zero late-fee compliance records',
+      'Conducted rigorous GSTR-2B vs purchase ledger ITC reconciliations, identifying duplicate or ineligible claims',
+      'Prepared and e-filed ITR-1, ITR-2, and ITR-4 returns for diverse salary and commercial business clients',
+      'Advised clients on tax planning, Section 115BAC regime comparison, and advance tax computations'
     ],
-    techStack: ['React 19', 'WebGL', 'Tailwind CSS', 'GLSL', 'Web Audio API', 'TypeScript'],
+    techStack: ['GST Portal', 'Income Tax E-Filing', 'Tally Prime', 'MS Excel', 'Form 26AS / AIS', 'E-Way Bill'],
     accentColor: '#FF4D6D',
     activeHighlight: true
   },
   {
     id: 'exp-02',
-    period: '2023 — 2024',
-    status: 'Enterprise Systems',
-    role: 'AI Systems Engineer',
-    company: 'Enterprise Legal & FinTech',
-    location: 'Production Systems',
-    description: 'Engineered vector graph retrieval pipelines, sub-second latency inference gates, and compliance telemetry.',
+    period: '2022 — PRESENT',
+    status: 'Core Accounting (4+ Yrs)',
+    role: 'Senior Tally Accountant',
+    company: 'Commercial & Retail Enterprises',
+    location: 'Medininagar (Palamau), Jharkhand',
+    description: 'Directing full-cycle double-entry bookkeeping, daily vouchers, inventory accounting, bank reconciliations, and year-end balance sheet finalization.',
     deliverables: [
-      'Built automated legal verification pipelines handling multimodal document intelligence',
-      'Optimized vector search inference latency down from 1.4s to under 180ms',
-      'Engineered ACID-compliant audit logging and state-machine transaction safety'
+      'Maintained multi-company accounts with comprehensive ledger hierarchy, cash book, and day book governance',
+      'Processed automated Bank Reconciliation Statements (BRS) across multiple commercial banking accounts',
+      'Administered inventory batches, purchase orders, sales invoices, and stock valuation in Tally Prime & ERP 9',
+      'Generated accurate monthly Trial Balances, P&L statements, and audit-ready final Balance Sheets'
     ],
-    techStack: ['Python', 'PyTorch', 'LangChain', 'FastAPI', 'Vector Search', 'PostgreSQL'],
+    techStack: ['Tally Prime', 'Tally.ERP 9', 'Financial Auditing', 'BRS', 'Advanced Excel', 'Voucher Control'],
+    accentColor: '#10B981',
+    activeHighlight: true
+  },
+  {
+    id: 'exp-03',
+    period: '2021 — 2023',
+    status: 'Government Skill Mission',
+    role: 'MIS Executive',
+    company: 'DAY-NULM (National Urban Livelihoods Mission)',
+    location: 'Jharkhand Region',
+    description: 'Spearheaded database administration, candidate enrollment tracking, biometric attendance, and analytical reporting for Skill India urban training initiatives.',
+    deliverables: [
+      'Maintained real-time trainee lifecycle databases across batch mobilization, classroom attendance, and certification',
+      'Compiled daily, weekly, and monthly MIS progress analytics for district urban development agencies (DUDAs)',
+      'Managed official central/state portal data synchronization with 100% data integrity and zero error margins',
+      'Coordinated assessment scheduling, placement documentation, and post-placement tracking dashboards'
+    ],
+    techStack: ['DAY-NULM Portal', 'Skill India SDMS', 'Advanced Excel', 'MIS Reporting', 'Data Analytics', 'Biometric Systems'],
     accentColor: '#8B5CF6',
     activeHighlight: false
   },
   {
-    id: 'exp-03',
-    period: '2022 — 2023',
-    status: 'Foundations & R&D',
-    role: 'Creative Coding & WebGL',
-    company: 'Frontend Innovations',
-    location: 'Aditya & Labs',
-    description: 'Prototyped GLSL fragment shader art, GPU particle simulations, and accessibility-first motion tokens.',
+    id: 'exp-04',
+    period: '2020 — 2022',
+    status: 'FMCG Distribution',
+    role: 'Accountant & Inventory Controller',
+    company: 'Junks Food Agency',
+    location: 'Medininagar, Jharkhand',
+    description: 'Executed commercial point-of-sale billing, inventory flow, franchise settlements, and vendor accounts using Path Solution ERP software.',
     deliverables: [
-      'Constructed GPU-accelerated particle canvas supporting 250k real-time simulated nodes',
-      'Programmed custom GLSL fragment shaders for procedural noise and fluid dynamics',
-      'Trained in full-stack enterprise engineering and algorithms at Technical Hub'
+      'Operated Path Solution software for high-frequency distributor billing, stock entry, and daily sales closing',
+      'Tracked warehouse stock intake, FIFO batch rotations, breakage claims, and transit loss reconciliations',
+      'Managed vendor ledger accounts, distributor credit terms, and daily route-van collection settlements',
+      'Prepared weekly sales velocity reports and stock replenishment requisitions for brand principals'
     ],
-    techStack: ['JavaScript', 'Three.js', 'GLSL Shaders', 'Node.js', 'Canvas API', 'Java'],
+    techStack: ['Path Solution ERP', 'Inventory Control', 'Wholesale Billing', 'Vendor Ledger', 'Cash Reconciliation', 'Stock Auditing'],
+    accentColor: '#F59E0B',
+    activeHighlight: false
+  },
+  {
+    id: 'exp-05',
+    period: '2019 — 2021',
+    status: 'Field Operations',
+    role: 'Smart Card Operations Specialist',
+    company: 'Regional E-Governance & Citizen ID Project',
+    location: '4 Districts (Palamau, Garhwa, Chatra, Rohtas)',
+    description: 'Supervised biometric enrollment, card personalization, secure chip encoding, and citizen distribution workflows across 4 administrative districts.',
+    deliverables: [
+      'Orchestrated mobile field enrollment camps and district headquarters card distribution across Bihar & Jharkhand',
+      'Validated citizen demographic databases and KYC identity credentials against statutory guidelines',
+      'Maintained hardware peripherals: fingerprint scanners, digital signature pads, and thermal card printers',
+      'Trained local operator teams on secure field data capture, backup protocols, and grievance resolution'
+    ],
+    techStack: ['Smart Card Encoding', 'Biometric Enrollment', 'District Logistics', 'KYC Verification', 'Field Ops', 'Hardware Maintenance'],
     accentColor: '#3B82F6',
+    activeHighlight: false
+  },
+  {
+    id: 'exp-06',
+    period: '2018 — 2020',
+    status: 'Academic & IT Training',
+    role: 'Computer Instructor & Academic Tutor',
+    company: 'Computer Training Institute & Private Academy',
+    location: 'Daltonganj, Jharkhand',
+    description: 'Instructed diploma students in computer applications, office productivity suites, desktop publishing, and foundational hardware troubleshooting.',
+    deliverables: [
+      'Delivered structured lectures and hands-on laboratory sessions on MS Office (Word, Excel, PowerPoint)',
+      'Taught Desktop Publishing (DTP) workflows covering Adobe Photoshop, CorelDraw, and Adobe PageMaker',
+      'Guided students through practical accounting entries and voucher fundamentals in Tally ERP 9',
+      'Provided private tutoring in academic subjects and practical computer literacy for aspiring professionals'
+    ],
+    techStack: ['MS Office Suite', 'Adobe Photoshop', 'CorelDraw', 'Adobe PageMaker', 'Tally Fundamentals', 'Teaching & Mentoring'],
+    accentColor: '#EC4899',
     activeHighlight: false
   }
 ];
@@ -84,7 +141,7 @@ export default function ExperienceSection() {
             </h2>
             <div className="w-12 h-1 bg-[#FF4D6D] rounded-full mt-4" />
             <p className="mt-3 text-stone-600 text-sm md:text-base max-w-xl font-normal leading-relaxed">
-              Production engineering milestones bridging interactive frontend mechanics with high-assurance AI backend systems.
+              Comprehensive career journey spanning financial accounting, statutory GST/Income Tax compliance, government skill mission MIS, and regional field operations.
             </p>
           </div>
 
@@ -92,13 +149,13 @@ export default function ExperienceSection() {
           <div className="flex items-center gap-3 bg-[#FAF8F5] px-4 py-2.5 rounded-2xl border border-[#ECE7DF] shadow-2xs self-start md:self-end">
             <Calendar className="w-4 h-4 text-[#FF4D6D]" />
             <span className="text-xs sm:text-sm font-mono font-bold text-[#18181B]">
-              2022 — 2026 • 4 Years of Creative Engineering
+              2018 — 2026 • 7+ Years of Multifaceted Operations &amp; Accounting
             </span>
           </div>
         </div>
 
         {/* Interactive Milestone Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
           {EXPERIENCES.map((exp) => {
             const isSelected = activeCard === exp.id;
             return (

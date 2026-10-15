@@ -694,10 +694,10 @@ export default function HeroSection({
       <div className="absolute bottom-8 left-6 md:left-12 z-20 flex flex-col gap-3 pointer-events-auto">
         <div className="space-y-0.5">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#18181B] tracking-tight leading-tight font-['Outfit',sans-serif] drop-shadow-xs">
-            Full-stack developer.
+            Accountant &amp; Tax Consultant.
           </h1>
           <p className="text-sm sm:text-base md:text-lg font-semibold text-[#27272A] tracking-tight drop-shadow-2xs">
-            AI &amp; ML undergraduate.
+            Business Development &amp; Office Administrator.
           </p>
         </div>
 
@@ -705,11 +705,12 @@ export default function HeroSection({
         <div className="flex items-center gap-2 flex-wrap pt-1">
           {/* Notion */}
           <a
-            href="https://notion.so"
-            target="_blank"
-            rel="noreferrer noopener"
+            href="#"
             aria-label="Visit Notion Profile"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
             title="Notion"
           >
@@ -718,24 +719,26 @@ export default function HeroSection({
 
           {/* GitHub */}
           <a
-            href="https://github.com/Sushmitha-Dasari"
-            target="_blank"
-            rel="noreferrer noopener"
+            href="#"
             aria-label="Visit GitHub Profile"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
-            title="GitHub"
+            title="GitHub (Coming Soon)"
           >
             <GithubIcon className="w-4 h-4" />
           </a>
 
           {/* LinkedIn */}
           <a
-            href="https://www.linkedin.com/in/sushmitha-dasari-237a42284/"
-            target="_blank"
-            rel="noreferrer noopener"
+            href="#"
             aria-label="Visit LinkedIn Profile"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
             title="LinkedIn"
           >
@@ -744,11 +747,12 @@ export default function HeroSection({
 
           {/* YouTube */}
           <a
-            href="https://youtube.com"
-            target="_blank"
-            rel="noreferrer noopener"
+            href="#"
             aria-label="Visit YouTube Channel"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
             title="YouTube"
           >
@@ -757,11 +761,12 @@ export default function HeroSection({
 
           {/* Facebook */}
           <a
-            href="https://facebook.com"
-            target="_blank"
-            rel="noreferrer noopener"
+            href="#"
             aria-label="Visit Facebook Profile"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
             title="Facebook"
           >
@@ -770,11 +775,12 @@ export default function HeroSection({
 
           {/* Instagram */}
           <a
-            href="https://instagram.com/srii_tech_"
-            target="_blank"
-            rel="noreferrer noopener"
+            href="#"
             aria-label="Visit Instagram Profile"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
             title="Instagram"
           >
@@ -783,11 +789,12 @@ export default function HeroSection({
 
           {/* X / Twitter */}
           <a
-            href="https://x.com"
-            target="_blank"
-            rel="noreferrer noopener"
+            href="#"
             aria-label="Visit X (formerly Twitter) Profile"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
             title="X (formerly Twitter)"
           >

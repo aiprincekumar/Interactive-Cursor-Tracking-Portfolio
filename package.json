@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "generate:resume": "node scripts/generate_resume.js",
+    "prebuild": "npm run generate:resume",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",

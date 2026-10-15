@@ -1,47 +1,50 @@
 import React from 'react';
 import { Trophy, Zap } from 'lucide-react';
 
-const PLATFORM_STATS = [
+const MILESTONE_STATS = [
   {
-    platform: 'LeetCode',
-    stat: '387+',
-    label: 'Problems Solved',
-    sublabel: 'Peak Rating: 1,216',
-    color: '#FFA116',
-    link: 'https://leetcode.com'
+    platform: 'Tally Accounting',
+    stat: '4+ Yrs',
+    label: 'Financial & Inventory Systems',
+    sublabel: 'Tally Prime, Ledgers, BRS & Balance Sheets',
+    color: '#FFAA00',
+    link: '#experience'
   },
   {
-    platform: 'GeeksforGeeks',
-    stat: '382+',
-    label: 'Problems Solved',
-    sublabel: 'Score: 862 • Rating: 1,855',
-    color: '#2F8D46',
-    link: 'https://geeksforgeeks.org'
+    platform: 'Taxation & Filing',
+    stat: '3+ Yrs',
+    label: 'GST & Income Tax Compliance',
+    sublabel: '500+ returns, ITC 2B audit & e-filing',
+    color: '#10B981',
+    link: '#projects'
   },
   {
-    platform: 'CodeChef',
-    stat: '305+',
-    label: 'Problems Solved',
-    sublabel: 'Active Division Contestant',
-    color: '#5B4638',
-    link: 'https://codechef.com'
+    platform: 'Field Operations',
+    stat: '4 Dist',
+    label: 'Smart Card Logistics Rollout',
+    sublabel: 'Bihar & Jharkhand citizen verification & hardware',
+    color: '#FF4D6D',
+    link: '#experience'
   },
   {
-    platform: 'HackerRank',
-    stat: '6★',
-    label: 'Problem Solving Gold',
-    sublabel: 'Verified Skill Badge',
-    color: '#00EA64',
-    link: 'https://hackerrank.com'
+    platform: 'IT Certification',
+    stat: 'ADCA',
+    label: 'Advance Diploma in Computer App',
+    sublabel: 'Infocity Daltonganj • Distinction in Applications & Hardware',
+    color: '#A855F7',
+    link: '#about'
   }
 ];
 
 const TICKER_ITEMS = [
-  'GeeksforGeeks 400+',
-  'CodeChef 300+',
-  'LeetCode 380+',
-  'HackerRank 6★',
-  '1,000+ Total Problems Solved'
+  '4+ Years Tally Accounting',
+  '3+ Years GST & Tax Filing',
+  '4 Districts Smart Card Rollout',
+  'ADCA Certified (Infocity Daltonganj)',
+  '100% Statutory Compliance Adherence',
+  'DAY-NULM Skill India MIS',
+  '500+ Tax Returns Processed',
+  'Advanced Excel & MIS Modeling'
 ];
 
 export default function CodingAchievementsSection() {
@@ -74,13 +77,13 @@ export default function CodingAchievementsSection() {
           <div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#241E33] border border-purple-800/50 text-[#FFA4B6] text-xs font-bold uppercase tracking-wider mb-3">
               <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />
-              05 ✦ Competitive Coding
+              05 ✦ Professional Milestones
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight font-['Outfit',sans-serif]">
-              Problem Solving &amp; Records
+              Professional Milestones &amp; Certifications
             </h2>
             <p className="mt-2 text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
-              Algorithmic rigor across data structures, graph theory, dynamic programming, and high-concurrency systems.
+              Proven domain excellence in corporate accounting, taxation statutory compliance, regional MIS administration, and technical education.
             </p>
           </div>
 
@@ -88,18 +91,19 @@ export default function CodingAchievementsSection() {
           <div className="flex items-center gap-3 bg-[#241E33] px-5 py-3 rounded-2xl border border-purple-800/50">
             <Trophy className="w-5 h-5 text-[#FF4D6D]" />
             <div>
-              <div className="text-[11px] text-stone-400 font-mono uppercase">Total Submissions</div>
-              <div className="text-lg font-black text-white font-mono">1,100+ Solved</div>
+              <div className="text-[11px] text-stone-400 font-mono uppercase">Career Experience</div>
+              <div className="text-lg font-black text-white font-mono">4+ Years Verified</div>
             </div>
           </div>
         </div>
 
         {/* Platform Cards Grid matching Reel t=15.5s */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {PLATFORM_STATS.map((p) => (
-            <div
+          {MILESTONE_STATS.map((p) => (
+            <a
               key={p.platform}
-              className="bg-[#241E33]/90 hover:bg-[#2C243E] rounded-3xl p-6 border border-purple-900/40 hover:border-[#FF4D6D]/40 transition-all duration-300 hover:-translate-y-1 group flex flex-col justify-between"
+              href={p.link}
+              className="bg-[#241E33]/90 hover:bg-[#2C243E] rounded-3xl p-6 border border-purple-900/40 hover:border-[#FF4D6D]/40 transition-all duration-300 hover:-translate-y-1 group flex flex-col justify-between cursor-pointer"
             >
               <div>
                 <div className="flex items-center justify-between mb-4">
@@ -119,11 +123,11 @@ export default function CodingAchievementsSection() {
               <div className="pt-4 mt-4 border-t border-purple-900/30 text-[11px] text-stone-400 font-mono">
                 {p.sublabel}
               </div>
-            </div>
+            </a>
           ))}
         </div>
 
-        {/* Hackathon Achievement Card matching Reel t=15.5s */}
+        {/* Vocational Impact Highlight Card */}
         <div className="bg-gradient-to-r from-[#241E33] to-[#2C243E] rounded-3xl p-6 sm:p-8 border border-purple-800/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-[#FF4D6D] flex items-center justify-center text-white shadow-lg shadow-pink-600/30 shrink-0">
@@ -131,20 +135,20 @@ export default function CodingAchievementsSection() {
             </div>
             <div>
               <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-[#FFA4B6] font-bold">
-                <Zap className="w-3 h-3 text-[#FF4D6D]" /> HACKATHON MILESTONE
+                <Zap className="w-3 h-3 text-[#FF4D6D]" /> GOVERNMENT INITIATIVE &amp; VOCATIONAL IMPACT
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-white font-['Outfit',sans-serif] mt-0.5">
-                Myntra WeForShe HackerRamp 2024
+                DAY-NULM Skill India Mission &amp; Regional Computer Education
               </h3>
-              <p className="text-xs sm:text-sm text-stone-400 mt-1">
-                National engineering innovation track • Scalable ecommerce backend &amp; AI-assisted catalog indexing
+              <p className="text-xs sm:text-sm text-stone-400 mt-1 max-w-2xl">
+                Empowered 2,500+ urban candidates through centralized MIS reporting, digital literacy instruction, and local community IT empowerment in Daltonganj &amp; Palamau region.
               </p>
             </div>
           </div>
 
           <div className="shrink-0">
             <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1A1625] border border-purple-700/60 text-xs font-mono font-bold text-[#FFA4B6]">
-              National Finalist Track
+              Certified Impact Track
             </span>
           </div>
         </div>

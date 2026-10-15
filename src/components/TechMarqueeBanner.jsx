@@ -1,20 +1,28 @@
 import React from 'react';
 
 const TOP_ITEMS = [
-  'React',
-  'Node.js',
-  'PostgreSQL',
-  'Docker',
-  'Python',
-  'AWS',
+  'Tally Prime',
+  'GST Portal',
+  'Income Tax E-Filing',
+  'MS Excel (Advanced)',
+  'Path Solution ERP',
+  'Adobe Photoshop',
+  'CorelDraw',
+  'PageMaker',
+  'Windows 11 OS',
+  'ADCA Infocity',
 ];
 
 const BOTTOM_ITEMS = [
-  'Services',
-  'System design',
-  'Cloud computing (AWS)',
-  'Web Development',
-  'Applied AI & ML',
+  'Tax Advisory & Filing',
+  'Financial Accounting',
+  'GST Compliance & ITC',
+  'MIS Executive Analytics',
+  'Inventory & Stock Control',
+  'DAY-NULM Skill Mission',
+  'Smart Card Operations',
+  'Office Administration',
+  'Business Development',
 ];
 
 export default function TechMarqueeBanner() {

@@ -2,181 +2,229 @@ import React, { useState } from 'react';
 import { soundFX } from '../utils/audio';
 
 const SKILL_DATA = {
-  Java: {
-    category: 'Languages',
-    title: 'Java',
-    level: '95%',
-    tag: 'Primary Core Language',
-    points: [
-      'Primary language for Data Structures, Algorithms, and enterprise backends.',
-      'Extensive experience with Object-Oriented Design Principles (SOLID) and Design Patterns.',
-      'Multithreaded concurrent systems, JVM memory profiling, and garbage collection tuning.',
-      'Oracle Certified Foundation Associate & HackerRank 5-Star Problem Solver.'
-    ]
-  },
-  Python: {
-    category: 'Languages',
-    title: 'Python',
-    level: '92%',
-    tag: 'AI / ML & Microservices',
-    points: [
-      'FastAPI & Flask RESTful microservice development.',
-      'Data preprocessing with NumPy, Pandas, and Scikit-Learn.',
-      'LangChain & Hugging Face transformer integration for document intelligence.',
-      'Asynchronous task scheduling and automated compliance ingestion pipelines.'
-    ]
-  },
-  'C': {
-    category: 'Languages',
-    title: 'C',
-    level: '88%',
-    tag: 'Systems Programming',
-    points: [
-      'Low-level memory management with malloc/free and pointer arithmetic.',
-      'Data structure implementations from scratch (Linked Lists, Binary Trees, Hash Maps).',
-      'Operating system fundamentals, system calls, and Unix process management.'
-    ]
-  },
-  'C++': {
-    category: 'Languages',
-    title: 'C++',
-    level: '90%',
-    tag: 'Competitive Programming',
-    points: [
-      'STL containers (vector, map, set, priority_queue) and algorithm optimizations.',
-      'Object-Oriented programming with templates and RAII memory safety.',
-      'High-speed competitive programming on LeetCode (387+) and GeeksforGeeks (382+).'
-    ]
-  },
-  React: {
-    category: 'Frontend',
-    title: 'React 19',
-    level: '96%',
-    tag: 'Modern UI & Shaders',
-    points: [
-      'React 19 Server Components, Actions, and optimistic UI transitions.',
-      'High-framerate 60–120 FPS cursor kinematics, rAF animation loops, and canvas graphics.',
-      'State management, custom hooks, and zero-runtime CSS tokens.'
-    ]
-  },
-  HTML: {
-    category: 'Frontend',
-    title: 'HTML5 Semantic',
+  // --- Category 1: Accounting & Tax ---
+  'Tally Prime & ERP 9': {
+    category: 'Accounting & Tax',
+    title: 'Tally Prime & ERP 9',
     level: '98%',
-    tag: 'Web Standards',
+    tag: 'Comprehensive Financial Accounting',
     points: [
-      'Accessible semantic structure (WAI-ARIA, landmarks, screen-reader compliance).',
-      'Modern web capabilities: Canvas 2D, Web Audio API, and WebGL context setup.'
+      'End-to-end company creation, chart of accounts setup, and multi-ledger hierarchy structuring.',
+      'Voucher entry lifecycle: sales, purchase, payment, receipt, debit/credit notes, and journal adjustments.',
+      'Real-time inventory management, stock valuation (FIFO/weighted average), and batch-wise tracking.',
+      'Trial Balance reconciliation, Profit & Loss statement generation, and final Balance Sheet finalization.'
     ]
   },
-  CSS: {
-    category: 'Frontend',
-    title: 'CSS3 & Glassmorphism',
+  'GST Filing & Compliance': {
+    category: 'Accounting & Tax',
+    title: 'GST Filing & Compliance',
     level: '96%',
-    tag: 'Design Engineering',
+    tag: 'Indirect Taxation & Portal Filing',
     points: [
-      'Complex 3D transforms (`perspective`, `rotateY`, `translate3d`).',
-      'GPU hardware acceleration, smoothstep cubic Hermite easing, and sub-pixel antialiasing.'
+      'Monthly and quarterly GSTR-1 outward supplies return preparation and online JSON submission.',
+      'GSTR-3B monthly summary tax computation, input tax credit (ITC) netting, and cash ledger offset.',
+      'GSTR-2B vs purchase ledger reconciliation to detect missing ITC and supplier mismatch.',
+      'E-way bill generation, GST e-invoicing compliance, and notice response advisory.'
     ]
   },
-  JavaScript: {
-    category: 'Frontend',
-    title: 'Modern JavaScript (ES6+)',
-    level: '96%',
-    tag: 'Full-Stack Core',
-    points: [
-      'Asynchronous event loop, Promises, Async/Await, and Web Workers.',
-      'DOM performance tuning, passive event listeners, and layout thrashing elimination.'
-    ]
-  },
-  'Tailwind CSS': {
-    category: 'Frontend',
-    title: 'Tailwind CSS v4',
-    level: '98%',
-    tag: 'Design Systems',
-    points: [
-      'Zero-runtime design tokens and modern theme directives.',
-      'Responsive mobile-first grid systems, fluid typography, and dark mode palette.'
-    ]
-  },
-  'Node.js': {
-    category: 'Backend',
-    title: 'Node.js',
-    level: '92%',
-    tag: 'Event-Driven Server',
-    points: [
-      'High-throughput asynchronous non-blocking event-driven architectures.',
-      'Express.js and Fastify API gateways with JWT authentication and rate limiting.',
-      'Streams, Buffers, and WebSockets for real-time telemetry pipelines.'
-    ]
-  },
-  'PostgreSQL': {
-    category: 'Backend',
-    title: 'PostgreSQL',
+  'Income Tax E-Filing': {
+    category: 'Accounting & Tax',
+    title: 'Income Tax E-Filing',
     level: '94%',
-    tag: 'Relational Database',
+    tag: 'Direct Taxation & ITR Returns',
     points: [
-      'ACID transactional guarantees with row-level locks and isolation levels.',
-      'Complex joins, CTEs, JSONB document querying, and b-tree indexing strategies.',
-      'Schema migrations and connection pooling with pgBouncer.'
+      'Preparation and e-filing of ITR-1 (Sahaj), ITR-2, and ITR-4 (Sugam) on the Income Tax portal.',
+      'Reconciliation of Annual Information Statement (AIS) and Form 26AS with books of account.',
+      'Tax computation under both Old and New Tax Regimes (Section 115BAC) for optimal tax saving.',
+      'Advance tax calculations, self-assessment tax challan generation, and refund status tracking.'
     ]
   },
-  'AWS': {
-    category: 'Cloud & DevOps',
-    title: 'Amazon Web Services',
-    level: '88%',
-    tag: 'Cloud Infrastructure',
-    points: [
-      'EC2, S3, RDS PostgreSQL, IAM security roles, and CloudFront CDN.',
-      'AWS Bedrock LLM foundation model integrations.',
-      'Serverless Lambda functions and API Gateway orchestration.'
-    ]
-  },
-  'Docker': {
-    category: 'Cloud & DevOps',
-    title: 'Docker',
-    level: '90%',
-    tag: 'Containerization',
-    points: [
-      'Multi-stage Dockerfile builds for minimal production image footprint.',
-      'Docker Compose orchestration for multi-container microservice stacks.',
-      'Consistent reproducible development environments across machines.'
-    ]
-  },
-  'Git': {
-    category: 'Cloud & DevOps',
-    title: 'Git & GitHub',
+  'Financial Auditing & Ledgers': {
+    category: 'Accounting & Tax',
+    title: 'Financial Auditing & Ledgers',
     level: '95%',
-    tag: 'Version Control',
+    tag: 'Statutory Books & Verification',
     points: [
-      'Branching strategies, interactive rebasing, merge conflicts resolution.',
-      'GitHub Actions CI/CD pipelines for automated testing and deployment.'
+      'In-depth scrutiny of general ledgers, subsidiary books, cash book, and day book records.',
+      'Bank reconciliation statements (BRS) with automated clearing and uncredited cheque adjustment.',
+      'Sundry debtors and creditors aging analysis with physical voucher verification.',
+      'Year-end provision creation, depreciation scheduling, and audit trail preparation.'
+    ]
+  },
+
+  // --- Category 2: Software & Applications ---
+  'MS Excel (Advanced)': {
+    category: 'Software & Applications',
+    title: 'MS Excel (Advanced)',
+    level: '97%',
+    tag: 'Financial Modeling & Analysis',
+    points: [
+      'Advanced lookup formulas: XLOOKUP, VLOOKUP, INDEX/MATCH, and dynamic array functions.',
+      'Pivot Tables, slicers, calculated fields, and multi-source financial dashboards.',
+      'Data validation rules, conditional formatting alerts, and nested logical statements (IFS/AND/OR).',
+      'What-If analysis, goal seek, and structured financial summary consolidation.'
+    ]
+  },
+  'MS Office (Word & PPT)': {
+    category: 'Software & Applications',
+    title: 'MS Office (Word & PowerPoint)',
+    level: '96%',
+    tag: 'Documentation & Presentations',
+    points: [
+      'Official memorandum drafting, executive letters, and mail merge documentation in MS Word.',
+      'Corporate review presentations, stakeholder pitch decks, and visual infographics in MS PowerPoint.',
+      'Template standardization, formatting governance, and professional business stationery.',
+      'PDF publication, digital signing readiness, and collaborative document review.'
+    ]
+  },
+  'DTP Design Suite': {
+    category: 'Software & Applications',
+    title: 'Desktop Publishing (DTP Suite)',
+    level: '92%',
+    tag: 'Commercial Layouts & Graphics',
+    points: [
+      'Commercial brochure, bill book, banner, and stationery layout design in Adobe Photoshop.',
+      'Vector graphics, certificate borders, logos, and publication artwork in CorelDraw.',
+      'Page composition, book formatting, newspaper layouts, and typesetting in Adobe PageMaker.',
+      'Print production setup: CMYK color separation, resolution scaling, and prepress alignment.'
+    ]
+  },
+  'Path Solution ERP': {
+    category: 'Software & Applications',
+    title: 'Path Solution ERP',
+    level: '94%',
+    tag: 'FMCG & Agency Management',
+    points: [
+      'High-frequency wholesale invoicing, retail point-of-sale billing, and barcode integration.',
+      'Distributor inventory control, batch expiry alerts, and purchase order tracking.',
+      'Franchise vendor settlement, commission calculations, and path database reconciliations.',
+      'Daily sales collection summaries and agency logistics dispatch reports.'
+    ]
+  },
+
+  // --- Category 3: IT Systems & Hardware ---
+  'Windows OS Administration': {
+    category: 'IT Systems & Hardware',
+    title: 'Windows OS Administration',
+    level: '95%',
+    tag: 'Workstation Deployments & OS Support',
+    points: [
+      'Installation, clean configuration, and deployment of Windows 10/11 Professional environments.',
+      'User account management, local group policies, permissions, and security hardening.',
+      'Automated system backup routines, disk partitioning (GPT/MBR), and restore point administration.',
+      'Peripheral driver configuration, printer spooling, and USB security policy enforcement.'
+    ]
+  },
+  'Computer Applications (ADCA)': {
+    category: 'IT Systems & Hardware',
+    title: 'Computer Applications (ADCA)',
+    level: '96%',
+    tag: 'Diploma Certified Computing Foundations',
+    points: [
+      'Advance Diploma in Computer Application (ADCA) credential from Infocity Daltonganj.',
+      'Comprehensive curriculum mastery: database basics, spreadsheet computing, and desktop publishing.',
+      'Internet communications, digital office workflows, and secure browser-based e-governance.',
+      'Bilingual data processing, typing fluency in Hindi & English, and rapid clerical throughput.'
+    ]
+  },
+  'Hardware Diagnosis & Maintenance': {
+    category: 'IT Systems & Hardware',
+    title: 'Hardware Diagnosis & Maintenance',
+    level: '92%',
+    tag: 'PC Architecture & Component Repair',
+    points: [
+      'Desktop workstation assembly, SMPS power unit testing, and motherboard diagnostics.',
+      'RAM upgrades, thermal paste reapplication, SSD migration, and BIOS/UEFI configuration.',
+      'Display troubleshooting, peripheral fault isolation, and hardware failure triage.',
+      'Preventive hardware cleaning, dust suppression, and power-surge protection protocols.'
+    ]
+  },
+  'Network & Software Support': {
+    category: 'IT Systems & Hardware',
+    title: 'Network & Software Support',
+    level: '90%',
+    tag: 'LAN & Application Support',
+    points: [
+      'Local Area Network (LAN) setup, Ethernet crimping, IP addressing, and router/switch configuration.',
+      'Network printer sharing, multi-user Tally Prime network data access, and firewall rules.',
+      'Malware detection, antivirus definition updating, and system crash recovery.',
+      'Remote assistance via AnyDesk/TeamViewer for urgent branch office issue resolution.'
+    ]
+  },
+
+  // --- Category 4: Management & Operations ---
+  'Office Administration': {
+    category: 'Management & Operations',
+    title: 'Office Administration',
+    level: '95%',
+    tag: 'Operational Governance & Facilities',
+    points: [
+      'Supervision of day-to-day office workflows, document registry, and clerical protocols.',
+      'Petty cash handling, operational expense budgeting, and utility billing reconciliation.',
+      'Cross-departmental communication, staff attendance logging, and vendor liaison.',
+      'Administrative record archiving, statutory compliance filing, and audit readiness.'
+    ]
+  },
+  'Stock Handling & Logistics': {
+    category: 'Management & Operations',
+    title: 'Stock Handling & Logistics',
+    level: '94%',
+    tag: 'Warehousing & Physical Audits',
+    points: [
+      'Physical inventory verification against digital ERP records to eliminate shrinkage and discrepancies.',
+      'Warehouse stock layout optimization for fast FIFO goods inward and outward dispatch.',
+      'Damaged stock segregation, replacement claim filings with manufacturers, and credit notes.',
+      'Reorder level monitoring to guarantee zero-stockout operation across key FMCG SKUs.'
+    ]
+  },
+  'MIS Reporting & Analytics': {
+    category: 'Management & Operations',
+    title: 'MIS Reporting & Analytics',
+    level: '96%',
+    tag: 'Executive Telemetry & KPI Dashboards',
+    points: [
+      'Daily, weekly, and monthly Management Information System (MIS) reports for senior management.',
+      'Sales trend analysis, margin breakdown per product category, and debtor aging reports.',
+      'Performance metrics monitoring for government skill mission candidates and field teams.',
+      'Standardized data visualization charts enabling data-driven commercial decisions.'
+    ]
+  },
+  'Business Development': {
+    category: 'Management & Operations',
+    title: 'Business Development & Client Relations',
+    level: '91%',
+    tag: 'Client Acquisition & Relationship Growth',
+    points: [
+      'Client onboarding for accounting, tax filing, and digital certification services.',
+      'Commercial negotiation, pricing proposals, and client retention management.',
+      'Market expansion initiatives across local trading hubs and retail networks.',
+      'Stakeholder trust building through ethical compliance advisory and punctual deliverables.'
     ]
   }
 };
 
 const CATEGORIES = [
   {
-    name: 'Languages',
-    skills: ['Java', 'Python', 'C', 'C++']
+    name: 'Accounting & Tax',
+    skills: ['Tally Prime & ERP 9', 'GST Filing & Compliance', 'Income Tax E-Filing', 'Financial Auditing & Ledgers']
   },
   {
-    name: 'Frontend',
-    skills: ['React', 'HTML', 'CSS', 'JavaScript', 'Tailwind CSS']
+    name: 'Software & Applications',
+    skills: ['MS Excel (Advanced)', 'MS Office (Word & PPT)', 'DTP Design Suite', 'Path Solution ERP']
   },
   {
-    name: 'Backend',
-    skills: ['Node.js', 'PostgreSQL']
+    name: 'IT Systems & Hardware',
+    skills: ['Windows OS Administration', 'Computer Applications (ADCA)', 'Hardware Diagnosis & Maintenance', 'Network & Software Support']
   },
   {
-    name: 'Tools & Cloud',
-    skills: ['AWS', 'Docker', 'Git']
+    name: 'Management & Operations',
+    skills: ['Office Administration', 'Stock Handling & Logistics', 'MIS Reporting & Analytics', 'Business Development']
   }
 ];
 
 export default function SkillsSection() {
-  const [selectedSkill, setSelectedSkill] = useState('Java');
-  const activeData = SKILL_DATA[selectedSkill] || SKILL_DATA['Java'];
+  const [selectedSkill, setSelectedSkill] = useState('Tally Prime & ERP 9');
+  const activeData = SKILL_DATA[selectedSkill] || SKILL_DATA['Tally Prime & ERP 9'];
 
   return (
     <section id="skills" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
@@ -192,7 +240,7 @@ export default function SkillsSection() {
           What I work with
         </h2>
         <p className="mt-3 text-stone-600 text-sm md:text-base max-w-xl font-normal leading-relaxed">
-          Hover or tap any technology to inspect architectural focus, certifications, and production applications.
+          Hover or tap any skill to inspect professional proficiencies, statutory competencies, and hands-on operational applications.
         </p>
       </div>
 

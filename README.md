@@ -1,4 +1,4 @@
-# 🦋 Sushmitha Dasari • Interactive Cursor-Tracking Portfolio
+# 🦋 Atul Kant Verma • Interactive Cursor-Tracking Portfolio
 
 [![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![Vite 8](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev)
@@ -6,7 +6,7 @@
 [![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub_Pages-22c55e?logo=github&logoColor=white)](https://pages.github.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A cinematic, high-performance developer portfolio featuring a **full-width 2.5D interactive camera character**, realistic **butterfly cursor tracking** with GPU-accelerated stardust particle physics, and responsive editorial sections inspired by the authentic showcase by [@srii_tech_](https://instagram.com/srii_tech_).
+A cinematic, high-performance professional portfolio featuring a **full-width 2.5D interactive camera character**, realistic **butterfly cursor tracking** with GPU-accelerated stardust particle physics, and responsive editorial sections showcasing **Atul Kant Verma** — **Accountant & Tax Consultant • Business Development & Office Administrator** located in **Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India**.
 
 ---
 
@@ -25,29 +25,30 @@ A cinematic, high-performance developer portfolio featuring a **full-width 2.5D 
 
 ### 3. 🎗️ Intersecting Diagonal Marquee Ribbons
 - Dual crossed ribbon banners with watercolor butterfly delimiters (`🦋`):
-  - **Upper ribbon (-3.5°)**: Charcoal `#18181B` (`React 🦋 Node.js 🦋 PostgreSQL 🦋 Docker 🦋 Python 🦋 AWS`)
-  - **Lower ribbon (+2.8°)**: Hot Pink `#FF4D6D` (`UI/UX Design 🦋 Cloud computing (AWS) 🦋 System Design 🦋 Creative Coding`)
+  - **Upper ribbon (-3.5°)**: Charcoal `#18181B` (`Tally Prime 🦋 GST Portal 🦋 Income Tax E-Filing 🦋 MS Excel (Advanced) 🦋 Path Solution ERP 🦋 ADCA Infocity`)
+  - **Lower ribbon (+2.8°)**: Hot Pink `#FF4D6D` (`Tax Advisory & Filing 🦋 Financial Accounting 🦋 GST Compliance & ITC 🦋 MIS Executive Analytics 🦋 Smart Card Operations 🦋 Business Development`)
 
 ### 4. 📖 "Who I am" Editorial Bio
-- Minimalist ivory layout (`#FAF8F5`) highlighting location (*Bhimavaram, India*), education (*Aditya Engineering College - AI & ML*), and technical focus badges.
+- Minimalist ivory layout (`#FAF8F5`) highlighting location (*Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India*), education (*ADCA & Intermediate (I.A.)*), and professional focus badges.
 
 ### 5. ⚡ "What I work with" Skills Matrix
-- Interactive categorized pills (Languages, Core, Tools, CS Fundamentals) paired with a live dark charcoal `#18181B` inspector terminal that displays proficiency meters, years of experience, and live syntax telemetry.
+- Interactive categorized pills (Accounting & Tax, Software & Applications, Core Operations, Technical Skills) paired with a live dark charcoal `#18181B` inspector terminal that displays proficiency meters, years of experience, and operational details.
 
 ### 6. 💼 "Selected Work" Deep Dives
-- **01 PolicyGuard AI**: Legal document clause analyzer with live compliance audit simulation, floating telemetry cards, and performance metrics (500+ clauses, 92% precision, 0.2s audit latency).
-- **02 Payment Gateway System**: Interactive circular finite state machine diagram that cycles between `processing`, `SUCCESS` (pink), and `FAILED` (white) states, demonstrating high-throughput resilience (10,000+ tx/s, 99.9% reliability).
+- **01 GST & Income Tax Compliance Engine**: Statutory tax reconciliation system with live ITC Section 16(2) compliance audit simulation, Form 26AS/AIS verification, and TDS withholding checks.
+- **02 DAY-NULM Skill India MIS Reporting Portal**: Centralized MIS candidate lifecycle management and batch certification tracking system (50+ batches, 2,500+ trainees, 99.8% reporting accuracy).
+- **03 Multi-District Smart Card Operations & Enrollment Engine**: Large-scale citizen identity verification and biometric enrolment logistics pipeline across 4 districts in Bihar & Jharkhand.
 
-### 7. 🏆 Competitive Programming & Hackathons Record
-- Deep aubergine dark section (`#1A1625`) featuring a running platform ticker (`GeeksforGeeks 400+ 🦋 CodeChef 300+ 🦋 LeetCode 380+ 🦋 HackerRank 6★`) and verified rating badges, including the *Myntra WeForShe HackerRamp 2024* honor.
+### 7. 🏆 Professional Milestones & Operations Record
+- Deep aubergine dark section (`#1A1625`) featuring a running operational ticker (`4+ Years Tally Accounting 🦋 3+ Years GST & Tax Filing 🦋 4 Districts Smart Card Rollout 🦋 ADCA Certified 🦋 500+ Tax Returns Processed`) and verified milestone metric cards.
 
 ### 8. 🎞️ Interactive Polaroid Studio & Physics Tuner
 - Tiltable polaroid cards storing captured photos with like counters and high-res modal zoom.
 - Real-time physics lab controls to adjust butterfly velocity, trail density, and scale in real time.
 
 ### 9. 📬 Contact & Dark Plum Watermark Footer
-- High-impact editorial display typography (*"Let's build something meaningful."*) with a giant hot pink email pill button (`sushmitadasari17@gmail.com ↗`).
-- Footer with giant faint watermark typography (`SUSHMITHA DASARI`).
+- High-impact editorial display typography (*"Let's build something meaningful."*) with a giant hot pink email pill button (`Atulravi2015@gmail.com ↗`) and location details.
+- Footer with giant faint watermark typography (`ATUL KANT VERMA`).
 
 ---
 
@@ -176,5 +177,6 @@ This project is pre-configured for seamless GitHub Pages deployment using **rela
 
 ## 📜 Credits & Attribution
 
-- **Concept & Design**: Inspired by the viral cursor-tracking showcase by [@srii_tech_](https://instagram.com/srii_tech_).
-- **Portfolio Identity**: Sushmitha Dasari (Bhimavaram, Andhra Pradesh, India).
+- **Concept & Design**: Inspired by the viral cursor-tracking showcase aesthetic.
+- **Portfolio Identity**: Atul Kant Verma (Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India).
+- **Role**: Accountant & Tax Consultant • Business Development & Office Administrator.

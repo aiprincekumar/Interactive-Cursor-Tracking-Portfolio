@@ -6,33 +6,33 @@ import { soundFX } from '../utils/audio';
 const COMPANION_PROJECTS = [
   {
     id: '03',
-    title: 'ChromaCanvas Studio',
-    category: 'Creative Tech & Shaders',
-    subtitle: 'GPU-Accelerated WebGL Shader & Particle Playground',
-    description: 'An in-browser creative coding suite utilizing custom GLSL fragment shaders and 250,000 GPU particles with real-time audio reactivity and 120 FPS render loops.',
-    tags: ['WebGL', 'Three.js', 'GLSL', 'Web Audio API', 'React 19'],
+    title: 'DAY-NULM Skill India MIS Reporting Portal',
+    category: 'Govt Operations & Analytics',
+    subtitle: 'Deendayal Antyodaya Yojana - National Urban Livelihoods Mission',
+    description: 'Centralized MIS database management and candidate tracking system for Skill India mission batches. Orchestrated trainee enrolment data, biometric attendance logs, assessment scheduling, certification progress, and government compliance analytics.',
+    tags: ['Government MIS Portal', 'Skill India (DAY-NULM)', 'Candidate Lifecycle Analytics', 'Batch Certification', 'Advanced Excel', 'Data Auditing'],
     metrics: [
-      { label: 'Framerate', val: '120 FPS' },
-      { label: 'Audio Latency', val: '1.2ms' },
-      { label: 'Particles', val: '250k' }
+      { label: 'Batches Tracked', val: '50+' },
+      { label: 'Trainees Managed', val: '2,500+' },
+      { label: 'Reporting Accuracy', val: '99.8%' }
     ],
-    github: 'https://github.com',
-    live: 'https://example.com'
+    github: '#',
+    live: '#contact'
   },
   {
     id: '04',
-    title: 'Aetheria Design System',
-    category: 'Design Systems & Core UI',
-    subtitle: 'High-Performance Minimalist Component Library',
-    description: 'Ergonomic, accessible React UI library with zero-runtime CSS tokens, spring-physics micro-interactions, fluid container queries, and full screen-reader compliance.',
-    tags: ['Tailwind CSS v4', 'TypeScript', 'Radix UI', 'Framer Motion'],
+    title: 'Multi-District Smart Card Operations & Enrollment Engine',
+    category: 'Field Operations & Data Systems',
+    subtitle: 'Cross-State Field Data Collection, Biometric Verification & Citizen Rollout',
+    description: 'Large-scale identity and smart card logistics pipeline across 4 key districts in Bihar & Jharkhand. Handled citizen field verification, biometric data capture workflows, secure upload synchronization, hardware diagnostics, and prompt multi-tier issue resolution.',
+    tags: ['Smart Card Deployment', 'Biometric Enrollment', '4 District Operations', 'Bihar & Jharkhand', 'Hardware Troubleshooting', 'Identity Verification'],
     metrics: [
-      { label: 'Stars', val: '1.4k' },
-      { label: 'Test Coverage', val: '99.4%' },
-      { label: 'A11y Score', val: '100/100' }
+      { label: 'Districts Covered', val: '4 Districts' },
+      { label: 'Cards Issued', val: '50,000+' },
+      { label: 'Turnaround Time', val: '-35%' }
     ],
-    github: 'https://github.com',
-    live: 'https://example.com'
+    github: '#',
+    live: '#contact'
   }
 ];
 
@@ -75,7 +75,7 @@ export default function ProjectsSection() {
             Selected work
           </h2>
           <p className="mt-3 text-stone-600 text-sm md:text-base max-w-xl font-normal leading-relaxed">
-            Curated engineering case studies balancing mission-critical reliability with cinematic visual interactions.
+            Curated accounting, statutory tax audit, and enterprise data operations balancing high accuracy with rigorous compliance.
           </p>
         </div>
 
@@ -85,13 +85,13 @@ export default function ProjectsSection() {
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-stone-500 font-semibold uppercase tracking-wider">Engineering Standard</div>
-            <div className="text-sm font-extrabold text-[#18181B]">60–120 FPS • 100 Lighthouse</div>
+            <div className="text-xs text-stone-500 font-semibold uppercase tracking-wider">Operational Standard</div>
+            <div className="text-sm font-extrabold text-[#18181B]">100% Statutory Adherence • Audit Ready</div>
           </div>
         </div>
       </div>
 
-      {/* FLAGSHIP PROJECT 01: PolicyGuard AI (Reel t=12.5s) */}
+      {/* FLAGSHIP PROJECT 01: GST & Income Tax Compliance & Verification Engine */}
       <div className="bg-white rounded-3xl p-6 sm:p-10 md:p-12 border border-[#E7E2D8] shadow-xl shadow-stone-900/5 mb-14 transition-all duration-300 hover:border-[#18181B]/20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
@@ -103,57 +103,57 @@ export default function ProjectsSection() {
                 <span className="w-3 h-3 rounded-full bg-[#FF4D6D]" />
                 <span className="w-3 h-3 rounded-full bg-amber-400" />
                 <span className="w-3 h-3 rounded-full bg-emerald-500" />
-                <span className="ml-3 text-xs font-mono font-bold text-stone-600">policy-audit-v2.4.pdf</span>
+                <span className="ml-3 text-xs font-mono font-bold text-stone-600">gstr2b-reconciliation-fy2324.pdf</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={runAuditSimulation}
                   disabled={isAuditing}
-                  aria-label="Run live policy verification scan"
+                  aria-label="Run live statutory ITC reconciliation audit"
                   className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white hover:bg-stone-100 text-[#18181B] border border-stone-200 text-[10px] font-bold font-mono transition-all active:scale-95 shadow-2xs cursor-pointer"
                 >
                   <RefreshCw className={`w-3 h-3 text-[#FF4D6D] ${isAuditing ? 'animate-spin' : ''}`} />
-                  <span>{isAuditing ? 'Verifying...' : 'Re-scan'}</span>
+                  <span>{isAuditing ? 'Auditing...' : 'Re-verify ITC'}</span>
                 </button>
                 <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold font-mono">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  STATUS: COMPLIANT
+                  STATUS: 100% RECONCILED
                 </div>
               </div>
             </div>
 
-            {/* Document Text Mockup with Highlighted Clauses (Reel t=12.5s) */}
+            {/* Document Text Mockup with Highlighted Clauses */}
             <div className="bg-white rounded-xl p-5 border border-[#ECE7DF] shadow-xs mb-4 space-y-3 relative">
               <div className="h-3 w-1/3 bg-stone-300 rounded-sm" />
               <div className="space-y-1.5">
                 <div className="h-2.5 w-full bg-stone-100 rounded-xs" />
                 <div className="h-2.5 w-5/6 bg-[#FF4D6D]/15 border border-[#FF4D6D]/30 rounded-xs flex items-center px-1">
-                  <span className="text-[8px] font-mono font-bold text-[#FF4D6D]">CLAUSE 14.2: Data Sovereign Storage Verified</span>
+                  <span className="text-[8px] font-mono font-bold text-[#FF4D6D]">SECTION 16(2): Input Tax Credit (ITC) 2B Auto-Reconciliation Verified</span>
                 </div>
                 <div className="h-2.5 w-full bg-stone-100 rounded-xs" />
                 <div className="h-2.5 w-4/5 bg-[#FF4D6D]/15 border border-[#FF4D6D]/30 rounded-xs flex items-center px-1">
-                  <span className="text-[8px] font-mono font-bold text-[#FF4D6D]">CLAUSE 08.1: Sub-Second Audit Trail Retention</span>
+                  <span className="text-[8px] font-mono font-bold text-[#FF4D6D]">SECTION 194C / 194J: TDS Withholding &amp; Challan 281 Verified</span>
                 </div>
                 <div className="h-2.5 w-3/4 bg-stone-100 rounded-xs" />
               </div>
 
-              {/* Floating Dark Tooltip Card matching Reel t=12.5s */}
+              {/* Floating Dark Tooltip Card */}
               <div className="mt-3 p-3 rounded-xl bg-[#18181B] text-white shadow-lg border border-stone-800 text-xs">
                 <div className="flex items-center justify-between text-[10px] font-mono text-[#FF4D6D] font-bold mb-1">
-                  <span>AI POLICY ENGINE</span>
-                  <span>CONFIDENCE: 99.4%</span>
+                  <span>STATUTORY TAX AUDIT ENGINE</span>
+                  <span>ITC RECONCILIATION: 100%</span>
                 </div>
                 <p className="text-[11px] text-stone-300 font-normal leading-relaxed">
-                  "A policy document with key clauses highlighted and risk telemetry extracted in sub-second inference passes."
+                  "GSTR-2B vs Purchase Register automated audit matching invoices, supplier GSTINs, and tax liability ledgers without mismatch penalties."
                 </p>
               </div>
             </div>
 
             {/* Live Telemetry Bar */}
             <div className="flex items-center justify-between text-[11px] font-mono text-stone-500 px-1">
-              <span>MODEL: AWS Bedrock Claude 3.5</span>
-              <span className="text-emerald-700 font-bold">SCAN LATENCY: {scanLatency}ms</span>
+              <span>AUDIT ENGINE: Portal API &amp; Tally Prime Sync</span>
+              <span className="text-emerald-700 font-bold">RECONCILIATION SPEED: {scanLatency}ms</span>
             </div>
           </div>
 
@@ -164,14 +164,14 @@ export default function ProjectsSection() {
                 01
               </span>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] tracking-tight font-['Outfit',sans-serif] mt-1">
-                PolicyGuard AI
+                GST &amp; Income Tax Compliance &amp; Verification Engine
               </h3>
               <p className="text-xs sm:text-sm font-bold text-[#FF4D6D] uppercase tracking-wider mt-1 mb-4">
-                Enterprise Regulatory &amp; Compliance Audit Engine
+                Statutory E-Filing, ITC 2B Reconciliation &amp; Tax Audit Verification
               </p>
 
               <p className="text-sm text-stone-600 leading-relaxed font-normal mb-6">
-                An AI-policy analysis that runs on the web, on the server, on mobile and on desktop. Helps documents processing and reduces contract review times. Uses modern NLP models to extract and analyze clauses.
+                Comprehensive taxation and statutory compliance system covering GSTR-1, GSTR-3B, GSTR-9, and Income Tax (ITR-1 to ITR-4) e-filing. Features automated Input Tax Credit (ITC) ledger reconciliation, 26AS/AIS/TIS variance verification, and TDS deduction auditing with 100% statutory adherence.
               </p>
 
               {/* Clean Metrics Grid */}
@@ -181,41 +181,41 @@ export default function ProjectsSection() {
                     500+
                   </div>
                   <div className="text-xs text-stone-500 font-medium mt-0.5">
-                    Enterprise Policies Processed
+                    Tax Returns &amp; Audits Filed
                   </div>
                 </div>
 
                 <div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-[#FF4D6D] font-mono">
-                    92%
+                    100%
                   </div>
                   <div className="text-xs text-stone-500 font-medium mt-0.5">
-                    Review Cycle Acceleration
+                    Statutory Compliance Rate
                   </div>
                 </div>
 
                 <div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-[#18181B] font-mono">
-                    0.2s
+                    ₹2.5Cr+
                   </div>
                   <div className="text-xs text-stone-500 font-medium mt-0.5">
-                    Real-Time Inference Latency
+                    Reconciled ITC Ledger Volume
                   </div>
                 </div>
 
                 <div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-[#18181B] font-mono">
-                    99.4%
+                    0%
                   </div>
                   <div className="text-xs text-stone-500 font-medium mt-0.5">
-                    Verification Accuracy
+                    Notice / Penalty Record
                   </div>
                 </div>
               </div>
 
               {/* Tech Stack Pills */}
               <div className="flex flex-wrap gap-1.5 mb-8">
-                {['React 19', 'FastAPI / Python', 'LangChain', 'PostgreSQL', 'Docker', 'AWS Bedrock'].map((t) => (
+                {['GST Portal', 'ITR E-Filing', 'Tally Prime', 'Advanced Excel', 'Challan 280/281', 'Form 26AS / AIS'].map((t) => (
                   <span
                     key={t}
                     className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-[#FAF8F5] text-stone-700 border border-[#E7E2D8]"
@@ -229,45 +229,40 @@ export default function ProjectsSection() {
             {/* CTAs */}
             <div className="flex items-center gap-3">
               <a
-                href="https://example.com"
-                target="_blank"
-                rel="noreferrer"
+                href="#contact"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#FF4D6D] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
               >
-                <span>Live Case Study</span>
+                <span>Tax Compliance Advisory</span>
                 <ArrowUpRight className="w-4 h-4" />
               </a>
 
               <a
-                href="https://github.com"
-                target="_blank"
-                rel="noreferrer"
+                href="#experience"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white hover:bg-stone-100 text-[#18181B] border border-[#D5CFCE] font-bold text-xs uppercase tracking-wider transition-colors"
-                title="View Source on GitHub"
+                title="View Practice History"
               >
-                <GithubIcon className="w-4 h-4" />
-                <span>Source</span>
+                <span>Experience Details</span>
               </a>
             </div>
           </div>
         </div>
       </div>
 
-      {/* FLAGSHIP PROJECT 02: Payment Gateway System (Reel t=14.0s) */}
+      {/* FLAGSHIP PROJECT 02: Tally Financial Accounting & Inventory Management */}
       <div className="bg-white rounded-3xl p-6 sm:p-10 md:p-12 border border-[#E7E2D8] shadow-xl shadow-stone-900/5 mb-14 transition-all duration-300 hover:border-[#18181B]/20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
-          {/* Left Side: Circular State Machine Diagram matching Reel t=14.0s */}
+          {/* Left Side: Circular State Machine Diagram */}
           <div className="lg:col-span-7 bg-[#FAF8F5] rounded-2xl border border-[#E4DFD5] p-6 sm:p-10 shadow-inner flex flex-col items-center justify-center relative overflow-hidden min-h-[340px]">
             {/* Top Bar */}
             <div className="absolute top-4 left-5 right-5 flex items-center justify-between text-[11px] font-mono text-stone-500">
-              <span className="font-bold text-[#18181B]">IDEMPOTENCY STATE MACHINE</span>
-              <span className="text-[#FF4D6D] font-bold">LATENCY: 12ms</span>
+              <span className="font-bold text-[#18181B]">LEDGER TRANSACTION &amp; AUDIT PIPELINE</span>
+              <span className="text-[#FF4D6D] font-bold">SETTLEMENT: REAL-TIME</span>
             </div>
 
             {/* Circular Connected Diagram */}
             <div className="relative flex items-center justify-center w-full max-w-sm mt-4">
-              {/* Central Dark Node: 'processing' */}
+              {/* Central Dark Node: 'processing' -> POSTING */}
               <div
                 onClick={() => cyclePaymentState('processing')}
                 className={`w-24 h-24 rounded-full bg-[#18181B] text-white flex flex-col items-center justify-center shadow-xl border-4 transition-all duration-300 cursor-pointer z-10 ${
@@ -275,10 +270,10 @@ export default function ProjectsSection() {
                 }`}
               >
                 <RefreshCw className={`w-4 h-4 text-[#FF4D6D] mb-1 ${paymentState === 'processing' ? 'animate-spin' : ''}`} />
-                <span className="font-mono text-[11px] font-bold tracking-wider uppercase">processing</span>
+                <span className="font-mono text-[11px] font-bold tracking-wider uppercase">POSTING</span>
               </div>
 
-              {/* Left Branch Node: SUCCESS (Pink Badge) */}
+              {/* Right Branch Node: RECONCILED (Pink Badge) */}
               <div
                 onClick={() => cyclePaymentState('success')}
                 className={`absolute -right-2 sm:right-2 flex items-center gap-2 px-4 py-2 rounded-full font-mono text-xs font-bold transition-all duration-300 cursor-pointer shadow-md ${
@@ -288,13 +283,13 @@ export default function ProjectsSection() {
                 }`}
               >
                 <Check className="w-3.5 h-3.5" />
-                <span>SUCCESS</span>
+                <span>RECONCILED</span>
               </div>
 
-              {/* Connecting line to SUCCESS */}
+              {/* Connecting line to RECONCILED */}
               <div className="absolute right-12 w-16 h-0.5 bg-gradient-to-r from-stone-400 to-[#FF4D6D] pointer-events-none" />
 
-              {/* Lower Branch Node: FAILED (Subtle Pill) */}
+              {/* Lower Branch Node: VARIANCE (Subtle Pill) */}
               <div
                 onClick={() => cyclePaymentState('failed')}
                 className={`absolute bottom-[-45px] flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-mono text-[11px] font-bold transition-all duration-300 cursor-pointer shadow-sm ${
@@ -304,14 +299,14 @@ export default function ProjectsSection() {
                 }`}
               >
                 <X className="w-3 h-3" />
-                <span>FAILED</span>
+                <span>VARIANCE</span>
               </div>
             </div>
 
             {/* Interactive hint */}
             <div className="mt-14 text-center">
               <span className="text-[11px] font-mono text-stone-400">
-                Click nodes to simulate state transitions &amp; webhook emission
+                Click nodes to simulate double-entry voucher lifecycle &amp; ledger balancing
               </span>
             </div>
           </div>
@@ -323,58 +318,58 @@ export default function ProjectsSection() {
                 02
               </span>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] tracking-tight font-['Outfit',sans-serif] mt-1">
-                Payment Gateway System
+                Tally Financial Accounting &amp; Inventory Management
               </h3>
               <p className="text-xs sm:text-sm font-bold text-[#FF4D6D] uppercase tracking-wider mt-1 mb-4">
-                Full-Stack Distributed Transaction Architecture
+                Double-Entry Ledger Pipeline, Voucher Auditing &amp; Multi-Location Stock Control
               </p>
 
               <p className="text-sm text-stone-600 leading-relaxed font-normal mb-6">
-                A full-stack resilient microservice payment gateway with idempotency keys and state machines. Distributed architecture for financial transactions with row-level locks, zero duplicate billing, and asynchronous event streaming.
+                End-to-end financial accounting and inventory management architecture deployed across commercial operations. Manages automated journal vouchers, ledger balancing, multi-godown stock valuations, aging analyses, and real-time Profit &amp; Loss and Balance Sheet generation with zero duplicate ledger entries.
               </p>
 
-              {/* Clean Metrics Grid matching Reel t=14.0s */}
+              {/* Clean Metrics Grid */}
               <div className="grid grid-cols-2 gap-4 py-5 border-y border-[#ECE7DF] mb-6 font-['Outfit',sans-serif]">
                 <div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-[#18181B] font-mono">
-                    10,000+
+                    ₹10Cr+
                   </div>
                   <div className="text-xs text-stone-500 font-medium mt-0.5">
-                    Tx / Sec Throughput
+                    Annual Transactions Managed
                   </div>
                 </div>
 
                 <div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-[#FF4D6D] font-mono">
-                    99.9%
+                    100%
                   </div>
                   <div className="text-xs text-stone-500 font-medium mt-0.5">
-                    High-Availability Uptime
+                    Double-Entry Balance Accuracy
                   </div>
                 </div>
 
                 <div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-[#18181B] font-mono">
-                    40%
+                    4+ Years
                   </div>
                   <div className="text-xs text-stone-500 font-medium mt-0.5">
-                    P99 Latency Reduction
+                    Continuous Ledger Maintenance
                   </div>
                 </div>
 
                 <div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-[#18181B] font-mono">
-                    0ms
+                    0
                   </div>
                   <div className="text-xs text-stone-500 font-medium mt-0.5">
-                    Duplicate Charge Rate
+                    Unreconciled Variances
                   </div>
                 </div>
               </div>
 
               {/* Tech Stack Pills */}
               <div className="flex flex-wrap gap-1.5 mb-8">
-                {['Node.js', 'PostgreSQL', 'Redis', 'Docker', 'Stripe API', 'RabbitMQ'].map((t) => (
+                {['Tally ERP 9 / Prime', 'Double-Entry Ledgers', 'Bank Reconciliation (BRS)', 'Inventory Godown Control', 'P&L / Balance Sheet', 'MS Excel MIS'].map((t) => (
                   <span
                     key={t}
                     className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-[#FAF8F5] text-stone-700 border border-[#E7E2D8]"
@@ -388,24 +383,19 @@ export default function ProjectsSection() {
             {/* CTAs */}
             <div className="flex items-center gap-3">
               <a
-                href="https://example.com"
-                target="_blank"
-                rel="noreferrer"
+                href="#contact"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#FF4D6D] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
               >
-                <span>Live Demo</span>
+                <span>Accounting Operations</span>
                 <ArrowUpRight className="w-4 h-4" />
               </a>
 
               <a
-                href="https://github.com"
-                target="_blank"
-                rel="noreferrer"
+                href="#experience"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white hover:bg-stone-100 text-[#18181B] border border-[#D5CFCE] font-bold text-xs uppercase tracking-wider transition-colors"
-                title="View Source on GitHub"
+                title="View Practice History"
               >
-                <GithubIcon className="w-4 h-4" />
-                <span>Source</span>
+                <span>Work History</span>
               </a>
             </div>
           </div>
@@ -467,20 +457,16 @@ export default function ProjectsSection() {
               <div className="flex items-center justify-between pt-3 border-t border-[#ECE7DF]">
                 <a
                   href={proj.github}
-                  target="_blank"
-                  rel="noreferrer"
                   className="text-xs font-semibold text-stone-600 hover:text-[#18181B] flex items-center gap-1.5 transition-colors"
                 >
                   <GithubIcon className="w-3.5 h-3.5" />
-                  Code
+                  Documentation
                 </a>
                 <a
                   href={proj.live}
-                  target="_blank"
-                  rel="noreferrer"
                   className="text-xs font-bold text-[#18181B] hover:text-[#FF4D6D] flex items-center gap-1 transition-colors"
                 >
-                  Live Preview
+                  Inquire Details
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </a>
               </div>
