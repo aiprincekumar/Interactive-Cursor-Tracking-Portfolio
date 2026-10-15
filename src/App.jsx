@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
-import ButterflyCursor from './components/ButterflyCursor';
+import DynamicCursorManager from './components/DynamicCursorManager';
 import TechMarqueeBanner from './components/TechMarqueeBanner';
 import AboutSection from './components/AboutSection';
 import SkillsSection from './components/SkillsSection';
@@ -11,6 +11,7 @@ import CameraRollGallery from './components/CameraRollGallery';
 import InteractivePlayground from './components/InteractivePlayground';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
+import { soundFX } from './utils/audio';
 
 export default function App() {
   const heroRef = useRef(null);
@@ -28,6 +29,14 @@ export default function App() {
     return false;
   });
 
+  const [activeCursor, setActiveCursor] = useState(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const saved = localStorage.getItem('active_cursor_variant');
+      if (saved) return saved;
+    }
+    return 'butterfly';
+  });
+
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -35,6 +44,29 @@ export default function App() {
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
+
+  // Sync activeCursor to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.setItem('active_cursor_variant', activeCursor);
+      } catch {
+        // Ignore quota/security errors
+      }
+    }
+  }, [activeCursor]);
+
+  const handleSelectCursor = (cursorId) => {
+    setActiveCursor(cursorId);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('active_cursor_variant', cursorId);
+      }
+    } catch {
+      // Ignore
+    }
+    soundFX.playCursorSelect();
+  };
 
   const handlePhotoCaptured = (newPhoto) => {
     setCapturedPhotos((prev) => [newPhoto, ...prev]);
@@ -45,14 +77,16 @@ export default function App() {
       {/* Background Subtle Mesh Dots */}
       <div className="fixed inset-0 bg-dot-pattern opacity-50 pointer-events-none z-0" />
 
-      {/* Realistic Interactive Butterfly Cursor (Active across full page) */}
+      {/* Dynamic Multi-Variant Interactive Cursor Manager */}
       {!reducedMotion && (
-        <ButterflyCursor
+        <DynamicCursorManager
+          activeCursor={activeCursor}
           heroRef={heroRef}
           isInsideHero={isInsideHero}
           speed={butterflySpeed}
           trailEnabled={trailEnabled}
           scale={butterflyScale}
+          reducedMotion={reducedMotion}
         />
       )}
 
@@ -60,6 +94,8 @@ export default function App() {
       <Navbar
         soundEnabled={soundEnabled}
         setSoundEnabled={setSoundEnabled}
+        activeCursor={activeCursor}
+        onSelectCursor={handleSelectCursor}
       />
 
       {/* Main Content Area - In Exact Instagram Reel Chronological Sequence */}

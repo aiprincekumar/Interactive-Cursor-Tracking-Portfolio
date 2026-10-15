@@ -1,9 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Volume2, VolumeX, Menu, X, FileText } from 'lucide-react';
 import { soundFX } from '../utils/audio';
+import { CURSOR_LIST } from '../utils/cursorConstants';
+import CursorSelectorRibbon from './CursorSelectorRibbon';
+import CursorIcon from './CursorIcon';
 
-export default function Navbar({ soundEnabled, setSoundEnabled }) {
+export default function Navbar({
+  soundEnabled,
+  setSoundEnabled,
+  activeCursor = 'butterfly',
+  onSelectCursor
+}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isRibbonOpen, setIsRibbonOpen] = useState(false);
+  const navContainerRef = useRef(null);
+
+  const activeCursorData = CURSOR_LIST.find((c) => c.id === activeCursor) || CURSOR_LIST[0];
+
+  // Outside click and Escape key listeners to close ribbon smoothly
+  useEffect(() => {
+    if (!isRibbonOpen) return;
+
+    const handleClickOutside = (event) => {
+      if (navContainerRef.current && !navContainerRef.current.contains(event.target)) {
+        setIsRibbonOpen(false);
+        soundFX.playRibbonToggle(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsRibbonOpen(false);
+        soundFX.playRibbonToggle(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isRibbonOpen]);
 
   const navLinks = [
     { label: 'Home', href: '#hero' },
@@ -15,7 +56,7 @@ export default function Navbar({ soundEnabled, setSoundEnabled }) {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 px-4 md:px-8 py-3.5">
+    <header ref={navContainerRef} className="fixed top-0 left-0 right-0 z-40 px-4 md:px-8 py-3.5">
       <div className="max-w-6xl mx-auto bg-[#FAF8F5]/90 backdrop-blur-md rounded-full border border-[#E7E2D8] px-4 md:px-6 py-2 shadow-xs flex items-center justify-between">
         {/* Brand Logo - Reel Accurate */}
         <a href="#hero" className="flex items-center gap-2.5 group">
@@ -43,7 +84,35 @@ export default function Navbar({ soundEnabled, setSoundEnabled }) {
         </nav>
 
         {/* Right Action Buttons */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          {/* Dynamic Cursor Variant Toggle Button - Ultra-Compact Icon Only */}
+          <button
+            type="button"
+            onClick={() => {
+              const next = !isRibbonOpen;
+              setIsRibbonOpen(next);
+              if (next && mobileMenuOpen) setMobileMenuOpen(false);
+              soundFX.playRibbonToggle(next);
+            }}
+            aria-label={isRibbonOpen ? 'Close Cursor Selector' : `Cursor: ${activeCursorData.name}`}
+            aria-expanded={isRibbonOpen}
+            className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${
+              isRibbonOpen
+                ? 'bg-[#18181B] text-white border-[#18181B] shadow-xs scale-105'
+                : 'bg-white/80 hover:bg-white text-stone-700 hover:text-[#18181B] border-[#E7E2D8] hover:border-stone-300 shadow-2xs hover:scale-105'
+            }`}
+            title={`Active Cursor: ${activeCursorData.name} (Click to customize)`}
+          >
+            <span className="text-sm leading-none select-none flex items-center justify-center" aria-label={activeCursorData.name}>
+              <CursorIcon cursorId={activeCursorData.id} size={15} />
+            </span>
+            <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white" />
+            </span>
+          </button>
+
+          {/* Audio Toggle Button */}
           <button
             type="button"
             onClick={() => {
@@ -53,7 +122,7 @@ export default function Navbar({ soundEnabled, setSoundEnabled }) {
               if (next) soundFX.playSparkle();
             }}
             aria-label={soundEnabled ? 'Mute Audio' : 'Enable Audio'}
-            className="p-2 rounded-full text-stone-600 hover:text-[#18181B] hover:bg-stone-200/50 transition-colors"
+            className="p-2 rounded-full text-stone-600 hover:text-[#18181B] hover:bg-stone-200/50 transition-colors cursor-pointer"
             title={soundEnabled ? 'Mute Audio' : 'Enable Audio'}
           >
             {soundEnabled ? (
@@ -75,15 +144,38 @@ export default function Navbar({ soundEnabled, setSoundEnabled }) {
           {/* Mobile Menu Toggle */}
           <button
             type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={() => {
+              const next = !mobileMenuOpen;
+              setMobileMenuOpen(next);
+              if (next && isRibbonOpen) setIsRibbonOpen(false);
+            }}
             aria-label={mobileMenuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
             aria-expanded={mobileMenuOpen}
-            className="p-2 rounded-xl md:hidden text-stone-700 hover:bg-stone-100 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+            className="p-2 rounded-xl md:hidden text-stone-700 hover:bg-stone-100 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden cursor-pointer"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
+
+      {/* Expandable Cursor Selector Ribbon with Smooth Animation */}
+      {isRibbonOpen && (
+        <div className="mt-2.5 animate-in fade-in slide-in-from-top-2 duration-200 transition-all">
+          <CursorSelectorRibbon
+            activeCursor={activeCursor}
+            onSelectCursor={(cursorId) => {
+              if (onSelectCursor) {
+                onSelectCursor(cursorId);
+              }
+            }}
+            defaultExpanded={true}
+            onClose={() => {
+              setIsRibbonOpen(false);
+              soundFX.playRibbonToggle(false);
+            }}
+          />
+        </div>
+      )}
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (

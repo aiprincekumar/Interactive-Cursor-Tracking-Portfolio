@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Camera, Sparkles, Minus, Plus } from 'lucide-react';
+import { Camera, Minus, Plus, Images } from 'lucide-react';
 import { soundFX } from '../utils/audio';
-import { NotionIcon, GithubIcon, LinkedinIcon } from './Icons';
+import { NotionIcon, GithubIcon, LinkedinIcon, YoutubeIcon, FacebookIcon, InstagramIcon, TwitterIcon } from './Icons';
 import confetti from 'canvas-confetti';
 
 /**
@@ -665,12 +665,6 @@ export default function HeroSection({
       <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.12)] pointer-events-none z-0" />
       <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#FAF8F5] via-[#FAF8F5]/60 to-transparent pointer-events-none z-0" />
 
-      {/* 4. Cinematic Viewfinder Framing Brackets (4 Corners) */}
-      <div className="absolute top-20 left-6 sm:left-10 w-6 h-6 border-t-2 border-l-2 border-white/80 rounded-tl-md pointer-events-none z-20 shadow-xs" />
-      <div className="absolute top-20 right-6 sm:right-10 w-6 h-6 border-t-2 border-r-2 border-white/80 rounded-tr-md pointer-events-none z-20 shadow-xs" />
-      <div className="absolute bottom-24 left-6 sm:left-10 w-6 h-6 border-b-2 border-l-2 border-white/80 rounded-bl-md pointer-events-none z-20 shadow-xs" />
-      <div className="absolute bottom-24 right-6 sm:right-10 w-6 h-6 border-b-2 border-r-2 border-white/80 rounded-br-md pointer-events-none z-20 shadow-xs" />
-
       {/* 4.5. Floating Zoom HUD Badge */}
       {showHudBadge && (
         <div
@@ -707,16 +701,16 @@ export default function HeroSection({
           </p>
         </div>
 
-        {/* Small Circular Social Icons (Notion, GitHub, LinkedIn) */}
-        <div className="flex items-center gap-2.5 pt-1">
+        {/* Small Circular Social Icons (Notion, GitHub, LinkedIn, YouTube, Facebook, Instagram, Twitter) */}
+        <div className="flex items-center gap-2 flex-wrap pt-1">
           {/* Notion */}
           <a
             href="https://notion.so"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer noopener"
             aria-label="Visit Notion Profile"
             onClick={(e) => e.stopPropagation()}
-            className="w-8 h-8 rounded-full bg-white/85 backdrop-blur-md border border-white/90 shadow-2xs hover:shadow-md flex items-center justify-center text-slate-700 hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
             title="Notion"
           >
             <NotionIcon className="w-4 h-4" />
@@ -724,12 +718,12 @@ export default function HeroSection({
 
           {/* GitHub */}
           <a
-            href="https://github.com"
+            href="https://github.com/Sushmitha-Dasari"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer noopener"
             aria-label="Visit GitHub Profile"
             onClick={(e) => e.stopPropagation()}
-            className="w-8 h-8 rounded-full bg-white/85 backdrop-blur-md border border-white/90 shadow-2xs hover:shadow-md flex items-center justify-center text-slate-700 hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
             title="GitHub"
           >
             <GithubIcon className="w-4 h-4" />
@@ -737,22 +731,68 @@ export default function HeroSection({
 
           {/* LinkedIn */}
           <a
-            href="https://linkedin.com"
+            href="https://www.linkedin.com/in/sushmitha-dasari-237a42284/"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer noopener"
             aria-label="Visit LinkedIn Profile"
             onClick={(e) => e.stopPropagation()}
-            className="w-8 h-8 rounded-full bg-white/85 backdrop-blur-md border border-white/90 shadow-2xs hover:shadow-md flex items-center justify-center text-slate-700 hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
             title="LinkedIn"
           >
             <LinkedinIcon className="w-4 h-4" />
           </a>
 
-          {/* Micro Helper Chip */}
-          <span className="hidden sm:inline-flex items-center gap-1.5 ml-2 px-2.5 py-1 rounded-full bg-white/70 backdrop-blur-md border border-white/80 text-[11px] font-medium text-slate-600 shadow-2xs">
-            <Sparkles className="w-3 h-3 text-[#FF3F6C]" />
-            Move cursor to track gaze
-          </span>
+          {/* YouTube */}
+          <a
+            href="https://youtube.com"
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label="Visit YouTube Channel"
+            onClick={(e) => e.stopPropagation()}
+            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+            title="YouTube"
+          >
+            <YoutubeIcon className="w-4 h-4" />
+          </a>
+
+          {/* Facebook */}
+          <a
+            href="https://facebook.com"
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label="Visit Facebook Profile"
+            onClick={(e) => e.stopPropagation()}
+            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+            title="Facebook"
+          >
+            <FacebookIcon className="w-4 h-4" />
+          </a>
+
+          {/* Instagram */}
+          <a
+            href="https://instagram.com/srii_tech_"
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label="Visit Instagram Profile"
+            onClick={(e) => e.stopPropagation()}
+            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+            title="Instagram"
+          >
+            <InstagramIcon className="w-4 h-4" />
+          </a>
+
+          {/* X / Twitter */}
+          <a
+            href="https://x.com"
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label="Visit X (formerly Twitter) Profile"
+            onClick={(e) => e.stopPropagation()}
+            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+            title="X (formerly Twitter)"
+          >
+            <TwitterIcon className="w-4 h-4" />
+          </a>
         </div>
       </div>
 
@@ -826,6 +866,7 @@ export default function HeroSection({
           </button>
         </div>
 
+        {/* 'Shoot a look' Icon-Only Button */}
         <button
           type="button"
           onClick={(e) => {
@@ -833,24 +874,29 @@ export default function HeroSection({
             triggerCapture();
           }}
           aria-label="Shoot a look photo"
-          className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#18181B] hover:bg-black text-white font-medium text-xs sm:text-sm backdrop-blur-xl shadow-lg shadow-black/15 hover:shadow-xl hover:scale-105 active:scale-95 transition-all group border border-white/20 cursor-pointer"
+          title="Shoot a look"
+          className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-[#18181B] hover:bg-black text-white backdrop-blur-xl shadow-lg shadow-black/15 hover:shadow-xl hover:scale-105 active:scale-95 transition-all group border border-white/20 cursor-pointer"
         >
-          <span className="w-2 h-2 rounded-full bg-[#FF4D6D] animate-pulse" />
-          <span className="tracking-wide">Shoot a look 📸</span>
+          <Camera className="w-5 h-5 text-white transition-transform group-hover:scale-110" />
+          {photosCount === 0 && (
+            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#FF4D6D] animate-pulse pointer-events-none" />
+          )}
           {photosCount > 0 && (
-            <span className="bg-white/20 text-[10px] px-2 py-0.5 rounded-full font-mono font-bold">
+            <span className="absolute -top-1.5 -right-1.5 bg-[#FF4D6D] text-white text-[10px] font-mono font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center shadow-md border-2 border-[#FAF8F5] pointer-events-none">
               {photosCount}
             </span>
           )}
         </button>
 
+        {/* 'View Moments' Icon-Only Button */}
         <a
           href="#gallery"
           onClick={(e) => e.stopPropagation()}
-          className="hidden sm:flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white/90 hover:bg-white text-[#18181B] font-semibold text-xs backdrop-blur-xl border border-[#E7E2D8] shadow-xs hover:shadow-md transition-all active:scale-95"
+          aria-label="View Moments"
+          title="View Moments"
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-white/90 hover:bg-white text-[#18181B] backdrop-blur-xl border border-[#E7E2D8] shadow-xs hover:shadow-md hover:scale-105 active:scale-95 transition-all group cursor-pointer"
         >
-          <Camera className="w-3.5 h-3.5 text-[#FF4D6D]" />
-          <span>View Moments</span>
+          <Images className="w-5 h-5 text-[#FF4D6D] transition-transform group-hover:scale-110" />
         </a>
       </div>
     </section>

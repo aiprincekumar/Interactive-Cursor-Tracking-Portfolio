@@ -146,6 +146,77 @@ class SoundFX {
       osc.stop(startTime + 0.12);
     });
   }
+
+  playRibbonToggle(isOpen = true) {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+
+    this.triggerHaptic([6]);
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    if (isOpen) {
+      osc.frequency.setValueAtTime(320, t);
+      osc.frequency.exponentialRampToValueAtTime(560, t + 0.08);
+    } else {
+      osc.frequency.setValueAtTime(560, t);
+      osc.frequency.exponentialRampToValueAtTime(320, t + 0.08);
+    }
+    gain.gain.setValueAtTime(0.06, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.08);
+  }
+
+  playCursorSelect() {
+    if (!this.enabled) return;
+    const now = Date.now();
+    if (this.lastCursorSelectTime && now - this.lastCursorSelectTime < 80) return;
+    this.lastCursorSelectTime = now;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+
+    this.triggerHaptic([12, 20]);
+    const t = this.ctx.currentTime;
+    // Pleasant two-tone ascending resonant chime
+    [587.33, 880].forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const startTime = t + idx * 0.045;
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(0.09, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.14);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(startTime);
+      osc.stop(startTime + 0.14);
+    });
+  }
+
+  playChipHover() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1760, t);
+    gain.gain.setValueAtTime(0.02, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.025);
+  }
 }
 
 export const soundFX = new SoundFX();
