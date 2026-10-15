@@ -46,41 +46,96 @@ export default function Navbar({
     };
   }, [isRibbonOpen]);
 
+  const [activeSection, setActiveSection] = useState('hero');
+
   const navLinks = [
-    { label: 'Home', href: '#hero' },
-    { label: 'About', href: '#about' },
-    { label: 'Skills', href: '#skills' },
-    { label: 'Projects', href: '#projects' },
-    { label: 'Experience', href: '#about' },
-    { label: 'Contact', href: '#contact' }
+    { label: 'Home', href: '#hero', id: 'hero' },
+    { label: 'About', href: '#about', id: 'about' },
+    { label: 'Experience', href: '#experience', id: 'experience' },
+    { label: 'Skills', href: '#skills', id: 'skills' },
+    { label: 'Projects', href: '#projects', id: 'projects' },
+    { label: 'Achievements', href: '#achievements', id: 'achievements' },
+    { label: 'Gallery', href: '#gallery', id: 'gallery' },
+    { label: 'Lab', href: '#playground', id: 'playground' },
+    { label: 'Contact', href: '#contact', id: 'contact' }
   ];
 
+  // ScrollSpy listener to highlight active section in Navbar
+  useEffect(() => {
+    const sectionIds = [
+      'hero',
+      'about',
+      'experience',
+      'skills',
+      'projects',
+      'achievements',
+      'gallery',
+      'playground',
+      'contact'
+    ];
+
+    const handleScroll = () => {
+      // If close to bottom, highlight the last section ('contact')
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 60) {
+        setActiveSection('contact');
+        return;
+      }
+
+      let current = 'hero';
+      for (const id of sectionIds) {
+        const element = document.getElementById(id);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top <= 160) {
+            current = id;
+          }
+        }
+      }
+      setActiveSection(current);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header ref={navContainerRef} className="fixed top-0 left-0 right-0 z-40 px-4 md:px-8 py-3.5">
-      <div className="max-w-6xl mx-auto bg-[#FAF8F5]/90 backdrop-blur-md rounded-full border border-[#E7E2D8] px-4 md:px-6 py-2 shadow-xs flex items-center justify-between">
+    <header ref={navContainerRef} className="fixed top-0 left-0 right-0 z-40 px-3 md:px-8 py-3.5">
+      <div className="max-w-6xl mx-auto bg-[#FAF8F5]/90 backdrop-blur-md rounded-full border border-[#E7E2D8] px-3 sm:px-4 md:px-5 py-2 shadow-xs flex items-center justify-between">
         {/* Brand Logo - Reel Accurate */}
-        <a href="#hero" className="flex items-center gap-2.5 group">
+        <a href="#hero" className="flex items-center gap-2 group shrink-0">
           <div className="w-8 h-8 rounded-full overflow-hidden border border-[#E7E2D8] bg-[#18181B] flex items-center justify-center text-white text-xs font-bold shadow-xs group-hover:scale-105 transition-transform">
             <span className="font-mono text-[11px] text-[#FAF8F5]">SD</span>
           </div>
-          <div>
-            <span className="font-extrabold text-[#18181B] text-sm sm:text-base tracking-tight font-['Outfit',sans-serif]">
+          <div className="hidden sm:block">
+            <span className="font-extrabold text-[#18181B] text-xs lg:text-sm tracking-tight font-['Outfit',sans-serif] whitespace-nowrap">
               Sushmitha Dasari
             </span>
           </div>
         </a>
 
-        {/* Desktop Nav Links - Center Pill matching Reel */}
-        <nav className="hidden md:flex items-center gap-1 bg-[#F0EBE1]/60 px-3 py-1 rounded-full border border-[#E5DFD5]" aria-label="Main Navigation">
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="text-xs font-semibold text-stone-700 hover:text-[#18181B] hover:bg-white/80 transition-all rounded-full px-3 py-1"
-            >
-              {link.label}
-            </a>
-          ))}
+        {/* Desktop Nav Links - Center Pill matching Reel with ScrollSpy */}
+        <nav className="hidden md:flex items-center gap-0.5 lg:gap-1 bg-[#F0EBE1]/70 px-2 lg:px-3 py-1 rounded-full border border-[#E5DFD5] shadow-xs" aria-label="Main Navigation">
+          {navLinks.map((link) => {
+            const isActive = activeSection === link.id;
+            return (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={() => {
+                  setActiveSection(link.id);
+                  if (soundEnabled) soundFX.playFocusBeep();
+                }}
+                className={`text-[11px] lg:text-xs font-semibold rounded-full px-2 lg:px-2.5 py-1 transition-all duration-200 select-none whitespace-nowrap ${
+                  isActive
+                    ? 'bg-white text-[#18181B] shadow-xs font-bold scale-[1.02]'
+                    : 'text-stone-600 hover:text-[#18181B] hover:bg-white/60'
+                }`}
+              >
+                {link.label}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Right Action Buttons */}
@@ -135,7 +190,7 @@ export default function Navbar({
           {/* Reel element: Coral Resume Pill Button */}
           <a
             href="#contact"
-            className="hidden sm:flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#FF4D6D] hover:bg-[#E03554] text-white text-xs font-bold shadow-xs transition-all duration-200 active:scale-95"
+            className="hidden lg:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FF4D6D] hover:bg-[#E03554] text-white text-xs font-bold shadow-xs transition-all duration-200 active:scale-95 whitespace-nowrap shrink-0"
           >
             <FileText className="w-3.5 h-3.5" />
             Resume
@@ -179,21 +234,37 @@ export default function Navbar({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden mt-2 max-w-6xl mx-auto bg-[#FAF8F5]/98 backdrop-blur-xl rounded-2xl border border-[#E7E2D8] p-4 shadow-xl flex flex-col gap-3 animate-in slide-in-from-top-2">
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-sm font-semibold text-stone-700 hover:text-[#FF4D6D] py-2 px-3 rounded-xl hover:bg-stone-100 transition-colors"
-            >
-              {link.label}
-            </a>
-          ))}
+        <div className="md:hidden mt-2 max-w-6xl mx-auto bg-[#FAF8F5]/98 backdrop-blur-xl rounded-2xl border border-[#E7E2D8] p-4 shadow-xl flex flex-col gap-1.5 animate-in slide-in-from-top-2">
+          {navLinks.map((link) => {
+            const isActive = activeSection === link.id;
+            return (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={() => {
+                  setActiveSection(link.id);
+                  setMobileMenuOpen(false);
+                  if (soundEnabled) soundFX.playFocusBeep();
+                }}
+                className={`text-sm font-semibold py-2 px-3 rounded-xl transition-colors flex items-center justify-between ${
+                  isActive
+                    ? 'bg-white text-[#FF4D6D] font-bold shadow-2xs'
+                    : 'text-stone-700 hover:text-[#FF4D6D] hover:bg-stone-100'
+                }`}
+              >
+                <span>{link.label}</span>
+                {isActive && <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />}
+              </a>
+            );
+          })}
           <a
             href="#contact"
-            onClick={() => setMobileMenuOpen(false)}
-            className="w-full text-center py-2.5 rounded-xl bg-[#FF4D6D] text-white text-sm font-bold shadow-xs uppercase tracking-wider"
+            onClick={() => {
+              setActiveSection('contact');
+              setMobileMenuOpen(false);
+              if (soundEnabled) soundFX.playSparkle();
+            }}
+            className="w-full text-center py-2.5 mt-2 rounded-xl bg-[#FF4D6D] text-white text-sm font-bold shadow-xs uppercase tracking-wider"
           >
             Get In Touch
           </a>

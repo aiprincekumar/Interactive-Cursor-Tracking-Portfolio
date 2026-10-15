@@ -48,7 +48,7 @@ export default function CodingAchievementsSection() {
   const tickerSequence = Array(8).fill(TICKER_ITEMS).flat();
 
   return (
-    <section id="experience" className="py-24 bg-[#1A1625] text-white relative overflow-hidden select-none my-12">
+    <section id="achievements" className="py-24 bg-[#1A1625] text-white relative overflow-hidden select-none my-12 scroll-mt-28">
       {/* Ambient background glow */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#FF4D6D]/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />

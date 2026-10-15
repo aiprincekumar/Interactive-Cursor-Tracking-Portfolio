@@ -179,7 +179,7 @@ export default function SkillsSection() {
   const activeData = SKILL_DATA[selectedSkill] || SKILL_DATA['Java'];
 
   return (
-    <section id="skills" className="py-24 px-4 md:px-8 max-w-6xl mx-auto">
+    <section id="skills" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
       {/* Section Pill Badge - Reel style */}
       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E7E2D8] text-[#18181B] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs">
         <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />

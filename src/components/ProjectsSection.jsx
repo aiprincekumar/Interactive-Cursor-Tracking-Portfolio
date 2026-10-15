@@ -63,7 +63,7 @@ export default function ProjectsSection() {
   };
 
   return (
-    <section id="projects" className="py-24 px-4 md:px-8 max-w-6xl mx-auto">
+    <section id="projects" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
         <div>

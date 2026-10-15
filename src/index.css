@@ -52,6 +52,15 @@
   background: #FF4D6D;
 }
 
+/* Hide scrollbar utility for clean horizontal scroll ribbons */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Minimalist Clean Surfaces & Glassmorphism */
 .glass-panel {
   background: rgba(255, 255, 255, 0.88);

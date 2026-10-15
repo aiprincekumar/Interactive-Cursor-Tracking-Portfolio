@@ -17,7 +17,7 @@ export default function InteractivePlayground({
   setReducedMotion
 }) {
   return (
-    <section id="playground" className="py-20 px-4 md:px-8 max-w-5xl mx-auto">
+    <section id="playground" className="py-20 px-4 md:px-8 max-w-5xl mx-auto scroll-mt-28">
       <div className="bg-white rounded-3xl p-8 md:p-12 border border-[#E7E2D8] shadow-xl shadow-stone-900/5">
         {/* Title */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-[#ECE7DF]">

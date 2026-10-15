@@ -87,13 +87,13 @@ export default function CursorSelectorRibbon({
             <span className="text-[11px] font-bold uppercase tracking-wider text-stone-800 font-['Outfit',sans-serif]">
               Cursors
             </span>
-            <span className="hidden sm:inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-[#FAF8F5] text-stone-500 border border-[#E7E2D8]">
+            <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-[#FAF8F5] text-stone-500 border border-[#E7E2D8]">
               {filteredCursors.length}
             </span>
           </div>
 
           {/* Category Tabs Pill - Exactly matched to Navbar Menu Bar */}
-          <div className="order-3 sm:order-2 w-full sm:w-auto flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar gap-1 bg-[#F0EBE1]/60 px-2 sm:px-3 py-1 rounded-full border border-[#E5DFD5]">
+          <div className="order-3 sm:order-2 w-full sm:w-auto flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar scroll-smooth gap-1 bg-[#F0EBE1]/60 px-2 sm:px-3 py-1 rounded-full border border-[#E5DFD5]">
             {CATEGORIES.map((cat) => {
               const isSelected = selectedCategory === cat;
               return (
@@ -102,6 +102,8 @@ export default function CursorSelectorRibbon({
                   type="button"
                   onClick={() => handleCategoryChange(cat)}
                   onMouseEnter={() => soundFX.playChipHover()}
+                  aria-pressed={isSelected}
+                  title={`Filter: ${cat}`}
                   className={`text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap transition-all duration-200 cursor-pointer ${
                     isSelected
                       ? 'bg-[#18181B] text-white shadow-2xs'

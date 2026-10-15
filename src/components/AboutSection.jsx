@@ -3,7 +3,7 @@ import { MapPin, GraduationCap, Terminal } from 'lucide-react';
 
 export default function AboutSection() {
   return (
-    <section id="about" className="py-24 px-4 md:px-8 max-w-6xl mx-auto">
+    <section id="about" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
       <div className="bg-white rounded-3xl p-8 sm:p-12 md:p-16 border border-[#E7E2D8] shadow-xl shadow-stone-900/5 relative overflow-hidden">
         {/* Soft subtle background glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-[#FF4D6D]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
@@ -87,7 +87,7 @@ export default function AboutSection() {
         </div>
 
         {/* Experience & Career Milestones (Target for Navbar Experience link) */}
-        <div className="mt-12 pt-10 border-t border-[#ECE7DF]">
+        <div id="experience" className="mt-12 pt-10 border-t border-[#ECE7DF] scroll-mt-28">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl md:text-2xl font-extrabold text-[#18181B] font-['Outfit',sans-serif]">
               Journey &amp; Experience

@@ -6,8 +6,12 @@ import AirplaneCursor from './cursors/AirplaneCursor';
 import LaserCursor from './cursors/LaserCursor';
 import CameraCursor from './cursors/CameraCursor';
 import MinimalCursor from './cursors/MinimalCursor';
+import ModularKinematicCursor from './cursors/ModularKinematicCursor';
 
-const CURSOR_COMPONENTS = {
+/**
+ * Dedicated bespoke cursor components that have specialized interactive mechanics
+ */
+const DEDICATED_CURSOR_COMPONENTS = {
   butterfly: ButterflyCursor,
   firefly: FireflyCursor,
   stardust: StardustCursor,
@@ -21,18 +25,12 @@ const CURSOR_COMPONENTS = {
 /**
  * DynamicCursorManager
  * 
- * Central controller that dynamically mounts and renders cursor variants:
- * - 'butterfly' (Default, realistic 3D fluttering wings & stardust)
- * - 'firefly' (Bioluminescent amber/lime pulsing aura & warm ember trail)
- * - 'stardust' (Celestial magic wand with sparkling diamond starbursts)
- * - 'airplane' (Origami paper plane with aerodynamic banking & vapor trail)
- * - 'laser' (Cyberpunk neon laser pointer reticle & glowing beam)
- * - 'camera' (Photography viewfinder, focus ring & shutter snap aperture)
- * - 'minimal' (Luxury dual-layer magnetic follower ring & precision center dot)
- * 
- * Responsive & Accessibility Discipline:
- * - Desktop-only enforcement: Auto-disabled on touch devices / coarse pointer to preserve native mobile UX
- * - Respects prefers-reduced-motion media query
+ * Central high-performance controller for the 35-cursor suite:
+ * - 60-120+ FPS Kinematics Engine with Zero Lag
+ * - Strict single-active loop discipline: Only the currently selected cursor
+ *   is mounted and running an animation loop; unmounted cursors clean up completely.
+ * - Mobile / Tablet safety: Auto-disabled on touch / coarse pointer devices to preserve native touch UX.
+ * - Accessibility: Fully respects the prefers-reduced-motion media query and user prop overrides.
  */
 export default function DynamicCursorManager({
   activeCursor = 'butterfly',
@@ -92,11 +90,24 @@ export default function DynamicCursorManager({
     return null;
   }
 
-  // Lookup target cursor component (fallback to Butterfly)
-  const CursorComponent = CURSOR_COMPONENTS[activeCursor] || ButterflyCursor;
+  // Check if cursor has a bespoke dedicated component
+  const DedicatedComponent = DEDICATED_CURSOR_COMPONENTS[activeCursor];
+  if (DedicatedComponent) {
+    return (
+      <DedicatedComponent
+        heroRef={heroRef}
+        isInsideHero={isInsideHero}
+        speed={speed}
+        trailEnabled={trailEnabled}
+        scale={scale}
+      />
+    );
+  }
 
+  // All other styles in the 35-cursor suite render through the ModularKinematicCursor
   return (
-    <CursorComponent
+    <ModularKinematicCursor
+      cursorId={activeCursor}
       heroRef={heroRef}
       isInsideHero={isInsideHero}
       speed={speed}

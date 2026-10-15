@@ -24,7 +24,7 @@ export default function ContactSection() {
   };
 
   return (
-    <section id="contact" className="py-24 px-4 md:px-8 max-w-5xl mx-auto">
+    <section id="contact" className="py-24 px-4 md:px-8 max-w-5xl mx-auto scroll-mt-28">
       <div className="bg-white rounded-3xl p-8 sm:p-14 md:p-18 border border-[#E7E2D8] shadow-xl shadow-stone-900/5 relative overflow-hidden">
         {/* Soft background ambient light */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-[#FF4D6D]/8 to-transparent rounded-full blur-3xl pointer-events-none" />
