@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Camera, Sparkles } from 'lucide-react';
+import { Camera, Sparkles, Minus, Plus } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { NotionIcon, GithubIcon, LinkedinIcon } from './Icons';
 import confetti from 'canvas-confetti';
@@ -17,6 +17,8 @@ import confetti from 'canvas-confetti';
  * - Sleek dark pill "Shoot a look 📸" button in Bottom-Right
  */
 const BASE_URL = import.meta.env.BASE_URL || './';
+const BASELINE_SCALE = 0.95;
+const IMG_BG_HERO = `${BASE_URL}assets/hero_poses/BgHero.jpg`;
 const IMG_REAR = `${BASE_URL}assets/hero_poses/00-rear-view.png`;
 const IMG_CENTER_UP = `${BASE_URL}assets/hero_poses/01-center-up.png`;
 const IMG_LOWER_CENTER = `${BASE_URL}assets/hero_poses/02-lower-center.png`;
@@ -45,6 +47,20 @@ export default function HeroSection({
 }) {
   const [isFlashing, setIsFlashing] = useState(false);
   const [photosCount, setPhotosCount] = useState(0);
+
+  // Character Scaling System (Baseline 0.95 normalized to 100% / 1.0x, range 0.5 - 2.0)
+  const [userScale, setUserScale] = useState(1.0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showHudBadge, setShowHudBadge] = useState(false);
+  const hudTimerRef = useRef(null);
+  const userScaleRef = useRef(userScale);
+  const characterInnerRef = useRef(null);
+
+  useEffect(() => {
+    userScaleRef.current = userScale;
+  }, [userScale]);
+
+  const effectiveScale = BASELINE_SCALE * userScale;
 
   // Direct DOM references for 120 FPS zero-render GPU updates (10 Total: 9 Directions + 1 Idle)
   const sectionRef = useRef(null);
@@ -80,9 +96,10 @@ export default function HeroSection({
     isInsideHeroRef.current = isInsideHero;
   }, [isInsideHero]);
 
-  // Preload and immediately decode all 10 character pose assets (9 Directional + 1 Idle) into GPU memory
+  // Preload and immediately decode all assets (Background + 10 Character Poses) into GPU memory
   useEffect(() => {
     [
+      IMG_BG_HERO,
       IMG_REAR,
       IMG_CENTER_FRONT,
       IMG_CENTER_UP,
@@ -316,8 +333,129 @@ export default function HeroSection({
     };
   }, [reducedMotion, setIsInsideHero]);
 
+  // Floating HUD notification trigger
+  const triggerHud = useCallback(() => {
+    setShowHudBadge(true);
+    if (hudTimerRef.current) {
+      clearTimeout(hudTimerRef.current);
+    }
+    hudTimerRef.current = setTimeout(() => {
+      setShowHudBadge(false);
+    }, 1500);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (hudTimerRef.current) {
+        clearTimeout(hudTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Scale action buttons with smooth transition
+  const handleZoomIn = useCallback(() => {
+    setIsTransitioning(true);
+    setUserScale(prev => Math.min(2.0, Math.round((prev + 0.10) * 100) / 100));
+    triggerHud();
+  }, [triggerHud]);
+
+  const handleZoomOut = useCallback(() => {
+    setIsTransitioning(true);
+    setUserScale(prev => Math.max(0.5, Math.round((prev - 0.10) * 100) / 100));
+    triggerHud();
+  }, [triggerHud]);
+
+  const handleReset = useCallback(() => {
+    setIsTransitioning(true);
+    setUserScale(1.0);
+    triggerHud();
+  }, [triggerHud]);
+
+  // Instantaneous zero-lag slider response
+  const handleSliderChange = useCallback((e) => {
+    setIsTransitioning(false);
+    const val = parseFloat(e.target.value);
+    setUserScale(val / 100);
+    triggerHud();
+  }, [triggerHud]);
+
+  // Non-passive wheel listener (Ctrl/Meta + Wheel) and 2-finger pinch gesture
+  const isPinchingRef = useRef(false);
+  const touchDistRef = useRef(null);
+  const touchStartScaleRef = useRef(1.0);
+
+  useEffect(() => {
+    const heroEl = sectionRef.current;
+    if (!heroEl) return;
+
+    const handleWheel = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        setIsTransitioning(false);
+        const delta = -e.deltaY;
+        const zoomStep = Math.sign(delta) * Math.min(Math.abs(delta) * 0.002, 0.15);
+        setUserScale(prev => {
+          const next = Math.min(2.0, Math.max(0.5, Math.round((prev + zoomStep) * 100) / 100));
+          return next;
+        });
+        triggerHud();
+      }
+    };
+
+    const handleTouchStart = (e) => {
+      if (e.touches.length === 2) {
+        isPinchingRef.current = true;
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        touchDistRef.current = Math.hypot(dx, dy);
+        touchStartScaleRef.current = userScaleRef.current;
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      if (e.touches.length === 2 && touchDistRef.current) {
+        e.preventDefault();
+        setIsTransitioning(false);
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const currentDist = Math.hypot(dx, dy);
+        if (touchDistRef.current > 0) {
+          const ratio = currentDist / touchDistRef.current;
+          const targetScale = touchStartScaleRef.current * ratio;
+          const clamped = Math.min(2.0, Math.max(0.5, Math.round(targetScale * 100) / 100));
+          setUserScale(clamped);
+          triggerHud();
+        }
+      }
+    };
+
+    const handleTouchEnd = (e) => {
+      if (e.touches.length < 2) {
+        touchDistRef.current = null;
+        setTimeout(() => {
+          isPinchingRef.current = false;
+        }, 300);
+      }
+    };
+
+    heroEl.addEventListener('wheel', handleWheel, { passive: false });
+    heroEl.addEventListener('touchstart', handleTouchStart, { passive: true });
+    heroEl.addEventListener('touchmove', handleTouchMove, { passive: false });
+    heroEl.addEventListener('touchend', handleTouchEnd, { passive: true });
+    heroEl.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+
+    return () => {
+      heroEl.removeEventListener('wheel', handleWheel);
+      heroEl.removeEventListener('touchstart', handleTouchStart);
+      heroEl.removeEventListener('touchmove', handleTouchMove);
+      heroEl.removeEventListener('touchend', handleTouchEnd);
+      heroEl.removeEventListener('touchcancel', handleTouchEnd);
+    };
+  }, [triggerHud]);
+
   // Trigger Shutter Snap Action
   const triggerCapture = useCallback(() => {
+    if (isPinchingRef.current) return;
     soundFX.playShutter();
 
     if (!reducedMotion) {
@@ -361,7 +499,8 @@ export default function HeroSection({
         imageSrc: poseData.src,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         title: poseData.title,
-        likes: Math.floor(Math.random() * 25) + 10
+        likes: Math.floor(Math.random() * 25) + 10,
+        scale: userScaleRef.current
       });
     }
 
@@ -401,17 +540,39 @@ export default function HeroSection({
         }`}
       />
 
-      {/* 2. Full-Bleed Full-Width Character Flat 2D Stage (Covers entire Hero Viewport - 10 Total Poses) */}
+      {/* 2. Studio Stage Backdrop Background Layer */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden select-none">
+        <img
+          src={IMG_BG_HERO}
+          alt="Studio Stage Backdrop"
+          className="w-full h-full object-cover object-[center_32%] pointer-events-none select-none"
+          loading="eager"
+          decoding="sync"
+        />
+        {/* Soft atmospheric overlay for studio depth and contrast */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10 pointer-events-none" />
+      </div>
+
+      {/* 3. Full-Bleed Full-Width Character Flat 2D Stage (Covers entire Hero Viewport - 10 Total Poses) */}
       <div
         ref={stageRef}
-        className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none z-10 overflow-hidden"
+        className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none z-10"
       >
-        <div className="relative w-full h-full overflow-hidden filter contrast-[1.04] brightness-[1.02]">
+        <div
+          ref={characterInnerRef}
+          className="relative h-[74vh] sm:h-[82vh] md:h-full aspect-[16/9] w-auto max-w-none flex items-center justify-center filter contrast-[1.04] brightness-[1.02] origin-[50%_90%] will-change-transform"
+          style={{
+            transform: `scale(${effectiveScale})`,
+            transformOrigin: '50% 90%',
+            transition: (isTransitioning && !reducedMotion) ? 'transform 350ms cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
+          }}
+          onTransitionEnd={() => setIsTransitioning(false)}
+        >
           <img
             ref={imgIdleRef}
             src={IMG_REAR}
             alt="Rear View (Idle)"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
             style={{ opacity: 1, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
             decoding="sync"
@@ -420,7 +581,7 @@ export default function HeroSection({
             ref={imgCenterRef}
             src={IMG_CENTER_FRONT}
             alt="Center Front Gaze"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
             decoding="sync"
@@ -429,7 +590,7 @@ export default function HeroSection({
             ref={imgUpperCenterRef}
             src={IMG_CENTER_UP}
             alt="Upper Center Gaze"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
             decoding="sync"
@@ -438,7 +599,7 @@ export default function HeroSection({
             ref={imgLowerCenterRef}
             src={IMG_LOWER_CENTER}
             alt="Lower Center Glance"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
             decoding="sync"
@@ -447,7 +608,7 @@ export default function HeroSection({
             ref={imgLeftRef}
             src={IMG_CENTER_LEFT}
             alt="Profile Left Gaze"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
             decoding="sync"
@@ -456,7 +617,7 @@ export default function HeroSection({
             ref={imgRightRef}
             src={IMG_CENTER_RIGHT}
             alt="Profile Right Gaze"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
             decoding="sync"
@@ -465,7 +626,7 @@ export default function HeroSection({
             ref={imgUpperLeftRef}
             src={IMG_UPPER_LEFT}
             alt="Upper Left Glance"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
             decoding="sync"
@@ -474,7 +635,7 @@ export default function HeroSection({
             ref={imgLowerLeftRef}
             src={IMG_LOWER_LEFT}
             alt="Lower Left Glance"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
             decoding="sync"
@@ -483,7 +644,7 @@ export default function HeroSection({
             ref={imgUpperRightRef}
             src={IMG_UPPER_RIGHT}
             alt="Upper Right Glance"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
             decoding="sync"
@@ -492,7 +653,7 @@ export default function HeroSection({
             ref={imgLowerRightRef}
             src={IMG_LOWER_RIGHT}
             alt="Lower Right Glance"
-            className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
+            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
             decoding="sync"
@@ -500,15 +661,29 @@ export default function HeroSection({
         </div>
       </div>
 
-      {/* 3. Subtle Ambient Light Blend & Seamless Transition to Marquee */}
-      <div className="absolute inset-0 shadow-[inset_0_0_140px_rgba(240,234,224,0.35)] pointer-events-none z-10" />
-      <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#FAF8F5] via-[#FAF8F5]/60 to-transparent pointer-events-none z-10" />
+      {/* 4. Subtle Ambient Light Blend & Seamless Transition to Marquee */}
+      <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.12)] pointer-events-none z-0" />
+      <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#FAF8F5] via-[#FAF8F5]/60 to-transparent pointer-events-none z-0" />
 
       {/* 4. Cinematic Viewfinder Framing Brackets (4 Corners) */}
       <div className="absolute top-20 left-6 sm:left-10 w-6 h-6 border-t-2 border-l-2 border-white/80 rounded-tl-md pointer-events-none z-20 shadow-xs" />
       <div className="absolute top-20 right-6 sm:right-10 w-6 h-6 border-t-2 border-r-2 border-white/80 rounded-tr-md pointer-events-none z-20 shadow-xs" />
       <div className="absolute bottom-24 left-6 sm:left-10 w-6 h-6 border-b-2 border-l-2 border-white/80 rounded-bl-md pointer-events-none z-20 shadow-xs" />
       <div className="absolute bottom-24 right-6 sm:right-10 w-6 h-6 border-b-2 border-r-2 border-white/80 rounded-br-md pointer-events-none z-20 shadow-xs" />
+
+      {/* 4.5. Floating Zoom HUD Badge */}
+      {showHudBadge && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-40 transition-all duration-200 animate-in fade-in zoom-in-95"
+        >
+          <div className="px-5 py-2.5 rounded-full bg-[#18181B]/85 backdrop-blur-xl border border-white/20 text-white font-mono text-xs sm:text-sm font-semibold shadow-2xl flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-[#FF4D6D] animate-ping" />
+            <span>Zoom: {Math.round(userScale * 100)}%</span>
+          </div>
+        </div>
+      )}
 
       {/* 5. Sleek Camera Focus Reticle (Follows Cursor Smoothly) */}
       <div
@@ -581,8 +756,76 @@ export default function HeroSection({
         </div>
       </div>
 
-      {/* 7. Reel Element: Bottom-Right Sleek Dark Pill Button */}
-      <div className="absolute bottom-8 right-6 md:right-12 z-20 flex items-center gap-3 pointer-events-auto">
+      {/* 7. Reel Element: Bottom-Right Controls & Sleek Scale Pill */}
+      <div className="absolute bottom-8 right-4 sm:right-6 md:right-12 z-20 flex flex-wrap sm:flex-nowrap items-center justify-end gap-2.5 sm:gap-3 pointer-events-auto">
+        {/* Sleek Frosted Glass Scale Pill */}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          className="bg-white/80 backdrop-blur-xl border border-white/90 shadow-md rounded-full px-3 py-1.5 flex items-center gap-2 text-[#18181B]"
+        >
+          {/* [-] button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleZoomOut();
+            }}
+            disabled={userScale <= 0.5}
+            aria-label="Decrease scale"
+            title="Decrease scale (-10%)"
+            className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/5 active:scale-90 text-[#18181B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <Minus className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Custom slider */}
+          <input
+            type="range"
+            min="50"
+            max="200"
+            step="5"
+            value={Math.round(userScale * 100)}
+            onChange={(e) => {
+              e.stopPropagation();
+              handleSliderChange(e);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Character scale slider"
+            className="w-16 sm:w-20 h-1.5 bg-stone-200/80 rounded-lg appearance-none cursor-pointer accent-[#18181B] focus:outline-none"
+          />
+
+          {/* [+] button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleZoomIn();
+            }}
+            disabled={userScale >= 2.0}
+            aria-label="Increase scale"
+            title="Increase scale (+10%)"
+            className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/5 active:scale-90 text-[#18181B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+
+          {/* '100%' Reset button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleReset();
+            }}
+            aria-label="Reset scale to 100%"
+            title="Reset scale to 100%"
+            className="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold bg-stone-100/90 hover:bg-stone-200/90 active:scale-95 text-[#18181B] transition-all border border-stone-200/60 cursor-pointer"
+          >
+            100%
+          </button>
+        </div>
+
         <button
           type="button"
           onClick={(e) => {
@@ -590,7 +833,7 @@ export default function HeroSection({
             triggerCapture();
           }}
           aria-label="Shoot a look photo"
-          className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#18181B] hover:bg-black text-white font-medium text-xs sm:text-sm backdrop-blur-xl shadow-lg shadow-black/15 hover:shadow-xl hover:scale-105 active:scale-95 transition-all group border border-white/20"
+          className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#18181B] hover:bg-black text-white font-medium text-xs sm:text-sm backdrop-blur-xl shadow-lg shadow-black/15 hover:shadow-xl hover:scale-105 active:scale-95 transition-all group border border-white/20 cursor-pointer"
         >
           <span className="w-2 h-2 rounded-full bg-[#FF4D6D] animate-pulse" />
           <span className="tracking-wide">Shoot a look 📸</span>

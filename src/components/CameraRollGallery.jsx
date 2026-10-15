@@ -7,7 +7,7 @@ const BASE_URL = import.meta.env.BASE_URL || './';
 const INITIAL_PHOTOS = [
   {
     id: 1,
-    imageSrc: `${BASE_URL}assets/character-center.jpg`,
+    imageSrc: `${BASE_URL}assets/hero_poses/05-center-front.png`,
     state: 'center',
     title: 'First Shutter • Tokyo Studio',
     timestamp: '10:42 AM',
@@ -16,7 +16,7 @@ const INITIAL_PHOTOS = [
   },
   {
     id: 2,
-    imageSrc: `${BASE_URL}assets/character-left.jpg`,
+    imageSrc: `${BASE_URL}assets/hero_poses/03-center-left.png`,
     state: 'left',
     title: 'Drift to the West Horizon',
     timestamp: '11:15 AM',
@@ -25,7 +25,7 @@ const INITIAL_PHOTOS = [
   },
   {
     id: 3,
-    imageSrc: `${BASE_URL}assets/character-right.jpg`,
+    imageSrc: `${BASE_URL}assets/hero_poses/04-center-right.png`,
     state: 'right',
     title: 'Right-Side Shutter Snap',
     timestamp: '01:30 PM',
@@ -122,13 +122,16 @@ export default function CameraRollGallery({ capturedPhotos }) {
               )}
 
               {/* Polaroid Image Frame */}
-              <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#FAF8F5] border border-[#ECE7DE]">
-                <img
-                  src={photo.imageSrc}
-                  alt={photo.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-b from-[#8C9EB2] via-[#B8C8D8] to-[#DCE4ED] border border-[#ECE7DE]">
+                <div className="w-full h-full transition-transform duration-500 group-hover:scale-105">
+                  <img
+                    src={photo.imageSrc}
+                    alt={photo.title}
+                    className="w-full h-full object-cover object-[center_32%] origin-center"
+                    style={{ transform: `scale(${photo.scale || 1.0})` }}
+                    loading="lazy"
+                  />
+                </div>
                 <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-xs text-[10px] font-mono text-stone-700 font-semibold border border-stone-200">
                   {photo.timestamp}
                 </div>
@@ -196,11 +199,12 @@ export default function CameraRollGallery({ capturedPhotos }) {
               <X className="w-4 h-4" />
             </button>
 
-            <div className="aspect-[16/9] rounded-2xl overflow-hidden mb-4 border border-stone-200 shadow-inner">
+            <div className="aspect-[16/9] rounded-2xl overflow-hidden mb-4 border border-stone-200 shadow-inner bg-gradient-to-b from-[#8C9EB2] via-[#B8C8D8] to-[#DCE4ED]">
               <img
                 src={selectedPhoto.imageSrc}
                 alt={selectedPhoto.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-[center_32%] origin-center"
+                style={{ transform: `scale(${selectedPhoto.scale || 1.0})` }}
               />
             </div>
 
@@ -209,7 +213,7 @@ export default function CameraRollGallery({ capturedPhotos }) {
                 SHUTTER LOG • {selectedPhoto.timestamp}
               </span>
               <span className="text-xs text-stone-600 font-mono font-medium capitalize">
-                {selectedPhoto.state || 'Camera Capture'} • 35mm f/1.8
+                {selectedPhoto.state || 'Camera Capture'} • {selectedPhoto.scale ? `${Math.round(selectedPhoto.scale * 100)}% scale` : '35mm f/1.8'}
               </span>
             </div>
 
