@@ -17,16 +17,23 @@ import confetti from 'canvas-confetti';
  * - Sleek dark pill "Shoot a look 📸" button in Bottom-Right
  */
 const BASE_URL = import.meta.env.BASE_URL || './';
-const IMG_IDLE = `${BASE_URL}assets/character-idle.jpg`;
-const IMG_CENTER = `${BASE_URL}assets/character-center.jpg`;
-const IMG_UPPER_CENTER = `${BASE_URL}assets/character-upper-center.jpg`;
-const IMG_LOWER_CENTER = `${BASE_URL}assets/character-lower-center.jpg`;
-const IMG_LEFT = `${BASE_URL}assets/character-left.jpg`;
-const IMG_RIGHT = `${BASE_URL}assets/character-right.jpg`;
-const IMG_UPPER_LEFT = `${BASE_URL}assets/character-upper-left.jpg`;
-const IMG_LOWER_LEFT = `${BASE_URL}assets/character-lower-left.jpg`;
-const IMG_UPPER_RIGHT = `${BASE_URL}assets/character-upper-right.jpg`;
-const IMG_LOWER_RIGHT = `${BASE_URL}assets/character-lower-right.jpg`;
+const IMG_REAR = `${BASE_URL}assets/hero_poses/00-rear-view.png`;
+const IMG_CENTER_UP = `${BASE_URL}assets/hero_poses/01-center-up.png`;
+const IMG_LOWER_CENTER = `${BASE_URL}assets/hero_poses/02-lower-center.png`;
+const IMG_CENTER_LEFT = `${BASE_URL}assets/hero_poses/03-center-left.png`;
+const IMG_CENTER_RIGHT = `${BASE_URL}assets/hero_poses/04-center-right.png`;
+const IMG_CENTER_FRONT = `${BASE_URL}assets/hero_poses/05-center-front.png`;
+const IMG_UPPER_LEFT = `${BASE_URL}assets/hero_poses/06-upper-left.png`;
+const IMG_LOWER_LEFT = `${BASE_URL}assets/hero_poses/07-lower-left.png`;
+const IMG_UPPER_RIGHT = `${BASE_URL}assets/hero_poses/08-upper-right.png`;
+const IMG_LOWER_RIGHT = `${BASE_URL}assets/hero_poses/09-lower-right.png`;
+
+// Directional pose aliases
+const IMG_IDLE = IMG_REAR;
+const IMG_CENTER = IMG_CENTER_FRONT;
+const IMG_UPPER_CENTER = IMG_CENTER_UP;
+const IMG_LEFT = IMG_CENTER_LEFT;
+const IMG_RIGHT = IMG_CENTER_RIGHT;
 
 export default function HeroSection({
   heroRef,
@@ -76,12 +83,12 @@ export default function HeroSection({
   // Preload and immediately decode all 10 character pose assets (9 Directional + 1 Idle) into GPU memory
   useEffect(() => {
     [
-      IMG_IDLE,
-      IMG_CENTER,
-      IMG_UPPER_CENTER,
+      IMG_REAR,
+      IMG_CENTER_FRONT,
+      IMG_CENTER_UP,
       IMG_LOWER_CENTER,
-      IMG_LEFT,
-      IMG_RIGHT,
+      IMG_CENTER_LEFT,
+      IMG_CENTER_RIGHT,
       IMG_UPPER_LEFT,
       IMG_LOWER_LEFT,
       IMG_UPPER_RIGHT,
@@ -106,12 +113,12 @@ export default function HeroSection({
         stageRef.current.style.transform = 'none';
       }
       const p = forcedState || (isInsideHeroRef.current ? 'center' : 'idle');
-      if (imgIdleRef.current) imgIdleRef.current.style.opacity = p === 'idle' ? '1' : '0';
-      if (imgCenterRef.current) imgCenterRef.current.style.opacity = p === 'center' ? '1' : '0';
-      if (imgUpperCenterRef.current) imgUpperCenterRef.current.style.opacity = p === 'upper-center' ? '1' : '0';
-      if (imgLowerCenterRef.current) imgLowerCenterRef.current.style.opacity = p === 'lower-center' ? '1' : '0';
-      if (imgLeftRef.current) imgLeftRef.current.style.opacity = p === 'left' ? '1' : '0';
-      if (imgRightRef.current) imgRightRef.current.style.opacity = p === 'right' ? '1' : '0';
+      if (imgIdleRef.current) imgIdleRef.current.style.opacity = (p === 'idle' || p === 'rear-view') ? '1' : '0';
+      if (imgCenterRef.current) imgCenterRef.current.style.opacity = (p === 'center' || p === 'center-front') ? '1' : '0';
+      if (imgUpperCenterRef.current) imgUpperCenterRef.current.style.opacity = (p === 'upper-center' || p === 'center-upper') ? '1' : '0';
+      if (imgLowerCenterRef.current) imgLowerCenterRef.current.style.opacity = (p === 'lower-center' || p === 'center-lower') ? '1' : '0';
+      if (imgLeftRef.current) imgLeftRef.current.style.opacity = (p === 'left' || p === 'center-left') ? '1' : '0';
+      if (imgRightRef.current) imgRightRef.current.style.opacity = (p === 'right' || p === 'center-right') ? '1' : '0';
       if (imgUpperLeftRef.current) imgUpperLeftRef.current.style.opacity = p === 'upper-left' ? '1' : '0';
       if (imgLowerLeftRef.current) imgLowerLeftRef.current.style.opacity = p === 'lower-left' ? '1' : '0';
       if (imgUpperRightRef.current) imgUpperRightRef.current.style.opacity = p === 'upper-right' ? '1' : '0';
@@ -143,15 +150,9 @@ export default function HeroSection({
       const curX = state.currentNormX;
       const curY = state.currentNormY;
 
-      // 1. Smooth 2.5D perspective tilt and subtle micro-parallax camera dolly (damped by hoverWeight)
+      // Flat 2D display - zero 3D perspective, tilt, pitch, yaw, or warping
       if (stageRef.current) {
-        const tiltIntensity = 0.25 + 0.75 * state.hoverWeight;
-        const rotateY = (curX * 18 * tiltIntensity).toFixed(2);   // yaw
-        const rotateX = (-curY * 12 * tiltIntensity).toFixed(2);  // pitch
-        const transX = (curX * 14 * tiltIntensity).toFixed(1);    // horizontal shift
-        const transY = (curY * 10 * tiltIntensity).toFixed(1);    // vertical shift
-        
-        stageRef.current.style.transform = `perspective(1200px) rotateY(${rotateY}deg) rotateX(${rotateX}deg) translate3d(${transX}px, ${transY}px, 0) scale(1.06)`;
+        stageRef.current.style.transform = 'none';
       }
 
       // 2. Continuous 9-Direction Pose Crossfading with Cubic Hermite Smoothstep
@@ -167,12 +168,12 @@ export default function HeroSection({
       let lowRightOp = 0;
 
       if (forcedState) {
-        idleOp = forcedState === 'idle' ? 1 : 0;
-        centerOp = forcedState === 'center' ? 1 : 0;
-        upCenterOp = forcedState === 'upper-center' ? 1 : 0;
-        lowCenterOp = forcedState === 'lower-center' ? 1 : 0;
-        leftOp = forcedState === 'left' ? 1 : 0;
-        rightOp = forcedState === 'right' ? 1 : 0;
+        idleOp = (forcedState === 'idle' || forcedState === 'rear-view') ? 1 : 0;
+        centerOp = (forcedState === 'center' || forcedState === 'center-front') ? 1 : 0;
+        upCenterOp = (forcedState === 'upper-center' || forcedState === 'center-upper') ? 1 : 0;
+        lowCenterOp = (forcedState === 'lower-center' || forcedState === 'center-lower') ? 1 : 0;
+        leftOp = (forcedState === 'left' || forcedState === 'center-left') ? 1 : 0;
+        rightOp = (forcedState === 'right' || forcedState === 'center-right') ? 1 : 0;
         upLeftOp = forcedState === 'upper-left' ? 1 : 0;
         lowLeftOp = forcedState === 'lower-left' ? 1 : 0;
         upRightOp = forcedState === 'upper-right' ? 1 : 0;
@@ -334,12 +335,18 @@ export default function HeroSection({
     const activePose = animStateRef.current.activePose;
     if (onPhotoCaptured) {
       const poseMap = {
-        'idle': { src: IMG_IDLE, title: 'Relaxed Idle Portrait' },
-        'center': { src: IMG_CENTER, title: 'Signature Center Portrait' },
+        'idle': { src: IMG_IDLE, title: 'Rear View (Idle)' },
+        'rear-view': { src: IMG_IDLE, title: 'Rear View (Idle)' },
+        'center': { src: IMG_CENTER, title: 'Signature Center Front' },
+        'center-front': { src: IMG_CENTER, title: 'Signature Center Front' },
         'upper-center': { src: IMG_UPPER_CENTER, title: 'Upper Center Gaze' },
+        'center-upper': { src: IMG_UPPER_CENTER, title: 'Upper Center Gaze' },
         'lower-center': { src: IMG_LOWER_CENTER, title: 'Lower Center Glance' },
+        'center-lower': { src: IMG_LOWER_CENTER, title: 'Lower Center Glance' },
         'left': { src: IMG_LEFT, title: 'Profile Left Gaze' },
+        'center-left': { src: IMG_LEFT, title: 'Profile Left Gaze' },
         'right': { src: IMG_RIGHT, title: 'Profile Right Gaze' },
+        'center-right': { src: IMG_RIGHT, title: 'Profile Right Gaze' },
         'upper-left': { src: IMG_UPPER_LEFT, title: 'Upper Left Glance' },
         'lower-left': { src: IMG_LOWER_LEFT, title: 'Lower Left Glance' },
         'upper-right': { src: IMG_UPPER_RIGHT, title: 'Upper Right Glance' },
@@ -394,20 +401,16 @@ export default function HeroSection({
         }`}
       />
 
-      {/* 2. Full-Bleed Full-Width Character 2.5D Stage (Covers entire Hero Viewport - 10 Total Poses) */}
+      {/* 2. Full-Bleed Full-Width Character Flat 2D Stage (Covers entire Hero Viewport - 10 Total Poses) */}
       <div
         ref={stageRef}
-        className="absolute inset-0 w-full h-full flex items-center justify-center will-change-transform pointer-events-none z-10 overflow-hidden"
-        style={{
-          transformStyle: 'preserve-3d',
-          transformOrigin: 'center center'
-        }}
+        className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none z-10 overflow-hidden"
       >
         <div className="relative w-full h-full overflow-hidden filter contrast-[1.04] brightness-[1.02]">
           <img
             ref={imgIdleRef}
-            src={IMG_IDLE}
-            alt="Idle Pose"
+            src={IMG_REAR}
+            alt="Rear View (Idle)"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
             style={{ opacity: 1, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
@@ -415,8 +418,8 @@ export default function HeroSection({
           />
           <img
             ref={imgCenterRef}
-            src={IMG_CENTER}
-            alt="Center Pose"
+            src={IMG_CENTER_FRONT}
+            alt="Center Front Gaze"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
@@ -424,8 +427,8 @@ export default function HeroSection({
           />
           <img
             ref={imgUpperCenterRef}
-            src={IMG_UPPER_CENTER}
-            alt="Upper Center Pose"
+            src={IMG_CENTER_UP}
+            alt="Upper Center Gaze"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
@@ -434,7 +437,7 @@ export default function HeroSection({
           <img
             ref={imgLowerCenterRef}
             src={IMG_LOWER_CENTER}
-            alt="Lower Center Pose"
+            alt="Lower Center Glance"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
@@ -442,8 +445,8 @@ export default function HeroSection({
           />
           <img
             ref={imgLeftRef}
-            src={IMG_LEFT}
-            alt="Left Pose"
+            src={IMG_CENTER_LEFT}
+            alt="Profile Left Gaze"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
@@ -451,8 +454,8 @@ export default function HeroSection({
           />
           <img
             ref={imgRightRef}
-            src={IMG_RIGHT}
-            alt="Right Pose"
+            src={IMG_CENTER_RIGHT}
+            alt="Profile Right Gaze"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
@@ -461,7 +464,7 @@ export default function HeroSection({
           <img
             ref={imgUpperLeftRef}
             src={IMG_UPPER_LEFT}
-            alt="Upper Left Pose"
+            alt="Upper Left Glance"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
@@ -470,7 +473,7 @@ export default function HeroSection({
           <img
             ref={imgLowerLeftRef}
             src={IMG_LOWER_LEFT}
-            alt="Lower Left Pose"
+            alt="Lower Left Glance"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
@@ -479,7 +482,7 @@ export default function HeroSection({
           <img
             ref={imgUpperRightRef}
             src={IMG_UPPER_RIGHT}
-            alt="Upper Right Pose"
+            alt="Upper Right Glance"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
@@ -488,7 +491,7 @@ export default function HeroSection({
           <img
             ref={imgLowerRightRef}
             src={IMG_LOWER_RIGHT}
-            alt="Lower Right Pose"
+            alt="Lower Right Glance"
             className="absolute inset-0 w-full h-full object-cover object-[center_32%] pointer-events-none"
             style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
             loading="eager"
