@@ -147,6 +147,27 @@ class SoundFX {
     });
   }
 
+  playPop() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+
+    this.triggerHaptic([6]);
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(440, t);
+    osc.frequency.exponentialRampToValueAtTime(880, t + 0.05);
+    gain.gain.setValueAtTime(0.08, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.06);
+  }
+
   playRibbonToggle(isOpen = true) {
     if (!this.enabled) return;
     this.init();

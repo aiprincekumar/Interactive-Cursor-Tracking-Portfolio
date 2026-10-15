@@ -51,8 +51,8 @@ export default function Navbar({
   const navLinks = [
     { label: 'Home', href: '#hero', id: 'hero' },
     { label: 'About', href: '#about', id: 'about' },
-    { label: 'Experience', href: '#experience', id: 'experience' },
     { label: 'Skills', href: '#skills', id: 'skills' },
+    { label: 'Experience', href: '#experience', id: 'experience' },
     { label: 'Projects', href: '#projects', id: 'projects' },
     { label: 'Achievements', href: '#achievements', id: 'achievements' },
     { label: 'Gallery', href: '#gallery', id: 'gallery' },
@@ -65,8 +65,8 @@ export default function Navbar({
     const sectionIds = [
       'hero',
       'about',
-      'experience',
       'skills',
+      'experience',
       'projects',
       'achievements',
       'gallery',

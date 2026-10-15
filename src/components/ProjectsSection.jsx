@@ -69,7 +69,7 @@ export default function ProjectsSection() {
         <div>
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E7E2D8] text-[#18181B] text-xs font-bold uppercase tracking-wider mb-3 shadow-xs">
             <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />
-            03 ✦ Selected Work
+            04 ✦ Selected Work
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#18181B] tracking-tight font-['Outfit',sans-serif]">
             Selected work

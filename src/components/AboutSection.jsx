@@ -85,47 +85,6 @@ export default function AboutSection() {
             </div>
           </div>
         </div>
-
-        {/* Experience & Career Milestones (Target for Navbar Experience link) */}
-        <div id="experience" className="mt-12 pt-10 border-t border-[#ECE7DF] scroll-mt-28">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl md:text-2xl font-extrabold text-[#18181B] font-['Outfit',sans-serif]">
-              Journey &amp; Experience
-            </h3>
-            <span className="text-xs font-mono font-bold text-[#FF4D6D] bg-[#FFF0F3] px-3 py-1 rounded-full border border-[#FFD1DC]">
-              2022 — 2026
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#ECE7DF] hover:border-[#18181B]/20 transition-all shadow-2xs">
-              <span className="text-[11px] font-mono font-bold text-[#FF4D6D]">2024 — PRESENT</span>
-              <h4 className="font-bold text-[#18181B] text-base mt-1">Lead Creative Developer</h4>
-              <p className="text-xs text-stone-500 font-medium">Independent &amp; Studio Works</p>
-              <p className="text-xs text-stone-600 mt-2 font-normal leading-relaxed">
-                Architecting cinematic high-framerate web applications, 2.5D cursor kinematics, and AI compliance dashboards.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#ECE7DF] hover:border-[#18181B]/20 transition-all shadow-2xs">
-              <span className="text-[11px] font-mono font-bold text-stone-500">2023 — 2024</span>
-              <h4 className="font-bold text-[#18181B] text-base mt-1">AI Systems Engineer</h4>
-              <p className="text-xs text-stone-500 font-medium">Enterprise Legal &amp; FinTech</p>
-              <p className="text-xs text-stone-600 mt-2 font-normal leading-relaxed">
-                Engineered vector graph retrieval pipelines, sub-second latency inference gates, and compliance telemetry.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#ECE7DF] hover:border-[#18181B]/20 transition-all shadow-2xs">
-              <span className="text-[11px] font-mono font-bold text-stone-500">2022 — 2023</span>
-              <h4 className="font-bold text-[#18181B] text-base mt-1">Creative Coding &amp; WebGL</h4>
-              <p className="text-xs text-stone-500 font-medium">Frontend Innovations</p>
-              <p className="text-xs text-stone-600 mt-2 font-normal leading-relaxed">
-                Prototyped GLSL fragment shader art, GPU particle simulations, and accessibility-first motion tokens.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );

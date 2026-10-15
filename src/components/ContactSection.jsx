@@ -1,7 +1,67 @@
 import React, { useState } from 'react';
 import { Mail, Check, Send, ArrowUpRight, Copy } from 'lucide-react';
-import { InstagramIcon, GithubIcon, LinkedinIcon, NotionIcon } from './Icons';
+import {
+  GithubIcon,
+  LinkedinIcon,
+  NotionIcon,
+  InstagramIcon,
+  YoutubeIcon,
+  TwitterIcon,
+  FacebookIcon
+} from './Icons';
 import { soundFX } from '../utils/audio';
+
+const SOCIAL_LINKS = [
+  {
+    name: 'GitHub',
+    url: 'https://github.com/Sushmitha-Dasari',
+    icon: GithubIcon,
+    ariaLabel: 'Visit GitHub Profile (Sushmitha-Dasari)',
+    hoverClass: 'hover:bg-[#18181B] hover:text-white hover:border-[#18181B]'
+  },
+  {
+    name: 'LinkedIn',
+    url: 'https://www.linkedin.com/in/sushmitha-dasari-237a42284/',
+    icon: LinkedinIcon,
+    ariaLabel: 'Visit LinkedIn Profile (sushmitha-dasari)',
+    hoverClass: 'hover:bg-[#0A66C2] hover:text-white hover:border-[#0A66C2]'
+  },
+  {
+    name: 'Notion',
+    url: 'https://notion.so',
+    icon: NotionIcon,
+    ariaLabel: 'Visit Notion Workspace',
+    hoverClass: 'hover:bg-[#2F3437] hover:text-white hover:border-[#2F3437]'
+  },
+  {
+    name: 'Instagram',
+    url: 'https://instagram.com/srii_tech_',
+    icon: InstagramIcon,
+    ariaLabel: 'Visit Instagram Profile (@srii_tech_)',
+    hoverClass: 'hover:bg-gradient-to-r hover:from-[#833AB4] hover:via-[#FD1D1D] hover:to-[#FCB045] hover:text-white hover:border-transparent'
+  },
+  {
+    name: 'YouTube',
+    url: 'https://youtube.com',
+    icon: YoutubeIcon,
+    ariaLabel: 'Visit YouTube Channel',
+    hoverClass: 'hover:bg-[#FF0000] hover:text-white hover:border-[#FF0000]'
+  },
+  {
+    name: 'X (Twitter)',
+    url: 'https://x.com',
+    icon: TwitterIcon,
+    ariaLabel: 'Visit X (formerly Twitter) Profile',
+    hoverClass: 'hover:bg-[#000000] hover:text-white hover:border-black'
+  },
+  {
+    name: 'Facebook',
+    url: 'https://facebook.com',
+    icon: FacebookIcon,
+    ariaLabel: 'Visit Facebook Profile',
+    hoverClass: 'hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2]'
+  }
+];
 
 export default function ContactSection() {
   const [copied, setCopied] = useState(false);
@@ -32,7 +92,7 @@ export default function ContactSection() {
         {/* Section Pill Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] border border-[#E7E2D8] text-[#18181B] text-xs font-bold uppercase tracking-wider mb-8 shadow-xs">
           <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />
-          05 ✦ Contact
+          06 ✦ Contact
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
@@ -63,58 +123,45 @@ export default function ContactSection() {
                 type="button"
                 onClick={copyEmail}
                 aria-label="Copy email address"
-                className="p-3.5 rounded-full bg-[#FAF8F5] hover:bg-stone-200 text-stone-700 border border-[#E7E2D8] transition-colors"
+                className="p-3.5 rounded-full bg-[#FAF8F5] hover:bg-stone-200 text-stone-700 border border-[#E7E2D8] transition-colors cursor-pointer"
                 title="Copy Email"
               >
                 {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
 
-            {/* Social Channels matching Reel */}
-            <div className="space-y-3 pt-6 border-t border-[#ECE7DF]">
-              <div className="text-xs font-mono text-stone-500 uppercase tracking-wider font-bold">
-                Connect Directly
+            {/* Social Channels matching Reel & Hero Section */}
+            <div className="space-y-3.5 pt-6 border-t border-[#ECE7DF]">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-mono text-stone-500 uppercase tracking-wider font-bold flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF4D6D]" />
+                  Connect Directly
+                </div>
+                <span className="text-[11px] font-mono text-stone-400">
+                  7 Channels
+                </span>
               </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <a
-                  href="https://github.com/Sushmitha-Dasari"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#18181B] hover:text-white text-stone-700 border border-[#E7E2D8] text-xs font-bold transition-all"
-                >
-                  <GithubIcon className="w-3.5 h-3.5" />
-                  GitHub
-                </a>
 
-                <a
-                  href="https://www.linkedin.com/in/sushmitha-dasari-237a42284/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#0077B5] hover:text-white text-stone-700 border border-[#E7E2D8] text-xs font-bold transition-all"
-                >
-                  <LinkedinIcon className="w-3.5 h-3.5" />
-                  LinkedIn
-                </a>
-
-                <a
-                  href="https://notion.so"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FAF8F5] hover:bg-stone-800 hover:text-white text-stone-700 border border-[#E7E2D8] text-xs font-bold transition-all"
-                >
-                  <NotionIcon className="w-3.5 h-3.5" />
-                  Notion
-                </a>
-
-                <a
-                  href="https://instagram.com/srii_tech_"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FAF8F5] hover:bg-pink-600 hover:text-white text-stone-700 border border-[#E7E2D8] text-xs font-bold transition-all"
-                >
-                  <InstagramIcon className="w-3.5 h-3.5" />
-                  @srii_tech_
-                </a>
+              <div className="flex flex-wrap items-center gap-2.5">
+                {SOCIAL_LINKS.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <a
+                      key={item.name}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={item.ariaLabel}
+                      title={item.name}
+                      onClick={() => soundFX.playSparkle()}
+                      className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#FAF8F5] text-stone-700 border border-[#E7E2D8] text-xs font-bold transition-all duration-200 shadow-2xs hover:shadow-md hover:-translate-y-0.5 active:scale-95 ${item.hoverClass}`}
+                    >
+                      <Icon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
+                      <span>{item.name}</span>
+                      <ArrowUpRight className="w-3 h-3 opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-200" />
+                    </a>
+                  );
+                })}
               </div>
             </div>
           </div>

@@ -5,6 +5,7 @@ import DynamicCursorManager from './components/DynamicCursorManager';
 import TechMarqueeBanner from './components/TechMarqueeBanner';
 import AboutSection from './components/AboutSection';
 import SkillsSection from './components/SkillsSection';
+import ExperienceSection from './components/ExperienceSection';
 import ProjectsSection from './components/ProjectsSection';
 import CodingAchievementsSection from './components/CodingAchievementsSection';
 import CameraRollGallery from './components/CameraRollGallery';
@@ -121,7 +122,10 @@ export default function App() {
         {/* 4. "What I work with" / Interactive Skill Matrix & Dark Card (Reel t=9.3s - 11.8s) */}
         <SkillsSection />
 
-        {/* 5. "Selected work" / PolicyGuard AI & Payment Gateway System (Reel t=12.0s - 14.8s) */}
+        {/* 5. "Journey & Experience" / Standalone Career & Production Milestones */}
+        <ExperienceSection />
+
+        {/* 6. "Selected work" / PolicyGuard AI & Payment Gateway System (Reel t=12.0s - 14.8s) */}
         <ProjectsSection />
 
         {/* 6. Competitive Programming & Coding Records (Reel t=15.0s - 16.0s) */}

@@ -74,7 +74,7 @@ export default function CodingAchievementsSection() {
           <div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#241E33] border border-purple-800/50 text-[#FFA4B6] text-xs font-bold uppercase tracking-wider mb-3">
               <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />
-              04 ✦ Competitive Coding
+              05 ✦ Competitive Coding
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight font-['Outfit',sans-serif]">
               Problem Solving &amp; Records
