@@ -73,7 +73,7 @@ export default function CursorSelectorRibbon({
 
   return (
     <div
-      className={`w-full max-w-6xl mx-auto px-4 md:px-8 transition-all duration-300 ${className}`}
+      className={`w-full max-w-7xl mx-auto px-4 md:px-8 transition-all duration-300 ${className}`}
       data-testid="cursor-selector-ribbon"
     >
       <div className="bg-[#FAF8F5]/90 backdrop-blur-xl border border-[#E7E2D8] rounded-2xl md:rounded-3xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">

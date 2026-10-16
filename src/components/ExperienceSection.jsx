@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { Briefcase, Calendar, Sparkles, CheckCircle2 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
+import { useRoleTab } from '../context/RoleContext';
+
+const ACCOUNTANT_ROLES = ['exp-01', 'exp-02', 'exp-04'];
+const MIS_ROLES = ['exp-03', 'exp-05', 'exp-06'];
+const OTHER_ROLES = ['exp-other-01', 'exp-other-02', 'exp-other-03'];
 
 const EXPERIENCES = [
   {
@@ -116,11 +121,84 @@ const EXPERIENCES = [
     techStack: ['MS Office Suite', 'Adobe Photoshop', 'CorelDraw', 'Adobe PageMaker', 'Tally Fundamentals', 'Teaching & Mentoring'],
     accentColor: '#EC4899',
     activeHighlight: false
+  },
+  {
+    id: 'exp-other-01',
+    targetId: 'exp-other-consultant',
+    period: '2023 — PRESENT',
+    status: 'Strategic Advisory & Operations',
+    role: 'Multidisciplinary Business & Tax Consultant',
+    company: 'Independent Advisory Practice',
+    location: 'Daltonganj & Regional Jharkhand',
+    description: 'Delivering integrated enterprise advisory, financial governance, statutory tax architecture, and digitized business operations for commercial ventures.',
+    deliverables: [
+      'Formulated unified financial-operational frameworks harmonizing bookkeeping, direct/indirect tax filings, and banking compliance.',
+      'Directed tax planning, business registration advisory, and Section 115BAC statutory assessments for retail & MSME clients.',
+      'Executed internal accounting reviews and ledger reconciliations to uncover structural cost leakages and uncredited inputs.',
+      'Facilitated cross-agency documentation, compliance readiness, and digital submission workflows with 100% turnaround reliability.'
+    ],
+    techStack: ['Enterprise Advisory', 'GST Compliance', 'Income Tax E-Filing', 'Financial Governance', 'Tally Prime', 'MS Excel'],
+    accentColor: '#FF4D6D',
+    activeHighlight: true
+  },
+  {
+    id: 'exp-other-02',
+    targetId: 'exp-other-operations',
+    period: '2021 — PRESENT',
+    status: 'Operations Leadership',
+    role: 'Operations & Workflow Management Lead',
+    company: 'Commercial Distribution & Program Initiatives',
+    location: 'Medininagar (Palamau), Jharkhand',
+    description: 'Managing end-to-end commercial operations, multi-facility logistics, inventory velocity control, and standard operating procedures (SOPs).',
+    deliverables: [
+      'Administered distributor ERP pipelines and high-volume billing operations with strict daily cash & inventory reconciliations.',
+      'Instituted structured operational controls across stock warehousing, batch tracking (FIFO), and transit settlement reconciliations.',
+      'Designed operational checklists and verification workflows that reduced administrative errors and delivery cycle delays.',
+      'Mentored field and office teams on software utilization, statutory protocol adherence, and customer dispute management.'
+    ],
+    techStack: ['Operations Leadership', 'Inventory Control', 'ERP Systems', 'Process Optimization', 'Logistics Management', 'Team Mentorship'],
+    accentColor: '#10B981',
+    activeHighlight: true
+  },
+  {
+    id: 'exp-other-03',
+    targetId: 'exp-other-admin',
+    period: '2018 — 2023',
+    status: 'Executive Administration',
+    role: 'Executive Administrator & Public Programs Lead',
+    company: 'Government Mission & Regional Projects',
+    location: 'Palamau, Garhwa, Chatra, Rohtas Districts',
+    description: 'Directing inter-departmental liaison, citizen demographic registration campaigns, secure database administration, and regional administrative reporting.',
+    deliverables: [
+      'Spearheaded multi-district biometric enrollment and smart card issuance operations across 4 administrative territories.',
+      'Coordinated government stakeholder liaison, public program reporting, and official state/central portal synchronization.',
+      'Maintained confidential databases, institutional audit trails, and strict statutory KYC documentation standards.',
+      'Supervised regional field personnel, hardware deployment logistics, and citizen grievance resolution mechanisms.'
+    ],
+    techStack: ['Public Administration', 'Stakeholder Liaison', 'Database Governance', 'Field Operations', 'KYC & Audit Compliance', 'MIS Systems'],
+    accentColor: '#8B5CF6',
+    activeHighlight: false
   }
 ];
 
 export default function ExperienceSection() {
   const [activeCard, setActiveCard] = useState(null);
+  let roleContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    roleContext = useRoleTab();
+  } catch {
+    // fallback
+  }
+  const activeRole = roleContext?.activeRole ?? 'accountant';
+  const isOther = roleContext?.isOther ?? (activeRole === 'other');
+
+  const filteredExperiences = EXPERIENCES.filter((exp) => {
+    if (isOther) {
+      return OTHER_ROLES.includes(exp.id);
+    }
+    return activeRole === 'mis' ? MIS_ROLES.includes(exp.id) : ACCOUNTANT_ROLES.includes(exp.id);
+  });
 
   const handleCardClick = (id) => {
     setActiveCard(id === activeCard ? null : id);
@@ -140,14 +218,16 @@ export default function ExperienceSection() {
         </div>
 
         {/* Header with Title, Period Pill, and Coral Accent Line */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
           <div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#18181B] tracking-tight font-['Outfit',sans-serif]">
               Journey &amp; Experience
             </h2>
             <div className="w-12 h-1 bg-[#FF4D6D] rounded-full mt-4" />
             <p className="mt-3 text-stone-600 text-sm md:text-base max-w-xl font-normal leading-relaxed">
-              Comprehensive career journey spanning financial accounting, statutory GST/Income Tax compliance, government skill mission MIS, and regional field operations.
+              {isOther
+                ? 'Versatile career trajectory across multidisciplinary consulting, commercial operations leadership, executive administration, and strategic execution.'
+                : 'Comprehensive career journey spanning financial accounting, statutory GST/Income Tax compliance, government skill mission MIS, and regional field operations.'}
             </p>
           </div>
 
@@ -155,14 +235,25 @@ export default function ExperienceSection() {
           <div className="flex items-center gap-3 bg-[#FAF8F5] px-4 py-2.5 rounded-2xl border border-[#ECE7DF] shadow-2xs self-start md:self-end">
             <Calendar className="w-4 h-4 text-[#FF4D6D]" />
             <span className="text-xs sm:text-sm font-mono font-bold text-[#18181B]">
-              2018 — 2026 • 7+ Years of Multifaceted Operations &amp; Accounting
+              {activeRole === 'accountant'
+                ? '2020 — 2026 • 4+ Years Core Accounting & 3+ Years Tax Practice'
+                : activeRole === 'mis'
+                ? '2018 — 2023 • 5+ Years Public Sector MIS & Field Operations'
+                : '2018 — PRESENT • 7+ Years Multidisciplinary Consulting & Operations'}
             </span>
           </div>
         </div>
 
-        {/* Interactive Milestone Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
-          {EXPERIENCES.map((exp) => {
+        {/* Interactive Milestone Cards Grid wrapped in tabpanel */}
+        <div
+          role="tabpanel"
+          id={`experience-role-panel-${activeRole}`}
+          aria-labelledby={`experience-role-tab-${activeRole}`}
+          tabIndex={0}
+          key={activeRole}
+          className="animate-tab-fade grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative focus:outline-none"
+        >
+          {filteredExperiences.map((exp) => {
             const isSelected = activeCard === exp.id;
             return (
               <div

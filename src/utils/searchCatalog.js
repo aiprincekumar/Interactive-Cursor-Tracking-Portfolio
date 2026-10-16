@@ -1,9 +1,10 @@
 /**
  * Search Catalog for Global Command Palette (Cmd+K)
- * 100% Authentic Portfolio Index for Atul Kant Verma
- * Senior Tally Accountant & Statutory Tax Consultant
+ * 100% Authentic Portfolio Index for Atul Verma
+ * Senior Tally Accountant & Statutory Tax Consultant | MIS & Analytics Specialist
  * 
  * Features:
+ * - Dual-Track Role Tagging (role: 'accountant' | 'mis' | 'both')
  * - Ultra-Deep Micro Keyword Indexing (GST, ITR, Tally, Tools, Field Operations)
  * - Quick Actions Category (Resume, Email, WhatsApp, Maps, Physics Lab)
  * - Explicit matchType / Verification Attributes
@@ -20,8 +21,9 @@ export const SEARCH_ITEMS = [
     targetId: 'hero',
     badge: 'Quick Action',
     matchType: 'Quick Action',
+    role: 'both',
     actionType: 'download-resume',
-    description: 'Instant 1-click download of Atul Kant Verma\'s official verified resume dossier (PDF) with full credentials.',
+    description: 'Instant 1-click download of Atul Verma\'s official verified resume dossier (PDF) with full credentials.',
     keywords: 'download resume cv biodata pdf official profile verified credentials atul verma quick actions documents print'
   },
   {
@@ -31,6 +33,7 @@ export const SEARCH_ITEMS = [
     targetId: 'contact',
     badge: 'Quick Action',
     matchType: 'Quick Action',
+    role: 'both',
     actionType: 'mailto',
     actionUrl: 'mailto:atulravi2015@gmail.com?subject=Tax%20%26%20Accounting%20Inquiry%20-%20Atul%20Verma',
     description: 'Compose an instant email to atulravi2015@gmail.com or scroll to the direct consultation inquiry form.',
@@ -43,6 +46,7 @@ export const SEARCH_ITEMS = [
     targetId: 'contact',
     badge: 'Quick Action',
     matchType: 'Quick Action',
+    role: 'accountant',
     actionType: 'external',
     actionUrl: 'https://wa.me/917992383804?text=Hello%20Atul%20ji%2C%20I%20would%20like%20to%20consult%20regarding%20Taxation%20%26%20Accounting%20services.',
     description: 'Open direct WhatsApp conversation (+91 7992383804) for statutory GST returns, Tally bookkeeping and tax advice.',
@@ -55,6 +59,7 @@ export const SEARCH_ITEMS = [
     targetId: 'contact',
     badge: 'Quick Action',
     matchType: 'Field Location',
+    role: 'both',
     actionType: 'external',
     actionUrl: 'https://maps.google.com/?q=Medininagar+Daltonganj+Palamu+Jharkhand',
     description: 'Open live Google Maps navigation directions to Atul Verma\'s office in Medininagar (Daltonganj), Palamu, Jharkhand.',
@@ -67,13 +72,15 @@ export const SEARCH_ITEMS = [
     targetId: 'playground',
     badge: 'Quick Action',
     matchType: 'Interactive Tool',
+    role: 'both',
     actionType: 'scroll',
+    desktopOnly: true,
     description: 'Jump to the real-time Physics Lab & Cursor Tuner to customize flight speed, spring dynamics and trail particles.',
     keywords: 'change cursor style butterfly spark trail physics lab interactive tuner playground flight speed quick actions'
   },
 
   // ==========================================
-  // --- 2. SECTIONS / NAVIGATION (9 Items) ---
+  // --- 2. SECTIONS / NAVIGATION (10 Items) ---
   // ==========================================
   {
     id: 'sec-hero',
@@ -82,8 +89,9 @@ export const SEARCH_ITEMS = [
     targetId: 'hero',
     badge: 'Section',
     matchType: 'Portfolio Section',
+    role: 'both',
     description: 'Interactive cursor-tracking character hero with photo capture, physics and professional overview',
-    keywords: 'hero home top header cursor tracking avatar camera photo atul kant verma senior accountant daltonganj'
+    keywords: 'hero home top header cursor tracking avatar camera photo atul verma senior accountant daltonganj'
   },
   {
     id: 'sec-about',
@@ -92,8 +100,21 @@ export const SEARCH_ITEMS = [
     targetId: 'about',
     badge: 'Section',
     matchType: 'Portfolio Section',
+    role: 'both',
     description: 'Executive story, official bio-data dossier, qualifications & core fiscal competencies in Daltonganj, Palamu',
     keywords: 'about me story education who i am background biography adca infocity daltonganj biodata bio-data qualifications vision competencies'
+  },
+  {
+    id: 'sec-biodata',
+    title: 'Official Bio-Data / Personal Dossier',
+    category: 'Sections',
+    targetId: 'about',
+    tab: 'biodata',
+    badge: 'Verified Dossier',
+    matchType: 'Demographics',
+    role: 'both',
+    description: 'Verified candidate demographics, father\'s name, permanent address in Medininagar, year of birth (1991), date of birth and languages.',
+    keywords: 'biodata personal dossier demographics address father name year of birth yob 1991 date of birth dob marital status languages hindi english about'
   },
   {
     id: 'sec-skills',
@@ -102,6 +123,7 @@ export const SEARCH_ITEMS = [
     targetId: 'skills',
     badge: 'Section',
     matchType: 'Portfolio Section',
+    role: 'both',
     description: 'Categorized technical stacks: Accounting & Tax, Software & Applications, IT Systems & Operations',
     keywords: 'skills core expertise tech stack proficiency accounting tally gst itr excel dtp erp hardware networking'
   },
@@ -112,6 +134,7 @@ export const SEARCH_ITEMS = [
     targetId: 'projects',
     badge: 'Section',
     matchType: 'Portfolio Section',
+    role: 'both',
     description: 'Curated compliance verification engine, Tally accounting architecture & government MIS systems',
     keywords: 'projects selected work case studies compliance gst tax tally mis smart card rsby'
   },
@@ -122,6 +145,7 @@ export const SEARCH_ITEMS = [
     targetId: 'experience',
     badge: 'Section',
     matchType: 'Portfolio Section',
+    role: 'both',
     description: '7+ years career milestones: Tax consultancy, senior accountant, DAY-NULM MIS & field operations',
     keywords: 'experience work jobs career history timeline trajectory roles gst tally mis smart card instructor'
   },
@@ -132,6 +156,7 @@ export const SEARCH_ITEMS = [
     targetId: 'achievements',
     badge: 'Section',
     matchType: 'Portfolio Section',
+    role: 'both',
     description: '7+ years audit records, 500+ tax filings, ₹2.5Cr+ reconciled ITC and 50k+ citizen card rollouts',
     keywords: 'achievements milestones records certifications tally gst tax smart card credentials numbers records'
   },
@@ -142,6 +167,7 @@ export const SEARCH_ITEMS = [
     targetId: 'gallery',
     badge: 'Section',
     matchType: 'Portfolio Section',
+    role: 'both',
     description: 'Camera roll memories, snapshot cards & interactive stickers studio',
     keywords: 'gallery polaroid photos camera roll memories snapshots studio pictures camera memories'
   },
@@ -152,6 +178,7 @@ export const SEARCH_ITEMS = [
     targetId: 'playground',
     badge: 'Section',
     matchType: 'Portfolio Section',
+    role: 'both',
     description: 'Real-time cursor kinematics, particle speed & spring physics tuner playground',
     keywords: 'lab playground physics tuner butterfly speed trail scale controls kinematics physics'
   },
@@ -162,8 +189,21 @@ export const SEARCH_ITEMS = [
     targetId: 'contact',
     badge: 'Section',
     matchType: 'Portfolio Section',
+    role: 'both',
     description: 'Direct consultation inquiry form, email (atulravi2015@gmail.com) & Daltonganj office location',
     keywords: 'contact get in touch email atulravi2015@gmail.com location message hire form inquiry address medininagar daltonganj phone'
+  },
+  {
+    id: 'sec-location',
+    title: 'Location & Office Map / Medininagar HQ',
+    category: 'Sections',
+    targetId: 'contact',
+    tab: 'location',
+    badge: 'Medininagar HQ',
+    matchType: 'Office Location',
+    role: 'both',
+    description: 'Interactive map, headquarters address in Daltonganj (Medininagar), Jharkhand, with zoom controls and directions.',
+    keywords: 'location office map medininagar daltonganj palamau jharkhand directions address zoom map interactive gps headquarters'
   },
 
   // ==========================================
@@ -176,6 +216,7 @@ export const SEARCH_ITEMS = [
     targetId: 'proj-gst-tax',
     badge: '01 Flagship',
     matchType: 'Project Deliverable',
+    role: 'accountant',
     description: 'Comprehensive taxation & statutory compliance system covering GSTR-1, 3B, 9, ITC-2B, GSTR-2A & ITR-1 to 4 with automated reconciliation.',
     keywords: 'gst income tax compliance verification engine gstr-1 gstr-3b gstr-9 itc-2b gstr-2a section 80c tds advance tax audit report cash book trial balance balance sheet e-way bill hsn code statutory'
   },
@@ -186,6 +227,7 @@ export const SEARCH_ITEMS = [
     targetId: 'proj-tally-accounting',
     badge: '02 Flagship',
     matchType: 'Project Deliverable',
+    role: 'accountant',
     description: 'Complete double-entry accounting architecture in Tally Prime & ERP 9, multi-company ledger hierarchies, BRS, inventory FIFO batches & Balance Sheet.',
     keywords: 'tally financial accounting inventory management tally prime erp 9 balance sheet profit and loss p&l trial balance brs bank reconciliation ledgers stock valuation cash book audit report'
   },
@@ -196,6 +238,7 @@ export const SEARCH_ITEMS = [
     targetId: 'proj-day-nulm',
     badge: '03 Operations',
     matchType: 'Project Deliverable',
+    role: 'mis',
     description: 'Centralized government MIS database & candidate tracking system for Skill India urban training mission batches, biometric logs & certification.',
     keywords: 'day-nulm skill india mis reporting portal database candidate tracking biometric attendance batch certification government analytics daltonganj palamu'
   },
@@ -206,12 +249,13 @@ export const SEARCH_ITEMS = [
     targetId: 'proj-smart-card',
     badge: '04 Field Ops',
     matchType: 'Project Deliverable',
+    role: 'mis',
     description: 'Identity and smart card deployment across 4 districts (Palamu, Garhwa, Latehar, Chatra) with citizen biometric workflows and RSBY / UIDAI sync.',
     keywords: 'multi-district smart card operations enrollment engine 4 districts palamu garhwa latehar chatra rsby uidai aadhaar sync kyc identity field operations hardware'
   },
 
   // ==========================================
-  // --- 4. CORE EXPERTISE & MICRO-INDEXED SKILLS (24 Items) ---
+  // --- 4. CORE EXPERTISE & MICRO-INDEXED SKILLS (23 Items) ---
   // ==========================================
   // Category 1: Accounting & Tax (Statutory Compliance & Micro-Records)
   {
@@ -222,6 +266,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Tally Prime & ERP 9',
     badge: 'Accounting (98%)',
     matchType: 'Software Tool',
+    role: 'accountant',
     description: 'Company creation, chart of accounts, multi-ledger hierarchy, voucher entry, inventory FIFO tracking & Balance Sheet finalization.',
     keywords: 'tally prime tally erp 9 accounting ledgers vouchers inventory balance sheet trial balance profit & loss double entry cash book audit report'
   },
@@ -233,6 +278,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'GST Filing & Compliance',
     badge: 'Taxation (96%)',
     matchType: 'Statutory Compliance',
+    role: 'accountant',
     description: 'Monthly/quarterly GSTR-1 outward returns, GSTR-3B tax computation, cash ledger offset, GSTR-9 annual returns, e-way bills & e-invoicing.',
     keywords: 'gst return filing gstr-1 gstr-3b gstr-9 gstr-2a itc-2b indirect tax returns tax computation cash ledger e-way bill e-invoicing itc reconciliation hsn code'
   },
@@ -244,6 +290,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'GST Filing & Compliance',
     badge: 'Taxation (97%)',
     matchType: 'Statutory Compliance',
+    role: 'accountant',
     description: 'Algorithmic matching of purchase register ledgers against auto-drafted ITC-2B and GSTR-2A statements, identifying invoice mismatches & ineligible credits.',
     keywords: 'itc-2b itc 2b gstr-2a gstr 2a input tax credit reconciliation purchase register mismatch ineligible itc 2b reverse charge gst portal'
   },
@@ -255,6 +302,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Income Tax E-Filing',
     badge: 'Taxation (94%)',
     matchType: 'Statutory Compliance',
+    role: 'accountant',
     description: 'ITR-1 (Sahaj), ITR-2, ITR-4 (Sugam), Form 26AS/AIS reconciliation, Section 80C deductions, Section 115BAC regime comparison & advance tax computations.',
     keywords: 'income tax e-filing itr-1 itr-2 itr-3 itr-4 direct tax ais 26as advance tax tax audit deduction section 80c 115bac returns challan 280'
   },
@@ -266,6 +314,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Income Tax E-Filing',
     badge: 'Tax Compliance',
     matchType: 'Statutory Compliance',
+    role: 'accountant',
     description: 'Tax Deducted at Source (TDS), TCS, quarterly Advance Tax estimation under Section 208/209, Challan 280/281 payment and Section 80C fiscal deductions.',
     keywords: 'tds tcs advance tax computation section 80c 80d challan 280 challan 281 form 16 form 16a tax deduction at source fiscal planning'
   },
@@ -277,6 +326,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Financial Auditing & Ledgers',
     badge: 'Auditing (95%)',
     matchType: 'Statutory Compliance',
+    role: 'accountant',
     description: 'General ledgers, cash book & day book scrutiny, Bank Reconciliation Statements (BRS), debtor aging & year-end provisions.',
     keywords: 'financial auditing ledgers brs bank reconciliation statement day book cash book debtors creditors statutory audit balance sheet verification audit report'
   },
@@ -288,6 +338,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Financial Auditing & Ledgers',
     badge: 'Auditing (96%)',
     matchType: 'Statutory Compliance',
+    role: 'accountant',
     description: 'Complete year-end financial finalization: balancing Trial Balance, preparing Profit & Loss (P&L) statements, depreciation schedules and audited Balance Sheets.',
     keywords: 'trial balance profit & loss profit and loss p&l balance sheet financial statements depreciation schedule closing entries year-end audit report'
   },
@@ -299,6 +350,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Stock Handling & Logistics',
     badge: 'Trade Compliance',
     matchType: 'Statutory Compliance',
+    role: 'accountant',
     description: 'FIFO inventory valuation, generating multi-vehicle E-Way Bills, assigning accurate 4/6/8-digit HSN codes and managing interstate logistics compliance.',
     keywords: 'stock valuation e-way bill eway bill hsn code hsn codes sac code fifo dispatch inventory valuation interstate dispatch logistics'
   },
@@ -312,6 +364,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'MS Excel (Advanced)',
     badge: 'Analytics (97%)',
     matchType: 'Software Tool',
+    role: 'mis',
     description: 'XLOOKUP, VLOOKUP, HLOOKUP, INDEX/MATCH, Pivot Tables, conditional formulas, financial modeling, dynamic slicers & data analytics.',
     keywords: 'microsoft excel ms excel vlookup hlookup pivot table pivot tables dashboards financial modeling data analysis formulas index match what-if'
   },
@@ -323,6 +376,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'MS Office (Word & PPT)',
     badge: 'Office (96%)',
     matchType: 'Software Tool',
+    role: 'mis',
     description: 'Official memos, executive correspondence, mail merge in Word, corporate pitch presentations & visual decks in PowerPoint.',
     keywords: 'ms office word powerpoint documentation presentations memo mail merge pitch deck reporting outlook typing'
   },
@@ -334,6 +388,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'DTP Design Suite',
     badge: 'Publishing (92%)',
     matchType: 'Software Tool',
+    role: 'mis',
     description: 'Commercial layout design in Photoshop 7.0, vector graphics & logos in CorelDraw X7, publication formatting & Hindi/English typesetting in PageMaker 7.0.',
     keywords: 'dtp desktop publishing photoshop 7.0 coreldraw x7 pagemaker 7.0 graphic design printing typesetting brochures banners book layout'
   },
@@ -345,6 +400,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Path Solution ERP',
     badge: 'ERP Tech (94%)',
     matchType: 'Software Tool',
+    role: 'accountant',
     description: 'High-frequency wholesale invoicing, retail POS billing, distributor inventory control, batch expiry tracking & vendor ledger settlement.',
     keywords: 'path solution erp fmcg inventory wholesale billing retail pos billing distributor accounts settlement pos terminal'
   },
@@ -358,19 +414,21 @@ export const SEARCH_ITEMS = [
     skillKey: 'Windows OS Administration',
     badge: 'Systems (95%)',
     matchType: 'Software Tool',
+    role: 'mis',
     description: 'Clean deployment of Windows 10/11 Pro, user account policies, backup routines, disk partitioning & security hardening.',
     keywords: 'windows 10 windows 11 windows os administration windows pro user accounts policies disk partitioning drivers security maintenance'
   },
   {
     id: 'skill-computer-applications-adca',
-    title: 'Computer Applications (ADCA Certified)',
+    title: 'Commercial Computing & Office IT Suite (ADCA Certified)',
     category: 'Skills',
     targetId: 'skill-computer-applications-adca',
-    skillKey: 'Computer Applications (ADCA)',
+    skillKey: 'Commercial Computing & Office IT Suite',
     badge: 'Diploma (96%)',
     matchType: 'Verified Skill',
+    role: 'mis',
     description: 'Advance Diploma certified computing, bilingual data processing (Hindi & English typing), e-governance & digital workflows.',
-    keywords: 'computer applications adca infocity daltonganj diploma hindi english typing e-governance computing diploma certified'
+    keywords: 'computer applications adca infocity daltonganj diploma hindi english typing e-governance computing diploma certified commercial computing'
   },
   {
     id: 'skill-hardware-diagnosis-maintenance',
@@ -380,6 +438,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Hardware Diagnosis & Maintenance',
     badge: 'Hardware (92%)',
     matchType: 'Verified Skill',
+    role: 'mis',
     description: 'Workstation assembly, SMPS power testing, motherboard triage, RAM/SSD upgrades, thermal paste & BIOS/UEFI setup.',
     keywords: 'hardware diagnosis maintenance workstation assembly smps ram ssd motherboard bios repair troubleshooting pc build'
   },
@@ -391,6 +450,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Network & Software Support',
     badge: 'Networking (90%)',
     matchType: 'Verified Skill',
+    role: 'mis',
     description: 'LAN setup, Ethernet crimping, router/switch configuration, network printer sharing, multi-user Tally Prime & AnyDesk support.',
     keywords: 'network software support lan ethernet router switch printer sharing tally multi-user anydesk teamviewer troubleshooting wifi'
   },
@@ -404,6 +464,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'MIS Reporting & Analytics',
     badge: 'Government MIS',
     matchType: 'Project Deliverable',
+    role: 'mis',
     description: 'Direct entry, verification and syncing on National Urban Livelihoods Mission (DAY-NULM) & Skill India central MIS databases.',
     keywords: 'day-nulm skill india mis portal government database candidate tracking biometric log urban livelihoods mission palamu daltonganj'
   },
@@ -415,6 +476,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Office Administration',
     badge: 'Field Operations',
     matchType: 'Project Deliverable',
+    role: 'mis',
     description: 'Rashtriya Swasthya Bima Yojana (RSBY) smart card programming, fingerprint optical scanning, UIDAI / Aadhaar biometric authentication.',
     keywords: 'smart card rsby biometric enrollment uidai aadhaar sync rashtriya swasthya bima yojana fingerprint scanner card issuance'
   },
@@ -426,6 +488,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Office Administration',
     badge: 'Field Network',
     matchType: 'Field Location',
+    role: 'both',
     description: 'Extensive on-ground field execution, government mission deployments and tax consultancy across Palamu, Garhwa, Latehar, Chatra & Daltonganj.',
     keywords: 'daltonganj garhwa latehar chatra palamu bihar jharkhand medininagar rohtas field operations regional network locations district'
   },
@@ -437,6 +500,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Office Administration',
     badge: 'Operations (95%)',
     matchType: 'Verified Skill',
+    role: 'mis',
     description: 'Supervision of day-to-day office workflows, document registry, petty cash, utility budgeting & vendor liaison.',
     keywords: 'office administration protocols document registry petty cash budgeting attendance vendor management clerical supervision'
   },
@@ -448,6 +512,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Stock Handling & Logistics',
     badge: 'Logistics (94%)',
     matchType: 'Verified Skill',
+    role: 'accountant',
     description: 'Physical inventory verification, warehouse stock layout for FIFO dispatch, damaged stock claim filing & zero-stockout management.',
     keywords: 'stock handling store inventory warehousing physical audits fifo dispatch logistics shrinkage control reorder stock valuation'
   },
@@ -459,6 +524,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'MIS Reporting & Analytics',
     badge: 'Analytics (96%)',
     matchType: 'Verified Skill',
+    role: 'mis',
     description: 'Executive MIS reports, sales trend analysis, product category margins, debtor aging & government skill mission KPIs.',
     keywords: 'mis reporting executive analytics kpi dashboards sales trends margins debtor aging data analytics reports'
   },
@@ -470,6 +536,7 @@ export const SEARCH_ITEMS = [
     skillKey: 'Business Development',
     badge: 'Growth (91%)',
     matchType: 'Verified Skill',
+    role: 'both',
     description: 'Client onboarding for accounting & tax services, commercial fee negotiations, retail network relations & ethical advisory.',
     keywords: 'business development client relations client acquisition tax consultancy customer retention commercial negotiation growth'
   },
@@ -484,6 +551,7 @@ export const SEARCH_ITEMS = [
     targetId: 'exp-tax-consultant',
     badge: '2023 — Present',
     matchType: 'Statutory Compliance',
+    role: 'accountant',
     description: 'Managing statutory tax compliance, monthly GSTR-1 & 3B, ITR-1 to 4 filing, ITC 2B reconciliations & client advisory in Daltonganj, Palamu.',
     keywords: 'gst income tax consultant independent practice daltonganj palamu 2023 present gstr-1 gstr-3b itr 1 2 4 itc reconciliation tds advance tax'
   },
@@ -494,6 +562,7 @@ export const SEARCH_ITEMS = [
     targetId: 'exp-senior-accountant',
     badge: '2022 — Present',
     matchType: 'Software Tool',
+    role: 'accountant',
     description: 'Full-cycle double-entry bookkeeping, daily vouchers, inventory accounting, multi-bank BRS & Balance Sheet finalization in Medininagar.',
     keywords: 'senior tally accountant commercial retail medininagar palamau 2022 present brs balance sheet trial balance profit & loss stock valuation'
   },
@@ -504,6 +573,7 @@ export const SEARCH_ITEMS = [
     targetId: 'exp-mis-executive',
     badge: '2021 — 2023',
     matchType: 'Project Deliverable',
+    role: 'mis',
     description: 'Candidate enrollment tracking, biometric attendance, portal data synchronization & district progress analytics for Skill India in Daltonganj.',
     keywords: 'mis executive day-nulm skill india government project 2021 2023 trainee database biometric attendance daltonganj palamu'
   },
@@ -514,6 +584,7 @@ export const SEARCH_ITEMS = [
     targetId: 'exp-junks-food',
     badge: '2020 — 2022',
     matchType: 'Software Tool',
+    role: 'accountant',
     description: 'Commercial wholesale billing, FIFO inventory flow, franchise settlements & vendor accounts using Path Solution ERP.',
     keywords: 'accountant inventory controller junks food agency path solution erp 2020 2022 wholesale billing fmcg pos terminal'
   },
@@ -524,6 +595,7 @@ export const SEARCH_ITEMS = [
     targetId: 'exp-smart-card',
     badge: '2019 — 2021',
     matchType: 'Field Location',
+    role: 'mis',
     description: 'Supervised biometric enrollment, card personalization & citizen distribution workflows across Palamu, Garhwa, Chatra, and Latehar.',
     keywords: 'smart card operations specialist 4 districts palamu garhwa chatra latehar rohtas rsby biometric enrollment citizen id 2019 2021 uidai aadhaar'
   },
@@ -534,6 +606,7 @@ export const SEARCH_ITEMS = [
     targetId: 'exp-instructor',
     badge: '2018 — 2020',
     matchType: 'Verified Skill',
+    role: 'mis',
     description: 'Instructed diploma students in MS Office, Desktop Publishing (DTP Photoshop, CorelDraw, PageMaker), foundational Tally ERP 9 & computer hardware troubleshooting.',
     keywords: 'computer instructor academic tutor teaching coaching ms office dtp photoshop coreldraw pagemaker tally fundamentals daltonganj 2018 2020'
   },
@@ -549,6 +622,7 @@ export const SEARCH_ITEMS = [
     tab: 'qualifications',
     badge: 'Diploma',
     matchType: 'Academic Record',
+    role: 'both',
     description: 'Infocity Daltonganj certified. Advanced Excel modeling, Tally accounting, DTP suite & fundamental computer hardware diagnostics.',
     keywords: 'adca advance diploma computer application infocity daltonganj qualification education cert computing diploma'
   },
@@ -560,6 +634,7 @@ export const SEARCH_ITEMS = [
     tab: 'qualifications',
     badge: 'UP Board',
     matchType: 'Academic Record',
+    role: 'both',
     description: 'Higher Secondary education under UP Board from Baba Nawbat Choudhry Surtapur Kundesar Ghazipur.',
     keywords: 'intermediate arts ia 10+2 ghazipur up board higher secondary qualification education intermediate'
   },
@@ -571,6 +646,7 @@ export const SEARCH_ITEMS = [
     tab: 'qualifications',
     badge: 'CBSE Board',
     matchType: 'Academic Record',
+    role: 'both',
     description: 'Secondary school examination under CBSE board from Radha Govind Public School Ramgarh Cant, Jharkhand.',
     keywords: 'matriculation 10th standard cbse radha govind ramgarh cant secondary education qualification high school'
   }

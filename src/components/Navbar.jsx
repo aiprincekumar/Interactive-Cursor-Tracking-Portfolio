@@ -7,15 +7,31 @@ import CursorIcon from './CursorIcon';
 import CommandPalette from './CommandPalette';
 import ResumeDropdown from './ResumeDropdown';
 import ScrollProgressBar from './ScrollProgressBar';
+import RoleTabsBar from './RoleTabsBar';
+import { useRoleTab } from '../context/RoleContext';
+import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
 
 export default function Navbar({
   soundEnabled,
   setSoundEnabled,
   activeCursor = 'butterfly',
-  onSelectCursor
+  onSelectCursor,
+  activeRole: propActiveRole,
+  onSelectRole: propOnSelectRole
 }) {
+  let roleContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    roleContext = useRoleTab();
+  } catch {
+    // In case Navbar is mounted outside RoleProvider
+  }
+  const activeRole = propActiveRole ?? roleContext?.activeRole ?? 'accountant';
+  const onSelectRole = propOnSelectRole ?? roleContext?.selectRole;
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isRibbonOpen, setIsRibbonOpen] = useState(false);
+  const [isRoleBarOpen, setIsRoleBarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(() => {
     if (typeof window === 'undefined') return false;
     try {
@@ -37,8 +53,27 @@ export default function Navbar({
   });
   const [activeSection, setActiveSection] = useState('hero');
   const navContainerRef = useRef(null);
+  const isDesktopCursor = useDesktopCursorSupport();
+
+  // Auto-close cursor ribbon if screen drops below 1024px or enters touch mode
+  useEffect(() => {
+    if (!isDesktopCursor && isRibbonOpen) {
+      setIsRibbonOpen(false);
+    }
+  }, [isDesktopCursor, isRibbonOpen]);
 
   const activeCursorData = CURSOR_LIST.find((c) => c.id === activeCursor) || CURSOR_LIST[0];
+
+  const toggleRoleBar = () => {
+    const next = !isRoleBarOpen;
+    setIsRoleBarOpen(next);
+    if (next) {
+      setIsRibbonOpen(false);
+      setMobileMenuOpen(false);
+      if (isSearchOpen) setIsSearchOpen(false);
+    }
+    if (soundEnabled) soundFX.playRibbonToggle(next);
+  };
 
   const navLinks = [
     { label: 'Home', href: '#hero', id: 'hero' },
@@ -60,6 +95,7 @@ export default function Navbar({
         setIsSearchOpen((prev) => {
           const next = !prev;
           if (next) {
+            setIsRoleBarOpen(false);
             setIsRibbonOpen(false);
             setMobileMenuOpen(false);
             if (soundEnabled) soundFX.playFocusBeep();
@@ -73,21 +109,33 @@ export default function Navbar({
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [soundEnabled]);
 
-  // Outside click listener for ribbon
+  // Outside click & Escape listener for ribbon & role secondary bar
   useEffect(() => {
-    if (!isRibbonOpen) return;
+    if (!isRibbonOpen && !isRoleBarOpen) return;
 
     const handleClickOutside = (event) => {
       if (navContainerRef.current && !navContainerRef.current.contains(event.target)) {
-        setIsRibbonOpen(false);
-        soundFX.playRibbonToggle(false);
+        if (isRibbonOpen) {
+          setIsRibbonOpen(false);
+          soundFX.playRibbonToggle(false);
+        }
+        if (isRoleBarOpen) {
+          setIsRoleBarOpen(false);
+          if (soundEnabled) soundFX.playRibbonToggle(false);
+        }
       }
     };
 
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
-        setIsRibbonOpen(false);
-        soundFX.playRibbonToggle(false);
+        if (isRibbonOpen) {
+          setIsRibbonOpen(false);
+          soundFX.playRibbonToggle(false);
+        }
+        if (isRoleBarOpen) {
+          setIsRoleBarOpen(false);
+          if (soundEnabled) soundFX.playRibbonToggle(false);
+        }
       }
     };
 
@@ -100,7 +148,7 @@ export default function Navbar({
       document.removeEventListener('touchstart', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isRibbonOpen]);
+  }, [isRibbonOpen, isRoleBarOpen, soundEnabled]);
 
   // ScrollSpy listener to highlight active section in Navbar
   useEffect(() => {
@@ -143,7 +191,7 @@ export default function Navbar({
   return (
     <>
       <header ref={navContainerRef} className="fixed top-0 left-0 right-0 z-40 px-3 md:px-8 py-3.5">
-        <div className="relative max-w-6xl mx-auto bg-[#FAF8F5]/90 backdrop-blur-md rounded-full border border-[#E7E2D8] px-3 sm:px-4 md:px-5 py-2 shadow-xs flex items-center justify-between overflow-hidden">
+        <div className="relative max-w-7xl mx-auto bg-[#FAF8F5]/90 backdrop-blur-md rounded-full border border-[#E7E2D8] px-3 sm:px-4 md:px-5 py-2 shadow-xs flex items-center justify-between">
           {/* Brand Logo - Atul Verma (AV) */}
           <a href="#hero" className="flex items-center gap-2 group shrink-0">
             <div className="w-8 h-8 rounded-full overflow-hidden border border-[#E7E2D8] bg-[#18181B] flex items-center justify-center text-white text-xs font-bold shadow-xs group-hover:scale-105 transition-transform">
@@ -180,13 +228,14 @@ export default function Navbar({
             })}
           </nav>
 
-          {/* Right Action Group - Strict Order: [🔍 Search] -> [🦋 Cursor] -> [🔊 Sound] -> [📄 Resume] -> [☰ Menu] */}
+          {/* Right Action Group - Strict Order: [🔍 Search] -> [Role Switcher] -> [🦋 Cursor] -> [🔊 Sound] -> [📄 Resume] -> [☰ Menu] */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             {/* 1. Global Search Trigger Button */}
             <button
               type="button"
               onClick={() => {
                 setIsSearchOpen(true);
+                if (isRoleBarOpen) setIsRoleBarOpen(false);
                 if (isRibbonOpen) setIsRibbonOpen(false);
                 if (mobileMenuOpen) setMobileMenuOpen(false);
                 if (soundEnabled) soundFX.playFocusBeep();
@@ -206,37 +255,51 @@ export default function Navbar({
               </kbd>
             </button>
 
-            {/* 2. Dynamic Cursor Variant Selector */}
-            <button
-              type="button"
-              onClick={() => {
-                const next = !isRibbonOpen;
-                setIsRibbonOpen(next);
-                if (next) {
-                  if (mobileMenuOpen) setMobileMenuOpen(false);
-                  if (isSearchOpen) setIsSearchOpen(false);
-                }
-                soundFX.playRibbonToggle(next);
-              }}
-              aria-label={isRibbonOpen ? 'Close Cursor Selector' : `Cursor: ${activeCursorData.name}`}
-              aria-expanded={isRibbonOpen}
-              className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${
-                isRibbonOpen
-                  ? 'bg-[#18181B] text-white border-[#18181B] shadow-xs scale-105'
-                  : 'bg-white/80 hover:bg-white text-stone-700 hover:text-[#18181B] border-[#E7E2D8] hover:border-stone-300 shadow-2xs hover:scale-105'
-              }`}
-              title={`Active Cursor: ${activeCursorData.name} (Click to customize)`}
-            >
-              <span className="text-sm leading-none select-none flex items-center justify-center" aria-label={activeCursorData.name}>
-                <CursorIcon cursorId={activeCursorData.id} size={15} />
-              </span>
-              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white" />
-              </span>
-            </button>
+            {/* 2. Career Role Switcher Single-Icon Trigger (immediately after Search on both desktop & mobile headers) */}
+            <RoleTabsBar
+              variant="navbar"
+              activeRole={activeRole}
+              onSelectRole={onSelectRole}
+              isOpen={isRoleBarOpen}
+              onToggle={toggleRoleBar}
+              soundEnabled={soundEnabled}
+            />
 
-            {/* 3. Audio Toggle Button */}
+            {/* 3. Dynamic Cursor Variant Selector (Desktop & Fine Pointer Only) */}
+            {isDesktopCursor && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isDesktopCursor) return;
+                  const next = !isRibbonOpen;
+                  setIsRibbonOpen(next);
+                  if (next) {
+                    setIsRoleBarOpen(false);
+                    if (mobileMenuOpen) setMobileMenuOpen(false);
+                    if (isSearchOpen) setIsSearchOpen(false);
+                  }
+                  soundFX.playRibbonToggle(next);
+                }}
+                aria-label={isRibbonOpen ? 'Close Cursor Selector' : `Cursor: ${activeCursorData.name}`}
+                aria-expanded={isRibbonOpen}
+                className={`desktop-cursor-only hidden lg:flex relative w-8 h-8 rounded-full items-center justify-center transition-all duration-200 border cursor-pointer ${
+                  isRibbonOpen
+                    ? 'bg-[#18181B] text-white border-[#18181B] shadow-xs scale-105'
+                    : 'bg-white/80 hover:bg-white text-stone-700 hover:text-[#18181B] border-[#E7E2D8] hover:border-stone-300 shadow-2xs hover:scale-105'
+                }`}
+                title={`Active Cursor: ${activeCursorData.name} (Click to customize)`}
+              >
+                <span className="text-sm leading-none select-none flex items-center justify-center" aria-label={activeCursorData.name}>
+                  <CursorIcon cursorId={activeCursorData.id} size={15} />
+                </span>
+                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white" />
+                </span>
+              </button>
+            )}
+
+            {/* 4. Audio Toggle Button */}
             <button
               type="button"
               onClick={() => {
@@ -256,18 +319,19 @@ export default function Navbar({
               )}
             </button>
 
-            {/* 4. Smart Resume Action Dropdown */}
+            {/* 5. Smart Resume Action Dropdown */}
             <div className="hidden sm:block">
               <ResumeDropdown soundEnabled={soundEnabled} />
             </div>
 
-            {/* 5. Mobile Menu Toggle */}
+            {/* 6. Mobile Menu Toggle */}
             <button
               type="button"
               onClick={() => {
                 const next = !mobileMenuOpen;
                 setMobileMenuOpen(next);
                 if (next) {
+                  setIsRoleBarOpen(false);
                   if (isRibbonOpen) setIsRibbonOpen(false);
                   if (isSearchOpen) setIsSearchOpen(false);
                 }
@@ -284,9 +348,27 @@ export default function Navbar({
           <ScrollProgressBar />
         </div>
 
-        {/* Expandable Cursor Selector Ribbon with Smooth Animation */}
-        {isRibbonOpen && (
-          <div className="mt-2.5 animate-in fade-in slide-in-from-top-2 duration-200 transition-all">
+        {/* Floating Secondary Horizontal Sub-Bar for Detailed Role Selection */}
+        {isRoleBarOpen && (
+          <RoleTabsBar
+            variant="floating-bar"
+            activeRole={activeRole}
+            onSelectRole={(role) => {
+              if (onSelectRole) onSelectRole(role);
+              setIsRoleBarOpen(false);
+            }}
+            onClose={() => {
+              setIsRoleBarOpen(false);
+              if (soundEnabled) soundFX.playRibbonToggle(false);
+            }}
+            soundEnabled={soundEnabled}
+            className="max-w-7xl"
+          />
+        )}
+
+        {/* Expandable Cursor Selector Ribbon with Smooth Animation (Desktop & Fine Pointer Only) */}
+        {isDesktopCursor && isRibbonOpen && (
+          <div className="desktop-cursor-only mt-2.5 max-w-7xl mx-auto animate-in fade-in slide-in-from-top-2 duration-200 transition-all">
             <CursorSelectorRibbon
               activeCursor={activeCursor}
               onSelectCursor={(cursorId) => {
@@ -299,14 +381,26 @@ export default function Navbar({
                 setIsRibbonOpen(false);
                 soundFX.playRibbonToggle(false);
               }}
+              className="max-w-7xl"
             />
           </div>
         )}
 
         {/* Mobile Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden mt-2 max-w-6xl mx-auto bg-[#FAF8F5]/98 backdrop-blur-xl rounded-2xl border border-[#E7E2D8] p-4 shadow-xl flex flex-col gap-1.5 animate-in slide-in-from-top-2">
-            {/* Mobile In-Drawer Search Launchpad */}
+          <div className="md:hidden mt-2 max-w-7xl mx-auto bg-[#FAF8F5]/98 backdrop-blur-xl rounded-2xl border border-[#E7E2D8] p-4 shadow-xl flex flex-col gap-2.5 animate-in slide-in-from-top-2">
+            {/* 1. Mobile Career Track Switcher Card */}
+            <RoleTabsBar
+              variant="drawer"
+              activeRole={activeRole}
+              onSelectRole={(role) => {
+                if (onSelectRole) onSelectRole(role);
+              }}
+              soundEnabled={soundEnabled}
+              className="mb-1"
+            />
+
+            {/* 2. Mobile In-Drawer Search Launchpad */}
             <button
               type="button"
               onClick={() => {
@@ -374,6 +468,9 @@ export default function Navbar({
         }}
         initialQuery={initialSearchQuery}
         soundEnabled={soundEnabled}
+        activeRole={activeRole}
+        onSelectRole={onSelectRole}
+        isDesktopCursor={isDesktopCursor}
       />
     </>
   );

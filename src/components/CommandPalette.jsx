@@ -21,6 +21,9 @@ import {
 import { soundFX } from '../utils/audio';
 import { SEARCH_ITEMS } from '../utils/searchCatalog';
 import { searchCatalogItems, ALIAS_MAP } from '../utils/fuzzySearch';
+import { useRoleTab } from '../context/RoleContext';
+import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
+import { getResumeConfig } from '../utils/resumeConfig';
 
 const CATEGORIES = ['All', 'Actions', 'Sections', 'Projects', 'Skills', 'Experience', 'Education'];
 
@@ -114,8 +117,23 @@ export default function CommandPalette({
   isOpen, 
   onClose, 
   soundEnabled = true, 
-  initialQuery = '' 
+  initialQuery = '',
+  activeRole: _activeRole,
+  onSelectRole: propOnSelectRole,
+  isDesktopCursor: propIsDesktopCursor
 }) {
+  const detectedDesktopCursor = useDesktopCursorSupport();
+  const isDesktopCursor = propIsDesktopCursor !== undefined ? propIsDesktopCursor : detectedDesktopCursor;
+
+  let roleContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    roleContext = useRoleTab();
+  } catch {
+    // In case CommandPalette is mounted outside RoleProvider
+  }
+  const onSelectRole = propOnSelectRole ?? roleContext?.selectRole;
+
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -220,8 +238,15 @@ export default function CommandPalette({
 
   // Execute smart fuzzy search with Levenshtein tolerance and multi-token matching
   const filteredItems = useMemo(() => {
-    return searchCatalogItems(SEARCH_ITEMS, query, selectedCategory);
-  }, [query, selectedCategory]);
+    let items = searchCatalogItems(SEARCH_ITEMS, query, selectedCategory);
+    // On touch/mobile devices, filter out cursor customization actions while keeping sections
+    if (!isDesktopCursor) {
+      items = items.filter(
+        (item) => item.id !== 'act-cursor-playground' && !item.desktopOnly && !item.desktopCursorOnly
+      );
+    }
+    return items;
+  }, [query, selectedCategory, isDesktopCursor]);
 
   // Group items by category for grouped view presentation
   const groupedItems = useMemo(() => {
@@ -275,11 +300,23 @@ export default function CommandPalette({
     onClose();
     if (soundEnabled) soundFX.playFocusBeep();
 
-    // 1. Quick Action: Download Verified Resume PDF
+    // 1. Role Deep-Linking: Synchronize role state if item is role-specific
+    if (item.role && (item.role === 'accountant' || item.role === 'mis')) {
+      if (onSelectRole) {
+        onSelectRole(item.role);
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('switch-role-tab', { detail: { role: item.role } }));
+      }
+    }
+
+    // 2. Quick Action: Download Verified Resume PDF (Active Role)
     if (item.actionType === 'download-resume') {
+      const activeRole = roleContext?.activeRole || 'accountant';
+      const resumeConfig = getResumeConfig(activeRole);
       const link = document.createElement('a');
-      link.href = '/resume.pdf';
-      link.download = 'Atul_Verma_Resume.pdf';
+      link.href = resumeConfig.pdfPath;
+      link.download = resumeConfig.downloadFilename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -287,29 +324,34 @@ export default function CommandPalette({
       return;
     }
 
-    // 2. Quick Action: Direct Email mailto
+    // 3. Quick Action: Direct Email mailto
     if (item.actionType === 'mailto') {
       window.location.href = item.actionUrl || 'mailto:atulravi2015@gmail.com';
       return;
     }
 
-    // 3. Quick Action: External Link (WhatsApp / Google Maps)
+    // 4. Quick Action: External Link (WhatsApp / Google Maps)
     if (item.actionType === 'external' && item.actionUrl) {
       window.open(item.actionUrl, '_blank', 'noopener,noreferrer');
       return;
     }
 
-    // 4. Tab dispatch for Qualifications & Education
+    // 5. Tab dispatch for Qualifications, Bio-Data & Education
     if (item.tab === 'qualifications' || item.targetId?.startsWith('edu-')) {
       window.dispatchEvent(new CustomEvent('switch-about-tab', { detail: { tab: 'qualifications' } }));
+    } else if (item.tab === 'biodata') {
+      window.dispatchEvent(new CustomEvent('switch-about-tab', { detail: { tab: 'biodata' } }));
+    } else if (item.tab === 'location' || item.tab === 'touch') {
+      window.dispatchEvent(new CustomEvent('switch-contact-tab', { detail: { tab: item.tab } }));
     }
 
-    // 5. Skill selection dispatch
+    // 6. Skill selection dispatch
     if (item.skillKey) {
       window.dispatchEvent(new CustomEvent('select-skill', { detail: { skill: item.skillKey } }));
     }
 
-    // 6. Smooth scroll to target element with 2.5s glowing pulse
+    // 7. Smooth scroll to target element with 2.5s glowing pulse
+    // 160ms delay ensures React finishes re-rendering the section with active role tabpanel mounted!
     if (item.targetId) {
       setTimeout(() => {
         const target = document.getElementById(item.targetId);
@@ -331,7 +373,7 @@ export default function CommandPalette({
             target.classList.remove(...pulseClasses);
           }, 2500);
         }
-      }, 120);
+      }, 160);
     }
   };
 
@@ -577,6 +619,30 @@ export default function CommandPalette({
                                 >
                                   {item.matchType || item.badge}
                                 </span>
+
+                                {/* Track Affinity Role Badge */}
+                                {item.role === 'accountant' && (
+                                  <span
+                                    className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0 ${
+                                      isSelected
+                                        ? 'bg-[#FF4D6D] text-white shadow-xs'
+                                        : 'bg-rose-50 text-[#FF4D6D] border border-rose-200'
+                                    }`}
+                                  >
+                                    💼 Accountant
+                                  </span>
+                                )}
+                                {item.role === 'mis' && (
+                                  <span
+                                    className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0 ${
+                                      isSelected
+                                        ? 'bg-blue-500 text-white shadow-xs'
+                                        : 'bg-sky-50 text-sky-700 border border-sky-200'
+                                    }`}
+                                  >
+                                    📊 MIS
+                                  </span>
+                                )}
                               </div>
 
                               <p

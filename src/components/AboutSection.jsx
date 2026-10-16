@@ -21,6 +21,7 @@ import {
   Briefcase
 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
+import { useRoleTab } from '../context/RoleContext';
 
 // Tab Definitions
 const TABS = [
@@ -44,8 +45,8 @@ const TABS = [
   }
 ];
 
-// Core Competencies (Replacing redundant operational bullets)
-const CORE_COMPETENCIES = [
+// Role-Specific Core Competency Pillars
+const ACCOUNTANT_COMPETENCIES = [
   {
     title: 'Statutory Compliance & GST/ITR',
     category: 'Direct & Indirect Tax',
@@ -77,16 +78,151 @@ const CORE_COMPETENCIES = [
     description: 'Advanced multi-company chart of accounts hierarchy, automated Bank Reconciliation Statements (BRS), FIFO & batch inventory valuation, and synchronized billing workflow administration across enterprise software.'
   },
   {
-    title: 'Financial MIS & Operations',
-    category: 'Scale & Analytics',
-    icon: Terminal,
+    title: 'Commercial Ledger Governance',
+    category: 'Scale & Commercial Control',
+    icon: Briefcase,
     accent: '#F59E0B',
     bgLight: 'bg-amber-50',
     borderLight: 'border-amber-100',
-    tag: 'Cross-District Execution',
-    description: 'Executive MIS analytics, trainee lifecycle governance for DAY-NULM Skill India, and multi-district biometric field data collection & hardware diagnostics across 4 administrative districts in Bihar & Jharkhand.'
+    tag: 'FMCG & Agency Control',
+    description: 'Debtor and creditor aging analysis, cash book scrutiny, supplier payment reconciliation, and Path Solution ERP agency operations ensuring zero shrinkage and tight working capital control.'
   }
 ];
+
+const MIS_COMPETENCIES = [
+  {
+    title: 'Executive MIS & BI Dashboards',
+    category: 'Telemetry & Analytics',
+    icon: TrendingUp,
+    accent: '#3B82F6',
+    bgLight: 'bg-blue-50',
+    borderLight: 'border-blue-100',
+    tag: 'Daily Telemetry',
+    description: 'Designing high-impact management telemetry, cross-category revenue trends, KPI scorecard monitoring, and advanced Excel modeling (Pivot Tables, dynamic arrays, nested lookups) for senior leadership.'
+  },
+  {
+    title: 'Multi-District Operations & Enrollment',
+    category: 'Scale Field Execution',
+    icon: Terminal,
+    accent: '#10B981',
+    bgLight: 'bg-emerald-50',
+    borderLight: 'border-emerald-100',
+    tag: '50,000+ Enrolled',
+    description: 'Supervision of RSBY Smart Card field biometric camps across 4 districts (Palamu, Garhwa, Latehar, Chatra), hardware reliability governance, and UIDAI/Aadhaar data verification with zero data loss.'
+  },
+  {
+    title: 'Enterprise Database & Portal Admin',
+    category: 'Government MIS Systems',
+    icon: ShieldCheck,
+    accent: '#8B5CF6',
+    bgLight: 'bg-purple-50',
+    borderLight: 'border-purple-100',
+    tag: '100% Portal Sync',
+    description: 'Candidate lifecycle tracking on national DAY-NULM Skill India portal, biometric attendance synchronization, assessment certification records, and compliance auditing with municipal bodies.'
+  },
+  {
+    title: 'IT Infrastructure & Hardware Architecture',
+    category: 'Systems & Diagnostics',
+    icon: Cpu,
+    accent: '#F59E0B',
+    bgLight: 'bg-amber-50',
+    borderLight: 'border-amber-100',
+    tag: 'Enterprise Deployments',
+    description: 'Windows 10/11 Pro workstation staging, local group policy hardening, LAN router/switch network cabling, thermal paste diagnostics, and remote branch support via AnyDesk/TeamViewer.'
+  }
+];
+
+const OTHER_COMPETENCIES = [
+  {
+    title: 'Cross-Functional Strategy',
+    category: 'Strategic Planning',
+    icon: TrendingUp,
+    accent: '#8B5CF6',
+    bgLight: 'bg-purple-50',
+    borderLight: 'border-purple-100',
+    tag: 'Cross-Domain Synergy',
+    description: 'Synthesizing fiscal discipline, operational workflows, and technology systems to drive enterprise objectives, eliminate organizational silos, and optimize end-to-end resource utilization.'
+  },
+  {
+    title: 'Operations Governance',
+    category: 'Process Excellence',
+    icon: ShieldCheck,
+    accent: '#10B981',
+    bgLight: 'bg-emerald-50',
+    borderLight: 'border-emerald-100',
+    tag: 'Risk & Quality Control',
+    description: 'Establishing scalable operational standard operating procedures (SOPs), multi-tier governance protocols, and continuous monitoring mechanisms to guarantee audit readiness and regulatory adherence.'
+  },
+  {
+    title: 'Stakeholder Management',
+    category: 'Executive Alignment',
+    icon: Building2,
+    accent: '#F59E0B',
+    bgLight: 'bg-amber-50',
+    borderLight: 'border-amber-100',
+    tag: 'Trusted Partner',
+    description: 'Collaborating seamlessly with executive leadership, government authorities, external auditors, vendors, and cross-functional field teams to achieve unified operational and commercial milestones.'
+  },
+  {
+    title: 'Business Transformation',
+    category: 'Systems & Scalability',
+    icon: Cpu,
+    accent: '#6366F1',
+    bgLight: 'bg-indigo-50',
+    borderLight: 'border-indigo-100',
+    tag: 'Digital Modernization',
+    description: 'Modernizing legacy administrative and reporting workflows through ERP integration, automated data telemetry, and technology-driven process re-engineering for sustainable long-term scale.'
+  }
+];
+
+const ACCOUNTANT_STORY = {
+  p1: (
+    <>
+      I am an experienced <strong className="text-[#FF4D6D] font-bold">Senior Accountant &amp; Tax Consultant</strong> with over 7+ years of expertise in comprehensive financial accounting via Tally ERP/Prime, statutory compliance, and GST &amp; Income Tax advisory.
+    </>
+  ),
+  p2: 'I specialize in precision accounting, audit readiness, and statutory tax reconciliation—ensuring 100% compliance, zero-discrepancy balance sheets, and streamlined business operations for enterprises and agencies.',
+  p3: 'With a career rooted in double-entry fiscal discipline, voucher entry governance, and commercial ledger reconciliations across FMCG, agency distribution, and client portfolios, I guarantee verifiable audit trails and robust compliance posture.',
+  visionTitle: 'Career Vision & Strategic Objective',
+  visionQuote: (
+    <>
+      "Senior Financial Accounting &amp; Tax Compliance professional seeking leadership assignments in <strong className="text-[#FF4D6D] font-bold">Financial Accounting &amp; Statutory Tax Governance</strong>, coupled with <strong className="text-[#FF4D6D] font-bold">Business Development &amp; Distribution Operations</strong> within a growth-oriented organization of repute. Dedicated to leveraging 7+ years of rigorous statutory compliance, double-entry fiscal precision, and multi-district operational acumen to build audit-ready financial frameworks and drive sustainable enterprise growth."
+    </>
+  )
+};
+
+const MIS_STORY = {
+  p1: (
+    <>
+      I am a seasoned <strong className="text-[#3B82F6] font-bold">MIS Executive &amp; Data Operations Specialist</strong> with proven expertise in enterprise telemetry, government portal administration (DAY-NULM Skill India), advanced spreadsheet modeling, and multi-district operational deployments.
+    </>
+  ),
+  p2: 'I specialize in transforming raw operational and financial data into executive BI dashboards, automated reconciliation models, and reliable reporting pipelines that empower leadership to make decisive, data-backed commercial decisions.',
+  p3: 'Having spearheaded multi-district biometric enrollment campaigns for 50,000+ citizens and administered Windows/LAN IT infrastructure across enterprise and field offices, I combine analytical rigor with hands-on systems reliability.',
+  visionTitle: 'Career Vision & Strategic Objective',
+  visionQuote: (
+    <>
+      "MIS &amp; Data Operations professional seeking leadership assignments in <strong className="text-[#3B82F6] font-bold">Management Information Systems (MIS), Business Analytics &amp; Operations Governance</strong> within a data-driven organization of repute. Dedicated to architecting robust reporting telemetry, streamlining cross-departmental data workflows, and optimizing enterprise IT infrastructure to scale operations with accuracy and speed."
+    </>
+  )
+};
+
+const OTHER_STORY = {
+  p1: (
+    <>
+      I am a versatile <strong className="text-[#8B5CF6] font-bold">Multidisciplinary Operations &amp; Strategy Specialist</strong> with extensive expertise bridging statutory accounting, management information systems (MIS), and large-scale administrative execution.
+    </>
+  ),
+  p2: 'I specialize in unifying financial rigor, data analytics, and operational workflows into cohesive, high-performance operating models that empower organizational agility, transparency, and scalable growth.',
+  p3: 'With a career bridging public sector district enrollments, private commercial distribution, enterprise software implementations, and team leadership, I deliver dependable governance and strategic problem-solving across multifaceted domains.',
+  visionTitle: 'Career Vision & Strategic Objective',
+  visionQuote: (
+    <>
+      "Multidisciplinary Operations &amp; Strategy professional seeking impactful leadership roles in <strong className="text-[#8B5CF6] font-bold">Business Operations, Strategic Administration &amp; Transformation</strong> within forward-thinking organizations of repute. Dedicated to harmonizing fiscal governance, analytical insights, and operational execution to deliver resilient frameworks and sustainable business value."
+    </>
+  )
+};
+
 
 // Academic & Technical Credentials
 const CREDENTIALS = [
@@ -150,8 +286,8 @@ const BIO_DATA_FIELDS = [
     badge: 'Legal Record'
   },
   {
-    label: 'Date of Birth',
-    value: '10.11.1991 (10 November 1991)',
+    label: 'Year of Birth',
+    value: '1991',
     icon: Calendar,
     badge: 'Demographic'
   },
@@ -182,12 +318,23 @@ const BIO_DATA_FIELDS = [
 ];
 
 export default function AboutSection({ soundEnabled = true }) {
+  const { activeRole, isMIS, isOther } = useRoleTab();
   const [activeTab, setActiveTab] = useState('story');
   const [addressCopied, setAddressCopied] = useState(false);
   const tabButtonRefs = useRef({});
   const copyTimeoutRef = useRef(null);
 
   const fullAddress = 'Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India';
+  const accentColor = isOther ? '#8B5CF6' : (isMIS ? '#3B82F6' : '#FF4D6D');
+  const competencies = isOther ? OTHER_COMPETENCIES : (isMIS ? MIS_COMPETENCIES : ACCOUNTANT_COMPETENCIES);
+  const story = isOther ? OTHER_STORY : (isMIS ? MIS_STORY : ACCOUNTANT_STORY);
+
+  const bioDataFields = BIO_DATA_FIELDS.map((f) => (
+    f.label === 'Professional Role'
+      ? { ...f, value: isOther ? 'Multidisciplinary Operations & Strategy Specialist' : (isMIS ? 'MIS Executive & Analytics Specialist' : 'Senior Accountant & Tax Consultant') }
+      : f
+  ));
+
 
   // Clean up pending copy feedback timer on unmount
   useEffect(() => {
@@ -318,27 +465,34 @@ export default function AboutSection({ soundEnabled = true }) {
     <section id="about" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
       <div className="bg-white rounded-3xl p-6 sm:p-10 md:p-14 border border-[#E7E2D8] shadow-xl shadow-stone-900/5 relative overflow-hidden">
         {/* Soft subtle background glow */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-[#FF4D6D]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div
+          className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none transition-colors duration-500"
+          style={{
+            background: isMIS
+              ? 'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%)'
+              : 'radial-gradient(circle, rgba(255, 77, 109, 0.08) 0%, transparent 70%)'
+          }}
+        />
 
         {/* Top Header Row with Section Badge and Subtitle Indicator */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] border border-[#E7E2D8] text-[#18181B] text-xs font-bold uppercase tracking-wider shadow-xs w-fit">
-            <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />
-            01 ✦ About
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
+            01 ✦ About &bull; {isOther ? 'Multidisciplinary Profile' : (isMIS ? 'Data & MIS Profile' : 'Accounting & Tax Profile')}
           </div>
 
           <div className="flex items-center gap-2 text-stone-500 font-mono text-xs">
-            <BadgeCheck className="w-4 h-4 text-[#FF4D6D]" />
+            <BadgeCheck className="w-4 h-4" style={{ color: accentColor }} />
             <span>Verified Professional Dossier</span>
           </div>
         </div>
 
         {/* Section Heading */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#18181B] tracking-tight font-['Outfit',sans-serif] leading-none">
             Who I am
           </h2>
-          <div className="w-12 h-1 bg-[#FF4D6D] rounded-full mt-5" />
+          <div className="w-12 h-1 rounded-full mt-5 transition-all duration-300" style={{ backgroundColor: accentColor }} />
         </div>
 
         {/* 3-Tab Interactive Switcher Ribbon */}
@@ -366,16 +520,28 @@ export default function AboutSection({ soundEnabled = true }) {
                 onMouseEnter={() => {
                   if (soundEnabled) soundFX.playChipHover();
                 }}
-                className={`flex-1 min-w-[150px] sm:min-w-0 min-h-[44px] flex items-center justify-center gap-2.5 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold font-mono transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] whitespace-nowrap ${
+                className={`flex-1 min-w-[150px] sm:min-w-0 min-h-[44px] flex items-center justify-center gap-2.5 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold font-mono transition-all duration-200 cursor-pointer select-none focus:outline-none ${
+                  isOther
+                    ? 'focus-visible:ring-2 focus-visible:ring-[#8B5CF6]'
+                    : isMIS
+                      ? 'focus-visible:ring-2 focus-visible:ring-[#3B82F6]'
+                      : 'focus-visible:ring-2 focus-visible:ring-[#FF4D6D]'
+                } whitespace-nowrap ${
                   isActive
                     ? 'bg-white text-[#18181B] shadow-sm border border-[#E7E2D8]'
                     : 'text-stone-600 hover:text-[#18181B] hover:bg-white/60'
                 }`}
               >
-                <Icon className={`w-4 h-4 transition-colors shrink-0 ${isActive ? 'text-[#FF4D6D]' : 'text-stone-400'}`} />
+                <Icon className={`w-4 h-4 transition-colors shrink-0 ${isActive ? (isOther ? 'text-[#8B5CF6]' : (isMIS ? 'text-[#3B82F6]' : 'text-[#FF4D6D]')) : 'text-stone-400'}`} />
                 <span className="truncate whitespace-nowrap">{tab.label}</span>
                 {isActive && (
-                  <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full bg-[#FFF0F3] border border-[#FFD1DC] text-[#FF4D6D] text-[10px] font-bold whitespace-nowrap shrink-0">
+                  <span className={`hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
+                    isOther
+                      ? 'bg-purple-50 border border-purple-200 text-[#8B5CF6]'
+                      : isMIS
+                        ? 'bg-blue-50 border border-blue-200 text-[#3B82F6]'
+                        : 'bg-[#FFF0F3] border border-[#FFD1DC] text-[#FF4D6D]'
+                  }`}>
                     {tab.badge}
                   </span>
                 )}
@@ -393,90 +559,114 @@ export default function AboutSection({ soundEnabled = true }) {
               id="about-panel-story" 
               aria-labelledby="about-tab-story"
               tabIndex={0}
+              key={`about-story-${activeRole}`}
               onKeyDown={handlePanelKeyDown}
-              className="animate-tab-fade space-y-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 rounded-2xl"
+              className={`animate-tab-fade space-y-8 focus:outline-none ${
+                isOther
+                  ? 'focus-visible:ring-2 focus-visible:ring-[#8B5CF6]'
+                  : isMIS
+                    ? 'focus-visible:ring-2 focus-visible:ring-[#3B82F6]'
+                    : 'focus-visible:ring-2 focus-visible:ring-[#FF4D6D]'
+              } focus-visible:ring-offset-2 rounded-2xl`}
             >
-            {/* Executive 3-Paragraph Narrative */}
-            <div className="space-y-4">
-              <p className="text-base sm:text-lg md:text-xl text-[#18181B] font-medium leading-relaxed font-['Outfit',sans-serif]">
-                I am an experienced <strong className="text-[#FF4D6D] font-bold">Senior Accountant &amp; Tax Consultant</strong> with over 7+ years of expertise in comprehensive financial accounting via Tally ERP/Prime, statutory compliance, and GST &amp; Income Tax advisory.
-              </p>
+              {/* Executive 3-Paragraph Narrative */}
+              <div className="space-y-4">
+                <p className="text-base sm:text-lg md:text-xl text-[#18181B] font-medium leading-relaxed font-['Outfit',sans-serif]">
+                  {story.p1}
+                </p>
 
-              <p className="text-stone-600 text-sm sm:text-base leading-relaxed font-normal">
-                I specialize in precision accounting, audit readiness, and statutory tax reconciliation—ensuring 100% compliance, zero-discrepancy balance sheets, and streamlined business operations for enterprises and agencies.
-              </p>
+                <p className="text-stone-600 text-sm sm:text-base leading-relaxed font-normal">
+                  {story.p2}
+                </p>
 
-              <p className="text-stone-600 text-sm sm:text-base leading-relaxed font-normal">
-                With proven operational leadership as an MIS Executive for DAY-NULM Skill India and Smart Card Operations across 4 districts in Bihar &amp; Jharkhand, I bridge rigorous financial administration with modern computing systems and strategic office management.
-              </p>
-            </div>
-
-            {/* Prominent Career Vision & Strategic Objective (Aligned) */}
-            <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-[#FFF5F7] via-white to-[#FAF8F5] border-2 border-[#FF4D6D]/20 shadow-xs relative overflow-hidden">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#FF4D6D] uppercase tracking-wider">
-                  <Target className="w-4 h-4 text-[#FF4D6D]" />
-                  <span>Career Vision &amp; Strategic Objective</span>
-                </div>
-                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-white border border-[#FFD1DC] text-[#FF4D6D] font-bold">
-                  Leadership Alignment
-                </span>
-              </div>
-              <p className="text-[#18181B] text-sm sm:text-base font-semibold leading-relaxed font-['Outfit',sans-serif]">
-                "Senior Financial Accounting &amp; Tax Compliance professional seeking leadership assignments in <strong className="text-[#FF4D6D] font-bold">Financial Accounting &amp; Statutory Tax Governance</strong>, coupled with <strong className="text-[#FF4D6D] font-bold">Business Development &amp; Distribution Operations</strong> within a growth-oriented organization of repute. Dedicated to leveraging 7+ years of rigorous statutory compliance, double-entry fiscal precision, and multi-district operational acumen to build audit-ready financial frameworks and drive sustainable enterprise growth."
-              </p>
-            </div>
-
-            {/* 4 High-Level Core Competency Pillars */}
-            <div className="pt-2">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#18181B] uppercase tracking-wider">
-                  <CheckCircle2 className="w-4 h-4 text-[#FF4D6D]" />
-                  <span>Core Competency Pillars</span>
-                </div>
-                <span className="text-[11px] font-mono text-stone-500 font-medium">
-                  4 Strategic Domains
-                </span>
+                <p className="text-stone-600 text-sm sm:text-base leading-relaxed font-normal">
+                  {story.p3}
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {CORE_COMPETENCIES.map((comp) => {
-                  const Icon = comp.icon;
-                  return (
-                    <div 
-                      key={comp.title}
-                      className="p-5 sm:p-6 rounded-2xl bg-[#FAF8F5] border border-[#ECE7DF] hover:border-[#FF4D6D]/30 transition-all duration-200 flex flex-col justify-between group"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-3.5">
-                          <div className={`w-9 h-9 rounded-xl ${comp.bgLight} border ${comp.borderLight} flex items-center justify-center shrink-0`}>
-                            <Icon className="w-4 h-4" style={{ color: comp.accent }} />
+              {/* Prominent Career Vision & Strategic Objective (Aligned) */}
+              <div className={`p-6 sm:p-7 rounded-2xl bg-gradient-to-br ${
+                isOther
+                  ? 'from-[#F5F3FF] via-white to-[#FAF8F5] border-[#8B5CF6]/25'
+                  : isMIS
+                    ? 'from-[#EFF6FF] via-white to-[#FAF8F5] border-[#3B82F6]/30'
+                    : 'from-[#FFF5F7] via-white to-[#FAF8F5] border-[#FF4D6D]/20'
+              } border-2 shadow-xs relative overflow-hidden transition-all duration-300`}>
+                <div className="flex items-center justify-between mb-3">
+                  <div
+                    className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider"
+                    style={{ color: accentColor }}
+                  >
+                    <Target className="w-4 h-4" style={{ color: accentColor }} />
+                    <span>{story.visionTitle}</span>
+                  </div>
+                  <span
+                    className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-white border font-bold ${
+                      isOther
+                        ? 'border-purple-200 text-[#8B5CF6]'
+                        : isMIS
+                          ? 'border-blue-200 text-[#3B82F6]'
+                          : 'border-[#FFD1DC] text-[#FF4D6D]'
+                    }`}
+                  >
+                    {isOther ? 'Strategic Alignment' : (isMIS ? 'Analytics Alignment' : 'Leadership Alignment')}
+                  </span>
+                </div>
+                <p className="text-[#18181B] text-sm sm:text-base font-semibold leading-relaxed font-['Outfit',sans-serif]">
+                  {story.visionQuote}
+                </p>
+              </div>
+
+              {/* 4 High-Level Core Competency Pillars */}
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#18181B] uppercase tracking-wider">
+                    <CheckCircle2 className="w-4 h-4" style={{ color: accentColor }} />
+                    <span>{isOther ? 'Strategic Competency Pillars' : (isMIS ? 'Data & MIS Competency Pillars' : 'Core Competency Pillars')}</span>
+                  </div>
+                  <span className="text-[11px] font-mono text-stone-500 font-medium">
+                    4 Strategic Domains
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {competencies.map((comp) => {
+                    const Icon = comp.icon;
+                    return (
+                      <div 
+                        key={comp.title}
+                        className="p-5 sm:p-6 rounded-2xl bg-[#FAF8F5] border border-[#ECE7DF] hover:border-stone-400/50 transition-all duration-200 flex flex-col justify-between group"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-3.5">
+                            <div className={`w-9 h-9 rounded-xl ${comp.bgLight} border ${comp.borderLight} flex items-center justify-center shrink-0`}>
+                              <Icon className="w-4 h-4" style={{ color: comp.accent }} />
+                            </div>
+                            <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-white border border-[#ECE7DF] text-stone-600">
+                              {comp.tag}
+                            </span>
                           </div>
-                          <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-white border border-[#ECE7DF] text-stone-600">
-                            {comp.tag}
-                          </span>
+
+                          <h3 className="text-sm sm:text-base font-extrabold text-[#18181B] font-['Outfit',sans-serif] group-hover:text-stone-900 transition-colors mb-2">
+                            {comp.title}
+                          </h3>
+
+                          <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-normal">
+                            {comp.description}
+                          </p>
                         </div>
 
-                        <h3 className="text-sm sm:text-base font-extrabold text-[#18181B] font-['Outfit',sans-serif] group-hover:text-[#FF4D6D] transition-colors mb-2">
-                          {comp.title}
-                        </h3>
-
-                        <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-normal">
-                          {comp.description}
-                        </p>
+                        <div className="mt-4 pt-3 border-t border-[#ECE7DF]/70 flex items-center justify-between text-[11px] font-mono text-stone-500">
+                          <span>Pillar Domain</span>
+                          <span className="font-semibold text-stone-700">{comp.category}</span>
+                        </div>
                       </div>
-
-                      <div className="mt-4 pt-3 border-t border-[#ECE7DF]/70 flex items-center justify-between text-[11px] font-mono text-stone-500">
-                        <span>Pillar Domain</span>
-                        <span className="font-semibold text-stone-700">{comp.category}</span>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
           {/* Tab 2: Academic & Technical Qualifications */}
           {activeTab === 'qualifications' && (
@@ -486,7 +676,9 @@ export default function AboutSection({ soundEnabled = true }) {
               aria-labelledby="about-tab-qualifications"
               tabIndex={0}
               onKeyDown={handlePanelKeyDown}
-              className="animate-tab-fade space-y-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 rounded-2xl"
+              className={`animate-tab-fade space-y-6 focus:outline-none focus-visible:ring-2 ${
+                isOther ? 'focus-visible:ring-[#8B5CF6]' : (isMIS ? 'focus-visible:ring-[#3B82F6]' : 'focus-visible:ring-[#FF4D6D]')
+              } focus-visible:ring-offset-2 rounded-2xl`}
             >
             {/* Header intro */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#ECE7DF] gap-2">
@@ -586,7 +778,9 @@ export default function AboutSection({ soundEnabled = true }) {
               aria-labelledby="about-tab-biodata"
               tabIndex={0}
               onKeyDown={handlePanelKeyDown}
-              className="animate-tab-fade space-y-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 rounded-2xl"
+              className={`animate-tab-fade space-y-6 focus:outline-none focus-visible:ring-2 ${
+                isOther ? 'focus-visible:ring-[#8B5CF6]' : (isMIS ? 'focus-visible:ring-[#3B82F6]' : 'focus-visible:ring-[#FF4D6D]')
+              } focus-visible:ring-offset-2 rounded-2xl`}
             >
             {/* Header intro with verified seal */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#ECE7DF] gap-3">
@@ -599,8 +793,14 @@ export default function AboutSection({ soundEnabled = true }) {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 bg-[#FFF0F3] border border-[#FFD1DC] px-3.5 py-1.5 rounded-full text-[#FF4D6D] text-xs font-mono font-bold self-start sm:self-auto shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-[#FF4D6D] animate-pulse" />
+              <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold self-start sm:self-auto shadow-2xs ${
+                isOther
+                  ? 'bg-purple-50 border border-purple-200 text-[#8B5CF6]'
+                  : isMIS
+                    ? 'bg-blue-50 border border-blue-200 text-[#3B82F6]'
+                    : 'bg-[#FFF0F3] border border-[#FFD1DC] text-[#FF4D6D]'
+              }`}>
+                <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: accentColor }} />
                 <span>Verified Candidate Record</span>
               </div>
             </div>
@@ -610,7 +810,10 @@ export default function AboutSection({ soundEnabled = true }) {
               {/* Profile Bar */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E7E2D8]">
                 <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#E7E2D8] flex items-center justify-center text-[#FF4D6D] font-bold text-lg font-mono shadow-2xs">
+                  <div
+                    className="w-12 h-12 rounded-2xl bg-white border border-[#E7E2D8] flex items-center justify-center font-bold text-lg font-mono shadow-2xs"
+                    style={{ color: accentColor }}
+                  >
                     AV
                   </div>
                   <div>
@@ -618,14 +821,14 @@ export default function AboutSection({ soundEnabled = true }) {
                       Atul Verma
                     </h4>
                     <p className="text-xs sm:text-sm text-stone-500 font-mono">
-                      Accountant &amp; Tax Consultant • Daltonganj, Jharkhand
+                      {isOther ? 'Multidisciplinary Operations & Strategy' : (isMIS ? 'MIS Executive & Analytics Specialist' : 'Accountant & Tax Consultant')} • Daltonganj, Jharkhand
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-mono px-3 py-1 rounded-full bg-white border border-[#E7E2D8] text-stone-700 font-semibold">
-                    DOB: 10.11.1991
+                    YOB: 1991
                   </span>
                   <span className="text-[11px] font-mono px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold">
                     Indian Citizen
@@ -635,7 +838,7 @@ export default function AboutSection({ soundEnabled = true }) {
 
               {/* Demographic Fields Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {BIO_DATA_FIELDS.map((field) => {
+                {bioDataFields.map((field) => {
                   const Icon = field.icon;
                   return (
                     <div 

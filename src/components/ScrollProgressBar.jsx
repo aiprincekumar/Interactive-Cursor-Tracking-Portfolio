@@ -51,7 +51,7 @@ export default function ScrollProgressBar({ className = '' }) {
       aria-valuenow={Math.round(scrollProgress)}
       aria-valuemin={0}
       aria-valuemax={100}
-      className={`absolute bottom-0 left-0 right-0 h-[2.5px] pointer-events-none overflow-hidden z-20 ${className}`}
+      className={`absolute bottom-0 left-0 right-0 h-[2.5px] pointer-events-none overflow-hidden rounded-b-full z-20 ${className}`}
     >
       <div
         className="h-full bg-gradient-to-r from-[#FF4D6D] to-[#FFAA00] transition-[width] duration-75 ease-out will-change-[width]"

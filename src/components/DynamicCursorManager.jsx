@@ -7,6 +7,7 @@ import LaserCursor from './cursors/LaserCursor';
 import CameraCursor from './cursors/CameraCursor';
 import MinimalCursor from './cursors/MinimalCursor';
 import ModularKinematicCursor from './cursors/ModularKinematicCursor';
+import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
 
 /**
  * Dedicated bespoke cursor components that have specialized interactive mechanics
@@ -41,12 +42,7 @@ export default function DynamicCursorManager({
   scale = 1,
   reducedMotion: propReducedMotion
 }) {
-  const [isDesktopFinePointer, setIsDesktopFinePointer] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    const hasFinePointer = window.matchMedia ? window.matchMedia('(pointer: fine)').matches : true;
-    const isTouchOnly = 'ontouchstart' in window && !hasFinePointer;
-    return hasFinePointer && !isTouchOnly;
-  });
+  const isDesktopCursor = useDesktopCursorSupport();
 
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
     if (typeof window !== 'undefined' && window.matchMedia) {
@@ -55,28 +51,21 @@ export default function DynamicCursorManager({
     return false;
   });
 
-  // Track responsive screen pointer fine capabilities and reduced motion
+  // Track prefers-reduced-motion changes
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
-
-    const pointerQuery = window.matchMedia('(pointer: fine)');
-    const handlePointerChange = (e) => {
-      setIsDesktopFinePointer(e.matches);
-    };
 
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const handleMotionChange = (e) => {
       setPrefersReducedMotion(e.matches);
     };
 
-    if (pointerQuery.addEventListener) {
-      pointerQuery.addEventListener('change', handlePointerChange);
+    if (motionQuery.addEventListener) {
       motionQuery.addEventListener('change', handleMotionChange);
     }
 
     return () => {
-      if (pointerQuery.removeEventListener) {
-        pointerQuery.removeEventListener('change', handlePointerChange);
+      if (motionQuery.removeEventListener) {
         motionQuery.removeEventListener('change', handleMotionChange);
       }
     };
@@ -85,8 +74,8 @@ export default function DynamicCursorManager({
   // Compute effective reduced motion (prop overrides system if passed)
   const effectiveReducedMotion = propReducedMotion !== undefined ? propReducedMotion : prefersReducedMotion;
 
-  // Disable completely on touch devices or if reduced motion is requested
-  if (!isDesktopFinePointer || effectiveReducedMotion) {
+  // Disable completely on mobile/touch screens (< 1024px or coarse pointer) or if reduced motion is requested
+  if (!isDesktopCursor || effectiveReducedMotion) {
     return null;
   }
 

@@ -13,6 +13,7 @@ import InteractivePlayground from './components/InteractivePlayground';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import { soundFX } from './utils/audio';
+import { RoleProvider } from './context/RoleContext';
 
 export default function App() {
   const heroRef = useRef(null);
@@ -74,90 +75,92 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#18181B] relative selection:bg-[#FF4D6D] selection:text-white overflow-x-hidden">
-      {/* Background Subtle Mesh Dots */}
-      <div className="fixed inset-0 bg-dot-pattern opacity-50 pointer-events-none z-0" />
+    <RoleProvider soundEnabled={soundEnabled}>
+      <div className="min-h-screen bg-[#FAF8F5] text-[#18181B] relative selection:bg-[#FF4D6D] selection:text-white overflow-x-hidden">
+        {/* Background Subtle Mesh Dots */}
+        <div className="fixed inset-0 bg-dot-pattern opacity-50 pointer-events-none z-0" />
 
-      {/* Dynamic Multi-Variant Interactive Cursor Manager */}
-      {!reducedMotion && (
-        <DynamicCursorManager
+        {/* Dynamic Multi-Variant Interactive Cursor Manager */}
+        {!reducedMotion && (
+          <DynamicCursorManager
+            activeCursor={activeCursor}
+            heroRef={heroRef}
+            isInsideHero={isInsideHero}
+            speed={butterflySpeed}
+            trailEnabled={trailEnabled}
+            scale={butterflyScale}
+            reducedMotion={reducedMotion}
+          />
+        )}
+
+        {/* Top Navbar */}
+        <Navbar
+          soundEnabled={soundEnabled}
+          setSoundEnabled={setSoundEnabled}
           activeCursor={activeCursor}
-          heroRef={heroRef}
-          isInsideHero={isInsideHero}
-          speed={butterflySpeed}
-          trailEnabled={trailEnabled}
-          scale={butterflyScale}
-          reducedMotion={reducedMotion}
-        />
-      )}
-
-      {/* Top Navbar */}
-      <Navbar
-        soundEnabled={soundEnabled}
-        setSoundEnabled={setSoundEnabled}
-        activeCursor={activeCursor}
-        onSelectCursor={handleSelectCursor}
-      />
-
-      {/* Main Content Area - In Exact Instagram Reel Chronological Sequence */}
-      <main className="relative z-10">
-        {/* 1. Interactive Cursor-Tracking Hero Section (Reel t=0s - 7.5s) */}
-        <HeroSection
-          heroRef={heroRef}
-          isInsideHero={isInsideHero}
-          setIsInsideHero={setIsInsideHero}
-          onPhotoCaptured={handlePhotoCaptured}
-          soundEnabled={soundEnabled}
-          setSoundEnabled={setSoundEnabled}
-          forcedState={forcedState}
-          reducedMotion={reducedMotion}
+          onSelectCursor={handleSelectCursor}
         />
 
-        {/* 2. Diagonal Crossed Marquee Ribbons with Butterfly Delimiters (Reel t=7.85s) */}
-        <TechMarqueeBanner />
+        {/* Main Content Area - In Exact Instagram Reel Chronological Sequence */}
+        <main className="relative z-10">
+          {/* 1. Interactive Cursor-Tracking Hero Section (Reel t=0s - 7.5s) */}
+          <HeroSection
+            heroRef={heroRef}
+            isInsideHero={isInsideHero}
+            setIsInsideHero={setIsInsideHero}
+            onPhotoCaptured={handlePhotoCaptured}
+            soundEnabled={soundEnabled}
+            setSoundEnabled={setSoundEnabled}
+            forcedState={forcedState}
+            reducedMotion={reducedMotion}
+          />
 
-        {/* 3. "Who I am" / Personal Narrative & Education (Reel t=8.3s - 9.2s) */}
-        <AboutSection soundEnabled={soundEnabled} />
+          {/* 2. Diagonal Crossed Marquee Ribbons with Butterfly Delimiters (Reel t=7.85s) */}
+          <TechMarqueeBanner />
 
-        {/* 4. "What I work with" / Interactive Skill Matrix & Dark Card (Reel t=9.3s - 11.8s) */}
-        <SkillsSection />
+          {/* 3. "Who I am" / Personal Narrative & Education (Reel t=8.3s - 9.2s) */}
+          <AboutSection soundEnabled={soundEnabled} />
 
-        {/* 5. "Journey & Experience" / Standalone Career & Production Milestones */}
-        <ExperienceSection />
+          {/* 4. "What I work with" / Interactive Skill Matrix & Dark Card (Reel t=9.3s - 11.8s) */}
+          <SkillsSection />
 
-        {/* 6. "Selected work" / PolicyGuard AI & Payment Gateway System (Reel t=12.0s - 14.8s) */}
-        <ProjectsSection />
+          {/* 5. "Journey & Experience" / Standalone Career & Production Milestones */}
+          <ExperienceSection />
 
-        {/* 6. Competitive Programming & Coding Records (Reel t=15.0s - 16.0s) */}
-        <CodingAchievementsSection />
+          {/* 6. "Selected work" / PolicyGuard AI & Payment Gateway System (Reel t=12.0s - 14.8s) */}
+          <ProjectsSection />
 
-        {/* 7. Interactive Polaroid Studio & Camera Roll Memories */}
-        <CameraRollGallery
-          capturedPhotos={capturedPhotos}
-        />
+          {/* 6. Competitive Programming & Coding Records (Reel t=15.0s - 16.0s) */}
+          <CodingAchievementsSection />
 
-        {/* 8. Real-Time Physics & Cursor Tuner Lab */}
-        <InteractivePlayground
-          butterflySpeed={butterflySpeed}
-          setButterflySpeed={setButterflySpeed}
-          trailEnabled={trailEnabled}
-          setTrailEnabled={setTrailEnabled}
-          butterflyScale={butterflyScale}
-          setButterflyScale={setButterflyScale}
-          forcedState={forcedState}
-          setForcedState={setForcedState}
-          soundEnabled={soundEnabled}
-          setSoundEnabled={setSoundEnabled}
-          reducedMotion={reducedMotion}
-          setReducedMotion={setReducedMotion}
-        />
+          {/* 7. Interactive Polaroid Studio & Camera Roll Memories */}
+          <CameraRollGallery
+            capturedPhotos={capturedPhotos}
+          />
 
-        {/* 9. Contact: "Let's build something meaningful." (Reel t=16.1s - 16.9s) */}
-        <ContactSection />
-      </main>
+          {/* 8. Real-Time Physics & Cursor Tuner Lab */}
+          <InteractivePlayground
+            butterflySpeed={butterflySpeed}
+            setButterflySpeed={setButterflySpeed}
+            trailEnabled={trailEnabled}
+            setTrailEnabled={setTrailEnabled}
+            butterflyScale={butterflyScale}
+            setButterflyScale={setButterflyScale}
+            forcedState={forcedState}
+            setForcedState={setForcedState}
+            soundEnabled={soundEnabled}
+            setSoundEnabled={setSoundEnabled}
+            reducedMotion={reducedMotion}
+            setReducedMotion={setReducedMotion}
+          />
 
-      {/* 10. Dark Plum Footer with Watermark Name (Reel t=16.8s) */}
-      <Footer />
-    </div>
+          {/* 9. Contact: "Let's build something meaningful." (Reel t=16.1s - 16.9s) */}
+          <ContactSection />
+        </main>
+
+        {/* 10. Dark Plum Footer with Watermark Name (Reel t=16.8s) */}
+        <Footer />
+      </div>
+    </RoleProvider>
   );
 }

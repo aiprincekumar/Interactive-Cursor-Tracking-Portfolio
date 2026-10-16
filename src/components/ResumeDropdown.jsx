@@ -1,16 +1,47 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { FileText, Eye, Download, Copy, Check, ChevronDown, ExternalLink } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { FileText, Eye, Download, Copy, Check, ChevronDown, Printer } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { soundFX } from '../utils/audio';
+import { useRoleTab } from '../context/RoleContext.jsx';
+import { getResumeConfig } from '../utils/resumeConfig.js';
 
-export default function ResumeDropdown({ soundEnabled = true, className = '', inDrawer = false, onActionComplete }) {
+export default function ResumeDropdown({
+  soundEnabled = true,
+  className = '',
+  inDrawer = false,
+  onActionComplete
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const dropdownRef = useRef(null);
-  const buttonRef = useRef(null);
+  const primaryButtonRef = useRef(null);
+  const toggleButtonRef = useRef(null);
 
-  const RESUME_FILE_PATH = '/resume.pdf';
-  const DOWNLOAD_FILENAME = 'Atul_Verma_Resume.pdf';
+  // Connect active role unconditionally from RoleContext
+  const roleCtx = useRoleTab();
+  const activeRole = roleCtx?.activeRole || 'accountant';
+
+  // Active role-specific resume configuration
+  const resumeConfig = useMemo(() => getResumeConfig(activeRole), [activeRole]);
+
+  // Dynamic base URL handling for Vite GitHub Pages deployment
+  const _BASE = typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL ? import.meta.env.BASE_URL : '/';
+  const _RESUME_FILE_PATH = resumeConfig.pdfPath;
+  void _BASE;
+  void _RESUME_FILE_PATH;
+
+  const {
+    pdfPath,
+    downloadFilename,
+    label,
+    badge,
+    accent,
+    accentHover,
+    accentActive,
+    glowColor,
+    confettiColors,
+    getShareUrl
+  } = resumeConfig;
 
   // Outside click & Escape key listeners
   useEffect(() => {
@@ -25,7 +56,7 @@ export default function ResumeDropdown({ soundEnabled = true, className = '', in
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
         setIsOpen(false);
-        buttonRef.current?.focus();
+        toggleButtonRef.current?.focus();
       }
     };
 
@@ -40,7 +71,7 @@ export default function ResumeDropdown({ soundEnabled = true, className = '', in
     };
   }, [isOpen]);
 
-  // Celebratory confetti burst originating from the button
+  // Celebratory confetti burst originating from the primary button with role-specific colors
   const triggerConfetti = useCallback(() => {
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return;
@@ -49,8 +80,9 @@ export default function ResumeDropdown({ soundEnabled = true, className = '', in
     let originX = 0.82;
     let originY = 0.15;
 
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
+    const targetEl = primaryButtonRef.current || toggleButtonRef.current;
+    if (targetEl) {
+      const rect = targetEl.getBoundingClientRect();
       originX = (rect.left + rect.width / 2) / window.innerWidth;
       originY = rect.bottom / window.innerHeight;
     }
@@ -59,26 +91,17 @@ export default function ResumeDropdown({ soundEnabled = true, className = '', in
       particleCount: 48,
       spread: 60,
       origin: { x: originX, y: originY },
-      colors: ['#FF4D6D', '#FFAA00', '#2EC4B6', '#FF85A1', '#FFD166'],
+      colors: confettiColors || [accent, '#FFAA00', '#2EC4B6', '#FFFFFF'],
       ticks: 180,
       gravity: 1.1,
       scalar: 0.9,
       disableForReducedMotion: true
     });
-  }, []);
+  }, [accent, confettiColors]);
 
-  // Action 1: View Online in new tab
-  const handleViewOnline = (e) => {
-    e.stopPropagation();
-    if (soundEnabled) soundFX.playFocusBeep();
-    setIsOpen(false);
-    onActionComplete?.();
-    window.open(RESUME_FILE_PATH, '_blank', 'noopener,noreferrer');
-  };
-
-  // Action 2: Download PDF with confetti burst & sparkle chime
+  // Primary Action: Download PDF with confetti burst & chime
   const handleDownloadPdf = (e) => {
-    e.stopPropagation();
+    if (e && e.stopPropagation) e.stopPropagation();
     triggerConfetti();
 
     if (soundEnabled) {
@@ -86,8 +109,8 @@ export default function ResumeDropdown({ soundEnabled = true, className = '', in
     }
 
     const link = document.createElement('a');
-    link.href = RESUME_FILE_PATH;
-    link.download = DOWNLOAD_FILENAME;
+    link.href = pdfPath;
+    link.download = downloadFilename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -96,17 +119,44 @@ export default function ResumeDropdown({ soundEnabled = true, className = '', in
     onActionComplete?.();
   };
 
-  // Action 3: Copy Resume Link to clipboard
-  const handleCopyLink = async (e) => {
+  // Option 1: View Online in new tab
+  const handleViewOnline = (e) => {
     e.stopPropagation();
-    const fullResumeUrl = `${window.location.origin}${RESUME_FILE_PATH}`;
+    if (soundEnabled) soundFX.playFocusBeep();
+    setIsOpen(false);
+    onActionComplete?.();
+    window.open(pdfPath, '_blank', 'noopener,noreferrer');
+  };
+
+  // Option 3: Copy Portfolio Link with Active Role query param or Native Share
+  const handleCopyOrShare = async (e) => {
+    e.stopPropagation();
+    const shareUrl = getShareUrl();
+
+    if (soundEnabled) soundFX.playFocusBeep();
+
+    // Check if navigator.share is available and mobile friendly
+    if (navigator.share && inDrawer) {
+      try {
+        await navigator.share({
+          title: `Atul Verma - ${label}`,
+          text: `Check out Atul Verma's ${label} (${badge})`,
+          url: shareUrl
+        });
+        setIsOpen(false);
+        onActionComplete?.();
+        return;
+      } catch {
+        // Fall back to clipboard if user dismissed or share failed
+      }
+    }
 
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(fullResumeUrl);
+        await navigator.clipboard.writeText(shareUrl);
       } else {
         const textarea = document.createElement('textarea');
-        textarea.value = fullResumeUrl;
+        textarea.value = shareUrl;
         textarea.style.position = 'fixed';
         textarea.style.opacity = '0';
         document.body.appendChild(textarea);
@@ -116,8 +166,6 @@ export default function ResumeDropdown({ soundEnabled = true, className = '', in
       }
 
       setCopied(true);
-      if (soundEnabled) soundFX.playFocusBeep();
-
       setTimeout(() => {
         setCopied(false);
       }, 2000);
@@ -126,116 +174,297 @@ export default function ResumeDropdown({ soundEnabled = true, className = '', in
     }
   };
 
+  // Option 4: Print Resume
+  const handlePrintResume = (e) => {
+    e.stopPropagation();
+    if (soundEnabled) soundFX.playFocusBeep();
+    setIsOpen(false);
+    onActionComplete?.();
+
+    try {
+      // Create hidden iframe to trigger clean print dialog with active role PDF
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      iframe.src = pdfPath;
+
+      iframe.onload = () => {
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } catch {
+          // If cross-origin or PDF plugin restriction prevents iframe print, open window and print
+          const printWindow = window.open(pdfPath, '_blank');
+          printWindow?.focus();
+          printWindow?.print();
+        } finally {
+          setTimeout(() => {
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+            }
+          }, 60000);
+        }
+      };
+
+      document.body.appendChild(iframe);
+    } catch {
+      window.open(pdfPath, '_blank');
+    }
+  };
+
   return (
     <div ref={dropdownRef} className={`relative inline-block text-left ${className}`}>
-      {/* Coral Resume Trigger Button */}
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={() => {
-          const next = !isOpen;
-          setIsOpen(next);
-          if (soundEnabled) soundFX.playFocusBeep();
-        }}
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        aria-label="Resume options menu"
-        className={`flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FF4D6D] hover:bg-[#E03554] text-white text-xs font-bold shadow-xs transition-all duration-200 active:scale-95 whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 ${
-          inDrawer ? 'w-full py-2.5 text-sm rounded-xl' : ''
+      {/* Split Button Container */}
+      <div
+        className={`inline-flex items-stretch shadow-xs transition-transform duration-150 ${
+          inDrawer ? 'w-full' : ''
         }`}
+        style={{
+          boxShadow: `0 2px 10px -2px ${glowColor}`
+        }}
       >
-        <FileText className="w-3.5 h-3.5 shrink-0" />
-        <span>Resume</span>
-        <ChevronDown
-          className={`w-3 h-3 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
-        />
-      </button>
+        {/* Left Primary Button: Direct Download PDF with dynamic label & role accent */}
+        <button
+          ref={primaryButtonRef}
+          type="button"
+          onClick={handleDownloadPdf}
+          aria-label={`Download Atul Verma's ${label}`}
+          title={`Download ${label} (${badge})`}
+          style={{
+            backgroundColor: accent
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = accentHover;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = accent;
+          }}
+          onMouseDown={(e) => {
+            e.currentTarget.style.backgroundColor = accentActive;
+          }}
+          onMouseUp={(e) => {
+            e.currentTarget.style.backgroundColor = accentHover;
+          }}
+          className={`flex items-center justify-center gap-1.5 text-white text-xs font-bold transition-all duration-150 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-1 select-none whitespace-nowrap ${
+            inDrawer
+              ? 'flex-1 py-2.5 px-4 rounded-l-xl text-sm'
+              : 'px-3 py-1.5 rounded-l-full'
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5 shrink-0" />
+          <span>{inDrawer ? label : 'Resume'}</span>
+        </button>
 
-      {/* Dropdown Menu Card */}
+        {/* Vertical Divider */}
+        <div className="w-[1px] bg-white/25 self-stretch shrink-0" aria-hidden="true" />
+
+        {/* Right Arrow Button: Toggle Dropdown Options */}
+        <button
+          ref={toggleButtonRef}
+          type="button"
+          onClick={() => {
+            const next = !isOpen;
+            setIsOpen(next);
+            if (soundEnabled) soundFX.playFocusBeep();
+          }}
+          aria-haspopup="menu"
+          aria-expanded={isOpen}
+          aria-label={`Toggle options for ${label}`}
+          title={`More options for ${label}`}
+          style={{
+            backgroundColor: accent
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = accentHover;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = accent;
+          }}
+          onMouseDown={(e) => {
+            e.currentTarget.style.backgroundColor = accentActive;
+          }}
+          onMouseUp={(e) => {
+            e.currentTarget.style.backgroundColor = accentHover;
+          }}
+          className={`flex items-center justify-center text-white transition-all duration-150 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-1 shrink-0 ${
+            inDrawer
+              ? 'px-3.5 py-2.5 rounded-r-xl'
+              : 'px-2 py-1.5 rounded-r-full'
+          }`}
+        >
+          <ChevronDown
+            className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ${
+              isOpen ? 'rotate-180' : 'rotate-0'
+            }`}
+          />
+        </button>
+      </div>
+
+      {/* Dropdown Menu Card with Dynamic Theming & 4 Role-Specific Options */}
       {isOpen && (
         <div
           role="menu"
           aria-orientation="vertical"
+          style={{
+            borderColor: `${accent}33`
+          }}
           className={`absolute ${
-            inDrawer ? 'left-0 right-0 top-full mt-2 w-full' : 'right-0 mt-2.5 w-60 origin-top-right'
-          } bg-[#FAF8F5]/98 backdrop-blur-xl rounded-2xl border border-[#E7E2D8] p-1.5 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150 focus:outline-hidden`}
+            inDrawer
+              ? 'left-0 right-0 top-full mt-2 w-full'
+              : 'right-0 mt-2.5 w-68 origin-top-right'
+          } bg-[#FAF8F5]/98 backdrop-blur-xl rounded-2xl border p-1.5 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150 focus:outline-hidden`}
         >
-          {/* Header Label */}
-          <div className="px-3 py-1.5 text-[10px] font-bold text-stone-500 uppercase tracking-wider border-b border-[#E7E2D8]/70 mb-1 select-none">
-            Atul Verma &bull; Resume
+          {/* Header Label: Displays active role badge, tailored title, and PDF tag */}
+          <div className="px-3 py-2 border-b border-[#E7E2D8]/70 mb-1 select-none flex items-center justify-between">
+            <div className="min-w-0 pr-2">
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ backgroundColor: accent }}
+                  aria-hidden="true"
+                />
+                <p className="text-[11px] font-bold text-[#18181B] truncate">{label}</p>
+              </div>
+              <p className="text-[9.5px] font-medium text-stone-500 pl-3.5 truncate">{badge}</p>
+            </div>
+            <span
+              className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border shrink-0"
+              style={{
+                backgroundColor: `${accent}15`,
+                color: accent,
+                borderColor: `${accent}30`
+              }}
+            >
+              1 PAGE
+            </span>
           </div>
 
-          {/* Action 1: View Online */}
+          {/* Option 1: View in New Tab */}
           <button
             type="button"
             role="menuitem"
             onClick={handleViewOnline}
-            className="w-full flex items-center justify-between px-3 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 hover:text-[#18181B] hover:bg-white transition-colors cursor-pointer group"
+            className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 hover:text-[#18181B] hover:bg-white transition-colors cursor-pointer group"
           >
-            <div className="flex items-center gap-2.5">
-              <span className="p-1 rounded-lg bg-stone-100 text-stone-600 group-hover:bg-[#FF4D6D]/10 group-hover:text-[#FF4D6D] transition-colors">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span
+                className="p-1.5 rounded-lg bg-stone-100 text-stone-600 transition-colors shrink-0 group-hover:text-white"
+                style={{
+                  '--hover-bg': accent
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = accent;
+                  e.currentTarget.style.color = '#FFFFFF';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '';
+                  e.currentTarget.style.color = '';
+                }}
+              >
                 <Eye className="w-3.5 h-3.5" />
               </span>
-              <div>
-                <p className="font-bold text-[#18181B]">View Online</p>
-                <p className="text-[10px] text-stone-500 font-normal">Open in new tab</p>
+              <div className="truncate">
+                <p className="font-bold text-[#18181B] leading-tight">View Online</p>
+                <p className="text-[10px] text-stone-500 font-normal leading-tight">Open active PDF in new tab</p>
               </div>
             </div>
-            <ExternalLink className="w-3 h-3 text-stone-400 group-hover:text-stone-700 transition-colors" />
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md bg-stone-100 text-stone-600 font-bold shrink-0 ml-2">
+              PREVIEW
+            </span>
           </button>
 
-          {/* Action 2: Download PDF (Confetti + Chime) */}
+          {/* Option 2: Download PDF (Role-tailored file + Confetti + Sparkle) */}
           <button
             type="button"
             role="menuitem"
             onClick={handleDownloadPdf}
-            className="w-full flex items-center justify-between px-3 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 hover:text-[#18181B] hover:bg-white transition-colors cursor-pointer group"
+            className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 hover:text-[#18181B] hover:bg-white transition-colors cursor-pointer group"
           >
-            <div className="flex items-center gap-2.5">
-              <span className="p-1 rounded-lg bg-rose-50 text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white transition-colors">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span
+                className="p-1.5 rounded-lg text-white transition-colors shrink-0"
+                style={{
+                  backgroundColor: accent
+                }}
+              >
                 <Download className="w-3.5 h-3.5" />
               </span>
-              <div>
-                <p className="font-bold text-[#18181B]">Download PDF</p>
-                <p className="text-[10px] text-stone-500 font-normal">Confetti & chime celebration</p>
+              <div className="truncate">
+                <p className="font-bold text-[#18181B] leading-tight">Download PDF</p>
+                <p className="text-[10px] text-stone-500 font-normal leading-tight">Role-tailored dossier</p>
               </div>
             </div>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-rose-100 text-[#FF4D6D] font-bold">
+            <span
+              className="text-[9px] font-mono px-1.5 py-0.5 rounded-md font-bold shrink-0 ml-2"
+              style={{
+                backgroundColor: `${accent}20`,
+                color: accent
+              }}
+            >
               PDF
             </span>
           </button>
 
-          {/* Action 3: Copy Resume Link */}
+          {/* Option 3: Copy Role Link / Share */}
           <button
             type="button"
             role="menuitem"
-            onClick={handleCopyLink}
-            className="w-full flex items-center justify-between px-3 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 hover:text-[#18181B] hover:bg-white transition-colors cursor-pointer group"
+            onClick={handleCopyOrShare}
+            className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 hover:text-[#18181B] hover:bg-white transition-colors cursor-pointer group"
           >
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
               <span
-                className={`p-1 rounded-lg transition-colors ${
+                className={`p-1.5 rounded-lg transition-colors shrink-0 ${
                   copied
                     ? 'bg-emerald-100 text-emerald-600'
-                    : 'bg-stone-100 text-stone-600 group-hover:bg-[#FF4D6D]/10 group-hover:text-[#FF4D6D]'
+                    : 'bg-stone-100 text-stone-600'
                 }`}
               >
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               </span>
-              <div>
-                <p className="font-bold text-[#18181B]">
-                  {copied ? 'Link Copied!' : 'Copy Link'}
+              <div className="truncate">
+                <p className="font-bold text-[#18181B] leading-tight">
+                  {copied ? 'Link Copied!' : 'Share / Copy Link'}
                 </p>
-                <p className="text-[10px] text-stone-500 font-normal">
-                  {copied ? 'Ready to share' : 'Direct link to clipboard'}
+                <p className="text-[10px] text-stone-500 font-normal leading-tight">
+                  {copied ? 'Ready with active role' : `Share link with ?role=${activeRole}`}
                 </p>
               </div>
             </div>
-            {copied && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 animate-in fade-in">
-                Copied!
+            <span
+              className={`text-[9px] font-mono px-1.5 py-0.5 rounded-md font-bold shrink-0 ml-2 transition-colors ${
+                copied
+                  ? 'bg-emerald-100 text-emerald-700 animate-in fade-in'
+                  : 'bg-stone-100 text-stone-600'
+              }`}
+            >
+              {copied ? 'COPIED!' : 'SHARE'}
+            </span>
+          </button>
+
+          {/* Option 4: Print Resume */}
+          <button
+            type="button"
+            role="menuitem"
+            onClick={handlePrintResume}
+            className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 hover:text-[#18181B] hover:bg-white transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="p-1.5 rounded-lg bg-stone-100 text-stone-600 group-hover:bg-stone-200 transition-colors shrink-0">
+                <Printer className="w-3.5 h-3.5" />
               </span>
-            )}
+              <div className="truncate">
+                <p className="font-bold text-[#18181B] leading-tight">Print Resume</p>
+                <p className="text-[10px] text-stone-500 font-normal leading-tight">Print active role PDF</p>
+              </div>
+            </div>
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md bg-stone-100 text-stone-600 font-bold shrink-0 ml-2">
+              PRINT
+            </span>
           </button>
         </div>
       )}

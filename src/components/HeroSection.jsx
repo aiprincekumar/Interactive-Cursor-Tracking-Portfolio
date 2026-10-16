@@ -3,6 +3,7 @@ import { Camera, Minus, Plus, Images } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { NotionIcon, GithubIcon, LinkedinIcon, YoutubeIcon, FacebookIcon, InstagramIcon, TwitterIcon } from './Icons';
 import confetti from 'canvas-confetti';
+import { useRoleTab } from '../context/RoleContext';
 
 /**
  * Full-Screen Reel-Accurate Character Hero Section
@@ -45,8 +46,21 @@ export default function HeroSection({
   forcedState,
   reducedMotion
 }) {
+  const { activeRole, activeTrack } = useRoleTab();
   const [isFlashing, setIsFlashing] = useState(false);
   const [photosCount, setPhotosCount] = useState(0);
+
+  // Smooth fade transition state when activeRole changes
+  const [roleFade, setRoleFade] = useState(true);
+
+  useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect
+    setRoleFade(false);
+    const timer = setTimeout(() => {
+      setRoleFade(true);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [activeRole]);
 
   // Character Scaling System (Baseline 0.95 normalized to 100% / 1.0x, range 0.5 - 2.0)
   const [userScale, setUserScale] = useState(1.0);
@@ -690,221 +704,235 @@ export default function HeroSection({
         </div>
       </div>
 
-      {/* 6. Reel Element: Bottom-Left Clean Typography & Social Icons */}
-      <div className="absolute bottom-8 left-6 md:left-12 z-20 flex flex-col gap-3 pointer-events-auto">
-        <div className="space-y-0.5">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#18181B] tracking-tight leading-tight font-['Outfit',sans-serif] drop-shadow-xs">
-            Accountant &amp; Tax Consultant.
-          </h1>
-          <p className="text-sm sm:text-base md:text-lg font-semibold text-[#27272A] tracking-tight drop-shadow-2xs">
-            Business Development &amp; Office Administrator.
-          </p>
+      {/* 6. Reel Element: Bottom Controls Layout (Responsive 2-Row on Mobile, 2-Column Split on Desktop) */}
+      <div className="absolute bottom-6 sm:bottom-8 left-4 sm:left-6 md:left-12 right-4 sm:right-6 md:right-12 z-20 pointer-events-none flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6">
+        {/* Row 1 on Mobile / Left Column on Desktop: Clean Typography & Social Icons */}
+        <div className="flex flex-col gap-2.5 sm:gap-3 pointer-events-auto">
+          {Boolean(activeTrack?.heroTitle || activeTrack?.heroSubtitle) && (
+            <div
+              key={activeRole}
+              className={`space-y-0.5 transition-all duration-300 ease-out ${
+                roleFade ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
+              }`}
+            >
+              {activeTrack?.heroTitle && (
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#18181B] tracking-tight leading-tight font-['Outfit',sans-serif] drop-shadow-xs">
+                  {activeTrack.heroTitle}
+                </h1>
+              )}
+              {activeTrack?.heroSubtitle && (
+                <p className="text-sm sm:text-base md:text-lg font-semibold text-[#27272A] tracking-tight drop-shadow-2xs">
+                  {activeTrack.heroSubtitle}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Small Circular Social Icons (Notion, GitHub, LinkedIn, YouTube, Facebook, Instagram, Twitter) */}
+          <div className="flex items-center gap-2 flex-wrap pt-0.5 sm:pt-1">
+            {/* Notion */}
+            <a
+              href="#"
+              aria-label="Visit Notion Profile"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              title="Notion"
+            >
+              <NotionIcon className="w-4 h-4" />
+            </a>
+
+            {/* GitHub */}
+            <a
+              href="#"
+              aria-label="Visit GitHub Profile"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              title="GitHub (Coming Soon)"
+            >
+              <GithubIcon className="w-4 h-4" />
+            </a>
+
+            {/* LinkedIn */}
+            <a
+              href="#"
+              aria-label="Visit LinkedIn Profile"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              title="LinkedIn"
+            >
+              <LinkedinIcon className="w-4 h-4" />
+            </a>
+
+            {/* YouTube */}
+            <a
+              href="#"
+              aria-label="Visit YouTube Channel"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              title="YouTube"
+            >
+              <YoutubeIcon className="w-4 h-4" />
+            </a>
+
+            {/* Facebook */}
+            <a
+              href="#"
+              aria-label="Visit Facebook Profile"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              title="Facebook"
+            >
+              <FacebookIcon className="w-4 h-4" />
+            </a>
+
+            {/* Instagram */}
+            <a
+              href="#"
+              aria-label="Visit Instagram Profile"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              title="Instagram"
+            >
+              <InstagramIcon className="w-4 h-4" />
+            </a>
+
+            {/* X / Twitter */}
+            <a
+              href="#"
+              aria-label="Visit X (formerly Twitter) Profile"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              title="X (formerly Twitter)"
+            >
+              <TwitterIcon className="w-4 h-4" />
+            </a>
+          </div>
         </div>
 
-        {/* Small Circular Social Icons (Notion, GitHub, LinkedIn, YouTube, Facebook, Instagram, Twitter) */}
-        <div className="flex items-center gap-2 flex-wrap pt-1">
-          {/* Notion */}
-          <a
-            href="#"
-            aria-label="Visit Notion Profile"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
-            title="Notion"
-          >
-            <NotionIcon className="w-4 h-4" />
-          </a>
-
-          {/* GitHub */}
-          <a
-            href="#"
-            aria-label="Visit GitHub Profile"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
-            title="GitHub (Coming Soon)"
-          >
-            <GithubIcon className="w-4 h-4" />
-          </a>
-
-          {/* LinkedIn */}
-          <a
-            href="#"
-            aria-label="Visit LinkedIn Profile"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
-            title="LinkedIn"
-          >
-            <LinkedinIcon className="w-4 h-4" />
-          </a>
-
-          {/* YouTube */}
-          <a
-            href="#"
-            aria-label="Visit YouTube Channel"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
-            title="YouTube"
-          >
-            <YoutubeIcon className="w-4 h-4" />
-          </a>
-
-          {/* Facebook */}
-          <a
-            href="#"
-            aria-label="Visit Facebook Profile"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
-            title="Facebook"
-          >
-            <FacebookIcon className="w-4 h-4" />
-          </a>
-
-          {/* Instagram */}
-          <a
-            href="#"
-            aria-label="Visit Instagram Profile"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
-            title="Instagram"
-          >
-            <InstagramIcon className="w-4 h-4" />
-          </a>
-
-          {/* X / Twitter */}
-          <a
-            href="#"
-            aria-label="Visit X (formerly Twitter) Profile"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
-            title="X (formerly Twitter)"
-          >
-            <TwitterIcon className="w-4 h-4" />
-          </a>
-        </div>
-      </div>
-
-      {/* 7. Reel Element: Bottom-Right Controls & Sleek Scale Pill */}
-      <div className="absolute bottom-8 right-4 sm:right-6 md:right-12 z-20 flex flex-wrap sm:flex-nowrap items-center justify-end gap-2.5 sm:gap-3 pointer-events-auto">
-        {/* Sleek Frosted Glass Scale Pill */}
-        <div
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="bg-white/80 backdrop-blur-xl border border-white/90 shadow-md rounded-full px-3 py-1.5 flex items-center gap-2 text-[#18181B]"
-        >
-          {/* [-] button */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleZoomOut();
-            }}
-            disabled={userScale <= 0.5}
-            aria-label="Decrease scale"
-            title="Decrease scale (-10%)"
-            className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/5 active:scale-90 text-[#18181B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-          >
-            <Minus className="w-3.5 h-3.5" />
-          </button>
-
-          {/* Custom slider */}
-          <input
-            type="range"
-            min="50"
-            max="200"
-            step="5"
-            value={Math.round(userScale * 100)}
-            onChange={(e) => {
-              e.stopPropagation();
-              handleSliderChange(e);
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
+        {/* Row 2 on Mobile / Right Column on Desktop: Camera Controls & Scale Pill */}
+        <div className="flex items-center justify-center self-center md:justify-end md:self-auto flex-wrap sm:flex-nowrap gap-2 sm:gap-3 pointer-events-auto w-full md:w-auto">
+          {/* Sleek Frosted Glass Scale Pill */}
+          <div
             onClick={(e) => e.stopPropagation()}
-            aria-label="Character scale slider"
-            className="w-16 sm:w-20 h-1.5 bg-stone-200/80 rounded-lg appearance-none cursor-pointer accent-[#18181B] focus:outline-none"
-          />
+            onPointerDown={(e) => e.stopPropagation()}
+            className="bg-white/80 backdrop-blur-xl border border-white/90 shadow-md rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 text-[#18181B] max-w-full"
+          >
+            {/* [-] button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleZoomOut();
+              }}
+              disabled={userScale <= 0.5}
+              aria-label="Decrease scale"
+              title="Decrease scale (-10%)"
+              className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/5 active:scale-90 text-[#18181B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
 
-          {/* [+] button */}
+            {/* Custom slider */}
+            <input
+              type="range"
+              min="50"
+              max="200"
+              step="5"
+              value={Math.round(userScale * 100)}
+              onChange={(e) => {
+                e.stopPropagation();
+                handleSliderChange(e);
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Character scale slider"
+              className="w-14 sm:w-20 h-1.5 bg-stone-200/80 rounded-lg appearance-none cursor-pointer accent-[#18181B] focus:outline-none shrink-1"
+            />
+
+            {/* [+] button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleZoomIn();
+              }}
+              disabled={userScale >= 2.0}
+              aria-label="Increase scale"
+              title="Increase scale (+10%)"
+              className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/5 active:scale-90 text-[#18181B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+
+            {/* '100%' Reset button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleReset();
+              }}
+              aria-label="Reset scale to 100%"
+              title="Reset scale to 100%"
+              className="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono font-bold bg-stone-100/90 hover:bg-stone-200/90 active:scale-95 text-[#18181B] transition-all border border-stone-200/60 cursor-pointer shrink-0"
+            >
+              100%
+            </button>
+          </div>
+
+          {/* 'Shoot a look' Icon-Only Button */}
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              handleZoomIn();
+              triggerCapture();
             }}
-            disabled={userScale >= 2.0}
-            aria-label="Increase scale"
-            title="Increase scale (+10%)"
-            className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/5 active:scale-90 text-[#18181B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            aria-label="Shoot a look photo"
+            title="Shoot a look"
+            className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-[#18181B] hover:bg-black text-white backdrop-blur-xl shadow-lg shadow-black/15 hover:shadow-xl hover:scale-105 active:scale-95 transition-all group border border-white/20 cursor-pointer shrink-0"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-white transition-transform group-hover:scale-110" />
+            {photosCount === 0 && (
+              <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-[#FF4D6D] animate-pulse pointer-events-none" />
+            )}
+            {photosCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-[#FF4D6D] text-white text-[9px] sm:text-[10px] font-mono font-bold min-w-4 sm:min-w-5 h-4 sm:h-5 px-1 rounded-full flex items-center justify-center shadow-md border-2 border-[#FAF8F5] pointer-events-none">
+                {photosCount}
+              </span>
+            )}
           </button>
 
-          {/* '100%' Reset button */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleReset();
-            }}
-            aria-label="Reset scale to 100%"
-            title="Reset scale to 100%"
-            className="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold bg-stone-100/90 hover:bg-stone-200/90 active:scale-95 text-[#18181B] transition-all border border-stone-200/60 cursor-pointer"
+          {/* 'View Moments' Icon-Only Button */}
+          <a
+            href="#gallery"
+            onClick={(e) => e.stopPropagation()}
+            aria-label="View Moments"
+            title="View Moments"
+            className="w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-white/90 hover:bg-white text-[#18181B] backdrop-blur-xl border border-[#E7E2D8] shadow-xs hover:shadow-md hover:scale-105 active:scale-95 transition-all group cursor-pointer shrink-0"
           >
-            100%
-          </button>
+            <Images className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF4D6D] transition-transform group-hover:scale-110" />
+          </a>
         </div>
-
-        {/* 'Shoot a look' Icon-Only Button */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            triggerCapture();
-          }}
-          aria-label="Shoot a look photo"
-          title="Shoot a look"
-          className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-[#18181B] hover:bg-black text-white backdrop-blur-xl shadow-lg shadow-black/15 hover:shadow-xl hover:scale-105 active:scale-95 transition-all group border border-white/20 cursor-pointer"
-        >
-          <Camera className="w-5 h-5 text-white transition-transform group-hover:scale-110" />
-          {photosCount === 0 && (
-            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#FF4D6D] animate-pulse pointer-events-none" />
-          )}
-          {photosCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 bg-[#FF4D6D] text-white text-[10px] font-mono font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center shadow-md border-2 border-[#FAF8F5] pointer-events-none">
-              {photosCount}
-            </span>
-          )}
-        </button>
-
-        {/* 'View Moments' Icon-Only Button */}
-        <a
-          href="#gallery"
-          onClick={(e) => e.stopPropagation()}
-          aria-label="View Moments"
-          title="View Moments"
-          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-white/90 hover:bg-white text-[#18181B] backdrop-blur-xl border border-[#E7E2D8] shadow-xs hover:shadow-md hover:scale-105 active:scale-95 transition-all group cursor-pointer"
-        >
-          <Images className="w-5 h-5 text-[#FF4D6D] transition-transform group-hover:scale-110" />
-        </a>
       </div>
     </section>
   );

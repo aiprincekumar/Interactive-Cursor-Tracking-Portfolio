@@ -224,3 +224,14 @@
     animation: none !important;
   }
 }
+
+/* ==========================================================================
+   Desktop-Cursor-Only Controls (Hidden on Mobile, Tablets & Touch Screens)
+   Dual Strategy: Screen width < 1024px OR coarse pointer / no-hover devices
+   ========================================================================== */
+@media (max-width: 1023px), (pointer: coarse), (hover: none) {
+  .desktop-cursor-only {
+    display: none !important;
+  }
+}
+

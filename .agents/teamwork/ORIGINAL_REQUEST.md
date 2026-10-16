@@ -147,3 +147,42 @@ The About section must provide smooth, interactive tab switching across three di
 - [ ] Project builds cleanly via `npm run build` with zero errors.
 - [ ] No regression or layout shifts in the Reel timeline or neighboring sections.
 - [ ] All personal details and educational credentials are accurately preserved.
+
+
+## Follow-up — 2026-10-16T11:10:18Z
+
+Implement synchronized horizontal role tabs across the interactive portfolio to cleanly separate and showcase two distinct career tracks: "Accountant & Tax" (Financial Track) and "MIS & Analytics" (Data & Operations Track).
+
+Working directory: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio
+Integrity mode: development
+
+## Requirements
+
+### R1. Synchronized Role State & Navigation
+Provide a global, synchronized role-selection state (Tab 1: "Accountant & Tax" [Badge: Financial Track], Tab 2: "MIS & Analytics" [Badge: Data & Operations Track]). Switching the role in any section or via the header switcher must immediately synchronize all sections across the portfolio. The active role must default to "Accountant & Tax", persist in `localStorage`, and reflect in/listen to URL query parameters (`?role=accountant` or `?role=mis`).
+
+### R2. Section-Level Horizontal Tabs
+Add horizontal tabs adhering to the existing design system (`#FAF8F5`, `#FF4D6D` coral accent, WAI-ARIA tab semantics, keyboard navigation, and `.animate-tab-fade` transitions) to:
+- **ExperienceSection:** Filter/display 3 Accountant roles (GST Consultant, Senior Tally Accountant, Junks Food FMCG) under Tab 1, and 3 MIS roles (DAY-NULM MIS Executive, Smart Card Operations, Computer Instructor) under Tab 2.
+- **ProjectsSection:** Display Accountant projects under Tab 1 (GST Compliance Engine, Tally Architecture) and MIS projects under Tab 2 (DAY-NULM MIS Portal, Smart Card Operations Engine).
+- **SkillsSection:** Display Accounting skills under Tab 1 and MIS/Data/Office IT skills under Tab 2.
+- **AboutSection:** Adapt narrative and competencies focus according to the active role tab.
+
+### R3. Header / Navbar Quick Switcher
+Add a compact, accessible role switcher pill in the navigation header allowing the visitor to toggle roles at any point without scrolling.
+
+### R4. Command Palette & Search Catalog Deep Linking
+Ensure searching for MIS or Accountant items in the search catalog / Command Palette automatically switches the active role to the corresponding tab and scrolls to the selected item.
+
+## Acceptance Criteria
+
+### Functional & State Sync
+- [ ] Switching role in any section or navbar updates all sections instantaneously without page reload.
+- [ ] Page reload preserves the chosen role from `localStorage`.
+- [ ] Opening with `?role=mis` sets the initial role to MIS & Analytics.
+- [ ] No role content is lost; all 6 experiences, projects, and skills are categorized under their proper track.
+
+### Accessibility & Interaction
+- [ ] Tab buttons follow WAI-ARIA tablist/tab/tabpanel pattern with ArrowRight/ArrowLeft keyboard navigation.
+- [ ] Tab switching plays existing tactile audio sound FX and applies smooth tab-fade transition.
+- [ ] Build compiles cleanly (`npm run build`) without errors or broken links.

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { soundFX } from '../utils/audio';
+import { useRoleTab } from '../context/RoleContext';
+
 
 const SKILL_DATA = {
   // --- Category 1: Accounting & Tax ---
@@ -201,71 +203,213 @@ const SKILL_DATA = {
       'Market expansion initiatives across local trading hubs and retail networks.',
       'Stakeholder trust building through ethical compliance advisory and punctual deliverables.'
     ]
+  },
+
+  // --- Category 5: Multidisciplinary & Strategy (Other Track) ---
+  'Strategic Operations & Governance': {
+    category: 'Strategy & Leadership',
+    title: 'Strategic Operations & Governance',
+    level: '96%',
+    tag: 'Enterprise Steering & Policy Alignment',
+    points: [
+      'Multi-departmental process integration aligning finance, administrative protocols, and IT operations.',
+      'Standard Operating Procedure (SOP) formulation ensuring strict statutory and organizational compliance.',
+      'Resource allocation modeling, cross-functional milestone tracking, and operational risk mitigation.',
+      'Executive governance reporting and strategic KPI alignment across diverse regional initiatives.'
+    ]
+  },
+  'Cross-Functional Consulting': {
+    category: 'Strategy & Leadership',
+    title: 'Cross-Functional Consulting',
+    level: '95%',
+    tag: 'Advisory & Systems Integration',
+    points: [
+      'Bridging domain gaps between commercial accounting, enterprise data analytics, and executive leadership.',
+      'Workflow transformation advisory minimizing operational friction and communication silos.',
+      'Stakeholder alignment through evidence-backed reviews, fiscal discipline, and delivery milestones.',
+      'Custom client advisory combining statutory compliance, operational workflows, and data accuracy.'
+    ]
+  },
+  'Executive Problem Solving': {
+    category: 'Strategy & Leadership',
+    title: 'Executive Problem Solving',
+    level: '94%',
+    tag: 'Root-Cause Resolution & Crisis Triage',
+    points: [
+      'Rapid diagnostic triage of operational bottlenecks, billing bottlenecks, and administrative disruptions.',
+      'Data-driven root cause analysis combining ledger audits with operational telemetry logs.',
+      'Actionable resolution plans with minimal turnaround time and zero business interruption.',
+      'Post-incident retrospectives and preventative control engineering across distributed teams.'
+    ]
+  },
+  'Change Management & Mentorship': {
+    category: 'Strategy & Leadership',
+    title: 'Change Management & Mentorship',
+    level: '93%',
+    tag: 'Capability Building & Cultural Transition',
+    points: [
+      'Leading personnel through software migrations, ERP rollouts, and modernized reporting workflows.',
+      'Targeted coaching of junior accountants and data operators on statutory accuracy and best practices.',
+      'Change impact analysis, readiness assessments, and continuous feedback loop integration.',
+      'Cultivating institutional accountability, meticulous documentation, and operational excellence.'
+    ]
+  },
+  'Process Automation & Workflows': {
+    category: 'Operations Optimization',
+    title: 'Process Automation & Workflows',
+    level: '95%',
+    tag: 'Efficiency Engineering & Pipeline Modernization',
+    points: [
+      'Streamlining recurring office, accounting, and reporting workflows through structured templates and automation.',
+      'Elimination of repetitive manual entries via linked spreadsheets, formula logic, and digital checkpoints.',
+      'Multi-touchpoint data consolidation pipelines reducing turnaround time and human transcription errors.',
+      'Systematic data verification gates ensuring continuous data integrity across platforms.'
+    ]
+  },
+  'Vendor & Stakeholder Relations': {
+    category: 'Operations Optimization',
+    title: 'Vendor & Stakeholder Relations',
+    level: '94%',
+    tag: 'Contractual Stewardship & Partner Alignment',
+    points: [
+      'Strategic negotiation of commercial contracts, supply agreements, and service level commitments.',
+      'End-to-end vendor evaluation, dispute mediation, payment term alignment, and reconciliation.',
+      'Government liaison, regulatory authority communication, and institutional stakeholder relationship building.',
+      'Transparent milestone accounting and high-trust relationship management across regional partners.'
+    ]
+  },
+  'Cost Optimization & Budgeting': {
+    category: 'Operations Optimization',
+    title: 'Cost Optimization & Budgeting',
+    level: '96%',
+    tag: 'Fiscal Prudence & Expenditure Control',
+    points: [
+      'Variance analysis tracking budgeted vs actual departmental expenditures to curb margin leakage.',
+      'Identification of operational redundancies, renegotiating logistics overheads, and administrative costs.',
+      'Cash flow forecasting, liquidity protection, and return on investment (ROI) evaluation for capital expenses.',
+      'Prudent fiscal frameworks ensuring sustainable operational efficiency across commercial ventures.'
+    ]
+  },
+  'Data-Driven Decision Making': {
+    category: 'Operations Optimization',
+    title: 'Data-Driven Decision Making',
+    level: '95%',
+    tag: 'Quantitative Synthesis & Strategic Foresight',
+    points: [
+      'Translating raw multi-source business data into actionable executive insights and strategic forecasts.',
+      'Scenario planning, sensitivity modeling, and risk-weighted decision frameworks.',
+      'Executive KPI synthesis combining operational velocity with balance sheet health metrics.',
+      'Facilitating high-conviction management decisions with verified empirical telemetry.'
+    ]
   }
 };
 
-const CATEGORIES = [
+const ACCOUNTANT_CATEGORIES = [
   {
-    name: 'Accounting & Tax',
+    name: 'Statutory Accounting & Tax',
     skills: ['Tally Prime & ERP 9', 'GST Filing & Compliance', 'Income Tax E-Filing', 'Financial Auditing & Ledgers']
   },
   {
-    name: 'Software & Applications',
-    skills: ['MS Excel (Advanced)', 'MS Office (Word & PPT)', 'DTP Design Suite', 'Path Solution ERP']
-  },
-  {
-    name: 'IT Systems & Hardware',
-    skills: ['Windows OS Administration', 'Commercial Computing & Office IT Suite', 'Hardware Diagnosis & Maintenance', 'Network & Software Support']
-  },
-  {
-    name: 'Management & Operations',
-    skills: ['Office Administration', 'Stock Handling & Logistics', 'MIS Reporting & Analytics', 'Business Development']
+    name: 'Commercial & Financial Operations',
+    skills: ['MS Excel (Advanced)', 'Path Solution ERP', 'Office Administration', 'Business Development']
   }
 ];
+
+const MIS_CATEGORIES = [
+  {
+    name: 'Data Analytics & Reporting',
+    skills: ['MIS Reporting & Analytics', 'MS Excel (Advanced)', 'Stock Handling & Logistics', 'MS Office (Word & PPT)']
+  },
+  {
+    name: 'IT Systems & Hardware Infrastructure',
+    skills: ['Windows OS Administration', 'Commercial Computing & Office IT Suite', 'Hardware Diagnosis & Maintenance', 'Network & Software Support']
+  }
+];
+
+const OTHER_CATEGORIES = [
+  {
+    name: 'Strategy & Leadership',
+    skills: ['Strategic Operations & Governance', 'Cross-Functional Consulting', 'Executive Problem Solving', 'Change Management & Mentorship']
+  },
+  {
+    name: 'Operations Optimization',
+    skills: ['Process Automation & Workflows', 'Vendor & Stakeholder Relations', 'Cost Optimization & Budgeting', 'Data-Driven Decision Making']
+  }
+];
+
+const ACCOUNTANT_SKILLS_FLAT = ACCOUNTANT_CATEGORIES.flatMap((c) => c.skills);
+const MIS_SKILLS_FLAT = MIS_CATEGORIES.flatMap((c) => c.skills);
+const OTHER_SKILLS_FLAT = OTHER_CATEGORIES.flatMap((c) => c.skills);
 
 // Backward compatibility alias for legacy event dispatches
 SKILL_DATA['Computer Applications (ADCA)'] = SKILL_DATA['Commercial Computing & Office IT Suite'];
 
 export default function SkillsSection() {
-  const [selectedSkill, setSelectedSkill] = useState('Tally Prime & ERP 9');
-  const activeData = SKILL_DATA[selectedSkill] || SKILL_DATA['Tally Prime & ERP 9'];
+  const { activeRole, isMIS, isOther } = useRoleTab();
+  const categories = isOther ? OTHER_CATEGORIES : (isMIS ? MIS_CATEGORIES : ACCOUNTANT_CATEGORIES);
+  const currentSkillsFlat = isOther ? OTHER_SKILLS_FLAT : (isMIS ? MIS_SKILLS_FLAT : ACCOUNTANT_SKILLS_FLAT);
+  const defaultSkill = isOther ? 'Strategic Operations & Governance' : (isMIS ? 'MIS Reporting & Analytics' : 'Tally Prime & ERP 9');
+
+  const [userSelectedSkill, setUserSelectedSkill] = useState(null);
+
+  // Derived selected skill: fallback to track default if current selection is outside active track
+  const selectedSkill = (userSelectedSkill && currentSkillsFlat.includes(userSelectedSkill))
+    ? userSelectedSkill
+    : defaultSkill;
+
+  const activeData = SKILL_DATA[selectedSkill] || SKILL_DATA[defaultSkill];
+  const accentColor = isOther ? '#8B5CF6' : (isMIS ? '#3B82F6' : '#FF4D6D');
 
   useEffect(() => {
     const handleSelectSkill = (e) => {
       const rawSkill = e.detail?.skill;
       const skillName = rawSkill === 'Computer Applications (ADCA)' ? 'Commercial Computing & Office IT Suite' : rawSkill;
       if (skillName && SKILL_DATA[skillName]) {
-        setSelectedSkill(skillName);
+        setUserSelectedSkill(skillName);
       }
     };
     window.addEventListener('select-skill', handleSelectSkill);
     return () => window.removeEventListener('select-skill', handleSelectSkill);
   }, []);
 
+
   return (
     <section id="skills" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
       {/* Section Pill Badge - Reel style */}
       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E7E2D8] text-[#18181B] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs">
-        <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />
-        02 ✦ Skills
+        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
+        02 ✦ Skills &bull; {isOther ? 'Multidisciplinary & Leadership Stack' : (isMIS ? 'Data & MIS Stack' : 'Accounting & Tax Stack')}
       </div>
 
       {/* Heading matching Reel t=9.5s: "What I work with" */}
-      <div className="mb-14">
+      <div className="mb-8">
         <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#18181B] tracking-tight font-['Outfit',sans-serif]">
           What I work with
         </h2>
         <p className="mt-3 text-stone-600 text-sm md:text-base max-w-xl font-normal leading-relaxed">
-          Hover or tap any skill to inspect professional proficiencies, statutory competencies, and hands-on operational applications.
+          {isOther
+            ? 'Hover or tap any skill to inspect strategic governance, cross-functional consulting, workflow automation, and operational optimization.'
+            : isMIS
+            ? 'Hover or tap any skill to inspect executive MIS telemetry, advanced data modeling, government database portals, and IT infrastructure administration.'
+            : 'Hover or tap any skill to inspect statutory tax compliance, double-entry Tally bookkeeping, audited financial ledgers, and commercial management.'}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div
+        role="tabpanel"
+        id="skills-tabpanel"
+        aria-labelledby={`role-tab-skills-${activeRole}`}
+        key={activeRole}
+        className="animate-tab-fade grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+      >
         {/* Left Column: Categorized Pill Matrix matching Reel t=9.5s */}
         <div className="lg:col-span-7 space-y-6 bg-white p-6 sm:p-8 rounded-3xl border border-[#E7E2D8] shadow-md shadow-stone-900/5">
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <div key={cat.name} className="space-y-2.5 pb-5 border-b border-[#ECE7DF] last:border-b-0 last:pb-0">
-              <div className="text-xs font-bold uppercase tracking-wider text-[#FF4D6D] font-mono">
+              <div
+                className="text-xs font-bold uppercase tracking-wider font-mono"
+                style={{ color: accentColor }}
+              >
                 {cat.name}
               </div>
               <div className="flex flex-wrap gap-2">
@@ -278,11 +422,11 @@ export default function SkillsSection() {
                       id={skillId}
                       type="button"
                       onClick={() => {
-                        setSelectedSkill(skill);
+                        setUserSelectedSkill(skill);
                         soundFX.playFocusBeep();
                       }}
                       onMouseEnter={() => {
-                        setSelectedSkill(skill);
+                        setUserSelectedSkill(skill);
                       }}
                       className={`scroll-mt-28 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 active:scale-95 cursor-pointer ${
                         isSelected
@@ -301,12 +445,22 @@ export default function SkillsSection() {
 
         {/* Right Column: Active Skill Detailed Card matching Reel t=9.5s (Dark Charcoal Card) */}
         <div className="lg:col-span-5 bg-[#18181B] text-white p-7 sm:p-9 rounded-3xl border border-stone-800 shadow-2xl relative overflow-hidden transition-all duration-300">
-          {/* Subtle Ambient Red Glow */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-[#FF4D6D]/15 rounded-full blur-2xl pointer-events-none" />
+          {/* Subtle Ambient Glow */}
+          <div
+            className="absolute top-0 right-0 w-48 h-48 rounded-full blur-2xl pointer-events-none"
+            style={{
+              backgroundColor: isOther
+                ? 'rgba(139, 92, 246, 0.15)'
+                : (isMIS ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 77, 109, 0.15)')
+            }}
+          />
 
           {/* Header */}
           <div className="flex items-center justify-between pb-4 mb-4 border-b border-stone-800">
-            <span className="text-xs uppercase tracking-widest font-mono text-[#FF4D6D] font-bold">
+            <span
+              className="text-xs uppercase tracking-widest font-mono font-bold"
+              style={{ color: accentColor }}
+            >
               {activeData.category}
             </span>
             <span className="px-2.5 py-0.5 rounded-full bg-stone-800 border border-stone-700 text-[10px] font-mono text-stone-300">
@@ -325,7 +479,7 @@ export default function SkillsSection() {
           <div className="space-y-3 mb-6">
             {activeData.points.map((pt, i) => (
               <div key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-stone-300 leading-relaxed">
-                <span className="text-[#FF4D6D] shrink-0 mt-0.5">✦</span>
+                <span className="shrink-0 mt-0.5" style={{ color: accentColor }}>✦</span>
                 <span>{pt}</span>
               </div>
             ))}
@@ -339,7 +493,11 @@ export default function SkillsSection() {
             </div>
             <div className="h-2 w-full bg-stone-800 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#FF4D6D] to-[#FFA4B6] rounded-full transition-all duration-500"
+                className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${
+                  isOther
+                    ? 'from-[#8B5CF6] to-[#C4B5FD]'
+                    : (isMIS ? 'from-[#3B82F6] to-[#93C5FD]' : 'from-[#FF4D6D] to-[#FFA4B6]')
+                }`}
                 style={{ width: activeData.level }}
               />
             </div>
@@ -349,3 +507,4 @@ export default function SkillsSection() {
     </section>
   );
 }
+

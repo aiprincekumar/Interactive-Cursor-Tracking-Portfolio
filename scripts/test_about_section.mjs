@@ -87,7 +87,7 @@ assert(!aboutCode.includes('Ensuring a transparent working mechanism removing an
 assert(aboutCode.includes('Statutory Compliance & GST/ITR'), 'Pillar 1: "Statutory Compliance & GST/ITR" present');
 assert(aboutCode.includes('Audit Readiness & Financial Reporting'), 'Pillar 2: "Audit Readiness & Financial Reporting" present');
 assert(aboutCode.includes('Tally Prime & ERP Architecture'), 'Pillar 3: "Tally Prime & ERP Architecture" present');
-assert(aboutCode.includes('Financial MIS & Operations'), 'Pillar 4: "Financial MIS & Operations" present');
+assert(aboutCode.includes('Commercial Ledger Governance') || aboutCode.includes('Financial MIS & Operations'), 'Pillar 4: "Commercial Ledger Governance" / "Financial MIS & Operations" present');
 
 // --- 7. ACADEMIC & TECHNICAL QUALIFICATIONS PRESERVATION ---
 console.log('\n--- 7. Qualifications & Education Credentials Preservation ---');
@@ -103,7 +103,7 @@ assert(aboutCode.includes('CBSE Board'), 'CBSE Board badge preserved');
 // --- 8. OFFICIAL BIO-DATA PRESERVATION ---
 console.log('\n--- 8. Official Bio-Data Demographics Preservation ---');
 assert(aboutCode.includes('Late Niranjan Prasad'), "Father's name 'Late Niranjan Prasad' preserved");
-assert(aboutCode.includes('10.11.1991'), "Date of Birth '10.11.1991' preserved");
+assert(aboutCode.includes('1991') && (aboutCode.includes('Year of Birth') || aboutCode.includes('YOB: 1991')), "Year of Birth '1991' (YOB: 1991) preserved");
 assert(aboutCode.includes('Indian • Single'), "Nationality & Status 'Indian • Single' preserved");
 assert(aboutCode.includes('Hindi, Soft English'), "Languages Known 'Hindi, Soft English' preserved");
 assert(aboutCode.includes('Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India'), "Full address preserved");

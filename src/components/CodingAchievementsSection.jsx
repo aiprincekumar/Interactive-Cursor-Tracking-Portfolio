@@ -1,7 +1,8 @@
 import React from 'react';
 import { Trophy, Zap, ShieldCheck, Award, Database, Server } from 'lucide-react';
+import { useRoleTab } from '../context/RoleContext';
 
-const PLATFORM_STATS = [
+const ACCOUNTANT_STATS = [
   {
     platform: 'Client Retention',
     stat: '99.8%',
@@ -32,19 +33,107 @@ const PLATFORM_STATS = [
   },
 ];
 
-const TICKER_ITEMS = [
+const ACCOUNTANT_TICKER_ITEMS = [
   '7+ Years Tally Accounting',
   '7+ Years GST & Tax Filing',
-  '4 Districts Smart Card Rollout',
-  'ADCA Certified (Infocity Daltonganj)',
-  '100% Statutory Compliance Adherence',
-  'DAY-NULM Skill India MIS',
   '500+ Tax Returns Processed',
-  'Advanced Excel & MIS Modeling'
+  'GSTR-1, 3B & ITR Reconciliation',
+  '100% Statutory Compliance Adherence',
+  'Zero Penalty Incidence',
+  'Commercial Ledger Governance',
+  'Corporate Audit Readiness'
+];
+
+const MIS_STATS = [
+  {
+    platform: 'Database Scale',
+    stat: '10,000+',
+    label: 'Records Analyzed',
+    sublabel: 'Multi-Source Operations & Trainee Databases',
+    icon: Database,
+  },
+  {
+    platform: 'Domain Tenure',
+    stat: '5+ Years',
+    label: 'MIS Experience',
+    sublabel: 'End-to-End Portal & Reporting Systems',
+    icon: Award,
+  },
+  {
+    platform: 'Reporting Automation',
+    stat: '100+',
+    label: 'Automated Reports Generated',
+    sublabel: 'Executive Dashboards & Cross-District MIS',
+    icon: Server,
+  },
+  {
+    platform: 'Quality Benchmark',
+    stat: '99.5%',
+    label: 'Data Integrity Rate',
+    sublabel: 'High-Precision Audit & Validation Pipelines',
+    icon: ShieldCheck,
+  },
+];
+
+const MIS_TICKER_ITEMS = [
+  '10,000+ Records Analyzed',
+  '5+ Years MIS Experience',
+  '100+ Automated Reports Generated',
+  '99.5% Data Integrity Rate',
+  'Advanced Excel & Pivot Modeling',
+  'DAY-NULM Skill India MIS',
+  'ADCA Certified (Infocity Daltonganj)',
+  'Cross-District Biometric Validation'
+];
+
+const OTHER_STATS = [
+  {
+    platform: 'Advisory Governance',
+    stat: '100%',
+    label: 'Executive Operations & Compliance Oversight',
+    sublabel: 'Multidisciplinary Management & Policy Integrity',
+    icon: ShieldCheck,
+  },
+  {
+    platform: 'Cross-Functional Engagements',
+    stat: '15+',
+    label: 'Commercial & Institutional Initiatives Managed',
+    sublabel: 'Cross-Discipline Project & Enterprise Leadership',
+    icon: Award,
+  },
+  {
+    platform: 'Quality & Execution Rate',
+    stat: '99.5%',
+    label: 'Seamless Project Lifecycle Delivery',
+    sublabel: 'High-Precision Multi-Department SLA Delivery',
+    icon: Database,
+  },
+  {
+    platform: 'Total Industry Experience',
+    stat: '7+ Years',
+    label: 'Unified Finance, MIS & Administration Tenure',
+    sublabel: 'End-to-End Strategic, Financial & Operational Leadership',
+    icon: Server,
+  },
+];
+
+const OTHER_TICKER_ITEMS = [
+  '7+ Years Multidisciplinary Leadership',
+  'Executive Operations & Governance',
+  'Corporate Finance & MIS Synergy',
+  'Cross-Functional Project Management',
+  '100% Statutory & Advisory Compliance',
+  '99.5% Execution & Quality Delivery',
+  'Enterprise Resource Optimization',
+  'Cross-Sector Institutional Impact'
 ];
 
 export default function CodingAchievementsSection() {
-  const tickerSequence = Array(8).fill(TICKER_ITEMS).flat();
+  const { isAccountant, isMIS, isOther } = useRoleTab();
+
+  const activeStats = isOther ? OTHER_STATS : isMIS ? MIS_STATS : ACCOUNTANT_STATS;
+  const activeTickerItems = isOther ? OTHER_TICKER_ITEMS : isMIS ? MIS_TICKER_ITEMS : ACCOUNTANT_TICKER_ITEMS;
+  const tickerSequence = Array(8).fill(activeTickerItems).flat();
 
   return (
     <section id="achievements" className="py-24 bg-[#1A1625] text-white relative overflow-hidden select-none my-12 scroll-mt-28">
@@ -52,8 +141,8 @@ export default function CodingAchievementsSection() {
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#FF4D6D]/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Top Scrolling Platform Marquee matching Reel t=15.0s */}
-      <div className="w-[120%] -ml-[10%] bg-[#241E33] border-y border-purple-900/40 py-3.5 mb-16 overflow-hidden">
+      {/* Top Scrolling Platform Marquee */}
+      <div className="w-[120%] -ml-[10%] bg-[#241E33] border-y border-purple-900/40 py-3.5 mb-16 overflow-hidden transition-all duration-300">
         <div className="flex w-max animate-marquee-left items-center">
           {tickerSequence.map((item, idx) => (
             <div
@@ -79,27 +168,33 @@ export default function CodingAchievementsSection() {
               Professional Milestones &amp; Certifications
             </h2>
             <p className="mt-2 text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
-              Proven domain excellence in corporate accounting, taxation statutory compliance, regional MIS administration, and technical education.
+              {isAccountant && "Proven domain excellence in corporate bookkeeping, GST & Income Tax statutory compliance, and BRS audit precision."}
+              {isMIS && "Demonstrated leadership in executive reporting, database reconciliation, automated dashboards, and cross-district operational analytics."}
+              {isOther && "Proven multidisciplinary leadership uniting financial management, institutional MIS systems, and strategic enterprise administration."}
             </p>
           </div>
 
           {/* Aggregate Badge */}
-          <div className="flex items-center gap-3 bg-[#241E33] px-5 py-3 rounded-2xl border border-purple-800/50">
+          <div className="flex items-center gap-3 bg-[#241E33] px-5 py-3 rounded-2xl border border-purple-800/50 shrink-0">
             <Trophy className="w-5 h-5 text-[#FF4D6D]" />
             <div>
-              <div className="text-[11px] text-stone-400 font-mono uppercase">Career Experience</div>
-              <div className="text-lg font-black text-white font-mono">7+ Years Verified</div>
+              <div className="text-[11px] text-stone-400 font-mono uppercase">
+                {isOther ? 'Multidisciplinary Professional' : isMIS ? 'Data & Operations Analytics' : 'Statutory Tax Practice'}
+              </div>
+              <div className="text-lg font-black text-white font-mono">
+                {isMIS ? '5+ Years Verified' : '7+ Years Verified'}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Platform Cards Grid matching Reel t=15.5s */}
+        {/* Platform Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {PLATFORM_STATS.map((p) => {
+          {activeStats.map((p) => {
             const Icon = p.icon;
             return (
               <div
-                key={p.platform}
+                key={p.label}
                 className="bg-[#241E33]/90 hover:bg-[#2C243E] rounded-3xl p-6 border border-purple-900/40 hover:border-[#FF4D6D]/40 transition-all duration-300 hover:-translate-y-1 group flex flex-col justify-between"
               >
                 <div>
@@ -129,31 +224,83 @@ export default function CodingAchievementsSection() {
           })}
         </div>
 
-        {/* Vocational Impact Highlight Card */}
-        <div className="bg-gradient-to-r from-[#241E33] to-[#2C243E] rounded-3xl p-6 sm:p-8 border border-purple-800/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#FF4D6D] flex items-center justify-center text-white shadow-lg shadow-pink-600/30 shrink-0">
-              <span className="text-xl">🦋</span>
-            </div>
-            <div>
-              <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-[#FFA4B6] font-bold">
-                <Zap className="w-3 h-3 text-[#FF4D6D]" /> GOVERNMENT INITIATIVE &amp; VOCATIONAL IMPACT
+        {/* Role-Specific Impact Highlight Banner */}
+        {isOther ? (
+          <div className="bg-gradient-to-r from-[#241E33] to-[#2C243E] rounded-3xl p-6 sm:p-8 border border-purple-800/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#FF4D6D] flex items-center justify-center text-white shadow-lg shadow-pink-600/30 shrink-0">
+                <span className="text-xl">🦋</span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-white font-['Outfit',sans-serif] mt-0.5">
-                DAY-NULM Skill India Mission &amp; Regional Computer Education
-              </h3>
-              <p className="text-xs sm:text-sm text-stone-400 mt-1 max-w-2xl">
-                Empowered 2,500+ urban candidates through centralized MIS reporting, digital literacy instruction, and local community IT empowerment in Daltonganj &amp; Palamau region.
-              </p>
+              <div>
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-[#FFA4B6] font-bold">
+                  <Zap className="w-3 h-3 text-[#FF4D6D]" /> MULTIDISCIPLINARY LEADERSHIP &amp; EXECUTIVE IMPACT
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white font-['Outfit',sans-serif] mt-0.5">
+                  Cross-Functional Executive Management, Statutory Oversight &amp; Enterprise Operations
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-400 mt-1 max-w-2xl">
+                  Delivering unified operational governance by seamlessly bridging corporate finance, data-driven MIS architectures, and strategic administrative execution across commercial and institutional initiatives.
+                </p>
+              </div>
+            </div>
+
+            <div className="shrink-0">
+              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1A1625] border border-purple-700/60 text-xs font-mono font-bold text-[#FFA4B6]">
+                Multidisciplinary Lead
+              </span>
             </div>
           </div>
+        ) : isMIS ? (
+          <div className="bg-gradient-to-r from-[#241E33] to-[#2C243E] rounded-3xl p-6 sm:p-8 border border-purple-800/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#FF4D6D] flex items-center justify-center text-white shadow-lg shadow-pink-600/30 shrink-0">
+                <span className="text-xl">🦋</span>
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-[#FFA4B6] font-bold">
+                  <Zap className="w-3 h-3 text-[#FF4D6D]" /> GOVERNMENT INITIATIVE &amp; OPERATIONAL ANALYTICS
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white font-['Outfit',sans-serif] mt-0.5">
+                  DAY-NULM Skill India Mission &amp; Cross-District Biometric Systems
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-400 mt-1 max-w-2xl">
+                  Administered statewide candidate verification databases, monitored AEBAS attendance tracking across 4 districts, and automated weekly governance MIS reports for state mission directors.
+                </p>
+              </div>
+            </div>
 
-          <div className="shrink-0">
-            <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1A1625] border border-purple-700/60 text-xs font-mono font-bold text-[#FFA4B6]">
-              Certified Impact Track
-            </span>
+            <div className="shrink-0">
+              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1A1625] border border-purple-700/60 text-xs font-mono font-bold text-[#FFA4B6]">
+                Verified MIS Lead
+              </span>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-gradient-to-r from-[#241E33] to-[#2C243E] rounded-3xl p-6 sm:p-8 border border-purple-800/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#FF4D6D] flex items-center justify-center text-white shadow-lg shadow-pink-600/30 shrink-0">
+                <span className="text-xl">🦋</span>
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-[#FFA4B6] font-bold">
+                  <Zap className="w-3 h-3 text-[#FF4D6D]" /> COMMERCIAL AUDIT &amp; STATUTORY COMPLIANCE
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white font-['Outfit',sans-serif] mt-0.5">
+                  Commercial Enterprise Accounting Finalization &amp; Corporate Statutory Governance
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-400 mt-1 max-w-2xl">
+                  Spearheaded year-end financial finalization, ledger scrubdowns, multi-branch BRS reconciliations, and timely GST/TDS tax return filings with zero statutory notice or penalty history.
+                </p>
+              </div>
+            </div>
+
+            <div className="shrink-0">
+              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1A1625] border border-purple-700/60 text-xs font-mono font-bold text-[#FFA4B6]">
+                Certified Tax Practitioner
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
