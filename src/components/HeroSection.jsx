@@ -215,6 +215,9 @@ export default function HeroSection({
 
       // 1. Organic Idle Breathing Animation (human resting rhythm ~3.8s cycle, ~15 breaths/min)
       let idleOp = Math.max(0, 1 - state.hoverWeight);
+      if (forcedState) {
+        idleOp = (forcedState === 'idle' || forcedState === 'rear-view') ? 1 : 0;
+      }
 
       // Natural breathing blend: 100% active when idle or when pointer/gyro is resting near center.
       // Smoothly attenuates when actively moving pointer or tilting gyro to edges to prevent abrupt popping.
@@ -253,7 +256,6 @@ export default function HeroSection({
       let lowRightOp = 0;
 
       if (forcedState) {
-        idleOp = (forcedState === 'idle' || forcedState === 'rear-view') ? 1 : 0;
         centerOp = (forcedState === 'center' || forcedState === 'center-front') ? 1 : 0;
         upCenterOp = (forcedState === 'upper-center' || forcedState === 'center-upper') ? 1 : 0;
         lowCenterOp = (forcedState === 'lower-center' || forcedState === 'center-lower') ? 1 : 0;

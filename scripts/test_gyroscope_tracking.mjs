@@ -210,9 +210,13 @@ function computeBreathingFrame({
   hoverWeight = 0,
   currentBreathingWeight = 1.0,
   reducedMotion = false,
+  forcedState = null,
   dt = 0.016
 }) {
-  const idleOp = Math.max(0, 1 - hoverWeight);
+  let idleOp = Math.max(0, 1 - hoverWeight);
+  if (forcedState) {
+    idleOp = (forcedState === 'idle' || forcedState === 'rear-view') ? 1 : 0;
+  }
   const motionMagnitude = Math.min(1, Math.sqrt(curX * curX + curY * curY) / 0.25);
   const targetBreathingWeight = reducedMotion ? 0 : Math.max(idleOp, Math.max(0, 1.0 - motionMagnitude));
   const breathBlendSpeed = 6.0;
@@ -338,6 +342,22 @@ function computeBreathingFrame({
     assert.strictEqual(frame.transform, 'none', `Under reducedMotion, transform must be 'none'`);
   }
   console.log('[PASS] Case M: reducedMotion strictly disables all breathing transforms and preserves accessible static stage.');
+}
+
+// Case N: forcedState parameter explicitly drives idleOp and preserves breathing for forced 'idle'
+{
+  // When forced to 'idle', even if cursor is hovered or at edge, breathing remains 100% active
+  const forcedIdleFrame = computeBreathingFrame({
+    currentTime: 950,
+    curX: 0.45,
+    curY: 0.40,
+    hoverWeight: 1.0,
+    forcedState: 'idle'
+  });
+  assert(forcedIdleFrame.breathingWeight > 0.99, 'Forced idle must keep breathing weight at 1.0 regardless of hover');
+  assert(Math.abs(forcedIdleFrame.currentBreathY - 3.2) < 0.1, 'Forced idle must perform full peak breathing oscillation');
+
+  console.log('[PASS] Case N: forcedState correctly drives idleOp, preserving breathing for forced idle poses.');
 }
 
 console.log('\n=== ALL GYROSCOPE, TRACKING & IDLE BREATHING VERIFICATION CHECKS PASSED (100%) ===\n');
