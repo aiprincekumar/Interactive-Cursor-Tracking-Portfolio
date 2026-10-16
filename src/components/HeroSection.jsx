@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Camera, Minus, Plus, Images } from 'lucide-react';
+import { Camera, Minus, Plus, Images, Compass } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { NotionIcon, GithubIcon, LinkedinIcon, YoutubeIcon, FacebookIcon, InstagramIcon, TwitterIcon } from './Icons';
 import confetti from 'canvas-confetti';
 import { useRoleTab } from '../context/RoleContext';
+import { useGyroscopeTracking } from '../hooks/useGyroscopeTracking';
 
 /**
  * Full-Screen Reel-Accurate Character Hero Section
@@ -66,9 +67,17 @@ export default function HeroSection({
   const [userScale, setUserScale] = useState(1.0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showHudBadge, setShowHudBadge] = useState(false);
+  const [hudMessage, setHudMessage] = useState(null);
   const hudTimerRef = useRef(null);
   const userScaleRef = useRef(userScale);
   const characterInnerRef = useRef(null);
+
+  // High-performance Mobile & Gyroscope tracking hook
+  const gyro = useGyroscopeTracking({
+    enabled: !reducedMotion,
+    scrollEnabled: true,
+    reducedMotion
+  });
 
   useEffect(() => {
     userScaleRef.current = userScale;
@@ -79,6 +88,7 @@ export default function HeroSection({
   // Direct DOM references for 120 FPS zero-render GPU updates (10 Total: 9 Directions + 1 Idle)
   const sectionRef = useRef(null);
   const stageRef = useRef(null);
+  const bgBackdropRef = useRef(null);
   const imgIdleRef = useRef(null);
   const imgCenterRef = useRef(null);
   const imgUpperCenterRef = useRef(null);
@@ -102,6 +112,9 @@ export default function HeroSection({
     activePose: 'idle',
     isHovered: false,
     hoverWeight: 0,
+    breathingWeight: 1,
+    isPointerInteracting: false,
+    lastPointerTime: 0,
     rafId: null
   });
 
@@ -143,6 +156,9 @@ export default function HeroSection({
       if (stageRef.current) {
         stageRef.current.style.transform = 'none';
       }
+      if (bgBackdropRef.current) {
+        bgBackdropRef.current.style.transform = 'none';
+      }
       const p = forcedState || (isInsideHeroRef.current ? 'center' : 'idle');
       if (imgIdleRef.current) imgIdleRef.current.style.opacity = (p === 'idle' || p === 'rear-view') ? '1' : '0';
       if (imgCenterRef.current) imgCenterRef.current.style.opacity = (p === 'center' || p === 'center-front') ? '1' : '0';
@@ -168,26 +184,64 @@ export default function HeroSection({
       const dt = Math.min(Math.max((currentTime - lastTime) / 1000, 0.001), 0.05);
       lastTime = currentTime;
 
+      // Check gyro state if sensor active on mobile / gyro-enabled devices
+      const gState = gyro.gyroStateRef.current;
+      const isGyroActive = gState && gState.isActive;
+      if (isGyroActive) {
+        // Gyro is primary orientation source on mobile/gyro device unless active touch gesture is occurring
+        if (!state.isPointerInteracting) {
+          state.targetNormX = gState.normX;
+          state.targetNormY = gState.normY;
+          state.isHovered = true;
+        }
+      }
+
       // Frame-rate independent exponential damping (lambda = 15.0 for swift, buttery-smooth follow)
       const lerpFactor = 1.0 - Math.exp(-15.0 * dt);
       state.currentNormX += (state.targetNormX - state.currentNormX) * lerpFactor;
       state.currentNormY += (state.targetNormY - state.currentNormY) * lerpFactor;
 
-      // Fast, responsive hover blend: 0 when cursor outside hero, 1 when inside
-      const targetHover = state.isHovered ? 1 : 0;
+      // Fast, responsive hover blend: 0 when cursor outside hero, 1 when inside or gyro active
+      const targetHover = (state.isHovered || isGyroActive) ? 1 : 0;
       const hoverLerp = 1.0 - Math.exp(-18.0 * dt);
       state.hoverWeight += (targetHover - state.hoverWeight) * hoverLerp;
 
       const curX = state.currentNormX;
       const curY = state.currentNormY;
 
-      // Flat 2D display - zero 3D perspective, tilt, pitch, yaw, or warping
+      // Directional physical character translation & backdrop parallax shift in gyro / pointer direction
+      const charShiftX = curX * 56;
+      const charShiftY = curY * 42;
+
+      // 1. Organic Idle Breathing Animation (human resting rhythm ~3.8s cycle, ~15 breaths/min)
+      let idleOp = Math.max(0, 1 - state.hoverWeight);
+
+      // Natural breathing blend: 100% active when idle or when pointer/gyro is resting near center.
+      // Smoothly attenuates when actively moving pointer or tilting gyro to edges to prevent abrupt popping.
+      const motionMagnitude = Math.min(1, Math.sqrt(curX * curX + curY * curY) / 0.25);
+      const targetBreathingWeight = reducedMotion ? 0 : Math.max(idleOp, Math.max(0, 1.0 - motionMagnitude));
+      const breathBlendSpeed = 6.0;
+      state.breathingWeight = (state.breathingWeight ?? 1) +
+        (targetBreathingWeight - (state.breathingWeight ?? 1)) * (1.0 - Math.exp(-breathBlendSpeed * dt));
+
+      const breathCycle = (currentTime / 1000) * ((2 * Math.PI) / 3.8);
+      const breathY = Math.sin(breathCycle) * 3.2; // approx. 3.2px rise and fall
+      const breathScale = 1.0 + (Math.sin(breathCycle) * 0.006); // approx. 0.6% organic scale breathing
+
+      const currentBreathY = reducedMotion ? 0 : breathY * state.breathingWeight;
+      const currentBreathScale = reducedMotion ? 1.0 : Number((1.0 + (breathScale - 1.0) * state.breathingWeight).toFixed(5));
+
       if (stageRef.current) {
-        stageRef.current.style.transform = 'none';
+        stageRef.current.style.transform = `translate3d(${charShiftX.toFixed(2)}px, ${(charShiftY + currentBreathY).toFixed(2)}px, 0) scale(${currentBreathScale})`;
+      }
+
+      if (bgBackdropRef.current) {
+        const bgShiftX = -curX * 32;
+        const bgShiftY = -curY * 24;
+        bgBackdropRef.current.style.transform = `translate3d(${bgShiftX.toFixed(2)}px, ${bgShiftY.toFixed(2)}px, 0) scale(1.06)`;
       }
 
       // 2. Continuous 9-Direction Pose Crossfading with Cubic Hermite Smoothstep
-      let idleOp = Math.max(0, 1 - state.hoverWeight);
       let centerOp = 0;
       let upCenterOp = 0;
       let lowCenterOp = 0;
@@ -296,7 +350,7 @@ export default function HeroSection({
         cancelAnimationFrame(localRafId);
       }
     };
-  }, [reducedMotion, forcedState]);
+  }, [reducedMotion, forcedState, gyro.gyroStateRef]);
 
   // High-performance passive window pointer tracking (0ms input latency, no React event queue overhead)
   useEffect(() => {
@@ -310,6 +364,8 @@ export default function HeroSection({
       const state = animStateRef.current;
       state.pointerX = clientX;
       state.pointerY = clientY;
+      state.isPointerInteracting = true;
+      state.lastPointerTime = performance.now();
 
       const section = sectionRef.current;
       if (!section) return;
@@ -322,9 +378,15 @@ export default function HeroSection({
         clientY <= rect.bottom
       );
 
-      if (isInside !== state.isHovered) {
+      const gState = gyro.gyroStateRef.current;
+      const isGyroActive = gState && gState.isActive;
+
+      if (isInside !== state.isHovered && !isGyroActive) {
         state.isHovered = isInside;
         setIsInsideHero(isInside);
+      } else if (isGyroActive) {
+        state.isHovered = true;
+        setIsInsideHero(true);
       }
 
       if (isInside) {
@@ -332,29 +394,52 @@ export default function HeroSection({
         const h = rect.height || window.innerHeight || 1080;
         state.targetNormX = Math.max(-0.5, Math.min(0.5, (clientX - rect.left) / w - 0.5));
         state.targetNormY = Math.max(-0.5, Math.min(0.5, (clientY - rect.top) / h - 0.5));
+      } else if (isGyroActive) {
+        state.targetNormX = gState.normX;
+        state.targetNormY = gState.normY;
       } else {
         state.targetNormX = 0;
         state.targetNormY = 0;
       }
     };
 
+    const handlePointerUp = () => {
+      const state = animStateRef.current;
+      state.isPointerInteracting = false;
+      state.lastPointerTime = performance.now();
+      const gState = gyro.gyroStateRef.current;
+      if (gState && gState.isActive) {
+        state.targetNormX = gState.normX;
+        state.targetNormY = gState.normY;
+        state.isHovered = true;
+      }
+    };
+
     window.addEventListener('pointermove', handleWindowPointer, { passive: true });
     window.addEventListener('touchmove', handleWindowPointer, { passive: true });
+    window.addEventListener('pointerup', handlePointerUp, { passive: true });
+    window.addEventListener('touchend', handlePointerUp, { passive: true });
+    window.addEventListener('touchcancel', handlePointerUp, { passive: true });
 
     return () => {
       window.removeEventListener('pointermove', handleWindowPointer);
       window.removeEventListener('touchmove', handleWindowPointer);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('touchend', handlePointerUp);
+      window.removeEventListener('touchcancel', handlePointerUp);
     };
-  }, [reducedMotion, setIsInsideHero]);
+  }, [reducedMotion, setIsInsideHero, gyro.gyroStateRef]);
 
   // Floating HUD notification trigger
-  const triggerHud = useCallback(() => {
+  const triggerHud = useCallback((customMsg = null) => {
+    setHudMessage(customMsg);
     setShowHudBadge(true);
     if (hudTimerRef.current) {
       clearTimeout(hudTimerRef.current);
     }
     hudTimerRef.current = setTimeout(() => {
       setShowHudBadge(false);
+      setHudMessage(null);
     }, 1500);
   }, []);
 
@@ -535,13 +620,28 @@ export default function HeroSection({
         animStateRef.current.isHovered = true;
       }}
       onPointerLeave={() => {
-        setIsInsideHero(false);
         const state = animStateRef.current;
-        state.isHovered = false;
-        state.targetNormX = 0;
-        state.targetNormY = 0;
+        const gState = gyro.gyroStateRef.current;
+        if (gState && gState.isActive) {
+          state.isHovered = true;
+          state.targetNormX = gState.normX;
+          state.targetNormY = gState.normY;
+        } else {
+          setIsInsideHero(false);
+          state.isHovered = false;
+          state.targetNormX = 0;
+          state.targetNormY = 0;
+        }
       }}
-      onClick={triggerCapture}
+      onClick={() => {
+        if (gyro.permissionState === 'prompt') {
+          gyro.requestPermission().then((granted) => {
+            if (granted) triggerHud('Gyro Enabled & Active');
+          });
+          return;
+        }
+        triggerCapture();
+      }}
       className={`relative w-full h-screen min-h-screen overflow-hidden select-none bg-[#FAF8F5] flex items-center justify-center cursor-pointer ${
         isInsideHero && !reducedMotion ? 'cursor-none' : ''
       }`}
@@ -557,9 +657,10 @@ export default function HeroSection({
       {/* 2. Studio Stage Backdrop Background Layer */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden select-none">
         <img
+          ref={bgBackdropRef}
           src={IMG_BG_HERO}
           alt="Studio Stage Backdrop"
-          className="w-full h-full object-cover object-[center_32%] pointer-events-none select-none"
+          className="w-full h-full object-cover object-[center_32%] pointer-events-none select-none will-change-transform"
           loading="eager"
           decoding="sync"
         />
@@ -570,7 +671,8 @@ export default function HeroSection({
       {/* 3. Full-Bleed Full-Width Character Flat 2D Stage (Covers entire Hero Viewport - 10 Total Poses) */}
       <div
         ref={stageRef}
-        className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none z-10"
+        className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none z-10 will-change-transform"
+        style={{ willChange: 'transform' }}
       >
         <div
           ref={characterInnerRef}
@@ -688,7 +790,7 @@ export default function HeroSection({
         >
           <div className="px-5 py-2.5 rounded-full bg-[#18181B]/85 backdrop-blur-xl border border-white/20 text-white font-mono text-xs sm:text-sm font-semibold shadow-2xl flex items-center gap-2.5">
             <span className="w-2 h-2 rounded-full bg-[#FF4D6D] animate-ping" />
-            <span>Zoom: {Math.round(userScale * 100)}%</span>
+            <span>{hudMessage || `Zoom: ${Math.round(userScale * 100)}%`}</span>
           </div>
         </div>
       )}
@@ -830,8 +932,73 @@ export default function HeroSection({
           </div>
         </div>
 
-        {/* Row 2 on Mobile / Right Column on Desktop: Camera Controls & Scale Pill */}
+        {/* Row 2 on Mobile / Right Column on Desktop: Camera Controls, Gyro Pill & Scale Pill */}
         <div className="flex items-center justify-center self-center md:justify-end md:self-auto flex-wrap sm:flex-nowrap gap-2 sm:gap-3 pointer-events-auto w-full md:w-auto">
+          {/* Gyro Sensor & Tilt-Scroll Control Pill (Mobile & Gyro-enabled devices) */}
+          {gyro.isSupported && (gyro.isTouchDevice || gyro.isActive || gyro.permissionState === 'prompt') && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="bg-white/80 backdrop-blur-xl border border-white/90 shadow-md rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 text-[#18181B] max-w-full"
+            >
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (gyro.permissionState === 'prompt') {
+                    gyro.requestPermission().then((granted) => {
+                      if (granted) {
+                        triggerHud('Gyro Enabled & Active');
+                      } else {
+                        triggerHud('Gyro Permission Denied');
+                      }
+                    });
+                  } else {
+                    gyro.recalibrate();
+                    triggerHud('Gyro Calibrated: 0°');
+                  }
+                }}
+                aria-label={gyro.permissionState === 'prompt' ? 'Enable Gyroscope' : 'Recalibrate Gyroscope baseline'}
+                title={gyro.permissionState === 'prompt' ? 'Enable Gyroscope Tracking' : 'Recalibrate Gyroscope Baseline'}
+                className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold hover:text-[#FF3F6C] active:scale-95 transition-all cursor-pointer"
+              >
+                <Compass className={`w-3.5 h-3.5 text-[#FF4D6D] ${gyro.isActive ? 'animate-spin-slow' : ''}`} />
+                <span>
+                  {gyro.permissionState === 'prompt'
+                    ? 'Enable Gyro'
+                    : gyro.permissionState === 'denied'
+                      ? 'Gyro Blocked'
+                      : gyro.isActive
+                        ? 'Gyro Active'
+                        : 'Calibrate'}
+                </span>
+                {gyro.isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                )}
+              </button>
+
+              <div className="w-[1px] h-3 bg-stone-200" />
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  gyro.toggleGyroScroll();
+                  triggerHud(!gyro.isGyroScrollActive ? 'Tilt Scroll: ON' : 'Tilt Scroll: OFF');
+                }}
+                aria-label="Toggle Gyro Tilt Scroll"
+                title={gyro.isGyroScrollActive ? 'Tilt Scroll: ON (Tilt device in any direction to scroll)' : 'Tilt Scroll: OFF'}
+                className={`text-[9px] sm:text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full transition-all cursor-pointer ${
+                  gyro.isGyroScrollActive
+                    ? 'bg-[#18181B] text-white shadow-2xs'
+                    : 'bg-stone-100 text-stone-500 hover:text-[#18181B]'
+                }`}
+              >
+                {gyro.isGyroScrollActive ? 'Scroll ON' : 'Scroll OFF'}
+              </button>
+            </div>
+          )}
+
           {/* Sleek Frosted Glass Scale Pill */}
           <div
             onClick={(e) => e.stopPropagation()}
