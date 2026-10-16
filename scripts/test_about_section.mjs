@@ -45,8 +45,9 @@ assert(aboutCode.includes("'qualifications'"), 'Tab 2 ID "qualifications" exists
 assert(aboutCode.includes("'biodata'"), 'Tab 3 ID "biodata" exists');
 
 assert(aboutCode.includes("label: 'Story & Vision'"), 'Tab 1 label is "Story & Vision"');
-assert(aboutCode.includes("label: 'Qualifications & Education'"), 'Tab 2 label is "Qualifications & Education"');
+assert(aboutCode.includes("label: 'Qualifications'"), 'Tab 2 label is "Qualifications"');
 assert(aboutCode.includes("label: 'Official Bio-Data'"), 'Tab 3 label is "Official Bio-Data"');
+assert(aboutCode.includes('whitespace-nowrap'), 'Tab buttons prevent text wrapping (whitespace-nowrap)');
 
 assert(aboutCode.includes("const [activeTab, setActiveTab] = useState('story')"), 'Initial active tab defaults to "story" (Story & Vision)');
 

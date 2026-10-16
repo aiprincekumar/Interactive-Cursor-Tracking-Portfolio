@@ -109,7 +109,7 @@ export default function ContactSection() {
             </p>
 
             {/* Huge Hot Pink Email Pill CTA matching Reel t=16.5s */}
-            <div className="flex flex-wrap items-center gap-3 mb-6">
+            <div className="flex flex-wrap items-center gap-3 mb-8">
               <a
                 href={`mailto:${email}`}
                 className="inline-flex items-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-[#FF4D6D] hover:bg-[#E03554] text-white font-bold text-xs sm:text-sm tracking-wide shadow-xl shadow-pink-600/30 transition-all duration-200 active:scale-95 group"
@@ -128,35 +128,6 @@ export default function ContactSection() {
               >
                 {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
               </button>
-            </div>
-
-            {/* Contact Details: Direct Email & Location Card */}
-            <div className="space-y-3 mb-10">
-              <a
-                href={`mailto:${email}`}
-                className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E7E2D8] hover:border-[#FF4D6D]/40 text-stone-700 transition-all group"
-              >
-                <div className="w-9 h-9 rounded-xl bg-pink-50 border border-pink-100 flex items-center justify-center text-[#FF4D6D] group-hover:scale-105 transition-transform shrink-0">
-                  <Mail className="w-4 h-4" />
-                </div>
-                <div className="text-left">
-                  <div className="text-[10px] font-mono text-stone-400 uppercase tracking-wider font-bold">Direct Email</div>
-                  <div className="text-xs sm:text-sm font-bold text-[#18181B] truncate">{email}</div>
-                </div>
-              </a>
-
-              {/* Standardized Location Card */}
-              <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E7E2D8] text-stone-700">
-                <div className="w-9 h-9 rounded-xl bg-pink-50 border border-pink-100 flex items-center justify-center text-[#FF4D6D] shrink-0 mt-0.5">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <div className="text-left">
-                  <div className="text-[10px] font-mono text-stone-400 uppercase tracking-wider font-bold">Location / Address</div>
-                  <div className="text-xs sm:text-sm font-bold text-[#18181B] leading-snug">
-                    Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Social Channels matching Reel & Hero Section */}
@@ -263,6 +234,46 @@ export default function ContactSection() {
               </form>
             )}
           </div>
+        </div>
+
+        {/* Dedicated Full-Width Location & Interactive Map */}
+        <div className="mt-12 pt-10 border-t border-[#ECE7DF]">
+          {/* Address Card */}
+          <div className="p-5 sm:p-6 rounded-2xl bg-[#FAF8F5] border border-[#E7E2D8] flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-pink-50 border border-pink-100 flex items-center justify-center text-[#FF4D6D] shrink-0">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-[11px] font-mono text-stone-500 uppercase tracking-wider font-bold flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF4D6D]" />
+                  Location & Headquarters
+                </div>
+                <p className="text-sm sm:text-base font-bold text-[#18181B] mt-0.5">
+                  Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India
+                </p>
+              </div>
+            </div>
+            <a
+              href="https://maps.google.com/?q=Daltonganj%2C+Medininagar%2C+Palamau%2C+Jharkhand+822101"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-stone-100 text-stone-700 border border-[#E7E2D8] text-xs font-bold transition-all shadow-2xs hover:shadow-sm self-start sm:self-auto shrink-0 group"
+            >
+              <span>View in Google Maps</span>
+              <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </a>
+          </div>
+
+          {/* Full-Width Interactive Map Frame */}
+          <iframe
+            title="Location Map - Daltonganj, Medininagar, Jharkhand"
+            src="https://maps.google.com/maps?q=Daltonganj%2C%20Medininagar%2C%20Palamau%2C%20Jharkhand%20822101&t=&z=14&ie=UTF8&iwloc=&output=embed"
+            className="w-full h-72 sm:h-80 md:h-96 rounded-2xl border border-[#E7E2D8] shadow-sm"
+            loading="lazy"
+            allowFullScreen
+            referrerPolicy="no-referrer-when-downgrade"
+          />
         </div>
       </div>
     </section>

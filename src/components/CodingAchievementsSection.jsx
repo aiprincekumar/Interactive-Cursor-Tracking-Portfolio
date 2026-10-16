@@ -1,44 +1,40 @@
 import React from 'react';
-import { Trophy, Zap } from 'lucide-react';
+import { Trophy, Zap, ShieldCheck, Award, Database, Server } from 'lucide-react';
 
-const MILESTONE_STATS = [
+const PLATFORM_STATS = [
   {
-    platform: 'Tally Accounting',
-    stat: '4+ Yrs',
-    label: 'Financial & Inventory Systems',
-    sublabel: 'Tally Prime, Ledgers, BRS & Balance Sheets',
-    color: '#FFAA00',
-    link: '#experience'
+    platform: 'Client Retention',
+    stat: '99.8%',
+    label: 'Long-Term Advisory Trust',
+    sublabel: 'Consistent Multi-Year Fiscal Retainers',
+    icon: ShieldCheck,
   },
   {
-    platform: 'Taxation & Filing',
-    stat: '3+ Yrs',
-    label: 'GST & Income Tax Compliance',
-    sublabel: '500+ returns, ITC 2B audit & e-filing',
-    color: '#10B981',
-    link: '#projects'
+    platform: 'Compliance Record',
+    stat: '0',
+    label: 'Penalty & Notice Incidence',
+    sublabel: 'Flawless GST & Income Tax Advisory',
+    icon: Award,
   },
   {
-    platform: 'Field Operations',
-    stat: '4 Dist',
-    label: 'Smart Card Logistics Rollout',
-    sublabel: 'Bihar & Jharkhand citizen verification & hardware',
-    color: '#FF4D6D',
-    link: '#experience'
+    platform: 'Statutory Filings',
+    stat: '500+',
+    label: 'Cumulative Returns Reconciled',
+    sublabel: 'GSTR-1, 3B, ITR & Section 115BAC',
+    icon: Database,
   },
   {
-    platform: 'IT Certification',
-    stat: 'ADCA',
-    label: 'Advance Diploma in Computer App',
-    sublabel: 'Infocity Daltonganj • Distinction in Applications & Hardware',
-    color: '#A855F7',
-    link: '#about'
-  }
+    platform: 'Audit Precision',
+    stat: '100%',
+    label: 'Double-Entry Reconciliation Rate',
+    sublabel: 'Zero Discrepancy Books & BRS Audits',
+    icon: Server,
+  },
 ];
 
 const TICKER_ITEMS = [
-  '4+ Years Tally Accounting',
-  '3+ Years GST & Tax Filing',
+  '7+ Years Tally Accounting',
+  '7+ Years GST & Tax Filing',
   '4 Districts Smart Card Rollout',
   'ADCA Certified (Infocity Daltonganj)',
   '100% Statutory Compliance Adherence',
@@ -92,39 +88,45 @@ export default function CodingAchievementsSection() {
             <Trophy className="w-5 h-5 text-[#FF4D6D]" />
             <div>
               <div className="text-[11px] text-stone-400 font-mono uppercase">Career Experience</div>
-              <div className="text-lg font-black text-white font-mono">4+ Years Verified</div>
+              <div className="text-lg font-black text-white font-mono">7+ Years Verified</div>
             </div>
           </div>
         </div>
 
         {/* Platform Cards Grid matching Reel t=15.5s */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {MILESTONE_STATS.map((p) => (
-            <a
-              key={p.platform}
-              href={p.link}
-              className="bg-[#241E33]/90 hover:bg-[#2C243E] rounded-3xl p-6 border border-purple-900/40 hover:border-[#FF4D6D]/40 transition-all duration-300 hover:-translate-y-1 group flex flex-col justify-between cursor-pointer"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold uppercase font-mono tracking-wider text-stone-400 group-hover:text-white transition-colors">
-                    {p.platform}
-                  </span>
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }} />
+          {PLATFORM_STATS.map((p) => {
+            const Icon = p.icon;
+            return (
+              <div
+                key={p.platform}
+                className="bg-[#241E33]/90 hover:bg-[#2C243E] rounded-3xl p-6 border border-purple-900/40 hover:border-[#FF4D6D]/40 transition-all duration-300 hover:-translate-y-1 group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-bold uppercase font-mono tracking-wider text-stone-400 group-hover:text-white transition-colors">
+                      {p.platform}
+                    </span>
+                    {Icon ? (
+                      <Icon className="w-5 h-5 text-[#FF4D6D]" />
+                    ) : (
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#FF4D6D]" />
+                    )}
+                  </div>
+                  <div className="text-4xl font-black text-white font-mono tracking-tight mb-1">
+                    {p.stat}
+                  </div>
+                  <div className="text-xs font-semibold text-stone-300">
+                    {p.label}
+                  </div>
                 </div>
-                <div className="text-4xl font-black text-white font-mono tracking-tight mb-1">
-                  {p.stat}
-                </div>
-                <div className="text-xs font-semibold text-stone-300">
-                  {p.label}
-                </div>
-              </div>
 
-              <div className="pt-4 mt-4 border-t border-purple-900/30 text-[11px] text-stone-400 font-mono">
-                {p.sublabel}
+                <div className="pt-4 mt-4 border-t border-purple-900/30 text-[11px] text-stone-400 font-mono">
+                  {p.sublabel}
+                </div>
               </div>
-            </a>
-          ))}
+            );
+          })}
         </div>
 
         {/* Vocational Impact Highlight Card */}

@@ -32,7 +32,7 @@ const TABS = [
   },
   {
     id: 'qualifications',
-    label: 'Qualifications & Education',
+    label: 'Qualifications',
     badge: 'Academic Timeline',
     icon: GraduationCap
   },
@@ -92,6 +92,7 @@ const CORE_COMPETENCIES = [
 const CREDENTIALS = [
   {
     level: '01',
+    targetId: 'edu-adca',
     title: 'Advance Diploma in Computer Application (ADCA)',
     institution: 'Infocity Daltonganj',
     location: 'Medininagar (Daltonganj), Jharkhand',
@@ -108,6 +109,7 @@ const CREDENTIALS = [
   },
   {
     level: '02',
+    targetId: 'edu-intermediate',
     title: 'Intermediate of Arts (I.A.)',
     institution: 'Baba Nawbat Choudhry Surtapur Kundesar Ghazipur',
     location: 'Ghazipur, Uttar Pradesh',
@@ -123,6 +125,7 @@ const CREDENTIALS = [
   },
   {
     level: '03',
+    targetId: 'edu-matriculation',
     title: 'Matriculation (10th Standard)',
     institution: 'Radha Govind Public School Ramgarh Cant',
     location: 'Ramgarh Cant, Jharkhand',
@@ -193,6 +196,18 @@ export default function AboutSection({ soundEnabled = true }) {
         clearTimeout(copyTimeoutRef.current);
       }
     };
+  }, []);
+
+  // Listen for external tab switch events (e.g. from CommandPalette)
+  useEffect(() => {
+    const handleSwitchTab = (e) => {
+      const targetTab = e.detail?.tab;
+      if (targetTab && TABS.some((t) => t.id === targetTab)) {
+        setActiveTab(targetTab);
+      }
+    };
+    window.addEventListener('switch-about-tab', handleSwitchTab);
+    return () => window.removeEventListener('switch-about-tab', handleSwitchTab);
   }, []);
 
   const handleTabChange = (tabId, moveFocus = false) => {
@@ -318,15 +333,12 @@ export default function AboutSection({ soundEnabled = true }) {
           </div>
         </div>
 
-        {/* Section Heading & Subtitle */}
-        <div className="mb-10">
+        {/* Section Heading */}
+        <div className="mb-8">
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#18181B] tracking-tight font-['Outfit',sans-serif] leading-none">
             Who I am
           </h2>
           <div className="w-12 h-1 bg-[#FF4D6D] rounded-full mt-5" />
-          <p className="mt-3 text-stone-600 text-sm sm:text-base max-w-2xl font-normal leading-relaxed">
-            Atul Kant Verma • Senior Financial Accountant, Tax Consultant &amp; Business Strategist with 7+ years of experience in statutory compliance, fiscal governance, and regional operational leadership.
-          </p>
         </div>
 
         {/* 3-Tab Interactive Switcher Ribbon */}
@@ -354,16 +366,16 @@ export default function AboutSection({ soundEnabled = true }) {
                 onMouseEnter={() => {
                   if (soundEnabled) soundFX.playChipHover();
                 }}
-                className={`flex-1 min-w-[150px] sm:min-w-0 min-h-[44px] flex items-center justify-center gap-2.5 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold font-mono transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] ${
+                className={`flex-1 min-w-[150px] sm:min-w-0 min-h-[44px] flex items-center justify-center gap-2.5 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold font-mono transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] whitespace-nowrap ${
                   isActive
                     ? 'bg-white text-[#18181B] shadow-sm border border-[#E7E2D8]'
                     : 'text-stone-600 hover:text-[#18181B] hover:bg-white/60'
                 }`}
               >
-                <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#FF4D6D]' : 'text-stone-400'}`} />
-                <span className="truncate">{tab.label}</span>
+                <Icon className={`w-4 h-4 transition-colors shrink-0 ${isActive ? 'text-[#FF4D6D]' : 'text-stone-400'}`} />
+                <span className="truncate whitespace-nowrap">{tab.label}</span>
                 {isActive && (
-                  <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full bg-[#FFF0F3] border border-[#FFD1DC] text-[#FF4D6D] text-[10px] font-bold">
+                  <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full bg-[#FFF0F3] border border-[#FFD1DC] text-[#FF4D6D] text-[10px] font-bold whitespace-nowrap shrink-0">
                     {tab.badge}
                   </span>
                 )}
@@ -387,7 +399,7 @@ export default function AboutSection({ soundEnabled = true }) {
             {/* Executive 3-Paragraph Narrative */}
             <div className="space-y-4">
               <p className="text-base sm:text-lg md:text-xl text-[#18181B] font-medium leading-relaxed font-['Outfit',sans-serif]">
-                I am an experienced <strong className="text-[#FF4D6D] font-bold">Senior Accountant &amp; Tax Consultant</strong> with over 4+ years of expertise in comprehensive financial accounting via Tally ERP/Prime and 3+ years specializing in GST &amp; Income Tax compliance.
+                I am an experienced <strong className="text-[#FF4D6D] font-bold">Senior Accountant &amp; Tax Consultant</strong> with over 7+ years of expertise in comprehensive financial accounting via Tally ERP/Prime, statutory compliance, and GST &amp; Income Tax advisory.
               </p>
 
               <p className="text-stone-600 text-sm sm:text-base leading-relaxed font-normal">
@@ -496,7 +508,8 @@ export default function AboutSection({ soundEnabled = true }) {
               {CREDENTIALS.map((cred) => (
                 <div 
                   key={cred.level}
-                  className="relative p-6 sm:p-7 rounded-2xl bg-[#FAF8F5] border border-[#ECE7DF] hover:border-[#FF4D6D]/30 transition-all duration-200 group"
+                  id={cred.targetId || ('edu-' + cred.level)}
+                  className="scroll-mt-28 relative p-6 sm:p-7 rounded-2xl bg-[#FAF8F5] border border-[#ECE7DF] hover:border-[#FF4D6D]/30 transition-all duration-200 group"
                 >
                   {/* Timeline Node Dot */}
                   <div 
@@ -602,7 +615,7 @@ export default function AboutSection({ soundEnabled = true }) {
                   </div>
                   <div>
                     <h4 className="text-lg sm:text-xl font-extrabold text-[#18181B] font-['Outfit',sans-serif]">
-                      Atul Kant Verma
+                      Atul Verma
                     </h4>
                     <p className="text-xs sm:text-sm text-stone-500 font-mono">
                       Accountant &amp; Tax Consultant • Daltonganj, Jharkhand

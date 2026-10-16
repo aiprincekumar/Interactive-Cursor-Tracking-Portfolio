@@ -16,7 +16,25 @@ export default function Navbar({
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isRibbonOpen, setIsRibbonOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const q = urlParams.get('q') || urlParams.get('search');
+      return Boolean(q && q.trim());
+    } catch {
+      return false;
+    }
+  });
+  const [initialSearchQuery, setInitialSearchQuery] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      return (urlParams.get('q') || urlParams.get('search') || '').trim();
+    } catch {
+      return '';
+    }
+  });
   const [activeSection, setActiveSection] = useState('hero');
   const navContainerRef = useRef(null);
 
@@ -126,7 +144,7 @@ export default function Navbar({
     <>
       <header ref={navContainerRef} className="fixed top-0 left-0 right-0 z-40 px-3 md:px-8 py-3.5">
         <div className="relative max-w-6xl mx-auto bg-[#FAF8F5]/90 backdrop-blur-md rounded-full border border-[#E7E2D8] px-3 sm:px-4 md:px-5 py-2 shadow-xs flex items-center justify-between overflow-hidden">
-          {/* Brand Logo - Atul Kant Verma (AV) */}
+          {/* Brand Logo - Atul Verma (AV) */}
           <a href="#hero" className="flex items-center gap-2 group shrink-0">
             <div className="w-8 h-8 rounded-full overflow-hidden border border-[#E7E2D8] bg-[#18181B] flex items-center justify-center text-white text-xs font-bold shadow-xs group-hover:scale-105 transition-transform">
               <span className="font-mono text-[11px] text-[#FAF8F5]">AV</span>
@@ -350,7 +368,11 @@ export default function Navbar({
       {/* R1: Global Command Palette Search Modal (⌘K) */}
       <CommandPalette
         isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
+        onClose={() => {
+          setIsSearchOpen(false);
+          setInitialSearchQuery('');
+        }}
+        initialQuery={initialSearchQuery}
         soundEnabled={soundEnabled}
       />
     </>

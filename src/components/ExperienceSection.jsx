@@ -5,14 +5,15 @@ import { soundFX } from '../utils/audio';
 const EXPERIENCES = [
   {
     id: 'exp-01',
+    targetId: 'exp-tax-consultant',
     period: '2023 — PRESENT',
-    status: 'Active Practice (3+ Yrs)',
+    status: 'Active Practice (7+ Years)',
     role: 'GST & Income Tax Consultant',
     company: 'Independent Tax Consultancy Practice',
     location: 'Daltonganj, Jharkhand',
     description: 'Managing end-to-end statutory taxation, monthly GSTR compliance, individual and business income tax returns, and client tax advisory.',
     deliverables: [
-      'Filed 100+ monthly/quarterly GSTR-1 and GSTR-3B returns with zero late-fee compliance records',
+      'Directly managed 500+ statutory GST & Income Tax filings across active practice, maintaining a 100% on-time submission rate with zero penalty notices.',
       'Conducted rigorous GSTR-2B vs purchase ledger ITC reconciliations, identifying duplicate or ineligible claims',
       'Prepared and e-filed ITR-1, ITR-2, and ITR-4 returns for diverse salary and commercial business clients',
       'Advised clients on tax planning, Section 115BAC regime comparison, and advance tax computations'
@@ -23,8 +24,9 @@ const EXPERIENCES = [
   },
   {
     id: 'exp-02',
+    targetId: 'exp-senior-accountant',
     period: '2022 — PRESENT',
-    status: 'Core Accounting (4+ Yrs)',
+    status: 'Core Accounting (7+ Years)',
     role: 'Senior Tally Accountant',
     company: 'Commercial & Retail Enterprises',
     location: 'Medininagar (Palamau), Jharkhand',
@@ -41,6 +43,7 @@ const EXPERIENCES = [
   },
   {
     id: 'exp-03',
+    targetId: 'exp-mis-executive',
     period: '2021 — 2023',
     status: 'Government Skill Mission',
     role: 'MIS Executive',
@@ -59,6 +62,7 @@ const EXPERIENCES = [
   },
   {
     id: 'exp-04',
+    targetId: 'exp-junks-food',
     period: '2020 — 2022',
     status: 'FMCG Distribution',
     role: 'Accountant & Inventory Controller',
@@ -77,6 +81,7 @@ const EXPERIENCES = [
   },
   {
     id: 'exp-05',
+    targetId: 'exp-smart-card',
     period: '2019 — 2021',
     status: 'Field Operations',
     role: 'Smart Card Operations Specialist',
@@ -95,6 +100,7 @@ const EXPERIENCES = [
   },
   {
     id: 'exp-06',
+    targetId: 'exp-instructor',
     period: '2018 — 2020',
     status: 'Academic & IT Training',
     role: 'Computer Instructor & Academic Tutor',
@@ -161,8 +167,9 @@ export default function ExperienceSection() {
             return (
               <div
                 key={exp.id}
+                id={exp.targetId || exp.id}
                 onClick={() => handleCardClick(exp.id)}
-                className={`group cursor-pointer rounded-2xl p-6 sm:p-7 border transition-all duration-300 relative flex flex-col justify-between hover:-translate-y-1 hover:border-[#FF4D6D]/30 hover:shadow-lg hover:shadow-[#FF4D6D]/5 ${
+                className={`scroll-mt-28 group cursor-pointer rounded-2xl p-6 sm:p-7 border transition-all duration-300 relative flex flex-col justify-between hover:-translate-y-1 hover:border-[#FF4D6D]/30 hover:shadow-lg hover:shadow-[#FF4D6D]/5 ${
                   isSelected
                     ? 'bg-[#FAF8F5] border-[#FF4D6D] ring-2 ring-[#FF4D6D]/10 shadow-md'
                     : 'bg-[#FAF8F5]/80 border-[#ECE7DF]'

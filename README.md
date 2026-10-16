@@ -1,4 +1,4 @@
-# 🦋 Atul Kant Verma • Interactive Cursor-Tracking Portfolio
+# 🦋 Atul Verma • Interactive Cursor-Tracking Portfolio
 
 [![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![Vite 8](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev)
@@ -6,7 +6,7 @@
 [![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub_Pages-22c55e?logo=github&logoColor=white)](https://pages.github.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A cinematic, high-performance professional portfolio featuring a **full-width 2.5D interactive camera character**, realistic **butterfly cursor tracking** with GPU-accelerated stardust particle physics, and responsive editorial sections showcasing **Atul Kant Verma** — **Accountant & Tax Consultant • Business Development & Office Administrator** located in **Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India**.
+A cinematic, high-performance professional portfolio featuring a **full-width 2.5D interactive camera character**, realistic **butterfly cursor tracking** with GPU-accelerated stardust particle physics, and responsive editorial sections showcasing **Atul Verma** — **Accountant & Tax Consultant • Business Development & Office Administrator** located in **Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India**.
 
 ---
 
@@ -48,7 +48,7 @@ A cinematic, high-performance professional portfolio featuring a **full-width 2.
 
 ### 9. 📬 Contact & Dark Plum Watermark Footer
 - High-impact editorial display typography (*"Let's build something meaningful."*) with a giant hot pink email pill button (`Atulravi2015@gmail.com ↗`) and location details.
-- Footer with giant faint watermark typography (`ATUL KANT VERMA`).
+- Footer with giant faint watermark typography (`ATUL VERMA`).
 
 ---
 
@@ -178,5 +178,5 @@ This project is pre-configured for seamless GitHub Pages deployment using **rela
 ## 📜 Credits & Attribution
 
 - **Concept & Design**: Inspired by the viral cursor-tracking showcase aesthetic.
-- **Portfolio Identity**: Atul Kant Verma (Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India).
+- **Portfolio Identity**: Atul Verma (Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India).
 - **Role**: Accountant & Tax Consultant • Business Development & Office Administrator.

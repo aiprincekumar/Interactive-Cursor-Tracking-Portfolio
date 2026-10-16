@@ -186,12 +186,12 @@
 }
 
 .animate-marquee-left {
-  animation: marqueeScrollLeft 24s linear infinite;
+  animation: marqueeScrollLeft 48s linear infinite;
   will-change: transform;
 }
 
 .animate-marquee-right {
-  animation: marqueeScrollRight 28s linear infinite;
+  animation: marqueeScrollRight 56s linear infinite;
   will-change: transform;
 }
 

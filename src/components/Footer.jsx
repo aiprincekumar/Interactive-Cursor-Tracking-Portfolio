@@ -13,7 +13,7 @@ export default function Footer() {
       {/* Giant Faint Watermark Text matching Reel t=16.8s */}
       <div className="absolute inset-x-0 bottom-2 text-center pointer-events-none select-none overflow-hidden opacity-[0.06]">
         <span className="text-[14vw] font-black uppercase tracking-tighter text-white font-['Outfit',sans-serif] whitespace-nowrap">
-          ATUL KANT VERMA
+          ATUL VERMA
         </span>
       </div>
 
@@ -25,7 +25,7 @@ export default function Footer() {
           </div>
           <div>
             <div className="text-base font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
-              Atul Kant Verma • Interactive Portfolio
+              Atul Verma • Interactive Portfolio
             </div>
             <div className="text-xs text-stone-400 flex items-center gap-1.5 justify-center sm:justify-start mt-0.5">
               <span>Accountant &amp; Tax Consultant</span>
@@ -44,7 +44,7 @@ export default function Footer() {
 
         {/* Right Links & Back to Top */}
         <div className="flex items-center gap-4">
-          <span className="text-xs text-stone-400 font-mono">© 2026 Atul Kant Verma. All rights reserved.</span>
+          <span className="text-xs text-stone-400 font-mono">© 2026 Atul Verma. All rights reserved.</span>
           <button
             type="button"
             onClick={scrollToTop}

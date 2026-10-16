@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { soundFX } from '../utils/audio';
 
 const SKILL_DATA = {
@@ -115,14 +115,15 @@ const SKILL_DATA = {
       'Peripheral driver configuration, printer spooling, and USB security policy enforcement.'
     ]
   },
-  'Computer Applications (ADCA)': {
+  'Commercial Computing & Office IT Suite': {
     category: 'IT Systems & Hardware',
-    title: 'Computer Applications (ADCA)',
+    title: 'Commercial Computing & Office IT Suite',
     level: '96%',
-    tag: 'Diploma Certified Computing Foundations',
+    desc: 'High-throughput commercial computing covering advanced financial spreadsheets, bilingual documentation, data validation, and IT infrastructure administration.',
+    tag: 'Commercial Computing & IT Suite Administration',
     points: [
+      'High-throughput commercial computing covering advanced financial spreadsheets, bilingual documentation, data validation, and IT infrastructure administration.',
       'Advance Diploma in Computer Application (ADCA) credential from Infocity Daltonganj.',
-      'Comprehensive curriculum mastery: database basics, spreadsheet computing, and desktop publishing.',
       'Internet communications, digital office workflows, and secure browser-based e-governance.',
       'Bilingual data processing, typing fluency in Hindi & English, and rapid clerical throughput.'
     ]
@@ -214,7 +215,7 @@ const CATEGORIES = [
   },
   {
     name: 'IT Systems & Hardware',
-    skills: ['Windows OS Administration', 'Computer Applications (ADCA)', 'Hardware Diagnosis & Maintenance', 'Network & Software Support']
+    skills: ['Windows OS Administration', 'Commercial Computing & Office IT Suite', 'Hardware Diagnosis & Maintenance', 'Network & Software Support']
   },
   {
     name: 'Management & Operations',
@@ -222,9 +223,24 @@ const CATEGORIES = [
   }
 ];
 
+// Backward compatibility alias for legacy event dispatches
+SKILL_DATA['Computer Applications (ADCA)'] = SKILL_DATA['Commercial Computing & Office IT Suite'];
+
 export default function SkillsSection() {
   const [selectedSkill, setSelectedSkill] = useState('Tally Prime & ERP 9');
   const activeData = SKILL_DATA[selectedSkill] || SKILL_DATA['Tally Prime & ERP 9'];
+
+  useEffect(() => {
+    const handleSelectSkill = (e) => {
+      const rawSkill = e.detail?.skill;
+      const skillName = rawSkill === 'Computer Applications (ADCA)' ? 'Commercial Computing & Office IT Suite' : rawSkill;
+      if (skillName && SKILL_DATA[skillName]) {
+        setSelectedSkill(skillName);
+      }
+    };
+    window.addEventListener('select-skill', handleSelectSkill);
+    return () => window.removeEventListener('select-skill', handleSelectSkill);
+  }, []);
 
   return (
     <section id="skills" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
@@ -255,9 +271,11 @@ export default function SkillsSection() {
               <div className="flex flex-wrap gap-2">
                 {cat.skills.map((skill) => {
                   const isSelected = selectedSkill === skill;
+                  const skillId = 'skill-' + skill.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
                   return (
                     <button
                       key={skill}
+                      id={skillId}
                       type="button"
                       onClick={() => {
                         setSelectedSkill(skill);
@@ -266,7 +284,7 @@ export default function SkillsSection() {
                       onMouseEnter={() => {
                         setSelectedSkill(skill);
                       }}
-                      className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 active:scale-95 cursor-pointer ${
+                      className={`scroll-mt-28 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 active:scale-95 cursor-pointer ${
                         isSelected
                           ? 'bg-[#18181B] text-white shadow-md shadow-black/15 scale-105 border border-black'
                           : 'bg-[#FAF8F5] text-stone-700 hover:text-[#18181B] hover:bg-[#F2ECE4] border border-[#E7E2D8]'

@@ -10,7 +10,7 @@ export default function ResumeDropdown({ soundEnabled = true, className = '', in
   const buttonRef = useRef(null);
 
   const RESUME_FILE_PATH = '/resume.pdf';
-  const DOWNLOAD_FILENAME = 'Atul_Kant_Verma_Resume.pdf';
+  const DOWNLOAD_FILENAME = 'Atul_Verma_Resume.pdf';
 
   // Outside click & Escape key listeners
   useEffect(() => {
@@ -162,7 +162,7 @@ export default function ResumeDropdown({ soundEnabled = true, className = '', in
         >
           {/* Header Label */}
           <div className="px-3 py-1.5 text-[10px] font-bold text-stone-500 uppercase tracking-wider border-b border-[#E7E2D8]/70 mb-1 select-none">
-            Atul Kant Verma &bull; Resume
+            Atul Verma &bull; Resume
           </div>
 
           {/* Action 1: View Online */}

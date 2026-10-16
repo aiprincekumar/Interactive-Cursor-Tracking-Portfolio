@@ -123,7 +123,7 @@ function createPdf() {
   drawRect(0, headerBottom - 3.0, pageWidth, 3.0, 1.000, 0.302, 0.427);
 
   // Candidate Name (Helvetica-Bold, 21 pt, White #FFFFFF)
-  drawText('F2', 21.0, 28, headerBottom + 50, 'ATUL KANT VERMA', 1.0, 1.0, 1.0);
+  drawText('F2', 21.0, 28, headerBottom + 50, 'ATUL VERMA', 1.0, 1.0, 1.0);
 
   // Subtitle (Helvetica-Bold, 9.5 pt, Coral #FF4D6D)
   drawText('F2', 9.5, 28, headerBottom + 32, 'MIS Executive  |  Financial Accounting Specialist  |  Digital Applications', 1.000, 0.302, 0.427);
@@ -291,7 +291,7 @@ function createPdf() {
   hcY -= 11.5;
 
   const summaryPills = [
-    '4+ Years Practical Experience',
+    '7+ Years Practical Experience',
     '100% On-Time Tax Compliance',
     '150+ Candidates Mentored',
     'Dual-State Field Operations',
@@ -340,7 +340,7 @@ function createPdf() {
 
   // High-Readability Summary Text (9.0 pt font, 12.0 pt line height)
   const summaryLines = [
-    'Analytical, compliance-driven MIS Executive & Financial Accounting Specialist with 4+ years of hands-on expertise',
+    'Analytical, compliance-driven MIS Executive & Financial Accounting Specialist with 7+ years of hands-on expertise',
     'in Tally Prime, ERP 9, statutory taxation (GST & ITR), and digital database administration. Proven track record',
     'executing multi-district operations (DAY-NULM), input tax credit audits, purchase-sales reconciliations, and enterprise',
     'inventory workflows with zero statutory penalty records, strict governance, and 100% audit readiness.'
@@ -361,7 +361,7 @@ function createPdf() {
     {
       title: '1. GST & Income Tax Compliance Consultant',
       org: 'Independent Tax Advisory Practice',
-      period: '3+ Years Practice',
+      period: '7+ Years Practice',
       bullets: [
         'Administered end-to-end statutory compliance, filing GSTR-1, GSTR-3B, and annual reconciliations (GSTR-9) alongside ITR-1 to ITR-4.',
         'Executed GSTR-2A/2B input tax credit (ITC) audits, purchase-sales register reconciliations, taxpayer advisory, and dispute resolution.'
@@ -371,7 +371,7 @@ function createPdf() {
     {
       title: '2. Senior Accountant & Tally Specialist',
       org: 'Commercial Enterprise & Accounting Practice',
-      period: '4+ Years Experience',
+      period: '7+ Years Experience',
       bullets: [
         'Maintained complete double-entry financial accounting in Tally Prime & ERP 9, multi-ledger postings, and bank reconciliations.',
         'Supervised periodic inventory stock valuations, trial balance audits, vendor credit aging, and finalization of P&L and Balance Sheets.'
@@ -489,7 +489,7 @@ function createPdf() {
   drawLine(sidebarX, footerLineY, pageWidth - 24, footerLineY, 0.886, 0.910, 0.941, 0.75);
 
   // Left footer text
-  drawText('F1', 7.2, sidebarX, footerTextY, 'Atul Kant Verma  |  Verified Executive CV  |  Generated from Interactive Portfolio', 0.580, 0.639, 0.722);
+  drawText('F1', 7.2, sidebarX, footerTextY, 'Atul Verma  |  Verified Executive CV  |  Generated from Interactive Portfolio', 0.580, 0.639, 0.722);
 
   // Right footer text
   drawText('F2', 7.2, pageWidth - 24 - 55, footerTextY, 'Page 1 of 1', 0.450, 0.500, 0.580);

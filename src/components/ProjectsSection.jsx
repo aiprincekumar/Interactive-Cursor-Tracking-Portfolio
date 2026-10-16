@@ -6,6 +6,7 @@ import { soundFX } from '../utils/audio';
 const COMPANION_PROJECTS = [
   {
     id: '03',
+    targetId: 'proj-day-nulm',
     title: 'DAY-NULM Skill India MIS Reporting Portal',
     category: 'Govt Operations & Analytics',
     subtitle: 'Deendayal Antyodaya Yojana - National Urban Livelihoods Mission',
@@ -21,6 +22,7 @@ const COMPANION_PROJECTS = [
   },
   {
     id: '04',
+    targetId: 'proj-smart-card',
     title: 'Multi-District Smart Card Operations & Enrollment Engine',
     category: 'Field Operations & Data Systems',
     subtitle: 'Cross-State Field Data Collection, Biometric Verification & Citizen Rollout',
@@ -92,7 +94,7 @@ export default function ProjectsSection() {
       </div>
 
       {/* FLAGSHIP PROJECT 01: GST & Income Tax Compliance & Verification Engine */}
-      <div className="bg-white rounded-3xl p-6 sm:p-10 md:p-12 border border-[#E7E2D8] shadow-xl shadow-stone-900/5 mb-14 transition-all duration-300 hover:border-[#18181B]/20">
+      <div id="proj-gst-tax" className="scroll-mt-28 bg-white rounded-3xl p-6 sm:p-10 md:p-12 border border-[#E7E2D8] shadow-xl shadow-stone-900/5 mb-14 transition-all duration-300 hover:border-[#18181B]/20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
           {/* Left Side: Document Preview with Highlighted Clauses & Tooltip Card */}
@@ -249,7 +251,7 @@ export default function ProjectsSection() {
       </div>
 
       {/* FLAGSHIP PROJECT 02: Tally Financial Accounting & Inventory Management */}
-      <div className="bg-white rounded-3xl p-6 sm:p-10 md:p-12 border border-[#E7E2D8] shadow-xl shadow-stone-900/5 mb-14 transition-all duration-300 hover:border-[#18181B]/20">
+      <div id="proj-tally-accounting" className="scroll-mt-28 bg-white rounded-3xl p-6 sm:p-10 md:p-12 border border-[#E7E2D8] shadow-xl shadow-stone-900/5 mb-14 transition-all duration-300 hover:border-[#18181B]/20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
           {/* Left Side: Circular State Machine Diagram */}
@@ -350,7 +352,7 @@ export default function ProjectsSection() {
 
                 <div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-[#18181B] font-mono">
-                    4+ Years
+                    7+ Years
                   </div>
                   <div className="text-xs text-stone-500 font-medium mt-0.5">
                     Continuous Ledger Maintenance
@@ -407,7 +409,8 @@ export default function ProjectsSection() {
         {COMPANION_PROJECTS.map((proj) => (
           <div
             key={proj.id}
-            className="group relative bg-white rounded-3xl p-7 border border-[#E7E2D8] shadow-md shadow-stone-900/5 hover:border-[#18181B]/20 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+            id={proj.targetId}
+            className="scroll-mt-28 group relative bg-white rounded-3xl p-7 border border-[#E7E2D8] shadow-md shadow-stone-900/5 hover:border-[#18181B]/20 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-4">
