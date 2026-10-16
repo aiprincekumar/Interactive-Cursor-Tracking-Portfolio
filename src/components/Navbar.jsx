@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, VolumeX, Menu, X, Search } from 'lucide-react';
+import { Volume2, VolumeX, Menu, X, Search, LayoutGrid } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { CURSOR_LIST } from '../utils/cursorConstants';
 import CursorSelectorRibbon from './CursorSelectorRibbon';
@@ -8,6 +8,7 @@ import CommandPalette from './CommandPalette';
 import ResumeDropdown from './ResumeDropdown';
 import ScrollProgressBar from './ScrollProgressBar';
 import RoleTabsBar from './RoleTabsBar';
+import ExploreSubBar from './ExploreSubBar';
 import { useRoleTab } from '../context/RoleContext';
 import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
 
@@ -32,6 +33,7 @@ export default function Navbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isRibbonOpen, setIsRibbonOpen] = useState(false);
   const [isRoleBarOpen, setIsRoleBarOpen] = useState(false);
+  const [isExploreOpen, setIsExploreOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(() => {
     if (typeof window === 'undefined') return false;
     try {
@@ -68,6 +70,19 @@ export default function Navbar({
     const next = !isRoleBarOpen;
     setIsRoleBarOpen(next);
     if (next) {
+      setIsExploreOpen(false);
+      setIsRibbonOpen(false);
+      setMobileMenuOpen(false);
+      if (isSearchOpen) setIsSearchOpen(false);
+    }
+    if (soundEnabled) soundFX.playRibbonToggle(next);
+  };
+
+  const toggleExploreBar = () => {
+    const next = !isExploreOpen;
+    setIsExploreOpen(next);
+    if (next) {
+      setIsRoleBarOpen(false);
       setIsRibbonOpen(false);
       setMobileMenuOpen(false);
       if (isSearchOpen) setIsSearchOpen(false);
@@ -82,8 +97,6 @@ export default function Navbar({
     { label: 'Experience', href: '#experience', id: 'experience' },
     { label: 'Projects', href: '#projects', id: 'projects' },
     { label: 'Achievements', href: '#achievements', id: 'achievements' },
-    { label: 'Gallery', href: '#gallery', id: 'gallery' },
-    { label: 'Lab', href: '#playground', id: 'playground' },
     { label: 'Contact', href: '#contact', id: 'contact' }
   ];
 
@@ -95,6 +108,7 @@ export default function Navbar({
         setIsSearchOpen((prev) => {
           const next = !prev;
           if (next) {
+            setIsExploreOpen(false);
             setIsRoleBarOpen(false);
             setIsRibbonOpen(false);
             setMobileMenuOpen(false);
@@ -109,9 +123,9 @@ export default function Navbar({
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [soundEnabled]);
 
-  // Outside click & Escape listener for ribbon & role secondary bar
+  // Outside click & Escape listener for ribbon, role secondary bar & explore sub-bar
   useEffect(() => {
-    if (!isRibbonOpen && !isRoleBarOpen) return;
+    if (!isRibbonOpen && !isRoleBarOpen && !isExploreOpen) return;
 
     const handleClickOutside = (event) => {
       if (navContainerRef.current && !navContainerRef.current.contains(event.target)) {
@@ -121,6 +135,10 @@ export default function Navbar({
         }
         if (isRoleBarOpen) {
           setIsRoleBarOpen(false);
+          if (soundEnabled) soundFX.playRibbonToggle(false);
+        }
+        if (isExploreOpen) {
+          setIsExploreOpen(false);
           if (soundEnabled) soundFX.playRibbonToggle(false);
         }
       }
@@ -136,6 +154,10 @@ export default function Navbar({
           setIsRoleBarOpen(false);
           if (soundEnabled) soundFX.playRibbonToggle(false);
         }
+        if (isExploreOpen) {
+          setIsExploreOpen(false);
+          if (soundEnabled) soundFX.playRibbonToggle(false);
+        }
       }
     };
 
@@ -148,7 +170,7 @@ export default function Navbar({
       document.removeEventListener('touchstart', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isRibbonOpen, isRoleBarOpen, soundEnabled]);
+  }, [isRibbonOpen, isRoleBarOpen, isExploreOpen, soundEnabled]);
 
   // ScrollSpy listener to highlight active section in Navbar
   useEffect(() => {
@@ -228,13 +250,14 @@ export default function Navbar({
             })}
           </nav>
 
-          {/* Right Action Group - Strict Order: [🔍 Search] -> [Role Switcher] -> [🦋 Cursor] -> [🔊 Sound] -> [📄 Resume] -> [☰ Menu] */}
+          {/* Right Action Group - Strict Order: [🔍 Search] -> [✨ Explore] -> [Role Switcher] -> [🦋 Cursor] -> [🔊 Sound] -> [📄 Resume] -> [☰ Menu] */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             {/* 1. Global Search Trigger Button */}
             <button
               type="button"
               onClick={() => {
                 setIsSearchOpen(true);
+                if (isExploreOpen) setIsExploreOpen(false);
                 if (isRoleBarOpen) setIsRoleBarOpen(false);
                 if (isRibbonOpen) setIsRibbonOpen(false);
                 if (mobileMenuOpen) setMobileMenuOpen(false);
@@ -255,7 +278,31 @@ export default function Navbar({
               </kbd>
             </button>
 
-            {/* 2. Career Role Switcher Single-Icon Trigger (immediately after Search on both desktop & mobile headers) */}
+            {/* 2. Explore / Showcase & Lab SubBar Trigger Button */}
+            <button
+              type="button"
+              onClick={toggleExploreBar}
+              aria-label="Explore Showcase & Lab (Gallery, Playground)"
+              aria-expanded={isExploreOpen}
+              className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${
+                isExploreOpen
+                  ? 'bg-[#18181B] text-white border-[#18181B] shadow-xs scale-105'
+                  : 'bg-white/80 hover:bg-white text-stone-700 hover:text-[#18181B] border-[#E7E2D8] hover:border-stone-300 shadow-2xs hover:scale-105 active:scale-95'
+              }`}
+              title="Explore Showcase & Lab (Gallery, Playground)"
+            >
+              <LayoutGrid
+                className="w-4 h-4 transition-transform duration-200"
+                style={{ color: isExploreOpen ? '#FFFFFF' : '#FF4D6D' }}
+              />
+              {/* Dynamic Indicator Dot with ping animation */}
+              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 pointer-events-none">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white" />
+              </span>
+            </button>
+
+            {/* 3. Career Role Switcher Single-Icon Trigger (immediately after Search & Explore) */}
             <RoleTabsBar
               variant="navbar"
               activeRole={activeRole}
@@ -265,7 +312,7 @@ export default function Navbar({
               soundEnabled={soundEnabled}
             />
 
-            {/* 3. Dynamic Cursor Variant Selector (Desktop & Fine Pointer Only) */}
+            {/* 4. Dynamic Cursor Variant Selector (Desktop & Fine Pointer Only) */}
             {isDesktopCursor && (
               <button
                 type="button"
@@ -274,6 +321,7 @@ export default function Navbar({
                   const next = !isRibbonOpen;
                   setIsRibbonOpen(next);
                   if (next) {
+                    setIsExploreOpen(false);
                     setIsRoleBarOpen(false);
                     if (mobileMenuOpen) setMobileMenuOpen(false);
                     if (isSearchOpen) setIsSearchOpen(false);
@@ -299,7 +347,7 @@ export default function Navbar({
               </button>
             )}
 
-            {/* 4. Audio Toggle Button */}
+            {/* 5. Audio Toggle Button */}
             <button
               type="button"
               onClick={() => {
@@ -319,18 +367,19 @@ export default function Navbar({
               )}
             </button>
 
-            {/* 5. Smart Resume Action Dropdown */}
+            {/* 6. Smart Resume Action Dropdown */}
             <div className="hidden sm:block">
               <ResumeDropdown soundEnabled={soundEnabled} />
             </div>
 
-            {/* 6. Mobile Menu Toggle */}
+            {/* 7. Mobile Menu Toggle */}
             <button
               type="button"
               onClick={() => {
                 const next = !mobileMenuOpen;
                 setMobileMenuOpen(next);
                 if (next) {
+                  setIsExploreOpen(false);
                   setIsRoleBarOpen(false);
                   if (isRibbonOpen) setIsRibbonOpen(false);
                   if (isSearchOpen) setIsSearchOpen(false);
@@ -363,6 +412,19 @@ export default function Navbar({
             }}
             soundEnabled={soundEnabled}
             className="max-w-7xl"
+          />
+        )}
+
+        {/* Floating Secondary Horizontal Sub-Bar for Explore (Gallery & Lab) */}
+        {isExploreOpen && (
+          <ExploreSubBar
+            variant="floating-bar"
+            isOpen={isExploreOpen}
+            onClose={() => {
+              setIsExploreOpen(false);
+              if (soundEnabled) soundFX.playRibbonToggle(false);
+            }}
+            soundEnabled={soundEnabled}
           />
         )}
 
@@ -418,6 +480,13 @@ export default function Navbar({
                 ⌘K
               </kbd>
             </button>
+
+            {/* 3. Mobile Explore Showcase & Lab Quick-Jump Card */}
+            <ExploreSubBar
+              variant="drawer-card"
+              onClose={() => setMobileMenuOpen(false)}
+              soundEnabled={soundEnabled}
+            />
 
             {/* Navigation Links */}
             {navLinks.map((link) => {
