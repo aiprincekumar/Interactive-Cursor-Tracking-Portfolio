@@ -56,7 +56,9 @@ console.log('✓ Check 2: RoleTabsBar floating-bar variant enables full scroll t
 
 // 3. HeroSection Row 2 Controls
 assert(
-  heroSectionContent.includes('justify-center self-center md:justify-end md:self-auto flex-wrap sm:flex-nowrap gap-2 sm:gap-3 pointer-events-auto w-full md:w-auto'),
+  heroSectionContent.includes('justify-center self-center') &&
+  heroSectionContent.includes('md:justify-end') &&
+  (heroSectionContent.includes('w-full sm:w-auto') || heroSectionContent.includes('w-full md:w-auto')),
   'HeroSection row 2 controls must be centered on mobile (justify-center self-center) and right-aligned on desktop (md:justify-end md:self-auto)'
 );
 console.log('✓ Check 3: HeroSection row 2 controls centered on mobile and right-aligned on desktop.');

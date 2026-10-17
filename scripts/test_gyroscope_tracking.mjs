@@ -36,8 +36,8 @@ assert(hookContent.includes('scrollBy'), 'Hook must support window.scrollBy for 
 assert(hookContent.includes('isGyroScrollActive'), 'Hook must provide tilt scroll toggle state');
 assert(hookContent.includes('baselineGamma'), 'Hook must support dual baselineGamma calibration for landscape');
 assert(hookContent.includes('isTouchDevice'), 'Hook must expose touch device detection');
-assert(hookContent.includes('isInsecureContext'), 'Hook must check and expose isInsecureContext');
-assert(hookContent.includes('isSecureContext'), 'Hook must inspect window.isSecureContext');
+assert(!hookContent.includes('isInsecureContext'), 'Hook must have insecure context logic removed for pure clean HTTP');
+assert(!hookContent.includes('isSecureContext'), 'Hook must have isSecureContext checks removed for pure clean HTTP');
 assert(hookContent.includes('scroller = document.scrollingElement') || hookContent.includes('scrollingElement'), 'Hook must use direct document.scrollingElement manipulation');
 assert(hookContent.includes('scrollThreshold = 0.10'), 'Hook must support 0.10 high-sensitivity threshold');
 assert(hookContent.includes('300'), 'Hook must auto-expire touch lockout after 300ms');
@@ -45,7 +45,7 @@ assert(hookContent.includes('isSimulatedTracking'), 'Hook must support isSimulat
 assert(hookContent.includes('tilt-scrolling'), 'Hook must toggle tilt-scrolling class on documentElement');
 assert(indexContent.includes('html.tilt-scrolling'), 'index.css must declare html.tilt-scrolling');
 assert(indexContent.includes('scroll-behavior: auto !important'), 'index.css must declare scroll-behavior: auto !important for tilt-scrolling');
-console.log('[PASS] useGyroscopeTracking.js and index.css contain all required sensor, security, and scrolling mechanisms.');
+console.log('[PASS] useGyroscopeTracking.js and index.css contain all required sensor and scrolling mechanisms.');
 
 assert(heroContent.includes('useGyroscopeTracking'), 'HeroSection must import useGyroscopeTracking');
 assert(heroContent.includes('Compass'), 'HeroSection must import Compass icon');
@@ -54,11 +54,13 @@ assert(heroContent.includes('translate3d'), 'HeroSection must apply directional 
 assert(heroContent.includes('breathCycle'), 'HeroSection must compute respiratory breathCycle');
 assert(heroContent.includes('breathScale'), 'HeroSection must compute organic chest expansion breathScale');
 assert(heroContent.includes('breathingWeight'), 'HeroSection must blend breathingWeight with idle & motion');
-assert(heroContent.includes('isInsecureContext'), 'HeroSection must handle isInsecureContext');
+assert(!heroContent.includes('isInsecureContext'), 'HeroSection must not have isInsecureContext');
+assert(!heroContent.includes('Calibrate (HTTP)'), 'HeroSection must not have Calibrate (HTTP)');
+assert(!heroContent.includes('bg-amber-500'), 'HeroSection must not render amber warning dots');
 assert(heroContent.includes('Scroll ON ↓'), 'HeroSection must render dynamic downward scroll indicator');
 assert(heroContent.includes('Scroll ON ↑'), 'HeroSection must render dynamic upward scroll indicator');
 assert(heroContent.includes('Gyro Active') || heroContent.includes('Enable Gyro'), 'HeroSection must render Gyro Control Pill');
-console.log('[PASS] HeroSection.jsx integrates gyro sensor, character translation, organic idle breathing, insecure warnings, and dynamic UI controls.');
+console.log('[PASS] HeroSection.jsx integrates gyro sensor, character translation, organic idle breathing, and dynamic UI controls without insecure warnings.');
 
 // ---------------------------------------------------------
 // 3. Logic Simulation Tests for Orientation & Deadzone
@@ -167,17 +169,12 @@ function computeNormalizedGyro({
   console.log(`[PASS] Case E2: High-sensitivity 0.18 threshold activates tilt-scroll on natural ~10° tilt (normY = 0.20).`);
 }
 
-// Case E3: Insecure Context Logic Verification (HTTP vs HTTPS on LAN IP vs localhost)
+// Case E3: Pure Clean HTTP Mode Verification (Zero amber warnings or HTTP tooltip badges)
 {
-  const evaluateInsecureContext = (isSecure, hostname) => {
-    return !isSecure && hostname !== 'localhost' && hostname !== '127.0.0.1';
-  };
-
-  assert.strictEqual(evaluateInsecureContext(false, '192.168.1.45'), true, 'HTTP on LAN IP must be flagged as insecure context');
-  assert.strictEqual(evaluateInsecureContext(true, '192.168.1.45'), false, 'HTTPS on LAN IP must be a secure context');
-  assert.strictEqual(evaluateInsecureContext(false, 'localhost'), false, 'localhost HTTP is exempt from insecure context restriction');
-  assert.strictEqual(evaluateInsecureContext(false, '127.0.0.1'), false, '127.0.0.1 HTTP is exempt from insecure context restriction');
-  console.log('[PASS] Case E3: Insecure context logic accurately flags LAN HTTP while permitting LAN HTTPS and localhost.');
+  assert(!heroContent.includes('Calibrate (HTTP)'), 'HeroSection must render standard clean Calibrate label');
+  assert(!heroContent.includes('bg-amber-500'), 'HeroSection must not contain amber warning dot');
+  assert(!heroContent.includes('Tip: Testing over HTTP'), 'HeroSection must not contain HTTP warning tooltips');
+  console.log('[PASS] Case E3: Pure clean HTTP mode verified with zero warning tooltips or amber indicators.');
 }
 
 // Case E4: Non-Linear Scroll Acceleration Curve (Gentle at 0.18-0.35, Swift at >0.35)

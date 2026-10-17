@@ -937,7 +937,7 @@ export default function HeroSection({
         {/* Row 2 on Mobile / Right Column on Desktop: Camera Controls, Gyro Pill & Scale Pill */}
         <div className="flex items-center justify-center self-center md:self-auto md:justify-end flex-wrap sm:flex-nowrap gap-2 sm:gap-3 pointer-events-auto w-full sm:w-auto">
           {/* Gyro Sensor & Tilt-Scroll Control Pill (Mobile & Gyro-enabled devices) */}
-          {(gyro.isSupported || gyro.isInsecureContext) && (gyro.isTouchDevice || gyro.isActive || gyro.permissionState === 'prompt' || gyro.isInsecureContext) && (
+          {gyro.isSupported && (gyro.isTouchDevice || gyro.isActive || gyro.permissionState === 'prompt') && (
             <div
               onClick={(e) => e.stopPropagation()}
               onPointerDown={(e) => e.stopPropagation()}
@@ -960,18 +960,9 @@ export default function HeroSection({
                     gyro.recalibrate();
                     triggerHud('Gyro Calibrated: 0°');
                   }
-                  if (gyro.isInsecureContext && !gyro.isActive) {
-                    triggerHud("Tip: Testing over HTTP? Connect via https:// for raw hardware sensors!", 3000);
-                  }
                 }}
                 aria-label={gyro.permissionState === 'prompt' ? 'Enable Gyroscope' : 'Recalibrate Gyroscope baseline'}
-                title={
-                  gyro.isInsecureContext
-                    ? 'Insecure HTTP: Connect via HTTPS for hardware gyro. Calibration & simulated tilt active.'
-                    : gyro.permissionState === 'prompt'
-                      ? 'Enable Gyroscope Tracking'
-                      : 'Recalibrate Gyroscope Baseline'
-                }
+                title={gyro.permissionState === 'prompt' ? 'Enable Gyroscope Tracking' : 'Recalibrate Gyroscope Baseline'}
                 className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold hover:text-[#FF3F6C] active:scale-95 transition-all cursor-pointer"
               >
                 <Compass className={`w-3.5 h-3.5 text-[#FF4D6D] ${gyro.isActive ? 'animate-spin-slow' : ''}`} />
@@ -982,15 +973,11 @@ export default function HeroSection({
                       ? 'Gyro Blocked'
                       : gyro.isActive
                         ? 'Gyro Active'
-                        : gyro.isInsecureContext
-                          ? 'Calibrate (HTTP)'
-                          : 'Calibrate'}
+                        : 'Calibrate'}
                 </span>
-                {gyro.isActive ? (
+                {gyro.isActive && (
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                ) : gyro.isInsecureContext ? (
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" title="HTTP mode" />
-                ) : null}
+                )}
               </button>
 
               <div className="w-[1px] h-3 bg-stone-200" />
@@ -1002,11 +989,7 @@ export default function HeroSection({
                   const willBeActive = !gyro.isGyroScrollActive;
                   gyro.toggleGyroScroll();
                   if (willBeActive) {
-                    if (gyro.isInsecureContext && !gyro.isActive) {
-                      triggerHud('Tilt Scroll ON (Touch/Drag fallback on HTTP. Connect via HTTPS for raw gyro)', 3500);
-                    } else {
-                      triggerHud('Tilt Scroll ON: Tilt phone forward to scroll down, backward to scroll up', 3000);
-                    }
+                    triggerHud('Tilt Scroll ON: Tilt phone forward to scroll down, backward to scroll up', 3000);
                   } else {
                     triggerHud('Tilt Scroll OFF: Screen locked, only character follows tilt', 2500);
                   }

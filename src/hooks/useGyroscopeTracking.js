@@ -24,16 +24,6 @@ export function useGyroscopeTracking({
   maxScrollSpeed = 800,
   reducedMotion = false
 } = {}) {
-  // Insecure context detection (HTTP on non-localhost, where Android Chrome blocks sensor access)
-  const checkIsInsecureContext = () => {
-    if (typeof window === 'undefined') return false;
-    return (
-      !window.isSecureContext &&
-      window.location.hostname !== 'localhost' &&
-      window.location.hostname !== '127.0.0.1'
-    );
-  };
-
   // Safe initial detection
   const checkInitialSupport = () => {
     if (typeof window === 'undefined') return false;
@@ -77,7 +67,6 @@ export function useGyroscopeTracking({
     supported: checkInitialSupport(),
     permission: checkInitialPermission(),
     isTouchDevice: checkIsTouchDevice(),
-    isInsecureContext: checkIsInsecureContext(),
     isActive: false,
     rawBeta: 45,
     rawGamma: 0,
@@ -102,7 +91,6 @@ export function useGyroscopeTracking({
   // Reactive state for UI indicators & toggle buttons
   const [isSupported] = useState(checkInitialSupport);
   const [isTouchDevice] = useState(checkIsTouchDevice);
-  const [isInsecureContext, setIsInsecureContext] = useState(checkIsInsecureContext);
   const [permissionState, setPermissionState] = useState(checkInitialPermission);
   const [isActive, setIsActive] = useState(false);
   const [isGyroScrollActive, setIsGyroScrollActive] = useState(scrollEnabled);
@@ -117,9 +105,6 @@ export function useGyroscopeTracking({
     const state = gyroStateRef.current;
     const angle = getScreenAngle();
     state.screenAngle = angle;
-    const currentInsecure = checkIsInsecureContext();
-    state.isInsecureContext = currentInsecure;
-    setIsInsecureContext(currentInsecure);
 
     if (angle === 90 || angle === -90 || angle === 270) {
       // Landscape: resting pitch is along gamma
@@ -362,7 +347,7 @@ export function useGyroscopeTracking({
       }
     };
 
-    // Simulated tilt fallback (if browser blocks motion events over HTTP, or device lacks hardware gyro)
+    // Simulated tilt fallback (if device lacks hardware gyro or sensor events are unavailable)
     let touchOriginX = 0;
     let touchOriginY = 0;
 
@@ -651,7 +636,6 @@ export function useGyroscopeTracking({
     gyroStateRef,
     isSupported,
     isTouchDevice,
-    isInsecureContext,
     permissionState,
     isActive,
     isGyroScrollActive,
