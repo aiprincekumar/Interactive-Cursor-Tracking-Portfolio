@@ -811,11 +811,11 @@ export default function HeroSection({
       {/* 6. Reel Element: Bottom Controls Layout (Responsive 2-Row on Mobile, 2-Column Split on Desktop) */}
       <div className="absolute bottom-6 sm:bottom-8 left-4 sm:left-6 md:left-12 right-4 sm:right-6 md:right-12 z-20 pointer-events-none flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6">
         {/* Row 1 on Mobile / Left Column on Desktop: Clean Typography & Social Icons */}
-        <div className="flex flex-col gap-2.5 sm:gap-3 pointer-events-auto">
+        <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-2.5 sm:gap-3 pointer-events-auto w-full sm:w-auto">
           {Boolean(activeTrack?.heroTitle || activeTrack?.heroSubtitle) && (
             <div
               key={activeRole}
-              className={`space-y-0.5 transition-all duration-300 ease-out ${
+              className={`space-y-0.5 transition-all duration-300 ease-out flex flex-col items-center sm:items-start ${
                 roleFade ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
               }`}
             >
@@ -833,7 +833,7 @@ export default function HeroSection({
           )}
 
           {/* Small Circular Social Icons (Notion, GitHub, LinkedIn, YouTube, Facebook, Instagram, Twitter) */}
-          <div className="flex items-center gap-2 flex-wrap pt-0.5 sm:pt-1">
+          <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap pt-0.5 sm:pt-1">
             {/* Notion */}
             <a
               href="#"
@@ -935,7 +935,7 @@ export default function HeroSection({
         </div>
 
         {/* Row 2 on Mobile / Right Column on Desktop: Camera Controls, Gyro Pill & Scale Pill */}
-        <div className="flex items-center justify-center self-center md:justify-end md:self-auto flex-wrap sm:flex-nowrap gap-2 sm:gap-3 pointer-events-auto w-full md:w-auto">
+        <div className="flex items-center justify-center self-center md:self-auto md:justify-end flex-wrap sm:flex-nowrap gap-2 sm:gap-3 pointer-events-auto w-full sm:w-auto">
           {/* Gyro Sensor & Tilt-Scroll Control Pill (Mobile & Gyro-enabled devices) */}
           {(gyro.isSupported || gyro.isInsecureContext) && (gyro.isTouchDevice || gyro.isActive || gyro.permissionState === 'prompt' || gyro.isInsecureContext) && (
             <div

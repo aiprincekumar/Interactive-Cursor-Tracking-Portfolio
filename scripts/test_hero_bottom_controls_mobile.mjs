@@ -28,7 +28,7 @@ assert(
 // Test 2: Pointer events separation
 assert(
   content.includes('pointer-events-none flex flex-col md:flex-row') &&
-  content.includes('flex flex-col gap-2.5 sm:gap-3 pointer-events-auto') &&
+  content.includes('gap-2.5 sm:gap-3 pointer-events-auto') &&
   content.includes('gap-2 sm:gap-3 pointer-events-auto'),
   'Outer layout wrapper has pointer-events-none and interactive children have pointer-events-auto'
 );
@@ -59,10 +59,19 @@ assert(
 
 // Test 5: Responsive mobile alignment and responsive shrink controls
 assert(
-  content.includes('justify-end') &&
-  (content.includes('self-end md:self-auto') || content.includes('self-center md:justify-end md:self-auto')) &&
-  content.includes('w-full md:w-auto'),
+  content.includes('md:justify-end') &&
+  content.includes('justify-center') &&
+  (content.includes('self-center md:self-auto') || content.includes('self-center md:justify-end md:self-auto')) &&
+  (content.includes('w-full sm:w-auto') || content.includes('w-full md:w-auto')),
   'Camera & zoom controls align properly on mobile and desktop'
+);
+
+// Test 8: Mobile Centering Alignment for Title, Subtitle, Social Icons & Actions
+assert(
+  content.includes('items-center sm:items-start text-center sm:text-left') &&
+  content.includes('justify-center sm:justify-start') &&
+  content.includes('justify-center self-center md:self-auto md:justify-end flex-wrap sm:flex-nowrap gap-2 sm:gap-3 pointer-events-auto w-full sm:w-auto'),
+  'Title, subtitle, social icons, and action controls are cleanly centered on mobile (< 640px) and left/start aligned on sm+'
 );
 
 // Test 6: Verify no collision - old absolute bottom-8 right-4 is removed
