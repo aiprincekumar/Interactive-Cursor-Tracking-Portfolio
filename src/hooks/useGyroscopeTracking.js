@@ -95,6 +95,8 @@ export function useGyroscopeTracking({
   const [isGyroScrollActive, setIsGyroScrollActive] = useState(scrollEnabled);
   const [isCalibrated, setIsCalibrated] = useState(false);
 
+  const attachSensorsRef = useRef(null);
+
   // Recalibrate current resting angle
   const recalibrate = useCallback(() => {
     const state = gyroStateRef.current;
@@ -112,6 +114,10 @@ export function useGyroscopeTracking({
     }
     state.isCalibrated = true;
     setIsCalibrated(true);
+
+    if (attachSensorsRef.current) {
+      attachSensorsRef.current();
+    }
   }, [baselinePitch]);
 
   // Request permission (Required for iOS 13+ on user tap)
@@ -129,6 +135,7 @@ export function useGyroscopeTracking({
         if (response === 'granted') {
           gyroStateRef.current.isActive = true;
           setIsActive(true);
+          if (attachSensorsRef.current) attachSensorsRef.current();
           return true;
         }
         return false;
@@ -149,6 +156,7 @@ export function useGyroscopeTracking({
         if (response === 'granted') {
           gyroStateRef.current.isActive = true;
           setIsActive(true);
+          if (attachSensorsRef.current) attachSensorsRef.current();
           return true;
         }
         return false;
@@ -164,6 +172,7 @@ export function useGyroscopeTracking({
       gyroStateRef.current.isActive = true;
       setPermissionState('granted');
       setIsActive(true);
+      if (attachSensorsRef.current) attachSensorsRef.current();
       return true;
     }
   }, []);
@@ -180,7 +189,8 @@ export function useGyroscopeTracking({
       return;
     }
 
-    let hasReceivedOrientation = false;
+    let lastStandardOrientationTime = 0;
+    let lastAnyOrientationTime = 0;
     let hasReceivedValidReading = false;
 
     const processAngles = (beta, gamma, alpha = 0) => {
@@ -254,21 +264,27 @@ export function useGyroscopeTracking({
     };
 
     const handleOrientation = (e) => {
-      if (e.beta !== null && e.gamma !== null) {
-        hasReceivedOrientation = true;
+      if (e.beta !== null && e.gamma !== null && !Number.isNaN(e.beta) && !Number.isNaN(e.gamma)) {
+        lastStandardOrientationTime = Date.now();
+        lastAnyOrientationTime = Date.now();
         processAngles(e.beta, e.gamma, e.alpha || 0);
       }
     };
 
     const handleOrientationAbsolute = (e) => {
-      if (e.beta !== null && e.gamma !== null) {
-        hasReceivedOrientation = true;
+      // Prioritize standard orientation (Game Rotation Vector); only use absolute if standard is inactive
+      if (Date.now() - lastStandardOrientationTime < 1000) return;
+
+      if (e.beta !== null && e.gamma !== null && !Number.isNaN(e.beta) && !Number.isNaN(e.gamma)) {
+        lastAnyOrientationTime = Date.now();
         processAngles(e.beta, e.gamma, e.alpha || 0);
       }
     };
 
     const handleMotion = (e) => {
-      if (hasReceivedOrientation) return;
+      // Only fallback to devicemotion gravity vector if orientation events are not active
+      if (Date.now() - lastAnyOrientationTime < 1000) return;
+
       const acc = e.accelerationIncludingGravity;
       if (!acc || (acc.x === null && acc.y === null && acc.z === null)) return;
       const ax = acc.x ?? 0;
@@ -292,15 +308,21 @@ export function useGyroscopeTracking({
 
     // Sensor attachment & touch interaction handling
     const attachSensors = () => {
+      window.removeEventListener('deviceorientation', handleOrientation);
+      window.removeEventListener('deviceorientationabsolute', handleOrientationAbsolute);
+      window.removeEventListener('devicemotion', handleMotion);
+
       window.addEventListener('deviceorientation', handleOrientation, { passive: true });
       window.addEventListener('deviceorientationabsolute', handleOrientationAbsolute, { passive: true });
       window.addEventListener('devicemotion', handleMotion, { passive: true });
     };
 
+    attachSensorsRef.current = attachSensors;
     attachSensors();
 
     // User touch interaction listeners to pause tilt-scroll during manual finger swiping
-    // and ensure high-frequency sensor streaming is unlocked on first user gesture
+    // and ensure high-frequency sensor streaming is unlocked on first user gesture.
+    // Captured at top level to ensure first touch activates sensors even if child elements stop propagation.
     const handleTouchStart = () => {
       gyroStateRef.current.isUserTouching = true;
       gyroStateRef.current.lastTouchTime = Date.now();
@@ -313,7 +335,8 @@ export function useGyroscopeTracking({
     };
 
     const handlePointerDown = (e) => {
-      if (e.pointerType === 'touch' || e.pointerType === 'pen' || gyroStateRef.current.isTouchDevice) {
+      const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen' || (!e.pointerType && gyroStateRef.current.isTouchDevice);
+      if (isTouchPointer) {
         gyroStateRef.current.isUserTouching = true;
         gyroStateRef.current.lastTouchTime = Date.now();
       }
@@ -321,17 +344,18 @@ export function useGyroscopeTracking({
     };
 
     const handlePointerUp = (e) => {
-      if (e.pointerType === 'touch' || e.pointerType === 'pen' || gyroStateRef.current.isTouchDevice) {
+      const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen' || (!e.pointerType && gyroStateRef.current.isTouchDevice);
+      if (isTouchPointer) {
         gyroStateRef.current.isUserTouching = false;
         gyroStateRef.current.lastTouchTime = Date.now();
       }
     };
 
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd, { passive: true });
-    window.addEventListener('touchcancel', handleTouchEnd, { passive: true });
-    window.addEventListener('pointerdown', handlePointerDown, { passive: true });
-    window.addEventListener('pointerup', handlePointerUp, { passive: true });
+    window.addEventListener('touchstart', handleTouchStart, { passive: true, capture: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true, capture: true });
+    window.addEventListener('touchcancel', handleTouchEnd, { passive: true, capture: true });
+    window.addEventListener('pointerdown', handlePointerDown, { passive: true, capture: true });
+    window.addEventListener('pointerup', handlePointerUp, { passive: true, capture: true });
 
     if (typeof window.screen !== 'undefined' && window.screen.orientation) {
       window.screen.orientation.addEventListener('change', handleOrientationChange);
@@ -339,14 +363,15 @@ export function useGyroscopeTracking({
     window.addEventListener('orientationchange', handleOrientationChange);
 
     return () => {
+      attachSensorsRef.current = null;
       window.removeEventListener('deviceorientation', handleOrientation);
       window.removeEventListener('deviceorientationabsolute', handleOrientationAbsolute);
       window.removeEventListener('devicemotion', handleMotion);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchend', handleTouchEnd);
-      window.removeEventListener('touchcancel', handleTouchEnd);
-      window.removeEventListener('pointerdown', handlePointerDown);
-      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('touchstart', handleTouchStart, { capture: true });
+      window.removeEventListener('touchend', handleTouchEnd, { capture: true });
+      window.removeEventListener('touchcancel', handleTouchEnd, { capture: true });
+      window.removeEventListener('pointerdown', handlePointerDown, { capture: true });
+      window.removeEventListener('pointerup', handlePointerUp, { capture: true });
 
       if (typeof window.screen !== 'undefined' && window.screen.orientation) {
         window.screen.orientation.removeEventListener('change', handleOrientationChange);

@@ -33,6 +33,8 @@ assert(hookContent.includes('scrollBy'), 'Hook must support window.scrollBy for 
 assert(hookContent.includes('isGyroScrollActive'), 'Hook must provide tilt scroll toggle state');
 assert(hookContent.includes('baselineGamma'), 'Hook must support dual baselineGamma calibration for landscape');
 assert(hookContent.includes('isTouchDevice'), 'Hook must expose touch device detection');
+assert(hookContent.includes('lastStandardOrientationTime'), 'Hook must arbitrate standard vs absolute orientation');
+assert(hookContent.includes('lastAnyOrientationTime'), 'Hook must arbitrate orientation vs devicemotion fallback');
 console.log('[PASS] useGyroscopeTracking.js contains all required sensor and scrolling mechanisms.');
 
 assert(heroContent.includes('useGyroscopeTracking'), 'HeroSection must import useGyroscopeTracking');
@@ -415,6 +417,128 @@ function computeMotionAngles(acc) {
   assert(res.normX > 0.3, `Tilting right must produce positive normX, got ${res.normX}`);
   assert.strictEqual(res.scrollDirection, 'right', 'Tilting right must trigger scroll right');
   console.log(`[PASS] Case O2: Android gravity vector computes right roll (${roll.toFixed(1)}°) and scrolls right.`);
+}
+
+// ---------------------------------------------------------
+// 6. Multi-Sensor Arbitration Hierarchy Simulation Tests
+// ---------------------------------------------------------
+console.log('\n--- Multi-Sensor Arbitration Hierarchy Tests ---');
+
+function createSensorArbitrator() {
+  let lastStandardOrientationTime = 0;
+  let lastAnyOrientationTime = 0;
+  let activeSource = null;
+  let angles = null;
+
+  const onStandardOrientation = (beta, gamma, alpha = 0, now = Date.now()) => {
+    if (beta !== null && gamma !== null && !Number.isNaN(beta) && !Number.isNaN(gamma)) {
+      lastStandardOrientationTime = now;
+      lastAnyOrientationTime = now;
+      activeSource = 'deviceorientation';
+      angles = { beta, gamma, alpha };
+      return true;
+    }
+    return false;
+  };
+
+  const onAbsoluteOrientation = (beta, gamma, alpha = 0, now = Date.now()) => {
+    if (now - lastStandardOrientationTime < 1000) {
+      return false; // Suppressed by active standard orientation
+    }
+    if (beta !== null && gamma !== null && !Number.isNaN(beta) && !Number.isNaN(gamma)) {
+      lastAnyOrientationTime = now;
+      activeSource = 'deviceorientationabsolute';
+      angles = { beta, gamma, alpha };
+      return true;
+    }
+    return false;
+  };
+
+  const onMotion = (acc, now = Date.now()) => {
+    if (now - lastAnyOrientationTime < 1000) {
+      return false; // Suppressed by active orientation
+    }
+    if (!acc || (acc.x === null && acc.y === null && acc.z === null)) return false;
+    const ax = acc.x ?? 0;
+    const ay = acc.y ?? 0;
+    const az = acc.z ?? 0;
+    if (ax === 0 && ay === 0 && az === 0) return false;
+
+    const pitch = Math.atan2(-ay, Math.sqrt(ax * ax + az * az)) * (180 / Math.PI);
+    const roll = Math.atan2(ax, az) * (180 / Math.PI);
+    activeSource = 'devicemotion';
+    angles = { beta: pitch, gamma: roll, alpha: 0 };
+    return true;
+  };
+
+  return {
+    onStandardOrientation,
+    onAbsoluteOrientation,
+    onMotion,
+    getState: () => ({ activeSource, angles, lastStandardOrientationTime, lastAnyOrientationTime })
+  };
+}
+
+// Case P1: Standard orientation suppresses absolute orientation to prevent magnetometer jitter
+{
+  const arb = createSensorArbitrator();
+  const t0 = 1000;
+  const processedStd = arb.onStandardOrientation(45, 10, 0, t0);
+  assert.strictEqual(processedStd, true, 'Standard orientation should process');
+  assert.strictEqual(arb.getState().activeSource, 'deviceorientation');
+
+  // Absolute orientation arrives 5ms later with magnetometer offset
+  const processedAbs = arb.onAbsoluteOrientation(48, 12, 180, t0 + 5);
+  assert.strictEqual(processedAbs, false, 'Absolute orientation must be suppressed when standard is active');
+  assert.strictEqual(arb.getState().activeSource, 'deviceorientation', 'Active source must remain standard orientation');
+  console.log('[PASS] Case P1: Standard orientation suppresses absolute orientation, eliminating magnetometer jitter.');
+}
+
+// Case P2: Absolute orientation takes over when standard orientation is absent (vendor quirk)
+{
+  const arb = createSensorArbitrator();
+  const t0 = 1000;
+  // Standard orientation does not fire or sends nulls
+  const processedAbs = arb.onAbsoluteOrientation(50, -15, 90, t0);
+  assert.strictEqual(processedAbs, true, 'Absolute orientation must process when standard is absent');
+  assert.strictEqual(arb.getState().activeSource, 'deviceorientationabsolute');
+  assert.strictEqual(arb.getState().angles.beta, 50);
+  console.log('[PASS] Case P2: Absolute orientation takes over seamlessly on devices without standard orientation.');
+}
+
+// Case P3: Devicemotion fallback takes over when both orientation streams are absent
+{
+  const arb = createSensorArbitrator();
+  const t0 = 1000;
+  const g = 9.80665;
+  const acc = { x: 0, y: -g * Math.sin(45 * Math.PI / 180), z: g * Math.cos(45 * Math.PI / 180) };
+  const processedMotion = arb.onMotion(acc, t0);
+  assert.strictEqual(processedMotion, true, 'Devicemotion should process when orientation is absent');
+  assert.strictEqual(arb.getState().activeSource, 'devicemotion');
+  assert(Math.abs(arb.getState().angles.beta - 45) < 0.1);
+  console.log('[PASS] Case P3: Devicemotion gravity vector activates when orientation streams are absent.');
+}
+
+// Case P4: Devicemotion yields back when orientation resumes after a stall
+{
+  const arb = createSensorArbitrator();
+  const t0 = 1000;
+  const g = 9.80665;
+  const acc = { x: 0, y: -g * Math.sin(45 * Math.PI / 180), z: g * Math.cos(45 * Math.PI / 180) };
+
+  // Motion active at t0
+  arb.onMotion(acc, t0);
+  assert.strictEqual(arb.getState().activeSource, 'devicemotion');
+
+  // Orientation arrives at t0 + 500ms
+  arb.onStandardOrientation(45, 0, 0, t0 + 500);
+  assert.strictEqual(arb.getState().activeSource, 'deviceorientation');
+
+  // Motion attempts to fire at t0 + 510ms
+  const processedMotion2 = arb.onMotion(acc, t0 + 510);
+  assert.strictEqual(processedMotion2, false, 'Devicemotion must yield immediately when orientation is active');
+  assert.strictEqual(arb.getState().activeSource, 'deviceorientation');
+  console.log('[PASS] Case P4: Devicemotion seamlessly yields back as soon as orientation resumes.');
 }
 
 console.log('\n=== ALL GYROSCOPE, TRACKING & IDLE BREATHING VERIFICATION CHECKS PASSED (100%) ===\n');
