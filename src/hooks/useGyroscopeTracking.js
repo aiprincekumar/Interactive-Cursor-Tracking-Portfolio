@@ -27,7 +27,11 @@ export function useGyroscopeTracking({
   // Safe initial detection
   const checkInitialSupport = () => {
     if (typeof window === 'undefined') return false;
-    return 'DeviceOrientationEvent' in window;
+    return (
+      'DeviceOrientationEvent' in window ||
+      'DeviceMotionEvent' in window ||
+      'ondeviceorientationabsolute' in window
+    );
   };
 
   const checkIsTouchDevice = () => {
@@ -37,7 +41,7 @@ export function useGyroscopeTracking({
 
   const checkInitialPermission = () => {
     if (typeof window === 'undefined') return 'unknown';
-    if (!('DeviceOrientationEvent' in window)) return 'unsupported';
+    if (!('DeviceOrientationEvent' in window) && !('DeviceMotionEvent' in window)) return 'unsupported';
     if (
       typeof window.DeviceOrientationEvent !== 'undefined' &&
       typeof window.DeviceOrientationEvent.requestPermission === 'function'
@@ -134,8 +138,28 @@ export function useGyroscopeTracking({
         setPermissionState('denied');
         return false;
       }
+    } else if (
+      typeof window.DeviceMotionEvent !== 'undefined' &&
+      typeof window.DeviceMotionEvent.requestPermission === 'function'
+    ) {
+      try {
+        const response = await window.DeviceMotionEvent.requestPermission();
+        gyroStateRef.current.permission = response;
+        setPermissionState(response);
+        if (response === 'granted') {
+          gyroStateRef.current.isActive = true;
+          setIsActive(true);
+          return true;
+        }
+        return false;
+      } catch (err) {
+        console.warn('DeviceMotion permission error:', err);
+        gyroStateRef.current.permission = 'denied';
+        setPermissionState('denied');
+        return false;
+      }
     } else {
-      // Non-iOS: already granted
+      // Non-iOS / Android Chrome: already granted
       gyroStateRef.current.permission = 'granted';
       gyroStateRef.current.isActive = true;
       setPermissionState('granted');
@@ -144,7 +168,7 @@ export function useGyroscopeTracking({
     }
   }, []);
 
-  // Handle device orientation events & auto-calibration
+  // Handle device orientation events, Android absolute/motion fallbacks & auto-calibration
   useEffect(() => {
     if (typeof window === 'undefined' || !enabled || reducedMotion) {
       gyroStateRef.current.isActive = false;
@@ -156,37 +180,38 @@ export function useGyroscopeTracking({
       return;
     }
 
-    let hasReceivedValidEvent = false;
+    let hasReceivedOrientation = false;
+    let hasReceivedValidReading = false;
 
-    const handleOrientation = (e) => {
-      if (e.beta === null || e.gamma === null) return;
+    const processAngles = (beta, gamma, alpha = 0) => {
+      if (beta === null || gamma === null || Number.isNaN(beta) || Number.isNaN(gamma)) return;
 
       const state = gyroStateRef.current;
-      state.rawBeta = e.beta;
-      state.rawGamma = e.gamma;
-      state.rawAlpha = e.alpha || 0;
+      state.rawBeta = beta;
+      state.rawGamma = gamma;
+      state.rawAlpha = alpha || 0;
 
       const orientationAngle = getScreenAngle();
       state.screenAngle = orientationAngle;
 
-      if (!hasReceivedValidEvent) {
-        hasReceivedValidEvent = true;
+      if (!hasReceivedValidReading) {
+        hasReceivedValidReading = true;
         state.isActive = true;
         setIsActive(true);
 
         // Auto-calibrate baseline resting angle on first valid reading
         if (!state.isCalibrated) {
           if (orientationAngle === 90 || orientationAngle === -90 || orientationAngle === 270) {
-            if (Math.abs(e.gamma) >= 10 && Math.abs(e.gamma) <= 85) {
-              state.baselineGamma = e.gamma;
-              state.baselineBeta = e.beta || 0;
+            if (Math.abs(gamma) >= 10 && Math.abs(gamma) <= 85) {
+              state.baselineGamma = gamma;
+              state.baselineBeta = beta || 0;
               state.isCalibrated = true;
               setIsCalibrated(true);
             }
           } else {
-            if (e.beta >= 10 && e.beta <= 85) {
-              state.baselineBeta = e.beta;
-              state.baselineGamma = e.gamma || 0;
+            if (beta >= 10 && beta <= 85) {
+              state.baselineBeta = beta;
+              state.baselineGamma = gamma || 0;
               state.isCalibrated = true;
               setIsCalibrated(true);
             }
@@ -195,8 +220,8 @@ export function useGyroscopeTracking({
       }
 
       // Compute relative pitch and roll based on orientation
-      const deltaBeta = e.beta - state.baselineBeta;
-      const deltaGamma = e.gamma - state.baselineGamma;
+      const deltaBeta = beta - state.baselineBeta;
+      const deltaGamma = gamma - state.baselineGamma;
 
       let tiltX = 0;
       let tiltY = 0;
@@ -228,6 +253,36 @@ export function useGyroscopeTracking({
       state.normY = Math.max(-0.5, Math.min(0.5, (tiltY / maxTiltY) * 0.5));
     };
 
+    const handleOrientation = (e) => {
+      if (e.beta !== null && e.gamma !== null) {
+        hasReceivedOrientation = true;
+        processAngles(e.beta, e.gamma, e.alpha || 0);
+      }
+    };
+
+    const handleOrientationAbsolute = (e) => {
+      if (e.beta !== null && e.gamma !== null) {
+        hasReceivedOrientation = true;
+        processAngles(e.beta, e.gamma, e.alpha || 0);
+      }
+    };
+
+    const handleMotion = (e) => {
+      if (hasReceivedOrientation) return;
+      const acc = e.accelerationIncludingGravity;
+      if (!acc || (acc.x === null && acc.y === null && acc.z === null)) return;
+      const ax = acc.x ?? 0;
+      const ay = acc.y ?? 0;
+      const az = acc.z ?? 0;
+      if (ax === 0 && ay === 0 && az === 0) return;
+
+      // Calculate pitch & roll from gravity vector
+      const pitch = Math.atan2(-ay, Math.sqrt(ax * ax + az * az)) * (180 / Math.PI);
+      const roll = Math.atan2(ax, az) * (180 / Math.PI);
+
+      processAngles(pitch, roll, 0);
+    };
+
     // Auto-recalibrate baseline when user rotates their device
     const handleOrientationChange = () => {
       setTimeout(() => {
@@ -235,10 +290,21 @@ export function useGyroscopeTracking({
       }, 150);
     };
 
+    // Sensor attachment & touch interaction handling
+    const attachSensors = () => {
+      window.addEventListener('deviceorientation', handleOrientation, { passive: true });
+      window.addEventListener('deviceorientationabsolute', handleOrientationAbsolute, { passive: true });
+      window.addEventListener('devicemotion', handleMotion, { passive: true });
+    };
+
+    attachSensors();
+
     // User touch interaction listeners to pause tilt-scroll during manual finger swiping
+    // and ensure high-frequency sensor streaming is unlocked on first user gesture
     const handleTouchStart = () => {
       gyroStateRef.current.isUserTouching = true;
       gyroStateRef.current.lastTouchTime = Date.now();
+      attachSensors();
     };
 
     const handleTouchEnd = () => {
@@ -246,10 +312,26 @@ export function useGyroscopeTracking({
       gyroStateRef.current.lastTouchTime = Date.now();
     };
 
-    window.addEventListener('deviceorientation', handleOrientation, { passive: true });
+    const handlePointerDown = (e) => {
+      if (e.pointerType === 'touch' || e.pointerType === 'pen' || gyroStateRef.current.isTouchDevice) {
+        gyroStateRef.current.isUserTouching = true;
+        gyroStateRef.current.lastTouchTime = Date.now();
+      }
+      attachSensors();
+    };
+
+    const handlePointerUp = (e) => {
+      if (e.pointerType === 'touch' || e.pointerType === 'pen' || gyroStateRef.current.isTouchDevice) {
+        gyroStateRef.current.isUserTouching = false;
+        gyroStateRef.current.lastTouchTime = Date.now();
+      }
+    };
+
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchend', handleTouchEnd, { passive: true });
     window.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+    window.addEventListener('pointerdown', handlePointerDown, { passive: true });
+    window.addEventListener('pointerup', handlePointerUp, { passive: true });
 
     if (typeof window.screen !== 'undefined' && window.screen.orientation) {
       window.screen.orientation.addEventListener('change', handleOrientationChange);
@@ -258,9 +340,13 @@ export function useGyroscopeTracking({
 
     return () => {
       window.removeEventListener('deviceorientation', handleOrientation);
+      window.removeEventListener('deviceorientationabsolute', handleOrientationAbsolute);
+      window.removeEventListener('devicemotion', handleMotion);
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('touchcancel', handleTouchEnd);
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointerup', handlePointerUp);
 
       if (typeof window.screen !== 'undefined' && window.screen.orientation) {
         window.screen.orientation.removeEventListener('change', handleOrientationChange);

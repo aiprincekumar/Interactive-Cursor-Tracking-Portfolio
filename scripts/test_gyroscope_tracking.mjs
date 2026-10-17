@@ -24,6 +24,10 @@ const heroContent = fs.readFileSync(heroPath, 'utf-8');
 
 assert(hookContent.includes('useGyroscopeTracking'), 'Hook must export useGyroscopeTracking');
 assert(hookContent.includes('deviceorientation'), 'Hook must listen to deviceorientation events');
+assert(hookContent.includes('deviceorientationabsolute'), 'Hook must support Android Chrome deviceorientationabsolute events');
+assert(hookContent.includes('devicemotion'), 'Hook must support devicemotion fallback');
+assert(hookContent.includes('accelerationIncludingGravity'), 'Hook must use accelerationIncludingGravity for motion fallback');
+assert(hookContent.includes('pointerdown'), 'Hook must listen for pointerdown interaction');
 assert(hookContent.includes('requestPermission'), 'Hook must support iOS 13+ requestPermission');
 assert(hookContent.includes('scrollBy'), 'Hook must support window.scrollBy for tilt-to-scroll');
 assert(hookContent.includes('isGyroScrollActive'), 'Hook must provide tilt scroll toggle state');
@@ -358,6 +362,59 @@ function computeBreathingFrame({
   assert(Math.abs(forcedIdleFrame.currentBreathY - 3.2) < 0.1, 'Forced idle must perform full peak breathing oscillation');
 
   console.log('[PASS] Case N: forcedState correctly drives idleOp, preserving breathing for forced idle poses.');
+}
+
+// ---------------------------------------------------------
+// 5. Android Chrome Devicemotion Fallback Simulation Tests
+// ---------------------------------------------------------
+console.log('\n--- Android Chrome Devicemotion Gravity Vector Tests ---');
+
+function computeMotionAngles(acc) {
+  const ax = acc.x ?? 0;
+  const ay = acc.y ?? 0;
+  const az = acc.z ?? 0;
+  const pitch = Math.atan2(-ay, Math.sqrt(ax * ax + az * az)) * (180 / Math.PI);
+  const roll = Math.atan2(ax, az) * (180 / Math.PI);
+  return { pitch, roll };
+}
+
+// Case O1: Device resting in portrait 45-degree angle
+{
+  const g = 9.80665;
+  const angleRad = 45 * (Math.PI / 180);
+  // In portrait tilted back 45 degrees:
+  // gravity vector points down: ay = -g * sin(45), az = g * cos(45), ax = 0
+  const acc = { x: 0, y: -g * Math.sin(angleRad), z: g * Math.cos(angleRad) };
+  const { pitch, roll } = computeMotionAngles(acc);
+  assert(Math.abs(pitch - 45) < 0.1, `Motion pitch should be ~45°, got ${pitch}`);
+  assert(Math.abs(roll - 0) < 0.1, `Motion roll should be ~0°, got ${roll}`);
+
+  const res = computeNormalizedGyro({ beta: pitch, gamma: roll, baselineBeta: 45, baselineGamma: 0 });
+  assert.strictEqual(res.normX, 0, 'Resting position from gravity vector must center normX at 0');
+  assert.strictEqual(res.normY, 0, 'Resting position from gravity vector must center normY at 0');
+  assert.strictEqual(res.isScrolling, false, 'Resting position must not scroll');
+  console.log(`[PASS] Case O1: Android gravity vector computes pitch=${pitch.toFixed(1)}°, roll=${roll.toFixed(1)}° and centers correctly.`);
+}
+
+// Case O2: Device tilted right in portrait
+{
+  const g = 9.80665;
+  const pitchRad = 45 * (Math.PI / 180);
+  const rollRad = 20 * (Math.PI / 180);
+  // Roll tilts around longitudinal axis
+  const acc = {
+    x: g * Math.cos(pitchRad) * Math.sin(rollRad),
+    y: -g * Math.sin(pitchRad),
+    z: g * Math.cos(pitchRad) * Math.cos(rollRad)
+  };
+  const { pitch, roll } = computeMotionAngles(acc);
+  assert(Math.abs(pitch - 45) < 0.2, `Motion pitch should be ~45°, got ${pitch}`);
+  assert(Math.abs(roll - 20) < 0.2, `Motion roll should be ~20°, got ${roll}`);
+
+  const res = computeNormalizedGyro({ beta: pitch, gamma: roll, baselineBeta: 45, baselineGamma: 0 });
+  assert(res.normX > 0.3, `Tilting right must produce positive normX, got ${res.normX}`);
+  assert.strictEqual(res.scrollDirection, 'right', 'Tilting right must trigger scroll right');
+  console.log(`[PASS] Case O2: Android gravity vector computes right roll (${roll.toFixed(1)}°) and scrolls right.`);
 }
 
 console.log('\n=== ALL GYROSCOPE, TRACKING & IDLE BREATHING VERIFICATION CHECKS PASSED (100%) ===\n');
