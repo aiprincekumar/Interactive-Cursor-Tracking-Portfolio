@@ -20,10 +20,20 @@ export function useGyroscopeTracking({
   maxTiltX = 25,
   maxTiltY = 25,
   deadzone = 2.0,
-  scrollThreshold = 0.28,
+  scrollThreshold = 0.18,
   maxScrollSpeed = 800,
   reducedMotion = false
 } = {}) {
+  // Insecure context detection (HTTP on non-localhost, where Android Chrome blocks sensor access)
+  const checkIsInsecureContext = () => {
+    if (typeof window === 'undefined') return false;
+    return (
+      !window.isSecureContext &&
+      window.location.hostname !== 'localhost' &&
+      window.location.hostname !== '127.0.0.1'
+    );
+  };
+
   // Safe initial detection
   const checkInitialSupport = () => {
     if (typeof window === 'undefined') return false;
@@ -67,6 +77,7 @@ export function useGyroscopeTracking({
     supported: checkInitialSupport(),
     permission: checkInitialPermission(),
     isTouchDevice: checkIsTouchDevice(),
+    isInsecureContext: checkIsInsecureContext(),
     isActive: false,
     rawBeta: 45,
     rawGamma: 0,
@@ -90,10 +101,13 @@ export function useGyroscopeTracking({
   // Reactive state for UI indicators & toggle buttons
   const [isSupported] = useState(checkInitialSupport);
   const [isTouchDevice] = useState(checkIsTouchDevice);
+  const [isInsecureContext] = useState(checkIsInsecureContext);
   const [permissionState, setPermissionState] = useState(checkInitialPermission);
   const [isActive, setIsActive] = useState(false);
   const [isGyroScrollActive, setIsGyroScrollActive] = useState(scrollEnabled);
   const [isCalibrated, setIsCalibrated] = useState(false);
+  const [activeScrollDir, setActiveScrollDir] = useState(null);
+  const lastActiveScrollDirRef = useRef(null);
 
   const attachSensorsRef = useRef(null);
 
@@ -402,6 +416,8 @@ export function useGyroscopeTracking({
       const now = Date.now();
       const isTouchingRecently = state.isUserTouching || (now - state.lastTouchTime < 650);
 
+      let currentScrollDir = null;
+
       if (state.isActive && isGyroScrollActive && !isTouchingRecently) {
         const normX = state.smoothedNormX;
         const normY = state.smoothedNormY;
@@ -411,14 +427,22 @@ export function useGyroscopeTracking({
         let scrollSpeedX = 0;
         let scrollSpeedY = 0;
 
+        // Smooth non-linear scroll acceleration curve:
+        // Gentle crawl at 0.18 - 0.35 tilt, swift acceleration at > 0.35 tilt
+        const calcScrollSpeed = (val, absVal) => {
+          if (absVal <= scrollThreshold) return 0;
+          const rawRatio = Math.min(1, Math.max(0, (absVal - scrollThreshold) / (0.5 - scrollThreshold)));
+          // Exponential power curve (1.55) gives gentle granular control on subtle tilt and swift panning on deep tilt
+          const curvedRatio = Math.pow(rawRatio, 1.55);
+          return Math.sign(val) * curvedRatio * maxScrollSpeed * dt;
+        };
+
         if (absY > scrollThreshold) {
-          const excessRatioY = (absY - scrollThreshold) / (0.5 - scrollThreshold);
-          scrollSpeedY = Math.sign(normY) * excessRatioY * maxScrollSpeed * dt;
+          scrollSpeedY = calcScrollSpeed(normY, absY);
         }
 
         if (absX > scrollThreshold) {
-          const excessRatioX = (absX - scrollThreshold) / (0.5 - scrollThreshold);
-          scrollSpeedX = Math.sign(normX) * excessRatioX * maxScrollSpeed * dt;
+          scrollSpeedX = calcScrollSpeed(normX, absX);
         }
 
         if (absX > scrollThreshold || absY > scrollThreshold) {
@@ -426,6 +450,7 @@ export function useGyroscopeTracking({
           const dirY = absY > scrollThreshold ? (normY > 0 ? 'down' : 'up') : '';
           const dirX = absX > scrollThreshold ? (normX > 0 ? 'right' : 'left') : '';
           state.scrollDirection = dirY && dirX ? `${dirY}-${dirX}` : (dirY || dirX || null);
+          currentScrollDir = state.scrollDirection;
 
           if (Math.abs(scrollSpeedY) > 0.05 || Math.abs(scrollSpeedX) > 0.05) {
             window.scrollBy({ top: scrollSpeedY, left: scrollSpeedX, behavior: 'auto' });
@@ -450,10 +475,17 @@ export function useGyroscopeTracking({
         } else {
           state.isScrolling = false;
           state.scrollDirection = null;
+          currentScrollDir = null;
         }
       } else {
         state.isScrolling = false;
         state.scrollDirection = null;
+        currentScrollDir = null;
+      }
+
+      if (lastActiveScrollDirRef.current !== currentScrollDir) {
+        lastActiveScrollDirRef.current = currentScrollDir;
+        setActiveScrollDir(currentScrollDir);
       }
 
       rafId = requestAnimationFrame(scrollTick);
@@ -462,6 +494,10 @@ export function useGyroscopeTracking({
     rafId = requestAnimationFrame(scrollTick);
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
+      if (lastActiveScrollDirRef.current !== null) {
+        lastActiveScrollDirRef.current = null;
+        setActiveScrollDir(null);
+      }
     };
   }, [enabled, reducedMotion, isGyroScrollActive, scrollThreshold, maxScrollSpeed]);
 
@@ -473,10 +509,13 @@ export function useGyroscopeTracking({
     gyroStateRef,
     isSupported,
     isTouchDevice,
+    isInsecureContext,
     permissionState,
     isActive,
     isGyroScrollActive,
     isCalibrated,
+    scrollDirection: activeScrollDir,
+    activeScrollDir,
     recalibrate,
     requestPermission,
     toggleGyroScroll

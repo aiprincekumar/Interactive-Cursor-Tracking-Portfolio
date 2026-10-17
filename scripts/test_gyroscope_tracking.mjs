@@ -33,9 +33,13 @@ assert(hookContent.includes('scrollBy'), 'Hook must support window.scrollBy for 
 assert(hookContent.includes('isGyroScrollActive'), 'Hook must provide tilt scroll toggle state');
 assert(hookContent.includes('baselineGamma'), 'Hook must support dual baselineGamma calibration for landscape');
 assert(hookContent.includes('isTouchDevice'), 'Hook must expose touch device detection');
+assert(hookContent.includes('isInsecureContext'), 'Hook must check and expose isInsecureContext');
+assert(hookContent.includes('isSecureContext'), 'Hook must inspect window.isSecureContext');
+assert(hookContent.includes('activeScrollDir'), 'Hook must expose activeScrollDir');
+assert(hookContent.includes('scrollThreshold = 0.18'), 'Hook must default scrollThreshold to 0.18');
 assert(hookContent.includes('lastStandardOrientationTime'), 'Hook must arbitrate standard vs absolute orientation');
 assert(hookContent.includes('lastAnyOrientationTime'), 'Hook must arbitrate orientation vs devicemotion fallback');
-console.log('[PASS] useGyroscopeTracking.js contains all required sensor and scrolling mechanisms.');
+console.log('[PASS] useGyroscopeTracking.js contains all required sensor, security, and scrolling mechanisms.');
 
 assert(heroContent.includes('useGyroscopeTracking'), 'HeroSection must import useGyroscopeTracking');
 assert(heroContent.includes('Compass'), 'HeroSection must import Compass icon');
@@ -44,8 +48,11 @@ assert(heroContent.includes('translate3d'), 'HeroSection must apply directional 
 assert(heroContent.includes('breathCycle'), 'HeroSection must compute respiratory breathCycle');
 assert(heroContent.includes('breathScale'), 'HeroSection must compute organic chest expansion breathScale');
 assert(heroContent.includes('breathingWeight'), 'HeroSection must blend breathingWeight with idle & motion');
+assert(heroContent.includes('isInsecureContext'), 'HeroSection must handle isInsecureContext');
+assert(heroContent.includes('Scroll ON ↓'), 'HeroSection must render dynamic downward scroll indicator');
+assert(heroContent.includes('Scroll ON ↑'), 'HeroSection must render dynamic upward scroll indicator');
 assert(heroContent.includes('Gyro Active') || heroContent.includes('Enable Gyro'), 'HeroSection must render Gyro Control Pill');
-console.log('[PASS] HeroSection.jsx integrates gyro sensor, character translation, organic idle breathing, and UI controls.');
+console.log('[PASS] HeroSection.jsx integrates gyro sensor, character translation, organic idle breathing, insecure warnings, and dynamic UI controls.');
 
 // ---------------------------------------------------------
 // 3. Logic Simulation Tests for Orientation & Deadzone
@@ -61,7 +68,7 @@ function computeNormalizedGyro({
   deadzone = 2.0,
   maxTiltX = 25,
   maxTiltY = 25,
-  scrollThreshold = 0.28
+  scrollThreshold = 0.18
 }) {
   const deltaBeta = beta - baselineBeta;
   const deltaGamma = gamma - baselineGamma;
@@ -143,6 +150,46 @@ function computeNormalizedGyro({
   assert(res.normY > 0.35, `Tilting forward/down should give positive normY, got ${res.normY}`);
   assert.strictEqual(res.scrollDirection, 'down', 'Tilting down past threshold must scroll down');
   console.log(`[PASS] Case E: Tilting Down moves character down (normY = ${res.normY.toFixed(3)}) & scrolls down.`);
+}
+
+// Case E2: High-Sensitivity Subtle ~10° Forward Tilt (beta = 55°, normY = 0.20, exceeds 0.18 threshold)
+{
+  const res = computeNormalizedGyro({ beta: 55, gamma: 0, baselineBeta: 45, baselineGamma: 0 });
+  assert.strictEqual(res.normY, 0.20, `Subtle ~10° tilt should produce normY=0.20, got ${res.normY}`);
+  assert.strictEqual(res.isScrolling, true, 'Subtle ~10° tilt must trigger scrolling at 0.18 sensitivity');
+  assert.strictEqual(res.scrollDirection, 'down', 'Subtle forward tilt must scroll down');
+  console.log(`[PASS] Case E2: High-sensitivity 0.18 threshold activates tilt-scroll on natural ~10° tilt (normY = 0.20).`);
+}
+
+// Case E3: Insecure Context Logic Verification (HTTP vs HTTPS on LAN IP vs localhost)
+{
+  const evaluateInsecureContext = (isSecure, hostname) => {
+    return !isSecure && hostname !== 'localhost' && hostname !== '127.0.0.1';
+  };
+
+  assert.strictEqual(evaluateInsecureContext(false, '192.168.1.45'), true, 'HTTP on LAN IP must be flagged as insecure context');
+  assert.strictEqual(evaluateInsecureContext(true, '192.168.1.45'), false, 'HTTPS on LAN IP must be a secure context');
+  assert.strictEqual(evaluateInsecureContext(false, 'localhost'), false, 'localhost HTTP is exempt from insecure context restriction');
+  assert.strictEqual(evaluateInsecureContext(false, '127.0.0.1'), false, '127.0.0.1 HTTP is exempt from insecure context restriction');
+  console.log('[PASS] Case E3: Insecure context logic accurately flags LAN HTTP while permitting LAN HTTPS and localhost.');
+}
+
+// Case E4: Non-Linear Scroll Acceleration Curve (Gentle at 0.18-0.35, Swift at >0.35)
+{
+  const calcSpeed = (absVal, threshold = 0.18, maxSpeed = 800, dt = 0.016) => {
+    if (absVal <= threshold) return 0;
+    const rawRatio = Math.min(1, Math.max(0, (absVal - threshold) / (0.5 - threshold)));
+    const curvedRatio = Math.pow(rawRatio, 1.55);
+    return curvedRatio * maxSpeed * dt;
+  };
+
+  const speedGentle = calcSpeed(0.24); // Low tilt in 0.18-0.35 range
+  const speedSwift = calcSpeed(0.48);  // Deep tilt in >0.35 range
+
+  assert(speedGentle < 2.0, `Gentle tilt speed should be low for fine control, got ${speedGentle.toFixed(2)}px`);
+  assert(speedSwift > 10.0, `Swift tilt speed should be fast for quick panning, got ${speedSwift.toFixed(2)}px`);
+  assert(speedSwift / speedGentle > 5.0, 'Swift speed should be more than 5x gentle speed due to exponential curve');
+  console.log(`[PASS] Case E4: Acceleration curve verified: gentle crawl at 0.24 (${speedGentle.toFixed(2)}px/f) vs swift panning at 0.48 (${speedSwift.toFixed(2)}px/f).`);
 }
 
 // Case F: Tilting Phone Backward / Up in Portrait (gamma = 0°, beta = 25°)

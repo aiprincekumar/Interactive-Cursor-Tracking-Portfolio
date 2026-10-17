@@ -790,8 +790,8 @@ export default function HeroSection({
           aria-live="polite"
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-40 transition-all duration-200 animate-in fade-in zoom-in-95"
         >
-          <div className="px-5 py-2.5 rounded-full bg-[#18181B]/85 backdrop-blur-xl border border-white/20 text-white font-mono text-xs sm:text-sm font-semibold shadow-2xl flex items-center gap-2.5">
-            <span className="w-2 h-2 rounded-full bg-[#FF4D6D] animate-ping" />
+          <div className="px-5 py-2.5 rounded-full bg-[#18181B]/85 backdrop-blur-xl border border-white/20 text-white font-mono text-xs sm:text-sm font-semibold shadow-2xl flex items-center gap-2.5 max-w-[92vw] text-center">
+            <span className="w-2 h-2 rounded-full bg-[#FF4D6D] animate-ping shrink-0" />
             <span>{hudMessage || `Zoom: ${Math.round(userScale * 100)}%`}</span>
           </div>
         </div>
@@ -937,47 +937,63 @@ export default function HeroSection({
         {/* Row 2 on Mobile / Right Column on Desktop: Camera Controls, Gyro Pill & Scale Pill */}
         <div className="flex items-center justify-center self-center md:justify-end md:self-auto flex-wrap sm:flex-nowrap gap-2 sm:gap-3 pointer-events-auto w-full md:w-auto">
           {/* Gyro Sensor & Tilt-Scroll Control Pill (Mobile & Gyro-enabled devices) */}
-          {gyro.isSupported && (gyro.isTouchDevice || gyro.isActive || gyro.permissionState === 'prompt') && (
+          {(gyro.isSupported || gyro.isInsecureContext) && (gyro.isTouchDevice || gyro.isActive || gyro.permissionState === 'prompt' || gyro.isInsecureContext) && (
             <div
               onClick={(e) => e.stopPropagation()}
               onPointerDown={(e) => e.stopPropagation()}
               className="bg-white/80 backdrop-blur-xl border border-white/90 shadow-md rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 text-[#18181B] max-w-full"
             >
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (gyro.permissionState === 'prompt') {
-                    gyro.requestPermission().then((granted) => {
-                      if (granted) {
-                        triggerHud('Gyro Enabled & Active');
-                      } else {
-                        triggerHud('Gyro Permission Denied');
-                      }
-                    });
-                  } else {
-                    gyro.recalibrate();
-                    triggerHud('Gyro Calibrated: 0°');
-                  }
-                }}
-                aria-label={gyro.permissionState === 'prompt' ? 'Enable Gyroscope' : 'Recalibrate Gyroscope baseline'}
-                title={gyro.permissionState === 'prompt' ? 'Enable Gyroscope Tracking' : 'Recalibrate Gyroscope Baseline'}
-                className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold hover:text-[#FF3F6C] active:scale-95 transition-all cursor-pointer"
-              >
-                <Compass className={`w-3.5 h-3.5 text-[#FF4D6D] ${gyro.isActive ? 'animate-spin-slow' : ''}`} />
-                <span>
-                  {gyro.permissionState === 'prompt'
-                    ? 'Enable Gyro'
-                    : gyro.permissionState === 'denied'
-                      ? 'Gyro Blocked'
-                      : gyro.isActive
-                        ? 'Gyro Active'
-                        : 'Calibrate'}
-                </span>
-                {gyro.isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                )}
-              </button>
+              {gyro.isInsecureContext ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    triggerHud('Insecure HTTP: Android Chrome requires HTTPS. Use https:// link or "npm run dev:host"!', 3500);
+                  }}
+                  aria-label="Insecure HTTP Warning"
+                  title="Insecure HTTP: Android Chrome requires HTTPS. Use https:// link or 'npm run dev:host'!"
+                  className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-amber-700 bg-amber-100/90 border border-amber-300/80 rounded-full px-2 py-0.5 hover:bg-amber-200/90 active:scale-95 transition-all cursor-pointer"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <span>HTTPS Req.</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (gyro.permissionState === 'prompt') {
+                      gyro.requestPermission().then((granted) => {
+                        if (granted) {
+                          triggerHud('Gyro Enabled & Active');
+                        } else {
+                          triggerHud('Gyro Permission Denied');
+                        }
+                      });
+                    } else {
+                      gyro.recalibrate();
+                      triggerHud('Gyro Calibrated: 0°');
+                    }
+                  }}
+                  aria-label={gyro.permissionState === 'prompt' ? 'Enable Gyroscope' : 'Recalibrate Gyroscope baseline'}
+                  title={gyro.permissionState === 'prompt' ? 'Enable Gyroscope Tracking' : 'Recalibrate Gyroscope Baseline'}
+                  className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold hover:text-[#FF3F6C] active:scale-95 transition-all cursor-pointer"
+                >
+                  <Compass className={`w-3.5 h-3.5 text-[#FF4D6D] ${gyro.isActive ? 'animate-spin-slow' : ''}`} />
+                  <span>
+                    {gyro.permissionState === 'prompt'
+                      ? 'Enable Gyro'
+                      : gyro.permissionState === 'denied'
+                        ? 'Gyro Blocked'
+                        : gyro.isActive
+                          ? 'Gyro Active'
+                          : 'Calibrate'}
+                  </span>
+                  {gyro.isActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  )}
+                </button>
+              )}
 
               <div className="w-[1px] h-3 bg-stone-200" />
 
@@ -985,18 +1001,43 @@ export default function HeroSection({
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (gyro.isInsecureContext) {
+                    triggerHud('Insecure HTTP: Android Chrome requires HTTPS. Use https:// link or "npm run dev:host"!', 3500);
+                    return;
+                  }
+                  const willBeActive = !gyro.isGyroScrollActive;
                   gyro.toggleGyroScroll();
-                  triggerHud(!gyro.isGyroScrollActive ? 'Tilt Scroll: ON' : 'Tilt Scroll: OFF');
+                  if (willBeActive) {
+                    triggerHud('Tilt Scroll ON: Tilt phone forward to scroll down, backward to scroll up', 3000);
+                  } else {
+                    triggerHud('Tilt Scroll OFF: Screen locked, only character follows tilt', 2500);
+                  }
                 }}
                 aria-label="Toggle Gyro Tilt Scroll"
-                title={gyro.isGyroScrollActive ? 'Tilt Scroll: ON (Tilt device in any direction to scroll)' : 'Tilt Scroll: OFF'}
-                className={`text-[9px] sm:text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full transition-all cursor-pointer ${
+                title={
+                  gyro.isInsecureContext
+                    ? 'Insecure HTTP: Android Chrome requires HTTPS. Use https:// link or npm run dev:host!'
+                    : gyro.isGyroScrollActive
+                      ? 'Tilt Scroll: ON (Tilt device in any direction to scroll)'
+                      : 'Tilt Scroll: OFF'
+                }
+                className={`text-[9px] sm:text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full transition-all cursor-pointer flex items-center gap-1 ${
                   gyro.isGyroScrollActive
-                    ? 'bg-[#18181B] text-white shadow-2xs'
+                    ? `bg-[#18181B] text-white shadow-2xs ${gyro.activeScrollDir ? 'ring-1 ring-[#FF4D6D] animate-pulse' : ''}`
                     : 'bg-stone-100 text-stone-500 hover:text-[#18181B]'
                 }`}
               >
-                {gyro.isGyroScrollActive ? 'Scroll ON' : 'Scroll OFF'}
+                {!gyro.isGyroScrollActive
+                  ? 'Scroll OFF'
+                  : gyro.activeScrollDir?.includes('down')
+                    ? 'Scroll ON ↓'
+                    : gyro.activeScrollDir?.includes('up')
+                      ? 'Scroll ON ↑'
+                      : gyro.activeScrollDir?.includes('left')
+                        ? 'Scroll ON ←'
+                        : gyro.activeScrollDir?.includes('right')
+                          ? 'Scroll ON →'
+                          : 'Scroll ON'}
               </button>
             </div>
           )}
