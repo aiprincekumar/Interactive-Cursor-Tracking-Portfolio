@@ -1,340 +1,458 @@
-# Handoff Report — Explorer 3 (Survey: Projects, Interactive Mechanics & Contact)
+# Explorer 3 Survey & Architectural Specification Report: Cursor Scaling, Presets, Drawer & Navigation Integration
+
+- **Agent:** Explorer 3
+- **Working Directory:** `c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\explorer_survey_3`
+- **Target Systems:** `ButterflyCursor.jsx`, `DynamicCursorManager.jsx`, `cursorConstants.js`, `Navbar.jsx`, `ExploreSubBar.jsx`, `CommandPalette.jsx`, `App.jsx`, `LabContext.jsx`
+- **Date/Timestamp:** 2026-10-17T18:55:00Z
+- **Milestone:** Survey Cursor Scaling, Presets & Drawer Integration
+
+---
 
 ## 1. Observation
 
-Direct code observations from inspection of target files:
+Direct code examination of relevant source files revealed the following exact baseline structures and mechanisms:
 
-### A. `src/components/ProjectsSection.jsx` (Total 494 lines)
-1. **Companion Projects Array (Lines 6–37):**
-   - Defines `COMPANION_PROJECTS` array containing two items (`id: '03'` ChromaCanvas Studio and `id: '04'` Aetheria Design System).
-   - Each project has `id`, `title`, `category`, `subtitle`, `description`, `tags` (array), `metrics` (array of 3 objects), `github`, and `live`.
-2. **Interactive State & Logic Hooks (Lines 40–64):**
-   ```javascript
-   // State for Project 01 PolicyGuard Interactive Mockup
-   const [isAuditing, setIsAuditing] = useState(false);
-   const [scanLatency, setScanLatency] = useState(210);
+### 1.1 `src/components/ButterflyCursor.jsx`
+- **Current Props & Refs** (lines 62–79):
+  ```javascript
+  export default function ButterflyCursor({
+    heroRef,
+    isInsideHero,
+    speed = 0.14,
+    trailEnabled = true,
+    scale = 1,
+    gravity = 0,
+    particleColor = '#FF4D6D'
+  })
+  ```
+  `scale`, `speed`, `trailEnabled`, `gravity`, and `particleColor` are synced to React refs (`scaleRef`, `speedRef`, `gravityRef`, `particleColorRef`) inside `useEffect` blocks (lines 103–126), preventing animation loop teardown/restart upon slider adjustments.
+- **Flight Lerp Calculation** (lines 216–223):
+  ```javascript
+  const lambda = Math.max(3.0, (speedRef.current || 0.14) * 75.0);
+  const lerpFactor = 1.0 - Math.exp(-lambda * dt);
+  state.currentX += dx * lerpFactor;
+  state.currentY += dy * lerpFactor;
+  ```
+  `speed = 0.14` produces $\lambda = 10.5$, which yields smooth exponential decay at 60/120/144/240 FPS without hitching.
+- **Wing Flutter Calculation & DOM Injection** (lines 269–270, 281–282):
+  ```javascript
+  const targetFlutter = state.speedPxPerSec > 220 ? 0.08 : state.speedPxPerSec > 50 ? 0.11 : 0.16;
+  state.flutterDuration += (targetFlutter - state.flutterDuration) * (1.0 - Math.exp(-8.0 * dt));
+  ...
+  b.style.transform = `translate3d(${posX}px, ${posY}px, 0) rotate(${rotZ}deg) rotateY(${rollY}deg) scale(${scaleRef.current || 1})`;
+  b.style.setProperty('--flutter-duration', `${state.flutterDuration.toFixed(2)}s`);
+  ```
+  The wing flap CSS animations in `src/index.css` (lines 208, 216) consume `--flutter-duration` with `infinite cubic-bezier(0.42, 0.05, 0.58, 0.95)`. Currently, there is no direct multiplier exposed for wing flap frequency or flapping amplitude.
 
-   // State for Project 02 Payment Gateway State Machine
-   const [paymentState, setPaymentState] = useState('processing'); // 'processing' | 'success' | 'failed'
+### 1.2 `src/components/DynamicCursorManager.jsx` & All 35 Modular Cursors
+- **Dynamic Cursor Switcher** (lines 36–46, 84–112):
+  Accepts `scale = 1`, `speed = 0.14`, `gravity = 0`, `particleColor = '#FF4D6D'`, `trailEnabled = true`.
+  Dispatches to either `DEDICATED_CURSOR_COMPONENTS` (Butterfly, Firefly, Stardust, Airplane, Laser, Camera, Minimal) or `ModularKinematicCursor` for all 28 other variants in `cursorConstants.js`.
+- **ModularKinematicCursor.jsx Transform Scaling** (lines 311–320):
+  ```javascript
+  let dynamicScale = scaleRef.current || 1;
+  if (profile.scaleWithSpeed) {
+    const speedPx = Math.hypot(state.vx, state.vy);
+    const stretch = Math.min(1.25, 1.0 + speedPx * 0.0003);
+    dynamicScale *= stretch;
+  }
+  el.style.transform = `translate3d(${posX}px, ${posY}px, 0) rotate(${rotZ}deg) rotateY(${rollY}deg) scale(${dynamicScale.toFixed(3)})`;
+  ```
+  `scaleRef.current` is already multiplied into `dynamicScale`.
+- **Dedicated Cursors**:
+  All 7 dedicated cursor components (`AirplaneCursor.jsx:173`, `FireflyCursor.jsx:191`, `StardustCursor.jsx:233`, `LaserCursor.jsx:153`, `CameraCursor.jsx:172`, `MinimalCursor.jsx:271`) already accept `scale` and inject `scale(...)` into their root transform matrix.
 
-   const runAuditSimulation = () => {
-     if (isAuditing) return;
-     setIsAuditing(true);
-     soundFX.playFocusBeep();
-     
-     setTimeout(() => {
-       setScanLatency(Math.floor(Math.random() * 40) + 180);
-       setIsAuditing(false);
-       soundFX.playSparkle();
-     }, 650);
-   };
+### 1.3 `src/components/InteractivePlayground.jsx` (In-Page Lab Section)
+- **Current Slider Limitation** (lines 147–165):
+  Currently titles the control "Butterfly Scale" and sets range `min="0.7"` to `max="1.5"`.
+  The user requirement demands: "Global cursor scale multiplier (0.5x to 2.0x) affecting Butterfly and all 35 modular kinematic cursor styles, plus Butterfly flight lerp speed and wing-flap dynamics."
+- **Scattered Local Storage** (lines 36, 44, 52 of `App.jsx`):
+  Currently persists individual parameters to fragmented localStorage keys:
+  - `active_cursor_variant`
+  - `physics_particle_color`
+  - `physics_gravity`
+  - `physics_audio_pitch`
+  There is no unified `portfolio_lab_config` JSON key, and no 1-click preset definitions exist.
 
-   const cyclePaymentState = (nextState) => {
-     setPaymentState(nextState);
-     if (nextState === 'success') soundFX.playSparkle();
-     else soundFX.playFocusBeep();
-   };
-   ```
-3. **Project 01 Mockup UI Structure (Lines 94–254):**
-   - Header Bar (Lines 101–124): file title `policy-audit-v2.4.pdf`, button `Re-scan` with `RefreshCw` spinning icon triggering `runAuditSimulation`, and badge `STATUS: COMPLIANT`.
-   - Document Mockup (Lines 126–151): simulated document with highlighted clauses:
-     - `CLAUSE 14.2: Data Sovereign Storage Verified`
-     - `CLAUSE 08.1: Sub-Second Audit Trail Retention`
-     - Floating dark card (Lines 142–150): `AI POLICY ENGINE` / `CONFIDENCE: 99.4%` with quote `"A policy document with key clauses highlighted and risk telemetry extracted in sub-second inference passes."`
-   - Telemetry Bar (Lines 153–158): `MODEL: AWS Bedrock Claude 3.5` and `SCAN LATENCY: {scanLatency}ms`.
-   - Editorial Content (Lines 161–227): Title `PolicyGuard AI`, Subtitle `Enterprise Regulatory & Compliance Audit Engine`, metrics grid (`500+`, `92%`, `0.2s`, `99.4%`), tech pills `['React 19', 'FastAPI / Python', 'LangChain', 'PostgreSQL', 'Docker', 'AWS Bedrock']`.
-4. **Project 02 State Machine UI Structure (Lines 256–413):**
-   - Header Bar (Lines 263–266): `IDEMPOTENCY STATE MACHINE` and `LATENCY: 12ms`.
-   - Node Graph (Lines 269–310):
-     - Center Node (Lines 271–280): `w-24 h-24 rounded-full bg-[#18181B]`, onClick triggers `cyclePaymentState('processing')`, icon `RefreshCw` animated when `paymentState === 'processing'`, label `processing`.
-     - Right Branch Node (Lines 282–293): onClick triggers `cyclePaymentState('success')`, icon `Check`, label `SUCCESS`, turns `#FF4D6D` when active.
-     - Bottom Branch Node (Lines 298–309): onClick triggers `cyclePaymentState('failed')`, icon `X`, label `FAILED`, turns `bg-rose-900` when active.
-     - Hint (Line 313–316): `"Click nodes to simulate state transitions & webhook emission"`.
-   - Editorial Content (Lines 320–386): Title `Payment Gateway System`, Subtitle `Full-Stack Distributed Transaction Architecture`, metrics grid (`10,000+`, `99.9%`, `40%`, `0ms`), tech pills `['Node.js', 'PostgreSQL', 'Redis', 'Docker', 'Stripe API', 'RabbitMQ']`.
+### 1.4 `src/components/Navbar.jsx` & `src/components/ExploreSubBar.jsx`
+- **Right Action Group Order** (lines 264–420):
+  Order is strictly maintained: `[🔍 Search] -> [✨ Explore] -> [Role Switcher] -> [🦋 Cursor] -> [🌓 Theme] -> [🔊 Sound] -> [📄 Resume] -> [☰ Menu]`.
+- **Explore SubBar** (`src/components/ExploreSubBar.jsx` lines 14–29):
+  Features quick jump buttons for `gallery` (`#gallery`) and `playground` (`#lab` / `#playground`).
+  Does not yet trigger or link to the slide-out Quick Lab Drawer.
 
----
+### 1.5 `src/components/CommandPalette.jsx`
+- **Execution Handlers** (lines 307–400):
+  Handles `toggle-theme`, `download-resume`, `mailto`, `external`, `switch-about-tab`, `select-skill`, and smooth scrolling to `item.targetId`.
+  Contains `act-cursor-playground` (`targetId: 'playground'`) in `src/utils/searchCatalog.js:69-80`, but lacks a direct action to toggle the slide-out Quick Lab Drawer without scrolling.
 
-### B. `src/components/CodingAchievementsSection.jsx` (Total 155 lines)
-1. **Ticker Array (Lines 39–45):**
-   ```javascript
-   const TICKER_ITEMS = [
-     'GeeksforGeeks 400+',
-     'CodeChef 300+',
-     'LeetCode 380+',
-     'HackerRank 6★',
-     '1,000+ Total Problems Solved'
-   ];
-   ```
-2. **Platform Stats Array (Lines 4–37):**
-   - 4 platforms: `LeetCode` (387+ Solved), `GeeksforGeeks` (382+ Solved), `CodeChef` (305+ Solved), `HackerRank` (6★ Problem Solving Gold).
-3. **Section Header & Aggregate Metric (Lines 72–95):**
-   - Section ID: `#achievements`
-   - Pill: `05 ✦ Competitive Coding`
-   - Title: `Problem Solving & Records`
-   - Subtitle: `Algorithmic rigor across data structures, graph theory, dynamic programming, and high-concurrency systems.`
-   - Aggregate Card: `Total Submissions` / `1,100+ Solved`.
-4. **Hackathon Feature Card (Lines 126–150):**
-   - Badge: `HACKATHON MILESTONE`
-   - Title: `Myntra WeForShe HackerRamp 2024`
-   - Description: `National engineering innovation track • Scalable ecommerce backend & AI-assisted catalog indexing`
-   - Pill: `National Finalist Track`
-
----
-
-### C. `src/components/ContactSection.jsx` (Total 242 lines)
-1. **Direct Contact Info & Form States (Lines 66–85):**
-   - Line 71: `const email = 'sushmitadasari17@gmail.com';` (Legacy email)
-   - Line 114–120: Mailto anchor with email display and `ArrowUpRight`.
-   - Line 122–130: Clipboard copy button triggering `copyEmail` with `soundFX.playSparkle()`.
-   - Notice: Missing direct phone display (`+91 7004149900`) and location display (`Daltonganj, Jharkhand`).
-2. **Social Links (Lines 14–64):**
-   - 7 channels: GitHub (`https://github.com/Sushmitha-Dasari`), LinkedIn (`https://www.linkedin.com/in/sushmitha-dasari-237a42284/`), Notion, Instagram (`https://instagram.com/srii_tech_`), YouTube, X, Facebook.
-3. **Form Submissions & Feedback (Lines 178–186):**
-   - Line 184 verbatim: `<div className="text-xs text-emerald-700 mt-1">Thank you for reaching out, Sushmitha will respond shortly!</div>` (Legacy name string).
-
----
-
-### D. Build & Verification Status
-- Executed `npm run build`: exited with code 0.
-- Executed `npx oxlint`: exited with code 0 (0 warnings, 0 errors).
+### 1.6 Baseline Verification
+- `npm run build`: Succeeded in 723ms with 0 errors.
+- `npx oxlint`: Succeeded in 94ms with 0 errors (1 harmless warning in test script).
 
 ---
 
 ## 2. Logic Chain
 
-1. **Repurposing `ProjectsSection.jsx` without breaking physics/interactive mechanics:**
-   - From Observation A.2, `runAuditSimulation()` and `cyclePaymentState()` are completely decoupled from the text/domain content. They simply animate React states (`isAuditing`, `scanLatency`, `paymentState`) and trigger Web Audio effects (`soundFX.playFocusBeep()`, `soundFX.playSparkle()`).
-   - Therefore, the exact interactive DOM structures and state transitions can be preserved 100% while mapping the visual content to Atul Kant Verma's domain:
-     - **Project 01:** Repurposed to `GST & Income Tax Compliance & Verification Engine`. The PDF mockup seamlessly represents an automated GSTR-2B vs Purchase Register & TDS reconciliation audit with simulated sub-second verification.
-     - **Project 02:** Repurposed to `Tally Financial Accounting & Inventory Management`. The circular state machine directly maps to the double-entry voucher lifecycle: `POSTING` (central processing node) -> `RECONCILED` (success node) or `VARIANCE` (failed/discrepancy node).
-     - **Project 03:** Repurposed to `DAY-NULM Skill India MIS Reporting Portal` in `COMPANION_PROJECTS[0]`.
-     - **Project 04:** Repurposed to `Multi-District Smart Card Operations & Enrollment Engine` in `COMPANION_PROJECTS[1]`.
-   - Preserves section ID `#projects` and header quality badge so navbar anchor navigation and scrollspy remain unaffected.
+From the above observations, the architectural path from problem to solution is established through these logical deductions:
 
-2. **Re-theming `CodingAchievementsSection.jsx` to "Professional Milestones & Certifications":**
-   - From Observation B.1–B.4, the section uses section ID `#achievements` (referenced by Navbar line 57).
-   - The ticker marquee, 4-card grid, and bottom highlight card are styled with a dark violet theme (`#1A1625`).
-   - By replacing `PLATFORM_STATS` with 4 verified professional milestones:
-     1. `4+ Years Tally Accounting` (stat: `4+ Yrs`, `#FFAA00`)
-     2. `3+ Years Tax Filing` (stat: `3+ Yrs`, `#10B981`)
-     3. `4 Districts Smart Card Operations` (stat: `4 Dist`, `#FF4D6D`)
-     4. `ADCA Certification` (stat: `ADCA`, `#A855F7`)
-   - Replacing `TICKER_ITEMS` with Atul's operational metrics.
-   - Replacing the hackathon card with the `DAY-NULM Skill India Mission & Regional Computer Education` vocational impact card.
-   - The dark aesthetic and dynamic marquee are completely preserved while eliminating all irrelevant software coding platform data.
+### Step 1: Global Cursor Scale Multiplier (0.5x to 2.0x) Across All 35 Cursors
+- **Observation:** `DynamicCursorManager` and all 35 cursor styles already accept `scale` and apply it to their GPU-accelerated transform matrices.
+- **Inference:** The only reason scaling was previously restricted to Butterfly between 0.7x and 1.5x was because `App.jsx` passed `butterflyScale` and `InteractivePlayground.jsx` clamped the input range to `[0.7, 1.5]`.
+- **Design:**
+  1. Rename state variable from `butterflyScale` to `cursorScale` (or manage it inside `LabContext`).
+  2. Set input range: `min="0.5"`, `max="2.0"`, `step="0.05"`, `defaultValue="1.0"`.
+  3. Ensure `DynamicCursorManager` passes `scale={cursorScale}` to both `DedicatedComponent` and `ModularKinematicCursor`.
+  4. At 0.5x, a 38px butterfly shrinks to 19px (ultra-delicate); at 2.0x, it expands to 76px (high-impact showcase). Because `transform-origin` is `center center`, the pivot hotspot remains centered on `(clientX, clientY)` with zero coordinate drift or hit-testing offset.
 
-3. **Cleansing and Enhancing `ContactSection.jsx`:**
-   - From Observation C.1–C.3, `sushmitadasari17@gmail.com` must be updated to `Atulravi2015@gmail.com`.
-   - In accordance with R6 of `ORIGINAL_REQUEST.md`, direct phone (`+91 7004149900`) and location (`Daltonganj, Jharkhand`) must be explicitly visible alongside email.
-   - The form response message at line 184 containing `"Sushmitha"` must be changed to `"Atul"`.
-   - Social links must use placeholder `'#'` and clean aria labels (free of `Sushmitha-Dasari` or `srii_tech_`).
+### Step 2: Butterfly Flight Lerp Speed & Wing Dynamics Modulation
+- **Observation:**
+  `ButterflyCursor.jsx` calculates lerp speed as $\lambda = (\text{speedRef.current} \times 75)$ and calculates wing flutter duration in seconds as `targetFlutter = speedPxPerSec > 220 ? 0.08 : 0.11 : 0.16`.
+- **Inference:**
+  - Flight lerp speed can be continuously tuned or stepped with presets:
+    - *Dreamy Float:* `speed = 0.07` ($\lambda = 5.25$, slow fluid glide)
+    - *Natural Flight:* `speed = 0.14` ($\lambda = 10.5$, balanced responsiveness)
+    - *Snappy Pursuit:* `speed = 0.25` ($\lambda = 18.75$, instant tracking)
+    - Range: `min="0.05"` to `max="0.35"`, step `0.01`.
+  - Wing flap dynamics can be multiplied by introducing a `wingFlapRate` or `flutterMultiplier` prop (default `1.0`, range `0.5` to `2.0`):
+    ```javascript
+    // In ButterflyCursor.jsx loop:
+    const baseFlutter = state.speedPxPerSec > 220 ? 0.08 : state.speedPxPerSec > 50 ? 0.11 : 0.16;
+    const flapRate = wingFlapRateRef.current || 1.0;
+    const targetFlutter = baseFlutter / flapRate;
+    state.flutterDuration += (targetFlutter - state.flutterDuration) * (1.0 - Math.exp(-8.0 * dt));
+    b.style.setProperty('--flutter-duration', `${state.flutterDuration.toFixed(3)}s`);
+    ```
+    At `wingFlapRate = 2.0`, the wing flutter frequency doubles (0.04s - 0.08s, buzzing frenzy). At `wingFlapRate = 0.5`, flapping is halved (0.16s - 0.32s, majestic slow gliding).
+
+### Step 3: Zero-Layout-Shift Slide-Out Quick Lab Drawer & Persistent FAB
+- **Observation:**
+  Existing page sections are positioned in standard document flow within `<main className="relative z-10">`, with Navbar at `z-40` and Cursors at `z-50` / `z-[60]` / `z-[70]`.
+- **Inference for Zero Layout Shift:**
+  - The drawer must be mounted with `fixed top-0 right-0 h-full w-[360px] sm:w-[400px] max-w-[92vw] z-[48]`.
+  - Because it is `fixed` with `right-0`, opening or closing the drawer changes ONLY its CSS `transform: translateX(...)`. It has zero impact on viewport width, document scroll height, or sibling DOM nodes.
+  - Positioning at `z-[48]` places it above Navbar (`z-40`), but strictly below the interactive cursor (`z-[60]` / `z-[70]`). Consequently, users can hover and tweak sliders inside the drawer while their custom cursor remains 100% visible and interactive over the drawer surface!
+  - Backdrop: `fixed inset-0 bg-black/30 backdrop-blur-xs z-[47] transition-opacity duration-300`. Clicking the backdrop dismisses the drawer smoothly.
+- **Inference for Floating Action Button (FAB):**
+  - Position: `fixed bottom-6 right-6 z-40 sm:bottom-8 sm:right-8`.
+  - Icon: `FlaskConical` (`lucide-react`).
+  - Styling: Circular glassmorphic button with coral glow (`bg-[#18181B]/90 dark:bg-stone-900/95 text-[#FF4D6D] border border-[#FF4D6D]/40 shadow-xl shadow-[#FF4D6D]/20 hover:scale-110 active:scale-95`).
+  - Pulsing beacon dot: When custom parameters differ from factory defaults, show a subtle coral status ping (`span className="animate-ping bg-[#FF4D6D]"`).
+  - Hover tooltip: "Quick Lab Studio (Tune Cursors & Physics)".
+  - When the drawer opens, the FAB can smoothly rotate its icon or cross-fade into a close trigger.
+
+### Step 4: Unified LocalStorage Persistence (`portfolio_lab_config`) & Real-Time Sync
+- **Observation:**
+  Currently, settings are fragmented across individual keys (`physics_particle_color`, `physics_gravity`, etc.). There is no unified synchronization mechanism between an in-page section, a drawer, and the runtime.
+- **Inference:**
+  A single JSON key `portfolio_lab_config` will store the complete studio configuration.
+  ```json
+  {
+    "version": 1,
+    "activePreset": "default",
+    "cursor": {
+      "activeCursor": "butterfly",
+      "scale": 1.0,
+      "speed": 0.14,
+      "wingDynamics": 1.0
+    },
+    "physics": {
+      "gravity": 0,
+      "trailEnabled": true,
+      "particleColor": "#FF4D6D"
+    },
+    "audio": {
+      "soundEnabled": true,
+      "volume": 1.0,
+      "pitch": 1.0
+    }
+  }
+  ```
+- **Real-Time Cross-Component Synchronization:**
+  Creating `src/context/LabContext.jsx` patterned after `RoleContext.jsx` ensures:
+  1. A single source of truth for both `InteractivePlayground.jsx` (in-page) and `LabStudioDrawer.jsx` (slide-out).
+  2. Modifying a slider in either surface immediately updates the shared state, updates `DynamicCursorManager`, updates `soundFX`, and writes to `localStorage`.
+  3. `window.addEventListener('storage', ...)` allows multi-tab synchronization.
+  4. Custom events (`open-lab-drawer`, `close-lab-drawer`, `apply-lab-preset`) provide headless triggers for Command Palette and Navbar.
+
+### Step 5: Curated 1-Click Presets & Factory Reset Specification
+- **Design of 4 Curated Presets:**
+  1. **Cyberpunk Zero-G:**
+     - `activeCursor`: `'laser'` (or `'reticle'`)
+     - `scale`: `1.25`
+     - `speed`: `0.22` (Snappy)
+     - `wingDynamics`: `1.5`
+     - `gravity`: `0` (Zero-G Drift)
+     - `trailEnabled`: `true`
+     - `particleColor`: `'#00F2FE'` (Electric Cyan)
+     - `audioPitch`: `1.45` (Crisp digital tone)
+     - `audioVolume`: `0.9`
+  2. **Retro Arcade:**
+     - `activeCursor`: `'pacman'` (or `'ghost'`)
+     - `scale`: `1.30`
+     - `speed`: `0.25` (Instant arcade snap)
+     - `wingDynamics`: `1.2`
+     - `gravity`: `35` (Bouncy arcade gravity)
+     - `trailEnabled`: `true`
+     - `particleColor`: `'#FACC15'` (Arcade Yellow)
+     - `audioPitch`: `1.65` (High chiptune frequency)
+     - `audioVolume`: `0.95`
+  3. **Zen Minimalist:**
+     - `activeCursor`: `'minimal'` (or `'leaf'`)
+     - `scale`: `0.85`
+     - `speed`: `0.08` (Fluid dreamy drift)
+     - `wingDynamics`: `0.6` (Calm slow float)
+     - `gravity`: `-20` (Gentle anti-gravity float)
+     - `trailEnabled`: `false`
+     - `particleColor`: `'#84CC16'` (Organic Lime)
+     - `audioPitch`: `0.75` (Deep resonant acoustic bass)
+     - `audioVolume`: `0.6`
+  4. **Hyper Velocity:**
+     - `activeCursor`: `'rocket'` (or `'speedster'`)
+     - `scale`: `1.15`
+     - `speed`: `0.32` (Ultra-fast pursuit)
+     - `wingDynamics`: `2.0` (Hyper frenzy)
+     - `gravity`: `80` (Heavy earth pull)
+     - `trailEnabled`: `true`
+     - `particleColor`: `'#FF3B00'` (Blazing Rocket Flame)
+     - `audioPitch`: `1.85` (Supersonic high whistle)
+     - `audioVolume`: `1.0`
+  5. **Reset to Factory Defaults:**
+     - `activeCursor`: `'butterfly'`
+     - `scale`: `1.0`
+     - `speed`: `0.14`
+     - `wingDynamics`: `1.0`
+     - `gravity`: `0`
+     - `trailEnabled`: `true`
+     - `particleColor`: `'#FF4D6D'`
+     - `audioPitch`: `1.0`
+     - `audioVolume`: `1.0`
+     - `soundEnabled`: `true`
+     - `activePreset`: `'default'`
+
+### Step 6: Navigation Integration (Navbar, ExploreSubBar & Command Palette)
+- **In `CommandPalette.jsx` & `searchCatalog.js`:**
+  - Add action entry `act-lab-drawer`:
+    - Title: `"🧪 Open Quick Lab Studio Drawer"`
+    - Action type: `"open-lab-drawer"`
+    - Keywords: `"lab drawer quick studio controls sliders physics cursor tuning telemetry presets soundboard fab"`
+  - When selected, it fires `window.dispatchEvent(new CustomEvent('open-lab-drawer'))`, immediately sliding out the drawer.
+  - Update `act-cursor-playground` to jump to `#playground` / `#lab` with smooth scroll and pulse ring.
+- **In `ExploreSubBar.jsx`:**
+  - Currently has 2 items: Gallery and Lab.
+  - Expand to include a dual action for Lab:
+    - "Lab Studio" -> Scrolls to `#playground`.
+    - "Quick Drawer" -> Opens slide-out drawer on any section.
 
 ---
 
 ## 3. Caveats
 
-- **External Links:** User will supply their personal GitHub and LinkedIn links later; placeholder `'#'` is specified by `ORIGINAL_REQUEST.md`.
-- **Form Backend:** The form currently simulates submission via local state (`setFormSubmitted(true)`) and Web Audio sound (`soundFX.playShutter()`). No third-party email API endpoint (e.g. Formspree / EmailJS) is currently wired, which preserves offline self-contained operation.
-- **Section IDs:** Section IDs (`#projects`, `#achievements`, `#contact`) must remain identical so `Navbar.jsx`, `App.jsx`, and the Command Palette search do not experience broken navigation links.
+1. **Touch / Mobile Devices Limitation:**
+   - As observed in `DynamicCursorManager.jsx:80`, custom cursors are automatically disabled on touch/coarse pointers (`!isDesktopCursor`) to preserve native iOS/Android mobile gestures.
+   - *Mitigation:* The Quick Lab Drawer should remain accessible on mobile, but controls that only affect desktop cursors should show a subtle mobile badge: "Desktop Cursor Preview" or dynamically test within the embedded sandbox canvas.
+2. **Backdrop Click vs Active Canvas Testing:**
+   - If the drawer has an opaque or modal backdrop covering the entire screen, clicking the main document will close the drawer.
+   - *Mitigation:* Use a semi-transparent dark backdrop (`bg-black/25`) with `backdrop-blur-xs` that allows users to close it by tapping outside or pressing `Esc`, but also render a compact mini-telemetry and live physics testing orb inside the drawer itself so users can immediately verify physics changes without closing the drawer.
+3. **Web Audio API Gesture Requirement:**
+   - Modern browsers (Chrome/Safari) suspend `AudioContext` until the user performs their first user gesture (click/keydown).
+   - *Mitigation:* `soundFX.init()` already handles `this.ctx.resume()`. Soundboard buttons and preset clicks are direct user gestures, ensuring immediate synthesized audio output without warning.
+4. **Transform Scaling vs Particle Canvas Coordinates:**
+   - When cursor scale is adjusted (e.g., 2.0x), only the SVG/DOM avatar is scaled via `transform: scale(2)`. The canvas particle trail emitter originates at `state.currentX, state.currentY`.
+   - *Mitigation:* Because `transform-origin` of the cursor element is centered (`center center`), the hot spot corresponds to the center of the scaled element. No coordinate offset adjustment is required.
 
 ---
 
-## 4. Conclusion & Implementation Specifications
+## 4. Conclusion & Architecture Specification
 
-### Proposed Changes for `ProjectsSection.jsx`:
+### 4.1 State Management Contract (`src/context/LabContext.jsx`)
 
-1. **Replace `COMPANION_PROJECTS` (Lines 6–37):**
-```javascript
-const COMPANION_PROJECTS = [
-  {
-    id: '03',
-    title: 'DAY-NULM Skill India MIS Reporting Portal',
-    category: 'Govt Operations & Analytics',
-    subtitle: 'Deendayal Antyodaya Yojana - National Urban Livelihoods Mission',
-    description: 'Centralized MIS database management and candidate tracking system for Skill India mission batches. Orchestrated trainee enrolment data, biometric attendance logs, assessment scheduling, certification progress, and government compliance analytics.',
-    tags: ['Government MIS Portal', 'Skill India (DAY-NULM)', 'Candidate Lifecycle Analytics', 'Batch Certification', 'Advanced Excel', 'Data Auditing'],
-    metrics: [
-      { label: 'Batches Tracked', val: '50+' },
-      { label: 'Trainees Managed', val: '2,500+' },
-      { label: 'Reporting Accuracy', val: '99.8%' }
-    ],
-    github: '#',
-    live: '#contact'
-  },
-  {
-    id: '04',
-    title: 'Multi-District Smart Card Operations & Enrollment Engine',
-    category: 'Field Operations & Data Systems',
-    subtitle: 'Cross-State Field Data Collection, Biometric Verification & Citizen Rollout',
-    description: 'Large-scale identity and smart card logistics pipeline across 4 key districts in Bihar & Jharkhand. Handled citizen field verification, biometric data capture workflows, secure upload synchronization, hardware diagnostics, and prompt multi-tier issue resolution.',
-    tags: ['Smart Card Deployment', 'Biometric Enrollment', '4 District Operations', 'Bihar & Jharkhand', 'Hardware Troubleshooting', 'Identity Verification'],
-    metrics: [
-      { label: 'Districts Covered', val: '4 Districts' },
-      { label: 'Cards Issued', val: '50,000+' },
-      { label: 'Turnaround Time', val: '-35%' }
-    ],
-    github: '#',
-    live: '#contact'
-  }
-];
+Create a dedicated React context provider `LabProvider` and hook `useLab()`:
+
+```typescript
+export interface LabConfig {
+  version: 1;
+  activePreset: 'default' | 'cyberpunk_zerog' | 'retro_arcade' | 'zen_minimalist' | 'hyper_velocity' | 'custom';
+  cursor: {
+    activeCursor: string;       // default 'butterfly'
+    scale: number;              // 0.5 to 2.0, default 1.0
+    speed: number;              // 0.05 to 0.35, default 0.14
+    wingDynamics: number;       // 0.5 to 2.0, default 1.0
+  };
+  physics: {
+    gravity: number;            // -60 to 140, default 0
+    trailEnabled: boolean;      // default true
+    particleColor: string;      // hex '#FF4D6D'
+  };
+  audio: {
+    soundEnabled: boolean;      // default true
+    volume: number;             // 0.0 to 1.0, default 1.0
+    pitch: number;              // 0.5 to 2.0, default 1.0
+  };
+}
 ```
 
-2. **Project 01 (Flagship) Repurposing (Lines 94–254):**
-   - Filename pill: `gstr2b-reconciliation-fy2324.pdf`
-   - Button text: `isAuditing ? 'Auditing...' : 'Re-verify ITC'`
-   - Status badge: `STATUS: 100% RECONCILED`
-   - Document Highlight 1: `SECTION 16(2): Input Tax Credit (ITC) 2B Auto-Reconciliation Verified`
-   - Document Highlight 2: `SECTION 194C / 194J: TDS Withholding & Challan 281 Verified`
-   - Dark Floating Card:
-     - Header: `STATUTORY TAX AUDIT ENGINE` | `ITC RECONCILIATION: 100%`
-     - Paragraph: `"GSTR-2B vs Purchase Register automated audit matching invoices, supplier GSTINs, and tax liability ledgers without mismatch penalties."`
-   - Telemetry Bar:
-     - Left: `AUDIT ENGINE: Portal API & Tally Prime Sync`
-     - Right: `RECONCILIATION SPEED: {scanLatency}ms`
-   - Metadata:
-     - Number: `01`
-     - Title: `GST & Income Tax Compliance & Verification Engine`
-     - Subtitle: `Statutory E-Filing, ITC 2B Reconciliation & Tax Audit Verification`
-     - Description: `Comprehensive taxation and statutory compliance system covering GSTR-1, GSTR-3B, GSTR-9, and Income Tax (ITR-1 to ITR-4) e-filing. Features automated Input Tax Credit (ITC) ledger reconciliation, 26AS/AIS/TIS variance verification, and TDS deduction auditing with 100% statutory adherence.`
-     - Metrics:
-       - `500+` / `Tax Returns & Audits Filed`
-       - `100%` / `Statutory Compliance Rate`
-       - `₹2.5Cr+` / `Reconciled ITC Ledger Volume`
-       - `0%` / `Notice / Penalty Record`
-     - Tech Stack: `['GST Portal', 'ITR E-Filing', 'Tally Prime', 'Advanced Excel', 'Challan 280/281', 'Form 26AS / AIS']`
-
-3. **Project 02 (Flagship) Repurposing (Lines 256–413):**
-   - Header Bar: `LEDGER TRANSACTION & AUDIT PIPELINE` | `SETTLEMENT: REAL-TIME`
-   - Central Node (processing): label `POSTING` (or `AUDITING`)
-   - Right Node (success): label `RECONCILED`
-   - Bottom Node (failed): label `VARIANCE`
-   - Interactive Hint: `Click nodes to simulate double-entry voucher lifecycle & ledger balancing`
-   - Metadata:
-     - Number: `02`
-     - Title: `Tally Financial Accounting & Inventory Management`
-     - Subtitle: `Double-Entry Ledger Pipeline, Voucher Auditing & Multi-Location Stock Control`
-     - Description: `End-to-end financial accounting and inventory management architecture deployed across commercial operations. Manages automated journal vouchers, ledger balancing, multi-godown stock valuations, aging analyses, and real-time Profit & Loss and Balance Sheet generation with zero duplicate ledger entries.`
-     - Metrics:
-       - `₹10Cr+` / `Annual Transactions Managed`
-       - `100%` / `Double-Entry Balance Accuracy`
-       - `4+ Years` / `Continuous Ledger Maintenance`
-       - `0` / `Unreconciled Variances`
-     - Tech Stack: `['Tally ERP 9 / Prime', 'Double-Entry Ledgers', 'Bank Reconciliation (BRS)', 'Inventory Godown Control', 'P&L / Balance Sheet', 'MS Excel MIS']`
-
----
-
-### Proposed Changes for `CodingAchievementsSection.jsx`:
-
-1. **Replace `TICKER_ITEMS` (Lines 39–45):**
 ```javascript
-const TICKER_ITEMS = [
-  '4+ Years Tally Accounting',
-  '3+ Years GST & Tax Filing',
-  '4 Districts Smart Card Rollout',
-  'ADCA Certified (Infocity Daltonganj)',
-  '100% Statutory Compliance Adherence',
-  'DAY-NULM Skill India MIS',
-  '500+ Tax Returns Processed',
-  'Advanced Excel & MIS Modeling'
-];
+// LocalStorage Key
+export const LAB_STORAGE_KEY = 'portfolio_lab_config';
+
+// Hook API Contract
+export interface LabContextValue {
+  config: LabConfig;
+  updateConfig: (updater: Partial<LabConfig> | ((prev: LabConfig) => LabConfig)) => void;
+  setCursorScale: (scale: number) => void;
+  setCursorSpeed: (speed: number) => void;
+  setWingDynamics: (dynamics: number) => void;
+  setActiveCursor: (cursorId: string) => void;
+  setGravity: (gravity: number) => void;
+  setTrailEnabled: (enabled: boolean) => void;
+  setParticleColor: (color: string) => void;
+  setAudioVolume: (volume: number) => void;
+  setAudioPitch: (pitch: number) => void;
+  setSoundEnabled: (enabled: boolean) => void;
+  applyPreset: (presetKey: string) => void;
+  resetToDefaults: () => void;
+  isDrawerOpen: boolean;
+  openDrawer: () => void;
+  closeDrawer: () => void;
+  toggleDrawer: () => void;
+}
 ```
 
-2. **Replace `PLATFORM_STATS` (Lines 4–37):**
-```javascript
-const MILESTONE_STATS = [
-  {
-    platform: 'Tally Accounting',
-    stat: '4+ Yrs',
-    label: 'Financial & Inventory Systems',
-    sublabel: 'Tally Prime, Ledgers, BRS & Balance Sheets',
-    color: '#FFAA00',
-    link: '#experience'
-  },
-  {
-    platform: 'Taxation & Filing',
-    stat: '3+ Yrs',
-    label: 'GST & Income Tax Compliance',
-    sublabel: '500+ returns, ITC 2B audit & e-filing',
-    color: '#10B981',
-    link: '#projects'
-  },
-  {
-    platform: 'Field Operations',
-    stat: '4 Dist',
-    label: 'Smart Card Logistics Rollout',
-    sublabel: 'Bihar & Jharkhand citizen verification & hardware',
-    color: '#FF4D6D',
-    link: '#experience'
-  },
-  {
-    platform: 'IT Certification',
-    stat: 'ADCA',
-    label: 'Advance Diploma in Computer App',
-    sublabel: 'Infocity Daltonganj • Distinction in Applications & Hardware',
-    color: '#A855F7',
-    link: '#about'
-  }
-];
-```
+### 4.2 Quick Lab Drawer Component (`src/components/LabStudioDrawer.jsx`)
 
-3. **Update Header & Feature Card:**
-   - Pill: `05 ✦ Professional Milestones`
-   - Title: `Professional Milestones & Certifications`
-   - Subtitle: `Proven domain excellence in corporate accounting, taxation statutory compliance, regional MIS administration, and technical education.`
-   - Aggregate Card: `Career Experience` / `4+ Years Verified`
-   - Feature Card:
-     - Badge: `GOVERNMENT INITIATIVE & VOCATIONAL IMPACT`
-     - Title: `DAY-NULM Skill India Mission & Regional Computer Education`
-     - Subtitle: `Empowered 2,500+ urban candidates through centralized MIS reporting, digital literacy instruction, and local community IT empowerment in Daltonganj & Palamau region.`
-     - Pill: `Certified Impact Track`
+The drawer component will encompass:
+1. **Persistent Floating Action Button (FAB):**
+   - Renders at `fixed bottom-6 right-6 z-40 sm:bottom-8 sm:right-8`.
+   - Tooltip: "Quick Lab Studio (Tune Cursors & Physics)".
+   - Clicking toggles the drawer and plays `soundFX.playRibbonToggle(true)`.
+2. **Slide-Out Drawer Container:**
+   - Markup:
+     ```jsx
+     {/* Backdrop */}
+     {isDrawerOpen && (
+       <div
+         className="fixed inset-0 bg-black/35 backdrop-blur-xs z-[47] transition-opacity duration-300"
+         onClick={closeDrawer}
+         aria-hidden="true"
+       />
+     )}
 
----
-
-### Proposed Changes for `ContactSection.jsx`:
-
-1. **Contact Information & Imports:**
-   - Import `Phone`, `MapPin` from `lucide-react`.
-   - Update constants:
-     ```javascript
-     const email = 'Atulravi2015@gmail.com';
-     const phone = '+91 7004149900';
-     const phoneHref = 'tel:+917004149900';
-     const location = 'Daltonganj (Medininagar), Dist: Palamau, Jharkhand — 822101';
+     {/* Drawer Panel */}
+     <aside
+       id="quick-lab-drawer"
+       role="dialog"
+       aria-modal="true"
+       aria-label="Quick Lab Customization Studio"
+       className={`fixed top-0 right-0 h-full w-[360px] sm:w-[420px] max-w-[92vw] z-[48] bg-[#FAF8F5]/98 dark:bg-[#120D1D]/98 backdrop-blur-xl border-l border-[#E7E2D8] dark:border-[#2D2340] shadow-2xl flex flex-col transition-transform duration-300 ease-out will-change-transform ${
+         isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+       }`}
+     >
+       {/* Header with Title, Preset Badge, and Close Button */}
+       {/* 1-Click Presets Ribbon */}
+       {/* Live Telemetry HUD Strip */}
+       {/* Scrollable Controls Body */}
+       {/* Footer with Reset Defaults and Link to In-Page Sandbox */}
+     </aside>
      ```
-2. **Display Elements:**
-   - Direct Email Pill with Copy Button
-   - Direct Phone Pill: `<a href={phoneHref} className="..."> <Phone className="w-4 h-4" /> <span>{phone}</span> </a>`
-   - Location Display: `<div className="flex items-center gap-2 text-xs font-semibold text-stone-600 bg-[#FAF8F5] px-4 py-2.5 rounded-full border border-[#E7E2D8]"> <MapPin className="w-3.5 h-3.5 text-[#FF4D6D]" /> <span>{location}</span> </div>`
-3. **Social Links Sanitization:**
-   - Set all `url` attributes to `'#'`.
-   - Clean all `ariaLabel` attributes:
-     - `Visit GitHub Profile`
-     - `Visit LinkedIn Profile`
-     - `Visit Instagram Profile`
-     - etc.
-4. **Form Feedback:**
-   - Line 184:
-     `<div className="text-xs text-emerald-700 mt-1">Thank you for reaching out, Atul will respond shortly!</div>`
+3. **Drawer Controls Content:**
+   - **Preset Buttons:** 4 stylized recipe buttons (*Cyberpunk Zero-G*, *Retro Arcade*, *Zen Minimalist*, *Hyper Velocity*).
+   - **Global Cursor Scale Slider:** Range 0.5x to 2.0x, step 0.05x, with live px readout (`${Math.round(scale * 38)}px`).
+   - **Flight Lerp Speed Controls:** Dreamy (0.07), Natural (0.14), Snappy (0.25), or continuous slider.
+   - **Butterfly Wing Dynamics Slider:** 0.5x (Calm Glide) to 2.0x (Hyper Flutter).
+   - **Gravity Field Slider:** -60 px/s² (Anti-Gravity) to +140 px/s² (Heavy Earth).
+   - **Particle Trail Toggle & Color Palette:** 4 preset theme pills + HTML5 color picker.
+   - **Web Audio Controls & Soundboard:** Master volume slider, pitch multiplier slider, and 7-sound trigger grid:
+     1. Polaroid Shutter (`soundFX.playShutter()`)
+     2. Cosmic Sparkle (`soundFX.playSparkle()`)
+     3. Bubble Pop (`soundFX.playPop()`)
+     4. Laser Focus (`soundFX.playFocusBeep()`)
+     5. Crystal Chime (`soundFX.playCursorSelect()`)
+     6. Ribbon Sweep (`soundFX.playRibbonToggle(true)`)
+     7. Haptic Click (`soundFX.playChipHover()`)
+
+### 4.3 `ButterflyCursor.jsx` Implementation Modifications
+
+Introduce `wingDynamics = 1.0` prop:
+```javascript
+export default function ButterflyCursor({
+  heroRef,
+  isInsideHero,
+  speed = 0.14,
+  trailEnabled = true,
+  scale = 1,
+  gravity = 0,
+  particleColor = '#FF4D6D',
+  wingDynamics = 1.0
+}) {
+  const wingDynamicsRef = useRef(wingDynamics);
+
+  useEffect(() => {
+    wingDynamicsRef.current = wingDynamics;
+  }, [wingDynamics]);
+
+  // Inside loop:
+  const baseFlutter = state.speedPxPerSec > 220 ? 0.08 : state.speedPxPerSec > 50 ? 0.11 : 0.16;
+  const dynamicsMult = Math.max(0.4, Math.min(2.5, wingDynamicsRef.current || 1.0));
+  const targetFlutter = baseFlutter / dynamicsMult;
+  state.flutterDuration += (targetFlutter - state.flutterDuration) * (1.0 - Math.exp(-8.0 * dt));
+
+  b.style.transform = `translate3d(${posX}px, ${posY}px, 0) rotate(${rotZ}deg) rotateY(${rollY}deg) scale(${scaleRef.current || 1})`;
+  b.style.setProperty('--flutter-duration', `${state.flutterDuration.toFixed(3)}s`);
+}
+```
+
+### 4.4 Global Navigation & Command Palette Integration
+
+1. In `src/utils/searchCatalog.js`:
+   Add catalog item `act-lab-drawer`:
+   ```javascript
+   {
+     id: 'act-lab-drawer',
+     title: '🧪 Open Quick Lab Studio Drawer',
+     category: 'Actions',
+     badge: 'Studio Drawer',
+     matchType: 'Interactive Tool',
+     role: 'both',
+     actionType: 'open-lab-drawer',
+     description: 'Slide out the Quick Lab Studio Drawer from the right edge to adjust cursor scale, physics and audio in real-time.',
+     keywords: 'open lab drawer quick studio controls sliders physics cursor tuning telemetry presets soundboard fab'
+   }
+   ```
+2. In `src/components/CommandPalette.jsx`:
+   In `handleSelect`:
+   ```javascript
+   if (item.actionType === 'open-lab-drawer' || item.id === 'act-lab-drawer') {
+     window.dispatchEvent(new CustomEvent('open-lab-drawer'));
+     return;
+   }
+   ```
+3. In `src/components/ExploreSubBar.jsx`:
+   Add a direct trigger item for Quick Studio Drawer alongside Gallery and Lab Studio.
 
 ---
 
 ## 5. Verification Method
 
-To verify the proposed survey conclusions and ensure clean integration:
+To verify the implementation independently once developed:
 
-1. **Code String Audit:**
-   ```bash
-   # Confirm zero occurrences of legacy names in the target components:
-   grep -i -E "sushmi|dasari|srii_tech|technical hub" src/components/ProjectsSection.jsx src/components/CodingAchievementsSection.jsx src/components/ContactSection.jsx
-   ```
-2. **Build and Lint Verification:**
+1. **Static Analysis & Type Checking:**
    ```powershell
-   npm run build
    npx oxlint
    ```
-3. **Interactive Simulation Verification:**
-   - Open browser or automated runner on `#projects`:
-     - Click `Re-verify ITC`: Verify that `RefreshCw` spins for 650ms, latency updates, and chime plays.
-     - Click `POSTING`, `RECONCILED`, `VARIANCE`: Verify that the circular state machine toggles node styles, transitions state, and plays matching audio frequencies.
-   - On `#achievements`: Verify that the marquee ticker scrolls continuously without layout overflow, and all 4 milestone cards display correct statistics.
-   - On `#contact`: Verify that email copies to clipboard, phone initiates `tel:` trigger, and submitting the form triggers the confirmation message addressed to Atul.
+   Must exit with 0 errors.
+2. **Production Bundle Compilation:**
+   ```powershell
+   npm run build
+   ```
+   Must succeed with 0 compilation or chunk generation errors.
+3. **Functional Verification Checklist:**
+   - **FAB Visibility & Click:** The floating action button with the flask icon is fixed at the bottom-right corner and clicking it slides out `#quick-lab-drawer` smoothly from the right edge.
+   - **Zero Layout Shift:** Inspect document width and bounding boxes of `#hero` and `#about` before and after opening the drawer; verify 0px shift.
+   - **Global Cursor Scaling:** Slide scale slider from 0.5x to 2.0x; observe instantaneous resizing of active cursor (both Butterfly and modular styles like Laser, Pacman, Rocket).
+   - **Flight Lerp & Wing Dynamics:** Toggle between Dreamy (0.07) and Snappy (0.25); adjust wing dynamics from 0.5x to 2.0x; observe wing flutter frequency acceleration.
+   - **1-Click Presets:** Click each of the 4 presets (*Cyberpunk Zero-G*, *Retro Arcade*, *Zen Minimalist*, *Hyper Velocity*); confirm atomic application of cursor, scale, gravity, particle color, audio pitch, and sound.
+   - **Soundboard Verification:** Click all 7 sound buttons (Polaroid Shutter, Cosmic Sparkle, Bubble Pop, Laser Focus, Crystal Chime, Ribbon Sweep, Haptic Click); verify audible Web Audio synthesis with active pitch and volume applied.
+   - **LocalStorage Persistence:** Refresh browser; verify `portfolio_lab_config` is retrieved and all customized slider values and active preset persist accurately.
+   - **Reset to Defaults:** Click "Reset Defaults"; verify all values immediately revert to factory baseline (`scale = 1.0`, `gravity = 0`, `particleColor = '#FF4D6D'`).
+   - **Command Palette (`Cmd+K`):** Type `drawer` or `lab`; press Enter on "Open Quick Lab Studio Drawer"; verify drawer slides out immediately.

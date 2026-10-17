@@ -3,11 +3,14 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
+import { LabProvider } from './context/LabContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeProvider>
-      <App />
+      <LabProvider>
+        <App />
+      </LabProvider>
     </ThemeProvider>
   </StrictMode>,
 )

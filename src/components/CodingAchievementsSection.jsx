@@ -87,6 +87,48 @@ const MIS_TICKER_ITEMS = [
   'Cross-District Biometric Validation'
 ];
 
+const OVERVIEW_STATS = [
+  {
+    platform: 'Tax & Compliance',
+    stat: '500+',
+    label: 'Cumulative Returns Reconciled',
+    sublabel: 'GSTR-1, 3B, ITR & Section 115BAC',
+    icon: Database,
+  },
+  {
+    platform: 'Books & Ledger Audit',
+    stat: '100%',
+    label: 'Double-Entry Reconciliation Rate',
+    sublabel: 'Zero Discrepancy Books & BRS Audits',
+    icon: Server,
+  },
+  {
+    platform: 'MIS & Operations',
+    stat: '10,000+',
+    label: 'Records Analyzed & Governed',
+    sublabel: 'Multi-District Trainee & Citizen Registries',
+    icon: Database,
+  },
+  {
+    platform: 'Reporting Systems',
+    stat: '100+',
+    label: 'Automated Reports Generated',
+    sublabel: 'Executive Dashboards & DUDA Progress MIS',
+    icon: ShieldCheck,
+  },
+];
+
+const OVERVIEW_TICKER_ITEMS = [
+  '7+ Years Dual Executive Track',
+  '500+ Statutory Tax Returns Processed',
+  '10,000+ MIS Records Analyzed',
+  '100% Statutory Adherence Rate',
+  'Zero Penalty or Notice Incidence',
+  'DAY-NULM Skill India Mission MIS',
+  '4-District Biometric Validation',
+  'Corporate Ledger & Audit Governance'
+];
+
 const OTHER_STATS = [
   {
     platform: 'Advisory Governance',
@@ -130,12 +172,18 @@ const OTHER_TICKER_ITEMS = [
 ];
 
 export default function CodingAchievementsSection() {
-  const { activeRole, isAccountant, isMIS, isOther } = useRoleTab();
-  const currentRole = activeRole || (isOther ? 'other' : isMIS ? 'mis' : 'accountant');
+  const { isAccountant, isMIS, isOther } = useRoleTab();
+  const roleTabContext = useRoleTab();
+  const activeRole = roleTabContext?.activeRole || (isOther ? 'other' : isMIS ? 'mis' : 'accountant');
+  const isOverview = Boolean(roleTabContext?.isOverview || activeRole === 'overview');
+  const currentRole = activeRole;
 
   const activeStats = isOther ? OTHER_STATS : isMIS ? MIS_STATS : ACCOUNTANT_STATS;
   const activeTickerItems = isOther ? OTHER_TICKER_ITEMS : isMIS ? MIS_TICKER_ITEMS : ACCOUNTANT_TICKER_ITEMS;
-  const tickerSequence = Array(8).fill(activeTickerItems).flat();
+
+  const displayStats = isOverview ? OVERVIEW_STATS : activeStats;
+  const displayTickerItems = isOverview ? OVERVIEW_TICKER_ITEMS : activeTickerItems;
+  const tickerSequence = Array(8).fill(displayTickerItems).flat();
 
   return (
     <section id="achievements" className="py-24 bg-[#FAF8F5] dark:bg-[#0B0813] text-[#18181B] dark:text-[#F5F2F8] relative overflow-hidden select-none my-12 scroll-mt-28 border-y border-[#E7E2D8] dark:border-[#2D2340]">
@@ -164,15 +212,16 @@ export default function CodingAchievementsSection() {
           <div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#FFA4B6] text-xs font-bold uppercase tracking-wider mb-3 shadow-xs">
               <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />
-              05 ✦ Professional Milestones
+              05 ✦ Professional Milestones &bull; {isOverview ? 'Executive Overview' : isOther ? 'Corporate Controller & BI' : isMIS ? 'Data & MIS' : 'Accounting & Tax'}
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#18181B] dark:text-[#F5F2F8] tracking-tight font-['Outfit',sans-serif]">
               Professional Milestones &amp; Certifications
             </h2>
             <p className="mt-2 text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
-              {isAccountant && "Proven domain excellence in corporate bookkeeping, GST & Income Tax statutory compliance, and BRS audit precision."}
-              {isMIS && "Demonstrated leadership in executive reporting, database reconciliation, automated dashboards, and cross-district operational analytics."}
-              {isOther && "Proven multidisciplinary leadership uniting financial management, institutional MIS systems, and strategic enterprise administration."}
+              {isOverview && "Synthesized career milestones bridging statutory tax practice, audited ledger reconciliation, and public sector MIS database operations."}
+              {!isOverview && isAccountant && "Proven domain excellence in corporate bookkeeping, GST & Income Tax statutory compliance, and BRS audit precision."}
+              {!isOverview && isMIS && "Demonstrated leadership in executive reporting, database reconciliation, automated dashboards, and cross-district operational analytics."}
+              {!isOverview && isOther && "Proven multidisciplinary leadership uniting financial management, institutional MIS systems, and strategic enterprise administration."}
             </p>
           </div>
 
@@ -181,7 +230,7 @@ export default function CodingAchievementsSection() {
             <Trophy className="w-5 h-5 text-[#FF4D6D]" />
             <div>
               <div className="text-[11px] text-stone-500 dark:text-stone-400 font-mono uppercase">
-                {isOther ? 'Multidisciplinary Professional' : isMIS ? 'Data & Operations Analytics' : 'Statutory Tax Practice'}
+                {isOverview ? 'Dual Track Verified' : isOther ? 'Multidisciplinary Professional' : isMIS ? 'Data & Operations Analytics' : 'Statutory Tax Practice'}
               </div>
               <div className="text-lg font-black text-[#18181B] dark:text-white font-mono">
                 <AnimatedCounter
@@ -193,9 +242,22 @@ export default function CodingAchievementsSection() {
           </div>
         </div>
 
+        {/* AI-Synthesized Role Banner */}
+        {Boolean(isOther || activeRole === 'other') && (
+          <div className="mb-8 p-4 rounded-2xl bg-purple-50/90 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 shadow-xs flex items-center gap-3.5 text-purple-900 dark:text-purple-200">
+            <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 text-lg">
+              🤖
+            </div>
+            <div className="text-xs sm:text-sm font-medium leading-relaxed">
+              <span className="font-bold text-purple-700 dark:text-purple-300">🤖 AI-Synthesized Role (Derived from Verified Tracks):</span>{' '}
+              This specialized profile was synthesized by AI from verified Accountant (Statutory Finance) and MIS (Data Analytics &amp; Operations) competencies.
+            </div>
+          </div>
+        )}
+
         {/* Platform Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {activeStats.map((p) => {
+          {displayStats.map((p) => {
             const Icon = p.icon;
             return (
               <div
@@ -230,7 +292,32 @@ export default function CodingAchievementsSection() {
         </div>
 
         {/* Role-Specific Impact Highlight Banner */}
-        {isOther ? (
+        {isOverview ? (
+          <div className="bg-gradient-to-r from-white to-[#FAF8F5] dark:from-[#161122] dark:to-[#161122] rounded-3xl p-6 sm:p-8 border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 shrink-0">
+                <span className="text-xl">📊</span>
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-indigo-600 dark:text-indigo-400 font-bold">
+                  <Zap className="w-3 h-3 text-indigo-600 dark:text-indigo-400" /> DUAL EXECUTIVE TRACK &bull; FINANCE &amp; OPERATIONS
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#18181B] dark:text-[#F5F2F8] font-['Outfit',sans-serif] mt-0.5">
+                  Dual Domain Mastery: Certified Statutory Accounting &amp; Government MIS Systems
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 max-w-2xl">
+                  Synthesizing 7+ years of rigorous double-entry bookkeeping, GSTR compliance, and audited financial statements with large-scale public sector database management across 4 administrative districts.
+                </p>
+              </div>
+            </div>
+
+            <div className="shrink-0">
+              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 text-xs font-mono font-bold text-indigo-600 dark:text-indigo-300">
+                Dual Track Lead
+              </span>
+            </div>
+          </div>
+        ) : isOther ? (
           <div className="bg-gradient-to-r from-white to-[#FAF8F5] dark:from-[#161122] dark:to-[#161122] rounded-3xl p-6 sm:p-8 border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-[#FF4D6D] flex items-center justify-center text-white shadow-lg shadow-pink-600/30 shrink-0">

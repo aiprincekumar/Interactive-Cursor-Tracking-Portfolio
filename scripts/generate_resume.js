@@ -419,19 +419,26 @@ function generatePdfForRole(options) {
   ]);
 
   const targetPath = path.resolve('public', outputFilename);
+  const distPath = path.resolve('dist', outputFilename);
   try {
+    let needsWrite = true;
     if (fs.existsSync(targetPath)) {
       const existing = fs.readFileSync(targetPath);
       if (existing.equals(finalPdf)) {
         console.log(`public/${outputFilename} is already up-to-date (${finalPdf.length} bytes).`);
-        return;
+        needsWrite = false;
       }
     }
-    fs.writeFileSync(targetPath, finalPdf);
-    console.log(`Successfully wrote ${finalPdf.length} bytes to public/${outputFilename}`);
+    if (needsWrite) {
+      fs.writeFileSync(targetPath, finalPdf);
+      console.log(`Successfully wrote ${finalPdf.length} bytes to public/${outputFilename}`);
+    }
+    if (fs.existsSync(path.resolve('dist'))) {
+      fs.writeFileSync(distPath, finalPdf);
+    }
   } catch (err) {
     if (err.code === 'EBUSY') {
-      console.warn(`Notice: public/${outputFilename} is currently open in an active viewer. Existing file retained.`);
+      console.warn(`Notice: ${outputFilename} is currently open in an active viewer. Existing file retained.`);
     } else {
       throw err;
     }
@@ -744,9 +751,112 @@ const comprehensiveConfig = {
   ]
 };
 
-// Generate all three PDF files
+// -----------------------------------------------------------------------------
+// 4. BUSINESS INTELLIGENCE & CORPORATE CONTROLLER RESUME (resume-controller.pdf, Accent #8B5CF6: [0.545, 0.361, 0.965])
+// -----------------------------------------------------------------------------
+const controllerConfig = {
+  outputFilename: 'resume-controller.pdf',
+  accentRgb: [0.545, 0.361, 0.965], // Purple #8B5CF6
+  headerSubtitle: 'Business Intelligence & Corporate Controller  |  Financial Systems Specialist',
+  headerValueProp: 'Corporate Financial Controls  *  Power BI Fiscal Dashboards  *  ERP Automation & Audit',
+  badgeText: 'AI-SYNTHESIZED SPECIALIZATION',
+  badgeSubtext: 'Corporate Controller & BI Track',
+  badgeDossier: 'Financial Strategy & Executive Data Systems',
+  summaryLines: [
+    'Strategic, systems-driven Corporate Controller & Business Intelligence specialist synthesized from proven dual-domain',
+    'competencies in statutory accounting and executive MIS analytics. 7+ years track record designing Power BI fiscal models,',
+    'automating multi-entity ERP reconciliation pipelines (Tally Prime & Path Solution), enforcing balance sheet controls,',
+    'and executing end-to-end statutory audit readiness with zero compliance defects across public and private sectors.'
+  ],
+  technicalBadges: [
+    { isFull: true, label: 'Power BI Fiscal Dashboards & DAX' },
+    { isFull: false, left: 'ERP Automation', right: 'Tally Prime Suite' },
+    { isFull: false, left: 'Corporate Controls', right: 'Statutory Auditing' },
+    { isFull: true, label: 'Section 115BAC & Tax Optimization' },
+    { isFull: false, left: 'Advanced Excel', right: 'Automated BRS / ITC' },
+    { isFull: false, left: 'Financial Modeling', right: 'Executive Telemetry', extraGap: 3.0 }
+  ],
+  coreStrengths: [
+    { title: 'Corporate Controls', desc: 'Zero-defect balance sheet & ledger governance' },
+    { title: 'BI Fiscal Dashboards', desc: 'Power BI models with automated variance analysis' },
+    { title: 'ERP Data Pipelines', desc: 'Seamless multi-entity accounting automation' },
+    { title: 'Statutory Tax Strategy', desc: 'End-to-end GST, ITR & audit optimization' }
+  ],
+  summaryMetrics: [
+    '7+ Years Integrated Experience',
+    '₹5Cr+ Audited Ledger Volume',
+    '50+ Executive BI Dashboards',
+    '100% Statutory Audit Readiness',
+    'Zero Compliance Defects'
+  ],
+  experienceList: [
+    {
+      title: '1. Corporate Financial Controller & Tax Strategy Lead',
+      org: 'Strategic Corporate Advisory & Enterprise Accounts',
+      period: '2023 - PRESENT',
+      bullets: [
+        'Formulated corporate fiscal governance frameworks, internal control policies, and automated statutory tax audit pipelines.',
+        'Directed corporate direct/indirect tax strategy, Section 115BAC assessments, and multi-ledger reconciliation models.'
+      ],
+      coreFocus: 'Corporate Financial Controls  *  Tax Strategy  *  Internal Audit  *  Statutory Compliance'
+    },
+    {
+      title: '2. BI Systems Architect & Financial Operations Lead',
+      org: 'Enterprise Systems & Commercial Distribution',
+      period: '2021 - PRESENT',
+      bullets: [
+        'Architected real-time Power BI executive dashboards connecting ERP databases with operational gross margin analytics.',
+        'Engineered automated BRS and purchase-sales variance detection pipelines reducing monthly reconciliation latency by 80%.'
+      ],
+      coreFocus: 'Power BI Fiscal Dashboards  *  ERP Data Pipelines  *  Automated BRS  *  Variance Analytics'
+    },
+    {
+      title: '3. Executive Data & Enterprise Compliance Director',
+      org: 'Regional Operations & Institutional Governance',
+      period: '2018 - 2023',
+      bullets: [
+        'Governed multi-district compliance monitoring, biometric databases, and institutional audit trail verification across 4 districts.',
+        'Established quantitative reporting dossiers, automated risk telemetry, and statutory documentation pipelines.'
+      ],
+      coreFocus: 'Executive Data Systems  *  Compliance Governance  *  Multi-District Audit  *  SOP Controls'
+    },
+    {
+      title: '4. Lead Accountant - Junks Food Agency (Path Solution ERP)',
+      org: 'FMCG & Food Distribution Agency',
+      period: 'Commercial Agency',
+      bullets: [
+        'Supervised agency sales counter balancing, daily franchisee commercial billing, and vendor payment disbursement cycles.',
+        'Operated Path Solution ERP for real-time stock register maintenance, distribution tracking, and supplier settlements.'
+      ],
+      coreFocus: 'Path Solution ERP  *  FMCG Inventory  *  Franchisee Billing  *  Vendor Settlements'
+    },
+    {
+      title: '5. Senior Accountant & Tally Specialist',
+      org: 'Commercial Enterprise & Accounting Practice',
+      period: '7+ Years Experience',
+      bullets: [
+        'Maintained complete double-entry financial accounting in Tally Prime & ERP 9, multi-ledger postings, and bank reconciliations.',
+        'Supervised periodic inventory stock valuations, trial balance audits, vendor credit aging, and finalization of P&L and Balance Sheets.'
+      ],
+      coreFocus: 'Tally Prime & ERP 9  *  Double-Entry Ledgers  *  Trial Balance  *  Balance Sheets'
+    },
+    {
+      title: '6. MIS Executive - DAY-NULM Skill India Project',
+      org: 'National Urban Livelihoods Mission',
+      period: 'Govt. Contract',
+      bullets: [
+        'Spearheaded centralized MIS portal administration, candidate registration pipelines, and biometric verification data integrity.',
+        'Formulated weekly and monthly quantitative monitoring dossiers, compliance analytics, and district progress reports for executives.'
+      ],
+      coreFocus: 'Govt. MIS Portal  *  DAY-NULM Skill India  *  Biometric Verification  *  District Reports'
+    }
+  ]
+};
+
+// Generate all role-specific PDF files
 console.log('--- Generating Role-Specific & Comprehensive PDF Resumes ---');
 generatePdfForRole(accountantConfig);
 generatePdfForRole(misConfig);
 generatePdfForRole(comprehensiveConfig);
+generatePdfForRole(controllerConfig);
 console.log('--- PDF Generation Complete ---\n');

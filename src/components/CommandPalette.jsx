@@ -87,6 +87,7 @@ function getItemIcon(item, defaultIcon) {
   if (item.actionType === 'external' && item.id === 'act-maps') return MapPin;
   if (item.actionType === 'scroll' && item.targetId === 'playground') return Sliders;
   if (item.actionType === 'toggle-theme' || item.id === 'act-theme') return Sun;
+  if (item.actionType === 'switch-role') return Compass;
   if (item.category === 'Actions') return Zap;
   return defaultIcon;
 }
@@ -314,8 +315,18 @@ export default function CommandPalette({
     onClose();
     if (soundEnabled) soundFX.playFocusBeep();
 
-    // 1. Role Deep-Linking: Synchronize role state if item is role-specific
-    if (item.role && (item.role === 'accountant' || item.role === 'mis')) {
+    // 1. Role Deep-Linking & Switching: Synchronize role state if item is role-specific
+    if (item.actionType === 'switch-role' && item.role) {
+      if (onSelectRole) {
+        onSelectRole(item.role);
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('switch-role-tab', { detail: { role: item.role } }));
+      }
+      return;
+    }
+
+    if (item.role && ['overview', 'accountant', 'mis', 'other'].includes(item.role)) {
       if (onSelectRole) {
         onSelectRole(item.role);
       }
@@ -330,6 +341,15 @@ export default function CommandPalette({
         toggleTheme();
       } else if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('toggle-theme'));
+      }
+      return;
+    }
+
+    // 2b. Quick Action: Open Quick Lab Studio Drawer
+    if (item.actionType === 'open-lab-drawer' || item.id === 'act-lab-drawer') {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('portfolio:open-lab-drawer'));
+        window.dispatchEvent(new CustomEvent('open-lab-drawer'));
       }
       return;
     }
@@ -645,6 +665,17 @@ export default function CommandPalette({
                                 </span>
 
                                 {/* Track Affinity Role Badge */}
+                                {item.role === 'overview' && (
+                                  <span
+                                    className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0 ${
+                                      isSelected
+                                        ? 'bg-indigo-600 text-white shadow-xs'
+                                        : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800'
+                                    }`}
+                                  >
+                                    🧭 Overview
+                                  </span>
+                                )}
                                 {item.role === 'accountant' && (
                                   <span
                                     className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0 ${
@@ -665,6 +696,17 @@ export default function CommandPalette({
                                     }`}
                                   >
                                     📊 MIS
+                                  </span>
+                                )}
+                                {item.role === 'other' && (
+                                  <span
+                                    className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0 ${
+                                      isSelected
+                                        ? 'bg-purple-600 text-white shadow-xs'
+                                        : 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
+                                    }`}
+                                  >
+                                    🤖 Other ✨ AI
                                   </span>
                                 )}
                               </div>

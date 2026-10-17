@@ -24,11 +24,12 @@ function assert(condition, testName, details = '') {
 // ----------------------------------------------------
 // TEST 1: Role-Specific PDF Assets in public/
 // ----------------------------------------------------
-console.log('--- 1. VERIFY ALL THREE ROLE PDF ASSETS ---');
+console.log('--- 1. VERIFY ALL FOUR ROLE PDF ASSETS ---');
 const expectedPdfs = [
   { file: 'resume-accountant.pdf', minSize: 10000 },
   { file: 'resume-mis.pdf', minSize: 10000 },
-  { file: 'resume.pdf', minSize: 10000 }
+  { file: 'resume.pdf', minSize: 10000 },
+  { file: 'resume-controller.pdf', minSize: 10000 }
 ];
 
 expectedPdfs.forEach(({ file, minSize }) => {
@@ -58,6 +59,16 @@ const { getResumeConfig, RESUME_ROLE_CONFIG } = configModule;
 assert(typeof getResumeConfig === 'function', 'getResumeConfig is an exported function');
 assert(Boolean(RESUME_ROLE_CONFIG), 'RESUME_ROLE_CONFIG is exported');
 
+// Verify Overview Config
+const overviewConfig = getResumeConfig('overview');
+assert(overviewConfig.fileName === 'resume.pdf', 'Overview fileName is resume.pdf');
+assert(overviewConfig.downloadFilename === 'Atul_Verma_Overview_Resume.pdf', 'Overview downloadFilename is Atul_Verma_Overview_Resume.pdf');
+assert(overviewConfig.label === 'Overview Resume', 'Overview label is "Overview Resume"');
+assert(overviewConfig.badge === 'Executive Summary', 'Overview badge is "Executive Summary"');
+assert(overviewConfig.accent === '#6366F1', 'Overview accent is #6366F1');
+assert(typeof overviewConfig.getShareUrl === 'function', 'Overview has getShareUrl function');
+assert(overviewConfig.getShareUrl('https://atulverma.com').includes('role=overview'), 'Overview getShareUrl includes ?role=overview');
+
 // Verify Accountant Config
 const accConfig = getResumeConfig('accountant');
 assert(accConfig.fileName === 'resume-accountant.pdf', 'Accountant fileName is resume-accountant.pdf');
@@ -77,12 +88,12 @@ assert(misConfig.badge === 'Data & Operations', 'MIS badge is "Data & Operations
 assert(misConfig.accent === '#3B82F6', 'MIS accent is #3B82F6');
 assert(misConfig.getShareUrl('https://atulverma.com').includes('role=mis'), 'MIS getShareUrl includes ?role=mis');
 
-// Verify Other / Comprehensive Config
+// Verify Other / AI-Synthesized Controller Config
 const otherConfig = getResumeConfig('other');
-assert(otherConfig.fileName === 'resume.pdf', 'Other fileName is resume.pdf');
-assert(otherConfig.downloadFilename === 'Atul_Verma_Resume.pdf', 'Other downloadFilename is Atul_Verma_Resume.pdf');
-assert(otherConfig.label === 'Comprehensive Resume', 'Other label is "Comprehensive Resume"');
-assert(otherConfig.badge === 'Multidisciplinary', 'Other badge is "Multidisciplinary"');
+assert(otherConfig.fileName === 'resume-controller.pdf', 'Other fileName is resume-controller.pdf');
+assert(otherConfig.downloadFilename === 'Atul_Verma_BI_Corporate_Controller_Resume.pdf', 'Other downloadFilename is Atul_Verma_BI_Corporate_Controller_Resume.pdf');
+assert(otherConfig.label === 'Controller & BI Resume', 'Other label is "Controller & BI Resume"');
+assert(otherConfig.badge === 'AI-Synthesized Controller Track', 'Other badge is "AI-Synthesized Controller Track"');
 assert(otherConfig.accent === '#8B5CF6', 'Other accent is #8B5CF6');
 assert(otherConfig.getShareUrl('https://atulverma.com').includes('role=other'), 'Other getShareUrl includes ?role=other');
 

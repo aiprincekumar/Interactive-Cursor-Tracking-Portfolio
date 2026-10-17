@@ -5,6 +5,23 @@ import { soundFX } from '../utils/audio';
 export const STORAGE_KEY = 'portfolio_selected_role';
 export const DEFAULT_ROLE = 'accountant';
 
+export const OVERVIEW_ROLE = {
+  id: 'overview',
+  label: 'Overview',
+  shortLabel: 'Overview',
+  mobileLabel: 'Overview',
+  badge: 'Executive Summary',
+  description: 'Curated highlights from Financial & Data tracks — a combined executive portfolio view.',
+  accent: '#6366F1',
+  bgLight: 'bg-indigo-50',
+  borderLight: 'border-indigo-200',
+  tag: 'Executive Overview',
+  icon: 'LayoutDashboard',
+  heroTitle: 'Financial & Operations Executive.',
+  heroSubtitle: 'Bridging Statutory Accounting, Taxation & Advanced Data Intelligence.',
+  isOverview: true
+};
+
 export const PRIMARY_ROLES = [
   {
     id: 'accountant',
@@ -40,29 +57,38 @@ export const PRIMARY_ROLES = [
 
 export const OTHER_ROLE = {
   id: 'other',
-  label: 'Other',
-  shortLabel: 'Other',
-  mobileLabel: 'Other',
-  badge: 'Multidisciplinary Track',
-  description: 'Versatile skills across accounting, operations, business intelligence, and custom workflows.',
+  label: 'Other ✨ AI',
+  shortLabel: 'Other ✨ AI',
+  mobileLabel: 'Other ✨ AI',
+  badge: '🤖 AI-Synthesized Role (Derived from Verified Tracks)',
+  description: 'Business Intelligence & Corporate Controller — an AI-synthesized role derived from verified Accountant and MIS competency tracks.',
   accent: '#8B5CF6',
   bgLight: 'bg-purple-50',
   borderLight: 'border-purple-200',
-  tag: 'Multidisciplinary',
+  tag: 'BI & Corporate Control',
   icon: 'Sparkles',
   heroTitle: '',
   heroSubtitle: '',
-  isOther: true
+  specializationTitle: 'Business Intelligence & Corporate Controller.',
+  specializationSubtitle: 'Statutory Financial Strategy & Executive Data Systems.',
+  isOther: true,
+  isAISynthesized: true
 };
 
-export const ROLE_TRACKS = [...PRIMARY_ROLES, OTHER_ROLE];
+export const ROLE_TRACKS = [OVERVIEW_ROLE, ...PRIMARY_ROLES, OTHER_ROLE];
 
 export const ROLE_DATA = Object.fromEntries(ROLE_TRACKS.map(r => [r.id, r]));
 
 export const ROLE_TABS = ROLE_TRACKS;
 
+export function normalizeRole(role) {
+  if (!role || typeof role !== 'string') return null;
+  const cleaned = role.trim().toLowerCase();
+  return ROLE_DATA[cleaned] ? cleaned : null;
+}
+
 export function isValidRole(role) {
-  return Boolean(role && ROLE_DATA[role.toLowerCase()]);
+  return Boolean(normalizeRole(role));
 }
 
 export const RoleContext = createContext(null);
@@ -73,8 +99,8 @@ export function RoleProvider({ children, soundEnabled = true }) {
     if (typeof window !== 'undefined') {
       try {
         const params = new URLSearchParams(window.location.search);
-        const urlRole = params.get('role')?.toLowerCase();
-        if (isValidRole(urlRole)) {
+        const urlRole = normalizeRole(params.get('role'));
+        if (urlRole) {
           return urlRole;
         }
       } catch {
@@ -82,8 +108,8 @@ export function RoleProvider({ children, soundEnabled = true }) {
       }
 
       try {
-        const saved = localStorage.getItem(STORAGE_KEY)?.toLowerCase();
-        if (isValidRole(saved)) {
+        const saved = normalizeRole(localStorage.getItem(STORAGE_KEY));
+        if (saved) {
           return saved;
         }
       } catch {
@@ -98,17 +124,18 @@ export function RoleProvider({ children, soundEnabled = true }) {
     const opts = typeof options === 'string' ? { source: options } : options || {};
     const { playSound = true, updateUrl = true, force = false } = opts;
 
-    if (!isValidRole(newRole)) return;
+    const normalizedRole = normalizeRole(newRole);
+    if (!normalizedRole) return;
 
     setActiveRoleState((currentRole) => {
-      if (currentRole === newRole && !force) {
+      if (currentRole === normalizedRole && !force) {
         return currentRole;
       }
 
       // Persist to localStorage safely
       try {
         if (typeof window !== 'undefined') {
-          localStorage.setItem(STORAGE_KEY, newRole);
+          localStorage.setItem(STORAGE_KEY, normalizedRole);
         }
       } catch {
         // Ignore sandbox / quota errors
@@ -118,8 +145,16 @@ export function RoleProvider({ children, soundEnabled = true }) {
       if (updateUrl && typeof window !== 'undefined') {
         try {
           const url = new URL(window.location.href);
-          url.searchParams.set('role', newRole);
-          window.history.replaceState({ ...window.history.state, role: newRole }, '', url.toString());
+          url.searchParams.set('role', normalizedRole);
+          const safeState = (typeof window.history.state === 'object' && window.history.state !== null)
+            ? { ...window.history.state, role: normalizedRole }
+            : { role: normalizedRole };
+          try {
+            window.history.replaceState(safeState, '', url.toString());
+          } catch {
+            // Fallback: If safeState contains non-serializable properties, replace with minimal clean state
+            window.history.replaceState({ role: normalizedRole }, '', url.toString());
+          }
         } catch {
           // Ignore
         }
@@ -132,10 +167,10 @@ export function RoleProvider({ children, soundEnabled = true }) {
 
       // Outbound custom window event
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('portfolio-role-change', { detail: { role: newRole } }));
+        window.dispatchEvent(new CustomEvent('portfolio-role-change', { detail: { role: normalizedRole } }));
       }
 
-      return newRole;
+      return normalizedRole;
     });
   }, [soundEnabled]);
 
@@ -146,11 +181,18 @@ export function RoleProvider({ children, soundEnabled = true }) {
     const handlePopState = (e) => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const urlRole = params.get('role')?.toLowerCase();
-        if (isValidRole(urlRole)) {
+        const urlRole = normalizeRole(params.get('role'));
+        if (urlRole) {
           selectRole(urlRole, { playSound: false, updateUrl: false, force: true });
-        } else if (e.state?.role && isValidRole(e.state.role)) {
-          selectRole(e.state.role, { playSound: false, updateUrl: false, force: true });
+        } else if (e.state?.role) {
+          const stateRole = normalizeRole(e.state.role);
+          if (stateRole) {
+            selectRole(stateRole, { playSound: false, updateUrl: false, force: true });
+          } else {
+            selectRole(DEFAULT_ROLE, { playSound: false, updateUrl: false, force: true });
+          }
+        } else {
+          selectRole(DEFAULT_ROLE, { playSound: false, updateUrl: false, force: true });
         }
       } catch {
         // Ignore
@@ -166,8 +208,8 @@ export function RoleProvider({ children, soundEnabled = true }) {
     if (typeof window === 'undefined') return;
 
     const handleInboundSwitch = (e) => {
-      const targetRole = e.detail?.role?.toLowerCase();
-      if (isValidRole(targetRole)) {
+      const targetRole = normalizeRole(e.detail?.role);
+      if (targetRole) {
         selectRole(targetRole, { playSound: e.detail?.playSound ?? true });
       }
     };
@@ -181,11 +223,12 @@ export function RoleProvider({ children, soundEnabled = true }) {
     activeRole,
     setActiveRole: (role) => selectRole(role),
     selectRole,
-    activeTrack: ROLE_DATA[activeRole] || ROLE_TRACKS[0],
-    roleData: ROLE_DATA[activeRole] || ROLE_TRACKS[0],
+    activeTrack: ROLE_DATA[activeRole] || ROLE_DATA[DEFAULT_ROLE] || ROLE_TRACKS[0],
+    roleData: ROLE_DATA[activeRole] || ROLE_DATA[DEFAULT_ROLE] || ROLE_TRACKS[0],
     allRoles: ROLE_TRACKS,
     ROLE_TRACKS,
     ROLE_DATA,
+    isOverview: activeRole === 'overview',
     isAccountant: activeRole === 'accountant',
     isMIS: activeRole === 'mis',
     isMis: activeRole === 'mis',

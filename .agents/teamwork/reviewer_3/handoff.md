@@ -1,50 +1,79 @@
-# Handoff Report — reviewer_3 (Round 3 Final Mandatory Refinement & Adversarial QA)
+# Reviewer 3 Round 3 Handoff Report
 
-## 1. What I changed
-1. **`src/components/AboutSection.jsx`**:
-   - **Bidirectional Keyboard Loop (`ArrowUp` from Tabpanel):** Added `handlePanelKeyDown` on all 3 `role="tabpanel"` elements (`about-panel-story`, `about-panel-qualifications`, `about-panel-biodata`). When a keyboard user moves focus into the panel via `ArrowDown`, pressing `ArrowUp` on the focused panel safely returns programmatic focus (`btn.focus()` and smooth scroll) to the active tab button in `role="tablist"`, completing the full bidirectional WAI-ARIA APG Tabs keyboard loop.
-   - **Guaranteed Fallback Clipboard Cleanup (`finally` Block):** Wrapped DOM node removal (`textarea.parentNode.removeChild(textarea)`) in a guaranteed `finally` block inside `fallbackCopyText`. This prevents orphaned temporary textarea elements from accumulating in `document.body` if `document.execCommand('copy')` throws a browser security or permissions exception.
-   - **Warm Coral Design System Token Harmonization:** Replaced generic Tailwind styling `hover:bg-pink-50 border border-pink-100` on the address copy action button with the exact design tokens `hover:bg-[#FFF0F3] border border-[#FFD1DC]`, guaranteeing 100% aesthetic consistency with the rest of the portfolio.
-2. **`scripts/test_about_section.mjs`**:
-   - Added **Section 11: Adversarial Edge Cases & Bidirectional ARIA Navigation (Round 3)** with 5 new assertions testing:
-     - `handlePanelKeyDown` implementation for bidirectional panel-to-tablist navigation.
-     - `ArrowUp` key handling returning focus directly to the active tab button.
-     - `onKeyDown={handlePanelKeyDown}` wiring on all tab panels.
-     - Guaranteed `finally` DOM cleanup in `fallbackCopyText`.
-     - Strict adherence to `#FFF0F3` and `#FFD1DC` tokens on the address copy button.
-   - Test suite assertion count increased from 56 to 61 passing tests (0 failures).
-3. **Changes Log Governance (`changes_log/`)**:
-   - Logged new change `CHG-20261016-07` in `entries/2026-10-16/change_008_2026-10-16_04-15-00.md`.
-   - Updated `master/master_changes_log.md` with full entry and rollback details.
-   - Updated `daily/2026-10-16/daily_master_log.md` with daily total count (7) and entry summary.
-   - Updated `summary/changes_summary.md` table and overview metrics (total 39).
-   - Executed 10-file rolling FIFO shift in `recent_10/`, placing new record at `change_recent_01.md`.
+> [!WARNING] **Skepticism Disclaimer**
+> While automated unit, stress, boundary, fuzzy search, and production build suites pass with zero warnings and zero errors across 80 files, printer spooling and native browser PDF viewer execution are fundamentally dependent on third-party browser plugin permissions and sandbox constraints.
 
-## 2. Why
-- To eliminate any asymmetric keyboard traps between tablist and tabpanel, ensuring users navigating via keyboard can freely traverse into and out of tabpanels using standard directional keys.
-- To make clipboard fallback completely leak-proof against unhandled DOM mutations if browser permissions block synchronous copy execution.
-- To strictly adhere to the warm cream/coral design system by using designated design tokens across all interactive elements.
+---
 
-## 3. Verification Record
-- **Deep Verification (ran actual tests):**
-  - `npm run lint` (`oxlint`): 0 warnings, 0 errors across 39 files in 88ms.
-  - `npm run build` (`vite build`): Clean production build in 605ms with 0 errors.
-  - `node scripts/test_about_section.mjs`: 61 passed, 0 failed across all 11 test sections.
-  - `node scripts/test_milestone1_verification.mjs`: All 3 test suites passed (27 search items, 9 DOM targets, multi-token queries, keyboard wrapping boundaries).
-  - `node scripts/validate_pdf.js`: 100% PDF 1.4 verification passed with zero errors.
-- **Shallow Verification (manual run only):**
-  - Inspected DOM tree attributes: `role="tablist"`, `aria-orientation="horizontal"`, `role="tab"`, `aria-selected`, `aria-controls`, `role="tabpanel"`, `aria-labelledby`, `tabIndex={0}`, `onKeyDown={handlePanelKeyDown}`.
-  - Verified touch target dimensions (`min-h-[44px]`), mobile overflow scrolling (`overflow-x-auto no-scrollbar`), and baseline layout stability (`min-h-[560px]`).
-- **Unverified aspects:**
-  - Physical acoustic output through speaker hardware (verified synthetic Web Audio method calls and enabled guards via code/test assertions).
-  - Physical multi-touch drag gestures on physical iOS/Android devices (tested via mobile responsive styling and touch target dimensions).
+## 1. Executive Summary & Review Objectives
 
-## 4. Known Issues
-Prefix each with one of:
-- `Fatal Functional Bug` — None.
-- `Shallow Verification` — Plausibly works on physical iOS devices, but verified programmatically via WebKit selection range and touch target CSS rather than physical device hardware.
-- `Minor Robustness Risk` — If a browser completely disables JavaScript execution or disables both `navigator.clipboard` and `document.execCommand`, clipboard copy will fallback to visual confirmation without system clipboard mutation.
+In Round 3 review, I performed deep adversarial testing across boundary conditions, browser history transitions, non-standard state serialization, search catalog completeness, and PDF print fallback resilience. All discovered gaps were patched directly in the codebase and verified with automated test suites and production builds.
 
-## 5. Untested Edge Cases & Next Step
-- Verification of screen reader announcement sequence using NVDA or VoiceOver when navigating between tab buttons and pressing `ArrowDown`/`ArrowUp` into and out of the tab panel.
-- Physical audio check with external speakers turned on to confirm pleasant audible tone on tab switch and copy address.
+---
+
+## 2. Codebase Modifications (Reviewer 3)
+
+1. **`src/context/RoleContext.jsx`**:
+   - **PopState Default Role Reset:** Fixed a bug where browser backward navigation to root `/` without `?role=` query parameter or state left the active role on the previous selection. Popstate handler now strictly resets to `DEFAULT_ROLE` ('accountant').
+   - **Safe History State Serialization:** Added defensive `safeState` handling and a nested `try/catch` fallback in `selectRole`. If `window.history.state` contains non-cloneable objects, circular references, or hostile prototypes that violate the Structured Clone algorithm, it cleanly falls back to `{ role: normalizedRole }` without breaking URL query synchronization.
+2. **`src/components/ResumeDropdown.jsx`**:
+   - **Print Fallback Timer:** In modern browsers where embedded binary PDF loading inside an invisible iframe suppresses `iframe.onload`, the print dialog would previously hang silently. Added a `printTriggered` idempotency guard and a 1200ms fallback timer to ensure `doPrint()` executes reliably.
+3. **`src/components/RoleTabsBar.jsx`**:
+   - Hardened `accent` fallbacks across `floating-bar` and default section variants to explicitly resolve `#8B5CF6` for `other`, preventing any edge-case fallback to the accountant coral accent.
+4. **`src/utils/searchCatalog.js`**:
+   - Expanded search catalog to 71 items (+13 entries): indexed all 8 specialized Corporate Controller & BI skills, 2 featured projects, and 3 professional experiences with full keyword metadata, proper `role: 'other'` tagging, and verified `targetId` element bindings. Selecting any of these items from Command Palette automatically switches the active role to `other` and smoothly scrolls with a 2.5s glowing pulse.
+5. **`scripts/test_adversarial_review3.mjs`**:
+   - Authored a 7-suite adversarial test script verifying:
+     - Popstate reset to `DEFAULT_ROLE` on back navigation to root.
+     - Structured clone fallback on circular / non-object history state.
+     - Comprehensive search catalog indexing for the `other` role.
+     - Fuzzy search keyword resolution for Power BI, DAX, Corporate Controls, and Audit Trails.
+     - Accent resolution across all 4 tracks.
+     - ResumeDropdown print timer fallback.
+     - Initial visit default role invariant.
+6. **Rule 6 Project Audit Logs**:
+   - Created entry `changes_log/entries/2026-10-18/change_CHG-4ROLE-REVIEW3_2026-10-18_03-55-00.md`.
+   - Updated `changes_log/daily/2026-10-18/daily_master_log.md` (Total changes today: 4).
+   - Appended change 108 to `changes_log/master/master_changes_log.md`.
+   - Updated `changes_log/summary/changes_summary.md` (Total tracked: 108).
+   - Rotated `changes_log/recent_10/` FIFO buffer with `change_recent_01.md`.
+
+---
+
+## 3. Verification & Test Results
+
+- **Deep Verification (Automated Test Execution):**
+  - `npm run lint` (`oxlint`): 0 warnings, 0 errors across 80 files.
+  - `npm run build` (`vite`): Production build completed in 752ms with zero errors.
+  - `node scripts/test_adversarial_review3.mjs`: 7/7 suites passed (100%).
+  - `node scripts/test_adversarial_review2.mjs`: 7/7 suites passed (100%).
+  - `node scripts/test_search_command_palette.mjs`: 71/71 entries verified, all target IDs 100% bound.
+  - `node scripts/test_stress_role_switching.mjs`: 7/7 suites passed (200 rapid switching cycles, URL params, segregation, banners).
+  - `node scripts/test_native_sections_verification.mjs`: 8/8 suites passed.
+  - `node scripts/test_multi_role_resume.mjs`: 49/49 assertions passed across all 4 roles.
+  - `node scripts/validate_pdf.js`: 4/4 PDFs passed PDF 1.4 syntax and xref checks.
+  - `node scripts/test_about_section.mjs`: 62/62 assertions passed cleanly.
+  - `node scripts/test_role_tabs_verification.mjs`: 9/9 assertions passed cleanly.
+  - `node scripts/test_hero_role_verification.mjs`: 3/3 assertions passed cleanly.
+- **Shallow Verification (Manual Inspection):**
+  - Inspected `changes_log/recent_10/` to ensure clean FIFO rolling buffer.
+- **Unverified Aspects:**
+  - Physical printer spooling on hardware printers.
+  - Touch-screen multi-finger gesture handling on physical mobile hardware.
+
+---
+
+## 4. Open Issues Ledger Assessment
+
+- `[implementer_1]: Physical multi-touch drag gestures across real iOS Safari / Android Chrome mobile devices.` -> Residual hardware-only edge case, not reproducible in Node/headless simulation.
+- `[implementer_1]: Audio playback on physical mobile browsers with restrictive Web Audio autoplay policies.` -> Residual hardware-only edge case; user gesture unlock is handled via first touch/click listeners.
+- `[implementer_1]: In SkillsSection.jsx, selecting Other ✨ AI renders 8 specialized controller skills; if a user switches directly from an Accountant skill to Other, the selected skill automatically falls back to the first available category skill via derived state.` -> Verified as intended, clean derived state behavior.
+- `[reviewer_1]: Actual printer spooling and native browser PDF viewer rendering for resume-controller.pdf across different browser PDF viewing plugins.` -> Mitigated via 1200ms fallback timer and new-tab fallback.
+- `[reviewer_2]: In environments where third-party browser extensions aggressively block all iframe operations or PDF rendering, ResumeDropdown.jsx print action falls back to window.open(pdfPath, '_blank'), requiring user popup permissions.` -> Mitigated via 1200ms fallback timer.
+- `[reviewer_2]: Third-party extensions injecting synthetic popstate events with non-standard object prototypes or circular structures in history.state.` -> **RESOLVED & VERIFIED** in `RoleContext.jsx` with safe state clone fallback.
+
+---
+
+## 5. Next Steps
+
+Codebase is completely hardened, 100% lint-clean, build-clean, and all adversarial tests pass. Ready for final victory audit verification.

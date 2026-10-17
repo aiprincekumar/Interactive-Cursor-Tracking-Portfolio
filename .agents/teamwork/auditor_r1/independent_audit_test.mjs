@@ -144,7 +144,7 @@ const pureSkillsMap = [
   { item: 'Business Development', targetId: 'skill-business-development', skillKey: 'Business Development' }
 ];
 
-pureSkillsMap.forEach(({ item, targetId, skillKey }) => {
+pureSkillsMap.forEach(({ item, _targetId, skillKey }) => {
   // Check targetId is generated in SkillsSection
   const skillIdInSkills = skillsSource.includes(skillKey);
   check(`Skill '${skillKey}' for item '${item}' exists in SkillsSection`, skillIdInSkills);

@@ -12,17 +12,15 @@ import CameraRollGallery from './components/CameraRollGallery';
 import InteractivePlayground from './components/InteractivePlayground';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
+import LabStudioDrawer from './components/LabStudioDrawer';
 import { soundFX } from './utils/audio';
+import { useLab } from './context/LabContext';
 import { RoleProvider } from './context/RoleContext';
 
 export default function App() {
   const heroRef = useRef(null);
   const [isInsideHero, setIsInsideHero] = useState(false);
   const [capturedPhotos, setCapturedPhotos] = useState([]);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [butterflySpeed, setButterflySpeed] = useState(0.14);
-  const [trailEnabled, setTrailEnabled] = useState(true);
-  const [butterflyScale, setButterflyScale] = useState(1);
   const [forcedState, setForcedState] = useState(null);
   const [reducedMotion, setReducedMotion] = useState(() => {
     if (typeof window !== 'undefined' && window.matchMedia) {
@@ -31,29 +29,23 @@ export default function App() {
     return false;
   });
 
-  const [particleColor, setParticleColor] = useState(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const saved = localStorage.getItem('physics_particle_color');
-      if (saved) return saved;
-    }
-    return '#FF4D6D';
-  });
-
-  const [gravity, setGravity] = useState(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const saved = localStorage.getItem('physics_gravity');
-      if (saved !== null && !isNaN(Number(saved))) return Number(saved);
-    }
-    return 0;
-  });
-
-  const [audioPitch, setAudioPitch] = useState(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const saved = localStorage.getItem('physics_audio_pitch');
-      if (saved !== null && !isNaN(Number(saved))) return Number(saved);
-    }
-    return 1.0;
-  });
+  const {
+    cursorScale,
+    flightSpeed,
+    wingDynamics,
+    gravity,
+    trailEnabled,
+    particleColor,
+    soundEnabled,
+    setSoundEnabled,
+    audioPitch,
+    setCursorScale,
+    setFlightSpeed,
+    setGravity,
+    setTrailEnabled,
+    setParticleColor,
+    setAudioPitch
+  } = useLab();
 
   const [activeCursor, setActiveCursor] = useState(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -82,40 +74,6 @@ export default function App() {
     }
   }, [activeCursor]);
 
-  // Sync particleColor to localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      try {
-        localStorage.setItem('physics_particle_color', particleColor);
-      } catch {
-        // Ignore quota/security errors
-      }
-    }
-  }, [particleColor]);
-
-  // Sync gravity to localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      try {
-        localStorage.setItem('physics_gravity', gravity.toString());
-      } catch {
-        // Ignore quota/security errors
-      }
-    }
-  }, [gravity]);
-
-  // Sync audioPitch to localStorage and soundFX
-  useEffect(() => {
-    soundFX.setPitchMultiplier(audioPitch);
-    if (typeof window !== 'undefined' && window.localStorage) {
-      try {
-        localStorage.setItem('physics_audio_pitch', audioPitch.toString());
-      } catch {
-        // Ignore quota/security errors
-      }
-    }
-  }, [audioPitch]);
-
   const handleSelectCursor = (cursorId) => {
     setActiveCursor(cursorId);
     try {
@@ -136,97 +94,101 @@ export default function App() {
     <RoleProvider soundEnabled={soundEnabled}>
       <div className="min-h-screen bg-[#FAF8F5] dark:bg-[#0B0813] text-[#18181B] dark:text-[#F5F2F8] transition-colors duration-300 relative selection:bg-[#FF4D6D] selection:text-white overflow-x-hidden">
         {/* Background Subtle Mesh Dots */}
-        <div className="fixed inset-0 bg-dot-pattern opacity-50 dark:opacity-30 pointer-events-none z-0 transition-opacity duration-300" />
+      <div className="fixed inset-0 bg-dot-pattern opacity-50 dark:opacity-30 pointer-events-none z-0 transition-opacity duration-300" />
 
-        {/* Dynamic Multi-Variant Interactive Cursor Manager */}
-        {!reducedMotion && (
-          <DynamicCursorManager
-            activeCursor={activeCursor}
-            heroRef={heroRef}
-            isInsideHero={isInsideHero}
-            speed={butterflySpeed}
-            trailEnabled={trailEnabled}
-            scale={butterflyScale}
-            reducedMotion={reducedMotion}
-            gravity={gravity}
-            particleColor={particleColor}
-          />
-        )}
+      {/* Dynamic Multi-Variant Interactive Cursor Manager */}
+      {!reducedMotion && (
+        <DynamicCursorManager
+          activeCursor={activeCursor}
+          heroRef={heroRef}
+          isInsideHero={isInsideHero}
+          speed={flightSpeed}
+          trailEnabled={trailEnabled}
+          scale={cursorScale}
+          reducedMotion={reducedMotion}
+          gravity={gravity}
+          particleColor={particleColor}
+          wingDynamics={wingDynamics}
+        />
+      )}
 
-        {/* Top Navbar */}
-        <Navbar
+      {/* Global Quick Lab Studio Slide-Out Drawer & Floating Action Button */}
+      <LabStudioDrawer />
+
+      {/* Top Navbar */}
+      <Navbar
+        soundEnabled={soundEnabled}
+        setSoundEnabled={setSoundEnabled}
+        activeCursor={activeCursor}
+        onSelectCursor={handleSelectCursor}
+      />
+
+      {/* Main Content Area - In Exact Instagram Reel Chronological Sequence */}
+      <main className="relative z-10">
+        {/* 1. Interactive Cursor-Tracking Hero Section (Reel t=0s - 7.5s) */}
+        <HeroSection
+          heroRef={heroRef}
+          isInsideHero={isInsideHero}
+          setIsInsideHero={setIsInsideHero}
+          onPhotoCaptured={handlePhotoCaptured}
           soundEnabled={soundEnabled}
           setSoundEnabled={setSoundEnabled}
-          activeCursor={activeCursor}
-          onSelectCursor={handleSelectCursor}
+          forcedState={forcedState}
+          reducedMotion={reducedMotion}
         />
 
-        {/* Main Content Area - In Exact Instagram Reel Chronological Sequence */}
-        <main className="relative z-10">
-          {/* 1. Interactive Cursor-Tracking Hero Section (Reel t=0s - 7.5s) */}
-          <HeroSection
-            heroRef={heroRef}
-            isInsideHero={isInsideHero}
-            setIsInsideHero={setIsInsideHero}
-            onPhotoCaptured={handlePhotoCaptured}
-            soundEnabled={soundEnabled}
-            setSoundEnabled={setSoundEnabled}
-            forcedState={forcedState}
-            reducedMotion={reducedMotion}
-          />
+        {/* 2. Diagonal Crossed Marquee Ribbons with Butterfly Delimiters (Reel t=7.85s) */}
+        <TechMarqueeBanner />
 
-          {/* 2. Diagonal Crossed Marquee Ribbons with Butterfly Delimiters (Reel t=7.85s) */}
-          <TechMarqueeBanner />
+        {/* 3. "Who I am" / Personal Narrative & Education (Reel t=8.3s - 9.2s) */}
+        <AboutSection soundEnabled={soundEnabled} />
 
-          {/* 3. "Who I am" / Personal Narrative & Education (Reel t=8.3s - 9.2s) */}
-          <AboutSection soundEnabled={soundEnabled} />
+        {/* 4. "What I work with" / Interactive Skill Matrix & Dark Card (Reel t=9.3s - 11.8s) */}
+        <SkillsSection />
 
-          {/* 4. "What I work with" / Interactive Skill Matrix & Dark Card (Reel t=9.3s - 11.8s) */}
-          <SkillsSection />
+        {/* 5. "Journey & Experience" / Standalone Career & Production Milestones */}
+        <ExperienceSection />
 
-          {/* 5. "Journey & Experience" / Standalone Career & Production Milestones */}
-          <ExperienceSection />
+        {/* 6. "Selected work" / PolicyGuard AI & Payment Gateway System (Reel t=12.0s - 14.8s) */}
+        <ProjectsSection />
 
-          {/* 6. "Selected work" / PolicyGuard AI & Payment Gateway System (Reel t=12.0s - 14.8s) */}
-          <ProjectsSection />
+        {/* 6. Competitive Programming & Coding Records (Reel t=15.0s - 16.0s) */}
+        <CodingAchievementsSection />
 
-          {/* 6. Competitive Programming & Coding Records (Reel t=15.0s - 16.0s) */}
-          <CodingAchievementsSection />
+        {/* 7. Interactive Polaroid Studio & Camera Roll Memories */}
+        <CameraRollGallery
+          capturedPhotos={capturedPhotos}
+        />
 
-          {/* 7. Interactive Polaroid Studio & Camera Roll Memories */}
-          <CameraRollGallery
-            capturedPhotos={capturedPhotos}
-          />
+        {/* 8. Real-Time Physics & Cursor Tuner Lab */}
+        <InteractivePlayground
+          butterflySpeed={flightSpeed}
+          setButterflySpeed={setFlightSpeed}
+          trailEnabled={trailEnabled}
+          setTrailEnabled={setTrailEnabled}
+          butterflyScale={cursorScale}
+          setButterflyScale={setCursorScale}
+          forcedState={forcedState}
+          setForcedState={setForcedState}
+          soundEnabled={soundEnabled}
+          setSoundEnabled={setSoundEnabled}
+          reducedMotion={reducedMotion}
+          setReducedMotion={setReducedMotion}
+          gravity={gravity}
+          setGravity={setGravity}
+          particleColor={particleColor}
+          setParticleColor={setParticleColor}
+          audioPitch={audioPitch}
+          setAudioPitch={setAudioPitch}
+        />
 
-          {/* 8. Real-Time Physics & Cursor Tuner Lab */}
-          <InteractivePlayground
-            butterflySpeed={butterflySpeed}
-            setButterflySpeed={setButterflySpeed}
-            trailEnabled={trailEnabled}
-            setTrailEnabled={setTrailEnabled}
-            butterflyScale={butterflyScale}
-            setButterflyScale={setButterflyScale}
-            forcedState={forcedState}
-            setForcedState={setForcedState}
-            soundEnabled={soundEnabled}
-            setSoundEnabled={setSoundEnabled}
-            reducedMotion={reducedMotion}
-            setReducedMotion={setReducedMotion}
-            gravity={gravity}
-            setGravity={setGravity}
-            particleColor={particleColor}
-            setParticleColor={setParticleColor}
-            audioPitch={audioPitch}
-            setAudioPitch={setAudioPitch}
-          />
+        {/* 9. Contact: "Let's build something meaningful." (Reel t=16.1s - 16.9s) */}
+        <ContactSection />
+      </main>
 
-          {/* 9. Contact: "Let's build something meaningful." (Reel t=16.1s - 16.9s) */}
-          <ContactSection />
-        </main>
-
-        {/* 10. Dark Plum Footer with Watermark Name (Reel t=16.8s) */}
-        <Footer />
-      </div>
-    </RoleProvider>
+      {/* 10. Dark Plum Footer with Watermark Name (Reel t=16.8s) */}
+      <Footer />
+    </div>
+  </RoleProvider>
   );
 }

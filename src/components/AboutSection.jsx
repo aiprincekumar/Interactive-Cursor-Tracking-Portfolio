@@ -132,48 +132,107 @@ const MIS_COMPETENCIES = [
   }
 ];
 
+const OVERVIEW_COMPETENCIES = [
+  {
+    title: 'Statutory Compliance & GST/ITR',
+    category: 'Financial Track',
+    icon: ShieldCheck,
+    accent: '#FF4D6D',
+    bgLight: 'bg-[#FFF0F3]',
+    borderLight: 'border-[#FFD1DC]',
+    tag: 'Financial Track',
+    description: 'End-to-end statutory taxation across GSTR-1, GSTR-3B, GSTR-9, and ITR-1 to ITR-4 filings with automated 2B ITC reconciliations and zero late-fee penalty track record.'
+  },
+  {
+    title: 'Executive MIS & Enterprise Data Systems',
+    category: 'Data & Operations Track',
+    icon: TrendingUp,
+    accent: '#3B82F6',
+    bgLight: 'bg-blue-50',
+    borderLight: 'border-blue-100',
+    tag: 'Data & Operations Track',
+    description: 'Designing high-impact management telemetry, cross-category operational trends, advanced Excel modeling, and DAY-NULM government portal administration.'
+  },
+  {
+    title: 'Audit Readiness & Financial Reporting',
+    category: 'Financial Track',
+    icon: Award,
+    accent: '#FF4D6D',
+    bgLight: 'bg-[#FFF0F3]',
+    borderLight: 'border-[#FFD1DC]',
+    tag: 'Financial Track',
+    description: 'Trial Balance governance, monthly P&L formulation, and zero-discrepancy year-end Balance Sheet finalization with rigorous double-entry ledger verification.'
+  },
+  {
+    title: 'Multi-District Operations & Biometric Systems',
+    category: 'Data & Operations Track',
+    icon: Terminal,
+    accent: '#3B82F6',
+    bgLight: 'bg-blue-50',
+    borderLight: 'border-blue-100',
+    tag: 'Data & Operations Track',
+    description: 'Supervision of RSBY Smart Card field biometric camps across 4 districts (Palamu, Garhwa, Latehar, Chatra), hardware reliability governance, and UIDAI data verification.'
+  }
+];
+
 const OTHER_COMPETENCIES = [
   {
-    title: 'Cross-Functional Strategy',
-    category: 'Strategic Planning',
+    title: 'Corporate Financial Controls',
+    category: 'Corporate Governance',
+    icon: ShieldCheck,
+    accent: '#8B5CF6',
+    bgLight: 'bg-purple-50',
+    borderLight: 'border-purple-100',
+    tag: 'Internal Controls',
+    description: 'Enforcing robust corporate internal financial controls, multi-entity accounting policies, variance threshold governance, and continuous audit trails ensuring zero compliance leakage.'
+  },
+  {
+    title: 'Power BI Fiscal Dashboards',
+    category: 'Business Intelligence',
     icon: TrendingUp,
     accent: '#8B5CF6',
     bgLight: 'bg-purple-50',
     borderLight: 'border-purple-100',
-    tag: 'Cross-Domain Synergy',
-    description: 'Synthesizing fiscal discipline, operational workflows, and technology systems to drive enterprise objectives, eliminate organizational silos, and optimize end-to-end resource utilization.'
+    tag: 'BI & DAX Models',
+    description: 'Architecting executive Power BI telemetry connecting ERP ledgers to dynamic revenue analytics, gross margin breakdown, automated variance tracking, and real-time cash flow metrics.'
   },
   {
-    title: 'Operations Governance',
-    category: 'Process Excellence',
-    icon: ShieldCheck,
-    accent: '#10B981',
-    bgLight: 'bg-emerald-50',
-    borderLight: 'border-emerald-100',
-    tag: 'Risk & Quality Control',
-    description: 'Establishing scalable operational standard operating procedures (SOPs), multi-tier governance protocols, and continuous monitoring mechanisms to guarantee audit readiness and regulatory adherence.'
-  },
-  {
-    title: 'Stakeholder Management',
-    category: 'Executive Alignment',
-    icon: Building2,
-    accent: '#F59E0B',
-    bgLight: 'bg-amber-50',
-    borderLight: 'border-amber-100',
-    tag: 'Trusted Partner',
-    description: 'Collaborating seamlessly with executive leadership, government authorities, external auditors, vendors, and cross-functional field teams to achieve unified operational and commercial milestones.'
-  },
-  {
-    title: 'Business Transformation',
-    category: 'Systems & Scalability',
+    title: 'ERP Automation & Reconciliation',
+    category: 'Systems Automation',
     icon: Cpu,
-    accent: '#6366F1',
-    bgLight: 'bg-indigo-50',
-    borderLight: 'border-indigo-100',
-    tag: 'Digital Modernization',
-    description: 'Modernizing legacy administrative and reporting workflows through ERP integration, automated data telemetry, and technology-driven process re-engineering for sustainable long-term scale.'
+    accent: '#8B5CF6',
+    bgLight: 'bg-purple-50',
+    borderLight: 'border-purple-100',
+    tag: 'ERP Integration',
+    description: 'Building automated data pipelines between Tally Prime, Path Solution ERP, and banking systems for instantaneous bank reconciliations (BRS) and supplier ledger verification.'
+  },
+  {
+    title: 'Statutory Auditing & Tax Strategy',
+    category: 'Statutory Optimization',
+    icon: FileCheck2,
+    accent: '#8B5CF6',
+    bgLight: 'bg-purple-50',
+    borderLight: 'border-purple-100',
+    tag: 'Statutory Audit',
+    description: 'Strategic direct and indirect tax planning, Section 115BAC tax optimization, GSTR-9 annual filing reviews, and comprehensive statutory audit defense with zero penalty notices.'
   }
 ];
+
+const OVERVIEW_STORY = {
+  p1: (
+    <>
+      I am a <strong className="text-[#6366F1] font-bold">Financial &amp; Operations Executive</strong> with over 7+ years of unified expertise synthesizing statutory accounting, corporate taxation, and enterprise management information systems (MIS).
+    </>
+  ),
+  p2: 'I bridge fiscal discipline with enterprise data intelligence—unifying double-entry ledger rigor, zero-penalty GST/ITR compliance, automated Power BI/Excel dashboards, and large-scale operational governance.',
+  p3: 'Having directed statutory tax practices, managed nationwide government portal databases (DAY-NULM Skill India), and orchestrated multi-district biometric field rollouts across 4 districts, I deliver end-to-end executive leadership that combines audit readiness with operational velocity.',
+  visionTitle: 'Executive Vision & Strategic Objective',
+  visionQuote: (
+    <>
+      "Financial &amp; Operations Executive seeking senior leadership roles bridging <strong className="text-[#6366F1] font-bold">Statutory Accounting, Taxation &amp; Advanced Data Intelligence</strong> within dynamic organizations of repute. Dedicated to architecting audit-ready financial frameworks, automated operational telemetry, and resilient enterprise data pipelines that drive sustainable commercial growth."
+    </>
+  )
+};
 
 const ACCOUNTANT_STORY = {
   p1: (
@@ -210,15 +269,15 @@ const MIS_STORY = {
 const OTHER_STORY = {
   p1: (
     <>
-      I am a versatile <strong className="text-[#8B5CF6] font-bold">Multidisciplinary Operations &amp; Strategy Specialist</strong> with extensive expertise bridging statutory accounting, management information systems (MIS), and large-scale administrative execution.
+      I am a <strong className="text-[#8B5CF6] font-bold">Business Intelligence &amp; Corporate Controller</strong> practitioner synthesized by AI from verified dual competencies in statutory accounting and executive MIS analytics.
     </>
   ),
-  p2: 'I specialize in unifying financial rigor, data analytics, and operational workflows into cohesive, high-performance operating models that empower organizational agility, transparency, and scalable growth.',
-  p3: 'With a career bridging public sector district enrollments, private commercial distribution, enterprise software implementations, and team leadership, I deliver dependable governance and strategic problem-solving across multifaceted domains.',
+  p2: 'I specialize in corporate financial controls, automated multi-entity ERP reconciliation pipelines (Tally Prime & Path Solution), statutory auditing, and executive Power BI fiscal dashboards that provide real-time decision telemetry for leadership.',
+  p3: 'With extensive experience unifying balance sheet governance, automated internal audit trails, Section 115BAC tax strategy, and enterprise database integrations, I ensure zero compliance defects and tight working capital governance.',
   visionTitle: 'Career Vision & Strategic Objective',
   visionQuote: (
     <>
-      "Multidisciplinary Operations &amp; Strategy professional seeking impactful leadership roles in <strong className="text-[#8B5CF6] font-bold">Business Operations, Strategic Administration &amp; Transformation</strong> within forward-thinking organizations of repute. Dedicated to harmonizing fiscal governance, analytical insights, and operational execution to deliver resilient frameworks and sustainable business value."
+      "Business Intelligence &amp; Corporate Controller professional seeking senior leadership assignments in <strong className="text-[#8B5CF6] font-bold">Corporate Financial Control, BI Systems &amp; Statutory Strategy</strong> within forward-looking enterprises. Dedicated to deploying automated financial controls, high-impact fiscal dashboards, and scalable ERP data architectures that ensure flawless audit readiness and operational excellence."
     </>
   )
 };
@@ -318,20 +377,20 @@ const BIO_DATA_FIELDS = [
 ];
 
 export default function AboutSection({ soundEnabled = true }) {
-  const { activeRole, isMIS, isOther } = useRoleTab();
+  const { activeRole, isOverview, isMIS, isOther } = useRoleTab();
   const [activeTab, setActiveTab] = useState('story');
   const [addressCopied, setAddressCopied] = useState(false);
   const tabButtonRefs = useRef({});
   const copyTimeoutRef = useRef(null);
 
   const fullAddress = 'Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India';
-  const accentColor = isOther ? '#8B5CF6' : (isMIS ? '#3B82F6' : '#FF4D6D');
-  const competencies = isOther ? OTHER_COMPETENCIES : (isMIS ? MIS_COMPETENCIES : ACCOUNTANT_COMPETENCIES);
-  const story = isOther ? OTHER_STORY : (isMIS ? MIS_STORY : ACCOUNTANT_STORY);
+  const accentColor = isOverview ? '#6366F1' : isOther ? '#8B5CF6' : (isMIS ? '#3B82F6' : '#FF4D6D');
+  const competencies = isOverview ? OVERVIEW_COMPETENCIES : isOther ? OTHER_COMPETENCIES : (isMIS ? MIS_COMPETENCIES : ACCOUNTANT_COMPETENCIES);
+  const story = isOverview ? OVERVIEW_STORY : isOther ? OTHER_STORY : (isMIS ? MIS_STORY : ACCOUNTANT_STORY);
 
   const bioDataFields = BIO_DATA_FIELDS.map((f) => (
     f.label === 'Professional Role'
-      ? { ...f, value: isOther ? 'Multidisciplinary Operations & Strategy Specialist' : (isMIS ? 'MIS Executive & Analytics Specialist' : 'Senior Accountant & Tax Consultant') }
+      ? { ...f, value: isOverview ? 'Financial & Operations Executive' : isOther ? 'Business Intelligence & Corporate Controller' : (isMIS ? 'MIS Executive & Analytics Specialist' : 'Senior Accountant & Tax Consultant') }
       : f
   ));
 
@@ -478,7 +537,7 @@ export default function AboutSection({ soundEnabled = true }) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] dark:bg-[#18181B] border border-[#E7E2D8] dark:border-stone-800 text-[#18181B] dark:text-stone-200 text-xs font-bold uppercase tracking-wider shadow-xs w-fit transition-colors">
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
-            01 ✦ About &bull; {isOther ? 'Multidisciplinary Profile' : (isMIS ? 'Data & MIS Profile' : 'Accounting & Tax Profile')}
+            01 ✦ About &bull; {isOverview ? 'Executive Overview' : isOther ? 'Business Intelligence & Controller' : (isMIS ? 'Data & MIS Profile' : 'Accounting & Tax Profile')}
           </div>
 
           <div className="flex items-center gap-2 text-stone-500 dark:text-stone-400 font-mono text-xs">
@@ -494,6 +553,19 @@ export default function AboutSection({ soundEnabled = true }) {
           </h2>
           <div className="w-12 h-1 rounded-full mt-5 transition-all duration-300" style={{ backgroundColor: accentColor }} />
         </div>
+
+        {/* AI-Synthesized Role Banner */}
+        {Boolean(isOther || activeRole === 'other') && (
+          <div className="mb-8 p-4 rounded-2xl bg-purple-50/90 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 shadow-xs flex items-center gap-3.5 text-purple-900 dark:text-purple-200">
+            <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 text-lg">
+              🤖
+            </div>
+            <div className="text-xs sm:text-sm font-medium leading-relaxed">
+              <span className="font-bold text-purple-700 dark:text-purple-300">🤖 AI-Synthesized Role (Derived from Verified Tracks):</span>{' '}
+              This executive specialization was synthesized by AI through the intersection of verified Accountant (Statutory Finance) and MIS (Data Analytics &amp; Operations) competencies.
+            </div>
+          </div>
+        )}
 
         {/* 3-Tab Interactive Switcher Ribbon */}
         <div 
@@ -521,26 +593,30 @@ export default function AboutSection({ soundEnabled = true }) {
                   if (soundEnabled) soundFX.playChipHover();
                 }}
                 className={`flex-1 min-w-[150px] sm:min-w-0 min-h-[44px] flex items-center justify-center gap-2.5 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold font-mono transition-all duration-200 cursor-pointer select-none focus:outline-none ${
-                  isOther
-                    ? 'focus-visible:ring-2 focus-visible:ring-[#8B5CF6]'
-                    : isMIS
-                      ? 'focus-visible:ring-2 focus-visible:ring-[#3B82F6]'
-                      : 'focus-visible:ring-2 focus-visible:ring-[#FF4D6D]'
+                  isOverview
+                    ? 'focus-visible:ring-2 focus-visible:ring-[#6366F1]'
+                    : isOther
+                      ? 'focus-visible:ring-2 focus-visible:ring-[#8B5CF6]'
+                      : isMIS
+                        ? 'focus-visible:ring-2 focus-visible:ring-[#3B82F6]'
+                        : 'focus-visible:ring-2 focus-visible:ring-[#FF4D6D]'
                 } whitespace-nowrap ${
                   isActive
                     ? 'bg-white dark:bg-[#27272A] text-[#18181B] dark:text-[#F4F4F5] shadow-sm border border-[#E7E2D8] dark:border-stone-700'
                     : 'text-stone-600 dark:text-stone-400 hover:text-[#18181B] dark:hover:text-stone-200 hover:bg-white/60 dark:hover:bg-stone-800/60'
                 }`}
               >
-                <Icon className={`w-4 h-4 transition-colors shrink-0 ${isActive ? (isOther ? 'text-[#8B5CF6]' : (isMIS ? 'text-[#3B82F6]' : 'text-[#FF4D6D]')) : 'text-stone-400 dark:text-stone-500'}`} />
+                <Icon className={`w-4 h-4 transition-colors shrink-0 ${isActive ? (isOverview ? 'text-[#6366F1]' : (isOther ? 'text-[#8B5CF6]' : (isMIS ? 'text-[#3B82F6]' : 'text-[#FF4D6D]'))) : 'text-stone-400 dark:text-stone-500'}`} />
                 <span className="truncate whitespace-nowrap">{tab.label}</span>
                 {isActive && (
                   <span className={`hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
-                    isOther
-                      ? 'bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-[#8B5CF6] dark:text-purple-300'
-                      : isMIS
-                        ? 'bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-[#3B82F6] dark:text-blue-300'
-                        : 'bg-[#FFF0F3] dark:bg-pink-950/40 border border-[#FFD1DC] dark:border-pink-900/60 text-[#FF4D6D] dark:text-pink-300'
+                    isOverview
+                      ? 'bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 text-[#6366F1] dark:text-indigo-300'
+                      : isOther
+                        ? 'bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-[#8B5CF6] dark:text-purple-300'
+                        : isMIS
+                          ? 'bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-[#3B82F6] dark:text-blue-300'
+                          : 'bg-[#FFF0F3] dark:bg-pink-950/40 border border-[#FFD1DC] dark:border-pink-900/60 text-[#FF4D6D] dark:text-pink-300'
                   }`}>
                     {tab.badge}
                   </span>
@@ -562,11 +638,13 @@ export default function AboutSection({ soundEnabled = true }) {
               key={`about-story-${activeRole}`}
               onKeyDown={handlePanelKeyDown}
               className={`animate-tab-fade space-y-8 focus:outline-none ${
-                isOther
-                  ? 'focus-visible:ring-2 focus-visible:ring-[#8B5CF6]'
-                  : isMIS
-                    ? 'focus-visible:ring-2 focus-visible:ring-[#3B82F6]'
-                    : 'focus-visible:ring-2 focus-visible:ring-[#FF4D6D]'
+                isOverview
+                  ? 'focus-visible:ring-2 focus-visible:ring-[#6366F1]'
+                  : isOther
+                    ? 'focus-visible:ring-2 focus-visible:ring-[#8B5CF6]'
+                    : isMIS
+                      ? 'focus-visible:ring-2 focus-visible:ring-[#3B82F6]'
+                      : 'focus-visible:ring-2 focus-visible:ring-[#FF4D6D]'
               } focus-visible:ring-offset-2 rounded-2xl`}
             >
               {/* Executive 3-Paragraph Narrative */}
@@ -586,11 +664,13 @@ export default function AboutSection({ soundEnabled = true }) {
 
               {/* Prominent Career Vision & Strategic Objective (Aligned) */}
               <div className={`p-6 sm:p-7 rounded-2xl bg-gradient-to-br ${
-                isOther
-                  ? 'from-[#F5F3FF] via-white to-[#FAF8F5] dark:from-purple-950/20 dark:via-[#161122] dark:to-[#161122] border-[#8B5CF6]/25 dark:border-[#8B5CF6]/30'
-                  : isMIS
-                    ? 'from-[#EFF6FF] via-white to-[#FAF8F5] dark:from-blue-950/20 dark:via-[#161122] dark:to-[#161122] border-[#3B82F6]/30 dark:border-[#3B82F6]/30'
-                    : 'from-[#FFF5F7] via-white to-[#FAF8F5] dark:from-pink-950/20 dark:via-[#161122] dark:to-[#161122] border-[#FF4D6D]/20 dark:border-[#FF4D6D]/30'
+                isOverview
+                  ? 'from-[#EEF2FF] via-white to-[#FAF8F5] dark:from-indigo-950/20 dark:via-[#161122] dark:to-[#161122] border-[#6366F1]/25 dark:border-[#6366F1]/30'
+                  : isOther
+                    ? 'from-[#F5F3FF] via-white to-[#FAF8F5] dark:from-purple-950/20 dark:via-[#161122] dark:to-[#161122] border-[#8B5CF6]/25 dark:border-[#8B5CF6]/30'
+                    : isMIS
+                      ? 'from-[#EFF6FF] via-white to-[#FAF8F5] dark:from-blue-950/20 dark:via-[#161122] dark:to-[#161122] border-[#3B82F6]/30 dark:border-[#3B82F6]/30'
+                      : 'from-[#FFF5F7] via-white to-[#FAF8F5] dark:from-pink-950/20 dark:via-[#161122] dark:to-[#161122] border-[#FF4D6D]/20 dark:border-[#FF4D6D]/30'
               } border-2 shadow-xs relative overflow-hidden transition-all duration-300`}>
                 <div className="flex items-center justify-between mb-3">
                   <div
@@ -602,14 +682,16 @@ export default function AboutSection({ soundEnabled = true }) {
                   </div>
                   <span
                     className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-white dark:bg-[#201830] border font-bold ${
-                      isOther
-                        ? 'border-purple-200 dark:border-purple-800/60 text-[#8B5CF6] dark:text-purple-300'
-                        : isMIS
-                          ? 'border-blue-200 dark:border-blue-800/60 text-[#3B82F6] dark:text-blue-300'
-                          : 'border-[#FFD1DC] dark:border-pink-900/60 text-[#FF4D6D] dark:text-pink-300'
+                      isOverview
+                        ? 'border-indigo-200 dark:border-indigo-800/60 text-[#6366F1] dark:text-indigo-300'
+                        : isOther
+                          ? 'border-purple-200 dark:border-purple-800/60 text-[#8B5CF6] dark:text-purple-300'
+                          : isMIS
+                            ? 'border-blue-200 dark:border-blue-800/60 text-[#3B82F6] dark:text-blue-300'
+                            : 'border-[#FFD1DC] dark:border-pink-900/60 text-[#FF4D6D] dark:text-pink-300'
                     }`}
                   >
-                    {isOther ? 'Strategic Alignment' : (isMIS ? 'Analytics Alignment' : 'Leadership Alignment')}
+                    {isOverview ? 'Executive Alignment' : isOther ? 'Strategic Alignment' : (isMIS ? 'Analytics Alignment' : 'Leadership Alignment')}
                   </span>
                 </div>
                 <p className="text-[#18181B] dark:text-stone-100 text-sm sm:text-base font-semibold leading-relaxed font-['Outfit',sans-serif] transition-colors">
@@ -622,7 +704,7 @@ export default function AboutSection({ soundEnabled = true }) {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#18181B] dark:text-stone-200 uppercase tracking-wider">
                     <CheckCircle2 className="w-4 h-4" style={{ color: accentColor }} />
-                    <span>{isOther ? 'Strategic Competency Pillars' : (isMIS ? 'Data & MIS Competency Pillars' : 'Core Competency Pillars')}</span>
+                    <span>{isOverview ? 'Executive Competency Pillars' : isOther ? 'Strategic Competency Pillars' : (isMIS ? 'Data & MIS Competency Pillars' : 'Core Competency Pillars')}</span>
                   </div>
                   <span className="text-[11px] font-mono text-stone-500 dark:text-stone-400 font-medium">
                     4 Strategic Domains
@@ -677,7 +759,7 @@ export default function AboutSection({ soundEnabled = true }) {
               tabIndex={0}
               onKeyDown={handlePanelKeyDown}
               className={`animate-tab-fade space-y-6 focus:outline-none focus-visible:ring-2 ${
-                isOther ? 'focus-visible:ring-[#8B5CF6]' : (isMIS ? 'focus-visible:ring-[#3B82F6]' : 'focus-visible:ring-[#FF4D6D]')
+                isOverview ? 'focus-visible:ring-[#6366F1]' : (isOther ? 'focus-visible:ring-[#8B5CF6]' : (isMIS ? 'focus-visible:ring-[#3B82F6]' : 'focus-visible:ring-[#FF4D6D]'))
               } focus-visible:ring-offset-2 rounded-2xl`}
             >
             {/* Header intro */}
@@ -779,7 +861,7 @@ export default function AboutSection({ soundEnabled = true }) {
               tabIndex={0}
               onKeyDown={handlePanelKeyDown}
               className={`animate-tab-fade space-y-6 focus:outline-none focus-visible:ring-2 ${
-                isOther ? 'focus-visible:ring-[#8B5CF6]' : (isMIS ? 'focus-visible:ring-[#3B82F6]' : 'focus-visible:ring-[#FF4D6D]')
+                isOverview ? 'focus-visible:ring-[#6366F1]' : (isOther ? 'focus-visible:ring-[#8B5CF6]' : (isMIS ? 'focus-visible:ring-[#3B82F6]' : 'focus-visible:ring-[#FF4D6D]'))
               } focus-visible:ring-offset-2 rounded-2xl`}
             >
             {/* Header intro with verified seal */}
@@ -794,11 +876,13 @@ export default function AboutSection({ soundEnabled = true }) {
               </div>
 
               <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold self-start sm:self-auto shadow-2xs ${
-                isOther
-                  ? 'bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-[#8B5CF6] dark:text-purple-300'
-                  : isMIS
-                    ? 'bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-[#3B82F6] dark:text-blue-300'
-                    : 'bg-[#FFF0F3] dark:bg-pink-950/40 border border-[#FFD1DC] dark:border-pink-900/60 text-[#FF4D6D] dark:text-pink-300'
+                isOverview
+                  ? 'bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 text-[#6366F1] dark:text-indigo-300'
+                  : isOther
+                    ? 'bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-[#8B5CF6] dark:text-purple-300'
+                    : isMIS
+                      ? 'bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-[#3B82F6] dark:text-blue-300'
+                      : 'bg-[#FFF0F3] dark:bg-pink-950/40 border border-[#FFD1DC] dark:border-pink-900/60 text-[#FF4D6D] dark:text-pink-300'
               }`}>
                 <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: accentColor }} />
                 <span>Verified Candidate Record</span>
@@ -821,7 +905,7 @@ export default function AboutSection({ soundEnabled = true }) {
                       Atul Verma
                     </h4>
                     <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-mono">
-                      {isOther ? 'Multidisciplinary Operations & Strategy' : (isMIS ? 'MIS Executive & Analytics Specialist' : 'Accountant & Tax Consultant')} • Daltonganj, Jharkhand
+                      {isOverview ? 'Financial & Operations Executive' : isOther ? 'Business Intelligence & Corporate Controller' : (isMIS ? 'MIS Executive & Analytics Specialist' : 'Accountant & Tax Consultant')} • Daltonganj, Jharkhand
                     </p>
                   </div>
                 </div>

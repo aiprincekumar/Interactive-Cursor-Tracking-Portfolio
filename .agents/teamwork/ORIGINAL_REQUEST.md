@@ -239,3 +239,99 @@ On touch devices where hover is unavailable:
 - [ ] Project builds cleanly without errors (`npm run build`).
 - [ ] No regression in marquee infinite scrolling animation or cursor tracking banner aesthetics.
 - [ ] Mobile touch tap interaction functions as two-step tap without breaking marquee scroll.
+
+
+## Follow-up — 2026-10-17T18:44:05Z
+
+Upgrade and modernize the 'Lab' section of the Interactive Cursor-Tracking Portfolio into a hybrid experimentation and customization studio with an interactive physics testing sandbox, comprehensive cursor/physics/audio tuning controls, and 1-click presets.
+
+Working directory: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio
+Integrity mode: development
+
+## Requirements
+
+### R1. Hybrid Lab Access & Quick Studio Drawer
+Provide dual-surface access to the Lab:
+- Modernize the in-page `#playground` / `#lab` section with a glassmorphism lab studio layout.
+- Implement a persistent floating action button (FAB with flask icon) that slides out a compact, non-intrusive Quick Lab Drawer from the right edge, allowing users to tweak parameters and observe live cursor/physics changes on any page section without scrolling.
+- Connect Navbar explore links and Command Palette (`Cmd+K`) directly to the Lab surfaces.
+
+### R2. Interactive Physics Sandbox & Live Telemetry
+Embed a dedicated 2D physics sandbox arena inside the Lab:
+- Features 5-8 elastic physics orbs that react dynamically to gravity, velocity damping, and direct cursor collisions/pushes.
+- Real-time Telemetry HUD displaying live cursor velocity (Speedometer in px/s), pointer coordinates $(X, Y)$, and render frame rate (FPS monitor).
+- Interactive "Particle Burst" test trigger button and Zero-G / Anti-Gravity toggle demonstrating live orb floating behavior.
+
+### R3. Comprehensive Customization Controls Suite
+- **Cursor Tuning:** Global cursor scale multiplier (0.5x to 2.0x) affecting Butterfly and all 35 modular kinematic cursor styles, plus Butterfly flight lerp speed and wing-flap dynamics.
+- **Physics & Gravity:** Gravity slider ($-60\text{ px/s}^2$ Anti-G to $+140\text{ px/s}^2$ Heavy Earth), particle stardust trail toggle, and dynamic particle color palette customizer (presets + hex input).
+- **Web Audio Synthesizer:** Master volume slider ($0\% - 100\%$), pitch multiplier ($0.5\times - 2.0\times$), audio toggle, and an interactive 7-sound synthesizer soundboard (Polaroid Shutter, Cosmic Sparkle, Bubble Pop, Laser Focus, Crystal Chime, Ribbon Sweep, Haptic Click) for instant acoustic testing.
+
+### R4. Curated 1-Click Presets & State Persistence
+- Provide 1-click instant recipe buttons (*Cyberpunk Zero-G*, *Retro Arcade*, *Zen Minimalist*, *Hyper Velocity*).
+- Auto-persist all user customizations in `localStorage` under `portfolio_lab_config` with live state synchronization between the in-page section, floating drawer, and global runtime.
+- Provide a clear "Reset to Factory Defaults" action to instantly restore default physics and audio parameters.
+
+## Acceptance Criteria
+
+### Functionality & Interactivity
+- [ ] Clicking the floating Lab button opens the slide-out Studio Drawer smoothly without layout shifts.
+- [ ] Adjusting the cursor scale slider visibly resizes the active cursor in real-time.
+- [ ] Moving the pointer inside the Sandbox accurately updates the px/s speedometer and deflects physics orbs.
+- [ ] Clicking any of the 7 soundboard buttons plays the synthesized Web Audio tone with the active pitch and volume applied.
+- [ ] Clicking a 1-click preset immediately applies its bundled cursor, gravity, color, and audio settings.
+- [ ] Refreshing the browser preserves the customized lab settings.
+- [ ] Clicking "Reset Defaults" restores original scale, gravity, color, and audio values.
+
+### Code Quality & Build Verification
+- [ ] Code passes static analysis without syntax errors (`npx oxlint`).
+- [ ] Project builds cleanly with zero errors (`npm run build`).
+
+
+## 2026-10-17T21:04:04Z
+
+This is a single self-contained fix; keep it small and focused.
+
+Add an 'Overview' role track and synthesize an AI-derived 'Other ✨ AI' role track into the interactive cursor-tracking portfolio, establishing a 4-tab role navigation hierarchy with Accountant as default.
+
+Working directory: c:/Users/Atul Verma/Desktop/AI Document/Interactive Cursor-Tracking Portfolio
+Integrity mode: development
+Requested team: small focused team
+
+## Requirements
+
+### R1. Four-Tab Role Hierarchy & Navigation
+Establish a fixed role track sequence: `Overview`, `Accountant`, `MIS`, and `Other ✨ AI`.
+- The `Overview` button must permanently occupy the first position in all role selection bars, ribbons, drawers, and command palettes.
+- The default initial active role upon first visit must remain `Accountant` (`DEFAULT_ROLE = 'accountant'`).
+- Support bidirectional URL query parameter synchronization (`?role=overview`, `?role=accountant`, `?role=mis`, `?role=other`), local storage persistence, sound effects, and keyboard navigation across all 4 roles.
+
+### R2. 'Overview' Executive Highlights & Summary Track
+Implement the `Overview` track (`LayoutDashboard` icon, Indigo `#6366F1` accent) aggregating and curating top highlights exclusively from the two verified tracks (`Accountant` and `MIS`).
+- Exclude 'Other' entirely from Overview synthesis.
+- Curate and display flagship experiences and projects tagged with their respective track badges (`Financial Track` vs `Data & Operations Track`).
+- Hero copy: Title "Financial & Operations Executive.", Subtitle "Bridging Statutory Accounting, Taxation & Advanced Data Intelligence.".
+- Resume action triggers the master comprehensive resume (`Atul_Verma_Overview_Resume.pdf` / `resume.pdf`).
+
+### R3. 'Other ✨ AI' Synthesized Distinct Role Track
+Define and implement the `Other ✨ AI` track as an emergent distinct specialization: Business Intelligence & Corporate Controller (Statutory Financial Strategy & Executive Data Systems).
+- Tab label must display `Other ✨ AI` with an AI sparkles indicator.
+- Inside sections, display a prominent badge/banner: `🤖 AI-Synthesized Role (Derived from Verified Tracks)` informing visitors that this role was synthesized by AI from accounting + MIS competencies.
+- Replace all demo/random data with authentic, mature experience items, projects, and skills covering corporate financial controls, ERP automation, Power BI fiscal dashboards, and statutory auditing.
+- Resume action triggers specialized controller resume (`Atul_Verma_BI_Corporate_Controller_Resume.pdf`).
+
+## Verification Resources
+- Project build script: `npm run build` (Vite production build)
+- Project linter: `npm run lint` (Oxlint)
+
+## Acceptance Criteria
+
+### Navigation & State
+- [ ] Tab order is strictly `Overview`, `Accountant`, `MIS`, `Other ✨ AI`.
+- [ ] Initial page load without query params defaults to `Accountant`.
+- [ ] Selecting each tab smoothly updates the active role state, URL parameter (`?role=...`), and UI components without runtime errors.
+
+### Content & Data Segregation
+- [ ] `Overview` displays curated flagship highlights exclusively from `Accountant` and `MIS`, with clear visual track badges.
+- [ ] `Other ✨ AI` displays the complete 'Business Intelligence & Corporate Controller' profile with zero generic demo strings and a visible AI disclaimer banner.
+- [ ] `npm run lint` and `npm run build` complete with zero errors.

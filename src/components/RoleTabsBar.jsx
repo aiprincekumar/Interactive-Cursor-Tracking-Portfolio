@@ -1,6 +1,6 @@
 /* oxlint-disable react/only-export-components */
 import React, { useRef } from 'react';
-import { Briefcase, BarChart2, Sparkles, X } from 'lucide-react';
+import { Briefcase, BarChart2, Sparkles, LayoutDashboard, X } from 'lucide-react';
 import { useRoleTab, ROLE_TRACKS } from '../context/RoleContext';
 import { soundFX } from '../utils/audio';
 
@@ -8,7 +8,7 @@ export { ROLE_TRACKS };
 
 /**
  * Dynamically resolves icon component for a given track or role ID.
- * Supports 'accountant' (Briefcase), 'mis' (BarChart2), 'other' (Sparkles),
+ * Supports 'overview' (LayoutDashboard), 'accountant' (Briefcase), 'mis' (BarChart2), 'other' (Sparkles),
  * custom track.icon, and fallback (Sparkles or Layers).
  */
 export function getRoleIcon(trackOrId) {
@@ -18,6 +18,8 @@ export function getRoleIcon(trackOrId) {
   }
   const id = String(trackOrId || '').toLowerCase();
   switch (id) {
+    case 'overview':
+      return LayoutDashboard;
     case 'accountant':
       return Briefcase;
     case 'mis':
@@ -48,7 +50,8 @@ export default function RoleTabsBar({
     // Graceful fallback if mounted outside RoleProvider in tests
   }
 
-  const activeRole = propActiveRole ?? context?.activeRole ?? 'accountant';
+  const rawActiveRole = propActiveRole ?? context?.activeRole ?? 'accountant';
+  const activeRole = (typeof rawActiveRole === 'string' ? rawActiveRole.trim().toLowerCase() : '') || 'accountant';
   const roleList = context?.ROLE_TRACKS || ROLE_TRACKS;
 
   const selectRole = (roleId) => {
@@ -127,7 +130,7 @@ export default function RoleTabsBar({
           {roleList.map((track) => {
             const isActive = activeRole === track.id;
             const Icon = getRoleIcon(track);
-            const accent = track.accent || (track.id === 'mis' ? '#3B82F6' : '#FF4D6D');
+            const accent = track.accent || (track.id === 'overview' ? '#6366F1' : track.id === 'mis' ? '#3B82F6' : '#FF4D6D');
 
             return (
               <button
@@ -140,9 +143,10 @@ export default function RoleTabsBar({
                 aria-controls={`drawer-panel-${track.id}`}
                 tabIndex={isActive ? 0 : -1}
                 onClick={() => handleTabClick(track.id)}
+                style={{ borderColor: isActive ? accent : undefined }}
                 className={`flex-1 shrink-0 flex items-center justify-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold font-mono transition-all duration-200 cursor-pointer whitespace-nowrap select-none ${
                   isActive
-                    ? 'bg-[#FAF8F5] dark:bg-stone-900 border-[#FF4D6D] text-[#18181B] dark:text-white shadow-xs ring-1 ring-[#FF4D6D]/20'
+                    ? 'bg-[#FAF8F5] dark:bg-stone-900 text-[#18181B] dark:text-white shadow-xs ring-1 ring-black/5 dark:ring-white/10'
                     : 'bg-white dark:bg-stone-800/80 border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white'
                 }`}
                 title={`Switch career track to ${track.label}`}
@@ -251,7 +255,7 @@ export default function RoleTabsBar({
           {roleList.map((track) => {
             const isActive = activeRole === track.id;
             const Icon = getRoleIcon(track);
-            const accent = track.accent || (track.id === 'mis' ? '#3B82F6' : '#FF4D6D');
+            const accent = track.accent || (track.id === 'overview' ? '#6366F1' : track.id === 'mis' ? '#3B82F6' : track.id === 'other' ? '#8B5CF6' : '#FF4D6D');
 
             return (
               <button
@@ -342,7 +346,7 @@ export default function RoleTabsBar({
       {roleList.map((track) => {
         const isActive = activeRole === track.id;
         const Icon = getRoleIcon(track);
-        const accent = track.accent || (track.id === 'mis' ? '#3B82F6' : '#FF4D6D');
+        const accent = track.accent || (track.id === 'overview' ? '#6366F1' : track.id === 'mis' ? '#3B82F6' : track.id === 'other' ? '#8B5CF6' : '#FF4D6D');
 
         return (
           <button

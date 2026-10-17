@@ -6,6 +6,7 @@ import { useRoleTab } from '../context/RoleContext';
 const ACCOUNTANT_ROLES = ['exp-01', 'exp-02', 'exp-04'];
 const MIS_ROLES = ['exp-03', 'exp-05', 'exp-06'];
 const OTHER_ROLES = ['exp-other-01', 'exp-other-02', 'exp-other-03'];
+const OVERVIEW_ROLES = ['exp-01', 'exp-03']; // GST Consultant (Accountant flagship) + MIS Executive (MIS flagship)
 
 const EXPERIENCES = [
   {
@@ -25,7 +26,8 @@ const EXPERIENCES = [
     ],
     techStack: ['GST Portal', 'Income Tax E-Filing', 'Tally Prime', 'MS Excel', 'Form 26AS / AIS', 'E-Way Bill'],
     accentColor: '#FF4D6D',
-    activeHighlight: true
+    activeHighlight: true,
+    trackBadge: 'Financial Track'
   },
   {
     id: 'exp-02',
@@ -63,7 +65,8 @@ const EXPERIENCES = [
     ],
     techStack: ['DAY-NULM Portal', 'Skill India SDMS', 'Advanced Excel', 'MIS Reporting', 'Data Analytics', 'Biometric Systems'],
     accentColor: '#8B5CF6',
-    activeHighlight: false
+    activeHighlight: false,
+    trackBadge: 'Data & Operations Track'
   },
   {
     id: 'exp-04',
@@ -124,59 +127,59 @@ const EXPERIENCES = [
   },
   {
     id: 'exp-other-01',
-    targetId: 'exp-other-consultant',
+    targetId: 'exp-other-controller',
     period: '2023 — PRESENT',
-    status: 'Strategic Advisory & Operations',
-    role: 'Multidisciplinary Business & Tax Consultant',
-    company: 'Independent Advisory Practice',
+    status: 'Corporate Financial Controls & Strategy',
+    role: 'Corporate Financial Controller & Tax Strategy Lead',
+    company: 'Strategic Corporate Advisory & Enterprise Accounts',
     location: 'Daltonganj & Regional Jharkhand',
-    description: 'Delivering integrated enterprise advisory, financial governance, statutory tax architecture, and digitized business operations for commercial ventures.',
+    description: 'Directing end-to-end corporate financial controls, statutory tax architecture, internal audit workflows, and multi-entity balance sheet finalization.',
     deliverables: [
-      'Formulated unified financial-operational frameworks harmonizing bookkeeping, direct/indirect tax filings, and banking compliance.',
-      'Directed tax planning, business registration advisory, and Section 115BAC statutory assessments for retail & MSME clients.',
-      'Executed internal accounting reviews and ledger reconciliations to uncover structural cost leakages and uncredited inputs.',
-      'Facilitated cross-agency documentation, compliance readiness, and digital submission workflows with 100% turnaround reliability.'
+      'Enforced strict corporate internal financial controls and risk governance policies across multi-entity commercial accounts.',
+      'Directed corporate tax optimization under Section 115BAC, direct/indirect tax compliance, and automated GSTR-9 reconciliations.',
+      'Established multi-tier purchase-sales matching protocols and variance thresholds preventing fiscal leakages and penalty notices.',
+      'Supervised annual balance sheet finalization, trial balance audits, and statutory audit readiness dossiers with 100% compliance.'
     ],
-    techStack: ['Enterprise Advisory', 'GST Compliance', 'Income Tax E-Filing', 'Financial Governance', 'Tally Prime', 'MS Excel'],
-    accentColor: '#FF4D6D',
+    techStack: ['Corporate Controls', 'Statutory Auditing', 'Tally Prime ERP', 'Section 115BAC', 'GSTR-9 Audit', 'Financial Governance'],
+    accentColor: '#8B5CF6',
     activeHighlight: true
   },
   {
     id: 'exp-other-02',
-    targetId: 'exp-other-operations',
+    targetId: 'exp-other-bi-systems',
     period: '2021 — PRESENT',
-    status: 'Operations Leadership',
-    role: 'Operations & Workflow Management Lead',
-    company: 'Commercial Distribution & Program Initiatives',
+    status: 'BI Systems & ERP Automation',
+    role: 'BI Systems Architect & Financial Operations Lead',
+    company: 'Enterprise Systems & Commercial Distribution',
     location: 'Medininagar (Palamau), Jharkhand',
-    description: 'Managing end-to-end commercial operations, multi-facility logistics, inventory velocity control, and standard operating procedures (SOPs).',
+    description: 'Architecting Power BI fiscal dashboards, automated ERP reconciliation pipelines, and real-time operational KPI telemetry.',
     deliverables: [
-      'Administered distributor ERP pipelines and high-volume billing operations with strict daily cash & inventory reconciliations.',
-      'Instituted structured operational controls across stock warehousing, batch tracking (FIFO), and transit settlement reconciliations.',
-      'Designed operational checklists and verification workflows that reduced administrative errors and delivery cycle delays.',
-      'Mentored field and office teams on software utilization, statutory protocol adherence, and customer dispute management.'
+      'Engineered executive Power BI fiscal dashboards connecting ERP databases with live revenue, gross margin, and working capital telemetry.',
+      'Automated multi-depot Bank Reconciliation Statements (BRS) and stock variance detection routines in Path Solution ERP.',
+      'Built automated data normalization pipelines bridging disparate operational databases with zero manual transcription latency.',
+      'Mentored senior leadership on interactive financial modeling, variance decomposition, and data-driven resource allocation.'
     ],
-    techStack: ['Operations Leadership', 'Inventory Control', 'ERP Systems', 'Process Optimization', 'Logistics Management', 'Team Mentorship'],
+    techStack: ['Power BI Dashboards', 'DAX Financial Modeling', 'Path Solution ERP', 'Automated BRS', 'ETL Pipelines', 'Inventory Analytics'],
     accentColor: '#10B981',
     activeHighlight: true
   },
   {
     id: 'exp-other-03',
-    targetId: 'exp-other-admin',
+    targetId: 'exp-other-compliance',
     period: '2018 — 2023',
-    status: 'Executive Administration',
-    role: 'Executive Administrator & Public Programs Lead',
-    company: 'Government Mission & Regional Projects',
+    status: 'Enterprise Data & Compliance Oversight',
+    role: 'Executive Data & Enterprise Compliance Director',
+    company: 'Regional Operations & Institutional Governance',
     location: 'Palamau, Garhwa, Chatra, Rohtas Districts',
-    description: 'Directing inter-departmental liaison, citizen demographic registration campaigns, secure database administration, and regional administrative reporting.',
+    description: 'Directing inter-departmental statutory governance, multi-district database systems, and institutional audit verification across 4 administrative districts.',
     deliverables: [
-      'Spearheaded multi-district biometric enrollment and smart card issuance operations across 4 administrative territories.',
-      'Coordinated government stakeholder liaison, public program reporting, and official state/central portal synchronization.',
-      'Maintained confidential databases, institutional audit trails, and strict statutory KYC documentation standards.',
-      'Supervised regional field personnel, hardware deployment logistics, and citizen grievance resolution mechanisms.'
+      'Governed large-scale citizen biometric enrollment databases and smart card personalization pipelines across 4 administrative districts.',
+      'Formulated executive compliance dossiers, institutional audit trails, and multi-tier statutory verification frameworks.',
+      'Supervised regional technical teams, hardware infrastructure reliability, and state/central government portal synchronizations.',
+      'Conducted systematic internal audits of public program expenditures, maintaining zero compliance defects and complete transparency.'
     ],
-    techStack: ['Public Administration', 'Stakeholder Liaison', 'Database Governance', 'Field Operations', 'KYC & Audit Compliance', 'MIS Systems'],
-    accentColor: '#8B5CF6',
+    techStack: ['Enterprise Data Systems', 'Statutory Auditing', 'Biometric Databases', 'District Operations', 'Audit Trails', 'Public Governance'],
+    accentColor: '#6366F1',
     activeHighlight: false
   }
 ];
@@ -191,10 +194,14 @@ export default function ExperienceSection() {
     // fallback
   }
   const activeRole = roleContext?.activeRole ?? 'accountant';
+  const isOverview = roleContext?.isOverview ?? (activeRole === 'overview');
   const isOther = roleContext?.isOther ?? (activeRole === 'other');
 
   const filteredExperiences = EXPERIENCES.filter((exp) => {
-    if (isOther) {
+    if (isOverview || activeRole === 'overview') {
+      return OVERVIEW_ROLES.includes(exp.id);
+    }
+    if (isOther || activeRole === 'other') {
       return OTHER_ROLES.includes(exp.id);
     }
     return activeRole === 'mis' ? MIS_ROLES.includes(exp.id) : ACCOUNTANT_ROLES.includes(exp.id);
@@ -214,7 +221,7 @@ export default function ExperienceSection() {
         {/* Section Pill Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-6 shadow-xs transition-colors">
           <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />
-          03 ✦ Experience
+          03 ✦ Experience &bull; {activeRole === 'overview' ? 'Executive Overview' : (isOther || activeRole === 'other') ? 'Corporate Controller & BI' : activeRole === 'mis' ? 'Data & MIS' : 'Accounting & Tax'}
         </div>
 
         {/* Header with Title, Period Pill, and Coral Accent Line */}
@@ -225,8 +232,12 @@ export default function ExperienceSection() {
             </h2>
             <div className="w-12 h-1 bg-[#FF4D6D] rounded-full mt-4" />
             <p className="mt-3 text-stone-600 dark:text-stone-300 text-sm md:text-base max-w-xl font-normal leading-relaxed transition-colors">
-              {isOther
-                ? 'Versatile career trajectory across multidisciplinary consulting, commercial operations leadership, executive administration, and strategic execution.'
+              {activeRole === 'overview'
+                ? 'Curated flagship highlights synthesized exclusively from verified Financial and Data & Operations tracks, showcasing dual-domain mastery.'
+                : isOther || activeRole === 'other'
+                ? 'Advanced specialization in corporate financial controls, automated ERP reconciliation pipelines, Power BI fiscal dashboards, and statutory audit strategy.'
+                : activeRole === 'mis'
+                ? 'Public sector MIS database administration, high-stakes biometric field operations across 4 districts, and automated reporting systems.'
                 : 'Comprehensive career journey spanning financial accounting, statutory GST/Income Tax compliance, government skill mission MIS, and regional field operations.'}
             </p>
           </div>
@@ -235,14 +246,29 @@ export default function ExperienceSection() {
           <div className="flex items-center gap-3 bg-[#FAF8F5] dark:bg-[#100C1A] px-4 py-2.5 rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] shadow-2xs self-start md:self-end transition-colors">
             <Calendar className="w-4 h-4 text-[#FF4D6D]" />
             <span className="text-xs sm:text-sm font-mono font-bold text-[#18181B] dark:text-stone-200">
-              {activeRole === 'accountant'
+              {activeRole === 'overview'
+                ? '2018 — PRESENT • 7+ Years Dual Executive Track (Finance & MIS)'
+                : activeRole === 'accountant'
                 ? '2020 — 2026 • 4+ Years Core Accounting & 3+ Years Tax Practice'
                 : activeRole === 'mis'
                 ? '2018 — 2023 • 5+ Years Public Sector MIS & Field Operations'
-                : '2018 — PRESENT • 7+ Years Multidisciplinary Consulting & Operations'}
+                : '2018 — PRESENT • 7+ Years Corporate Control & BI Systems'}
             </span>
           </div>
         </div>
+
+        {/* AI-Synthesized Role Banner */}
+        {Boolean(isOther || activeRole === 'other') && (
+          <div className="mb-8 p-4 rounded-2xl bg-purple-50/90 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 shadow-xs flex items-center gap-3.5 text-purple-900 dark:text-purple-200">
+            <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 text-lg">
+              🤖
+            </div>
+            <div className="text-xs sm:text-sm font-medium leading-relaxed">
+              <span className="font-bold text-purple-700 dark:text-purple-300">🤖 AI-Synthesized Role (Derived from Verified Tracks):</span>{' '}
+              This specialized profile was synthesized by AI from verified Accountant (Statutory Finance) and MIS (Data Analytics &amp; Operations) competencies.
+            </div>
+          </div>
+        )}
 
         {/* Interactive Milestone Cards Grid wrapped in tabpanel */}
         <div
@@ -269,15 +295,22 @@ export default function ExperienceSection() {
                 <div>
                   {/* Top Bar with Period and Status Node */}
                   <div className="flex items-center justify-between mb-4">
-                    <span
-                      className={`text-xs font-mono font-bold px-3 py-1 rounded-full border transition-colors ${
-                        exp.activeHighlight
-                          ? 'text-[#FF4D6D] dark:text-pink-300 bg-[#FFF0F3] dark:bg-pink-950/40 border-[#FFD1DC] dark:border-pink-900/60'
-                          : 'text-stone-600 dark:text-stone-300 bg-white dark:bg-[#201830] border-[#ECE7DF] dark:border-[#2D2340]'
-                      }`}
-                    >
-                      {exp.period}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs font-mono font-bold px-3 py-1 rounded-full border transition-colors ${
+                          exp.activeHighlight
+                            ? 'text-[#FF4D6D] dark:text-pink-300 bg-[#FFF0F3] dark:bg-pink-950/40 border-[#FFD1DC] dark:border-pink-900/60'
+                            : 'text-stone-600 dark:text-stone-300 bg-white dark:bg-[#201830] border-[#ECE7DF] dark:border-[#2D2340]'
+                        }`}
+                      >
+                        {exp.period}
+                      </span>
+                      {Boolean((isOverview || activeRole === 'overview') && exp.trackBadge) && (
+                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                          {exp.trackBadge}
+                        </span>
+                      )}
+                    </div>
 
                     <div className="flex items-center gap-1.5 text-[11px] font-mono text-stone-500 dark:text-stone-400 font-medium">
                       <span

@@ -1,40 +1,31 @@
-# Dispatch: Challenger 1 (Command Palette Search, Keyboard & Edge Cases)
+# Task Assignment: Challenger 1 (Empirical State, Presets & Audio Stress Testing)
 
-- **Role**: Empirical Adversarial Verifier / Search & Keyboard Challenger
-- **Working Directory**: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\challenger_1
-- **Project Root**: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio
-- **Specification**: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\ORIGINAL_REQUEST.md
-- **Worker Report**: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\worker_1\handoff.md
+- Working Directory: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\challenger_1
+- Parent Orchestrator: 54634b41-b142-4755-aa5c-daaf424b3ab0
+- Original Request: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\ORIGINAL_REQUEST.md
+- Plan: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\orchestrator_4\plan.md
 
-## Assignment:
-1. Read `c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\ORIGINAL_REQUEST.md` (specifically Follow-up — 2026-10-15T19:22:48Z).
-2. Stress test the Command Palette search logic and catalog:
-   - Verify every single one of the 27 catalog items in `src/utils/searchCatalog.js` points to a real DOM ID that exists in `src/App.jsx` or its rendered child components.
-   - Test search filtering against multi-token queries, uppercase/lowercase, trailing whitespace, special characters, and non-existent queries (empty state rendering).
-   - Test keyboard navigation: ArrowUp at index 0 wraps to end, ArrowDown at end wraps to 0.
-   - Verify Escape key and backdrop click dismissals.
-3. Test keyboard shortcut collisions: does Cmd+K / Ctrl+K interfere with browser defaults when not intended?
-4. Run verification commands:
-   - `npm run build`
-   - `npx oxlint`
-5. Issue an explicit verdict: **APPROVE** or **REQUEST_CHANGES**.
-6. Write your report to `c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\challenger_1\handoff.md` and communicate completion back to the parent orchestrator via send_message.
+Objective:
+Empirically challenge and stress-test the solution by writing and running adversarial tests:
+1. Write a standalone Node.js test script to stress-test:
+   - Boundary value testing on all sliders: scale (0.5 to 2.0), flight speed (0.05 to 0.35), wing dynamics (0.5 to 2.0), gravity (-60 to +140), volume (0.0 to 1.0), pitch (0.5 to 2.0). Test extreme out-of-bound values (-999, +999, NaN, null, undefined) to confirm clamping safety.
+   - All 4 Presets (*Cyberpunk Zero-G*, *Retro Arcade*, *Zen Minimalist*, *Hyper Velocity*) + Reset to Defaults: verify all properties are atomically applied and match specifications.
+   - `localStorage` persistence: Verify `portfolio_lab_config` serialization/deserialization, legacy migration fallback, and resilience against malformed JSON strings in storage.
+   - Web Audio method contract verification: Verify `soundFX` methods (`playPolaroidShutter`, `playCosmicSparkle`, `playBubblePop`, `playLaserFocus`, `playCrystalChime`, `playRibbonSweep`, `playHapticClick`, `playShutter`, `playSparkle`, `playPop`, `playFocusBeep`, `playRibbonToggle`, `playChipHover`, `setMasterVolume`, `getMasterVolume`, `setPitchMultiplier`, `getPitchMultiplier`, `resetAudioDefaults`, `setEnabled`).
+2. Run build verification: `npm run build`.
+3. Provide empirical evidence and determine your verdict: **APPROVE** or **REQUEST_CHANGES**.
+4. Write your handoff report to `c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\challenger_1\handoff.md` and call send_message to notify the orchestrator.
 
-## 2026-10-15T19:55:25Z
-You are Challenger 1 for Milestone 1 of the Navbar All-in-One Power Pack.
-Your working directory is: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\challenger_1
-Project root: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio
+## 2026-10-17T19:42:55Z
+You are Challenger 1 (State, Presets & Audio Stress Challenger).
+Working directory: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\challenger_1
+Read your dispatch: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\challenger_1\DISPATCH.md
+Read the user request: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\ORIGINAL_REQUEST.md
 
-Read:
-1. ORIGINAL_REQUEST: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\ORIGINAL_REQUEST.md (specifically Follow-up — 2026-10-15T19:22:48Z)
-2. DISPATCH: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\challenger_1\DISPATCH.md
-3. Worker Handoff: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\worker_1\handoff.md
-
-Adversarially challenge:
-1. Search catalog in `src/utils/searchCatalog.js`: verify every single targetId exists as an actual DOM id in `src/App.jsx` or rendered components.
-2. Search filtering logic: test multi-token queries, case insensitivity, whitespace trimming, non-matching queries (empty state).
-3. Keyboard navigation: ArrowUp/Down boundary wrapping, Enter smooth scrolling without page reload, Escape & backdrop dismiss.
-4. Run `npm run build` and `npx oxlint`.
-
-Issue your verdict: APPROVE or REQUEST_CHANGES.
-Write report to `c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\challenger_1\handoff.md` and report completion back via send_message.
+Write and execute a standalone test script to stress-test:
+- Boundary conditions for all sliders (scale, speed, wingDynamics, gravity, volume, pitch).
+- Presets atomic application (cyberpunk, arcade, zen, hyper, and default reset).
+- LocalStorage persistence serialization, corrupt string handling, and fallback migration.
+- Web Audio SoundFX method contracts.
+Run `npm run build` using run_command.
+Write your handoff report to `c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio\.agents\teamwork\challenger_1\handoff.md` with an explicit verdict (APPROVE or REQUEST_CHANGES), and call send_message to notify the orchestrator (54634b41-b142-4755-aa5c-daaf424b3ab0).

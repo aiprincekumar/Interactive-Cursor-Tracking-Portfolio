@@ -79,6 +79,18 @@ export const SEARCH_ITEMS = [
     keywords: 'change cursor style butterfly spark trail physics lab interactive tuner playground flight speed quick actions'
   },
   {
+    id: 'act-lab-drawer',
+    title: '🧪 Open Quick Lab Studio Drawer',
+    category: 'Actions',
+    targetId: 'playground',
+    badge: 'Studio Drawer',
+    matchType: 'Interactive Tool',
+    role: 'both',
+    actionType: 'open-lab-drawer',
+    description: 'Slide out the Quick Lab Studio Drawer to tune cursor scale, flight dynamics, physics gravity, presets, and 7-sound soundboard anywhere on the page.',
+    keywords: 'open lab drawer quick studio controls sliders physics cursor tuning telemetry presets soundboard fab flask lab'
+  },
+  {
     id: 'act-theme',
     title: '🌓 Toggle Theme (Light / Dark Mode)',
     category: 'Actions',
@@ -89,6 +101,54 @@ export const SEARCH_ITEMS = [
     actionType: 'toggle-theme',
     description: 'Switch between warm parchment light mode and deep luxury dark mode instantly with audio feedback.',
     keywords: 'toggle theme light dark mode night day switch color scheme appearance display'
+  },
+  {
+    id: 'act-role-overview',
+    title: '🧭 Switch Track: Executive Overview',
+    category: 'Actions',
+    targetId: 'hero',
+    badge: 'Role Track',
+    matchType: 'Track Switcher',
+    role: 'overview',
+    actionType: 'switch-role',
+    description: 'Switch portfolio view to the Executive Overview track combining curated Accountant and MIS highlights.',
+    keywords: 'switch role overview track executive dual domain finance data operations portfolio summary'
+  },
+  {
+    id: 'act-role-accountant',
+    title: '💼 Switch Track: Accountant & Tax Consultant',
+    category: 'Actions',
+    targetId: 'hero',
+    badge: 'Role Track',
+    matchType: 'Track Switcher',
+    role: 'accountant',
+    actionType: 'switch-role',
+    description: 'Switch portfolio view to Statutory Accounting, Tally Prime, GST, ITR and BRS reconciliations.',
+    keywords: 'switch role accountant tax tally gst itr statutory compliance double entry bookkeeping'
+  },
+  {
+    id: 'act-role-mis',
+    title: '📊 Switch Track: MIS & Data Analytics',
+    category: 'Actions',
+    targetId: 'hero',
+    badge: 'Role Track',
+    matchType: 'Track Switcher',
+    role: 'mis',
+    actionType: 'switch-role',
+    description: 'Switch portfolio view to MIS reporting, Advanced Excel, DAY-NULM government mission and biometric analytics.',
+    keywords: 'switch role mis data analytics excel reporting operations day-nulm biometric database'
+  },
+  {
+    id: 'act-role-other',
+    title: '🤖 Switch Track: Other ✨ AI (Controller & BI)',
+    category: 'Actions',
+    targetId: 'hero',
+    badge: 'Role Track',
+    matchType: 'Track Switcher',
+    role: 'other',
+    actionType: 'switch-role',
+    description: 'Switch portfolio view to AI-synthesized Business Intelligence & Corporate Controller specialization.',
+    keywords: 'switch role other ai corporate controller bi power bi statutory strategy financial controls'
   },
 
   // ==========================================
@@ -264,6 +324,28 @@ export const SEARCH_ITEMS = [
     role: 'mis',
     description: 'Identity and smart card deployment across 4 districts (Palamu, Garhwa, Latehar, Chatra) with citizen biometric workflows and RSBY / UIDAI sync.',
     keywords: 'multi-district smart card operations enrollment engine 4 districts palamu garhwa latehar chatra rsby uidai aadhaar sync kyc identity field operations hardware'
+  },
+  {
+    id: 'proj-enterprise-transformation',
+    title: 'Executive Power BI Fiscal Intelligence & Reconciliation Engine',
+    category: 'Projects',
+    targetId: 'proj-enterprise-transformation',
+    badge: '05 Controller',
+    matchType: 'Project Deliverable',
+    role: 'other',
+    description: 'Executive business intelligence architecture unifying multi-company accounting ledgers, automated bank feeds, and statutory GST compliance pipelines into real-time Power BI fiscal dashboards.',
+    keywords: 'executive power bi fiscal intelligence reconciliation engine enterprise workflow transformation multi-entity general ledger variance detection cash flow margin analytics corporate controller other ai'
+  },
+  {
+    id: 'proj-business-advisory',
+    title: 'Corporate Financial Controls & Internal Audit Governance',
+    category: 'Projects',
+    targetId: 'proj-business-advisory',
+    badge: '06 Governance',
+    matchType: 'Project Deliverable',
+    role: 'other',
+    description: 'Institutional internal financial control framework automating GSTR-2B vs ERP purchase matching, advance tax liability forecasting, vendor withholding tax governance, and institutional audit trails.',
+    keywords: 'corporate financial controls internal audit governance statutory tax strategy working capital modeling audit trails risk governance zero notice corporate controller other ai'
   },
 
   // ==========================================
@@ -553,6 +635,104 @@ export const SEARCH_ITEMS = [
     keywords: 'business development client relations client acquisition tax consultancy customer retention commercial negotiation growth'
   },
 
+  // Category 4: Corporate Controller & Executive BI (Other ✨ AI Track)
+  {
+    id: 'skill-power-bi-fiscal-dashboards',
+    title: 'Power BI & Fiscal Dashboards (DAX Modeling & Telemetry)',
+    category: 'Skills',
+    targetId: 'skill-power-bi-fiscal-dashboards',
+    skillKey: 'Power BI & Fiscal Dashboards',
+    badge: 'BI & Analytics (98%)',
+    matchType: 'Software Tool',
+    role: 'other',
+    description: 'Interactive executive dashboards in Power BI connecting live ERP databases with real-time financial metrics, DAX measures, variance analysis, and cash flow forecasting.',
+    keywords: 'power bi fiscal dashboards dax measures financial modeling business intelligence live erp data variance analysis cash flow forecasting executive telemetry other ai'
+  },
+  {
+    id: 'skill-multi-entity-ledger-consolidation',
+    title: 'Multi-Entity Ledger Consolidation & Group Trial Balance',
+    category: 'Skills',
+    targetId: 'skill-multi-entity-ledger-consolidation',
+    skillKey: 'Multi-Entity Ledger Consolidation',
+    badge: 'Consolidation (97%)',
+    matchType: 'Statutory Compliance',
+    role: 'other',
+    description: 'Inter-company transaction netting, elimination of duplicate balances, unified chart of accounts, and group-level Trial Balance and Balance Sheet finalization.',
+    keywords: 'multi-entity ledger consolidation group trial balance inter-company transaction netting unified chart of accounts consolidated balance sheet statutory compliance other ai'
+  },
+  {
+    id: 'skill-automated-erp-banking-pipelines',
+    title: 'Automated ERP & Banking Pipelines (Real-Time Ingestion)',
+    category: 'Skills',
+    targetId: 'skill-automated-erp-banking-pipelines',
+    skillKey: 'Automated ERP & Banking Pipelines',
+    badge: 'Automation (96%)',
+    matchType: 'Software Tool',
+    role: 'other',
+    description: 'Automated Bank Reconciliation Statement (BRS) pipelines reconciling corporate accounts daily, POS-to-Tally ledger scripts, and zero-error voucher batches.',
+    keywords: 'automated erp banking pipelines api integration automated brs bank reconciliation pos invoicing tally ledgers journal voucher batches cash ledger other ai'
+  },
+  {
+    id: 'skill-statutory-tax-strategy-audits',
+    title: 'Statutory Tax Strategy & Audits (Section 115BAC & 44AB)',
+    category: 'Skills',
+    targetId: 'skill-statutory-tax-strategy-audits',
+    skillKey: 'Statutory Tax Strategy & Audits',
+    badge: 'Tax Strategy (98%)',
+    matchType: 'Statutory Compliance',
+    role: 'other',
+    description: 'Strategic corporate income tax and GST optimization, automated GSTR-2B ITC recovery, Section 44AB audit dossiers, and advance tax scheduling.',
+    keywords: 'statutory tax strategy audits corporate tax 115bac gstr-2b itc audits tax audit section 44ab advance tax tds optimization compliance risk mitigation other ai'
+  },
+  {
+    id: 'skill-working-capital-liquidity-modeling',
+    title: 'Working Capital & Liquidity Modeling (13-Week Cash Flow)',
+    category: 'Skills',
+    targetId: 'skill-working-capital-liquidity-modeling',
+    skillKey: 'Working Capital & Liquidity Modeling',
+    badge: 'Treasury (94%)',
+    matchType: 'Verified Skill',
+    role: 'other',
+    description: 'Rolling 13-week cash flow forecasts, debtor days (DSO) reduction, inventory turnover optimization, and credit facility monitoring.',
+    keywords: 'working capital liquidity modeling 13-week cash flow treasury debtor collections dso reduction credit facilities cash runway stress testing other ai'
+  },
+  {
+    id: 'skill-executive-kpi-variance-analytics',
+    title: 'Executive KPI & Variance Analytics (EBITDA & Margins)',
+    category: 'Skills',
+    targetId: 'skill-executive-kpi-variance-analytics',
+    skillKey: 'Executive KPI & Variance Analytics',
+    badge: 'Executive Analytics (96%)',
+    matchType: 'Verified Skill',
+    role: 'other',
+    description: 'Continuous cost variance analysis against budgeted standards, executive EBITDA and contribution margin dashboards, and board presentations.',
+    keywords: 'executive kpi variance analytics ebitda contribution margin overhead ratios cost overruns operational metrics board presentations strategic guidance other ai'
+  },
+  {
+    id: 'skill-internal-audit-trail-engineering',
+    title: 'Internal Audit Trail Engineering (MCA Governance Compliance)',
+    category: 'Skills',
+    targetId: 'skill-internal-audit-trail-engineering',
+    skillKey: 'Internal Audit Trail Engineering',
+    badge: 'Governance (95%)',
+    matchType: 'Statutory Compliance',
+    role: 'other',
+    description: 'Immutable audit trail architecture complying with MCA mandates, transaction modification logging, authorization timestamps, and forensic ledger scrutiny.',
+    keywords: 'internal audit trail engineering mca corporate governance immutable audit trails transaction modification logs forensic ledger scrutiny statutory inspections other ai'
+  },
+  {
+    id: 'skill-corporate-financial-controls',
+    title: 'Corporate Financial Controls & Risk Governance',
+    category: 'Skills',
+    targetId: 'skill-corporate-financial-controls',
+    skillKey: 'Corporate Financial Controls',
+    badge: 'Governance (97%)',
+    matchType: 'Statutory Compliance',
+    role: 'other',
+    description: 'Internal financial controls, multi-level authorization workflows, compliance risk matrices, and enterprise fiscal governance.',
+    keywords: 'corporate financial controls risk governance authorization workflows compliance risk matrices enterprise fiscal governance internal control framework other ai'
+  },
+
   // ==========================================
   // --- 5. PROFESSIONAL JOURNEY / EXPERIENCE (6 Items) ---
   // ==========================================
@@ -621,6 +801,39 @@ export const SEARCH_ITEMS = [
     role: 'mis',
     description: 'Instructed diploma students in MS Office, Desktop Publishing (DTP Photoshop, CorelDraw, PageMaker), foundational Tally ERP 9 & computer hardware troubleshooting.',
     keywords: 'computer instructor academic tutor teaching coaching ms office dtp photoshop coreldraw pagemaker tally fundamentals daltonganj 2018 2020'
+  },
+  {
+    id: 'exp-other-controller',
+    title: 'Corporate Financial Controller & Tax Strategy Lead',
+    category: 'Experience',
+    targetId: 'exp-other-controller',
+    badge: '2023 — Present',
+    matchType: 'Statutory Compliance',
+    role: 'other',
+    description: 'Directing corporate financial controls, statutory tax architecture, internal audit workflows, and multi-entity balance sheet finalization in Daltonganj & Regional Jharkhand.',
+    keywords: 'corporate financial controller tax strategy lead strategic corporate advisory enterprise accounts internal financial controls section 115bac gstr-9 audit readiness balance sheet finalization other ai'
+  },
+  {
+    id: 'exp-other-bi-systems',
+    title: 'BI Systems Architect & Financial Operations Lead',
+    category: 'Experience',
+    targetId: 'exp-other-bi-systems',
+    badge: '2021 — Present',
+    matchType: 'Software Tool',
+    role: 'other',
+    description: 'Architecting Power BI fiscal dashboards, automated ERP reconciliation pipelines, and real-time operational KPI telemetry connecting ERP databases with live revenue and margins.',
+    keywords: 'bi systems architect financial operations lead power bi fiscal dashboards dax financial modeling path solution erp automated brs etl pipelines inventory analytics other ai'
+  },
+  {
+    id: 'exp-other-compliance',
+    title: 'Executive Data & Enterprise Compliance Director',
+    category: 'Experience',
+    targetId: 'exp-other-compliance',
+    badge: '2018 — 2023',
+    matchType: 'Field Location',
+    role: 'other',
+    description: 'Directing inter-departmental statutory governance, multi-district database systems, and institutional audit verification across 4 administrative districts.',
+    keywords: 'executive data enterprise compliance director regional operations institutional governance citizen biometric enrollment institutional audit trails statutory verification other ai'
   },
 
   // ==========================================

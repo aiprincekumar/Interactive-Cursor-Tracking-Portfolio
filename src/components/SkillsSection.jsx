@@ -205,104 +205,115 @@ const SKILL_DATA = {
     ]
   },
 
-  // --- Category 5: Multidisciplinary & Strategy (Other Track) ---
-  'Strategic Operations & Governance': {
-    category: 'Strategy & Leadership',
-    title: 'Strategic Operations & Governance',
+  // --- Category 5: Business Intelligence & Corporate Controller (Other Track) ---
+  'Power BI & Fiscal Dashboards': {
+    category: 'Corporate Controller & BI',
+    title: 'Power BI & Fiscal Dashboards',
+    level: '97%',
+    tag: 'Executive Financial Intelligence',
+    points: [
+      'Design of interactive executive Power BI dashboards with DAX measures, time-intelligence formulas, and fiscal KPIs.',
+      'Automated data model pipelines connecting multi-company accounting ledgers, ERP exports, and bank feeds.',
+      'Margin leakage alerts, cash runway forecasting, and dynamic division-level profit & loss visualizations.',
+      'Scheduled cloud gateway refresh synchronization ensuring sub-second executive access to fresh fiscal telemetry.'
+    ]
+  },
+  'Corporate Financial Controls': {
+    category: 'Corporate Controller & BI',
+    title: 'Corporate Financial Controls',
     level: '96%',
-    tag: 'Enterprise Steering & Policy Alignment',
+    tag: 'Statutory Strategy & Internal Audits',
     points: [
-      'Multi-departmental process integration aligning finance, administrative protocols, and IT operations.',
-      'Standard Operating Procedure (SOP) formulation ensuring strict statutory and organizational compliance.',
-      'Resource allocation modeling, cross-functional milestone tracking, and operational risk mitigation.',
-      'Executive governance reporting and strategic KPI alignment across diverse regional initiatives.'
+      'Establishment of rigorous internal financial control (IFC) protocols across accounts payable, receivable, and treasury.',
+      'Segregation of duties (SoD) design, dual-authorization payment workflows, and automated discrepancy flags.',
+      'Comprehensive vendor aging schedules, debit balance reconciliation, and credit risk mitigation frameworks.',
+      'Zero-defect internal audit verification protecting organizational balance sheets against variance exposure.'
     ]
   },
-  'Cross-Functional Consulting': {
-    category: 'Strategy & Leadership',
-    title: 'Cross-Functional Consulting',
+  'Multi-Entity Ledger Consolidation': {
+    category: 'Corporate Controller & BI',
+    title: 'Multi-Entity Ledger Consolidation',
     level: '95%',
-    tag: 'Advisory & Systems Integration',
+    tag: 'Inter-Company Accounting & Group P&L',
     points: [
-      'Bridging domain gaps between commercial accounting, enterprise data analytics, and executive leadership.',
-      'Workflow transformation advisory minimizing operational friction and communication silos.',
-      'Stakeholder alignment through evidence-backed reviews, fiscal discipline, and delivery milestones.',
-      'Custom client advisory combining statutory compliance, operational workflows, and data accuracy.'
+      'Consolidation of general ledgers across multiple corporate branches, trading entities, and franchise networks.',
+      'Inter-company transaction netting, elimination of duplicate ledger balances, and transfer pricing audit trails.',
+      'Unified chart of accounts structuring ensuring uniform reporting across diverse commercial operations.',
+      'Group-level Trial Balance synthesis, consolidated Balance Sheet finalization, and statutory audit compliance.'
     ]
   },
-  'Executive Problem Solving': {
-    category: 'Strategy & Leadership',
-    title: 'Executive Problem Solving',
-    level: '94%',
-    tag: 'Root-Cause Resolution & Crisis Triage',
-    points: [
-      'Rapid diagnostic triage of operational bottlenecks, billing bottlenecks, and administrative disruptions.',
-      'Data-driven root cause analysis combining ledger audits with operational telemetry logs.',
-      'Actionable resolution plans with minimal turnaround time and zero business interruption.',
-      'Post-incident retrospectives and preventative control engineering across distributed teams.'
-    ]
-  },
-  'Change Management & Mentorship': {
-    category: 'Strategy & Leadership',
-    title: 'Change Management & Mentorship',
-    level: '93%',
-    tag: 'Capability Building & Cultural Transition',
-    points: [
-      'Leading personnel through software migrations, ERP rollouts, and modernized reporting workflows.',
-      'Targeted coaching of junior accountants and data operators on statutory accuracy and best practices.',
-      'Change impact analysis, readiness assessments, and continuous feedback loop integration.',
-      'Cultivating institutional accountability, meticulous documentation, and operational excellence.'
-    ]
-  },
-  'Process Automation & Workflows': {
-    category: 'Operations Optimization',
-    title: 'Process Automation & Workflows',
-    level: '95%',
-    tag: 'Efficiency Engineering & Pipeline Modernization',
-    points: [
-      'Streamlining recurring office, accounting, and reporting workflows through structured templates and automation.',
-      'Elimination of repetitive manual entries via linked spreadsheets, formula logic, and digital checkpoints.',
-      'Multi-touchpoint data consolidation pipelines reducing turnaround time and human transcription errors.',
-      'Systematic data verification gates ensuring continuous data integrity across platforms.'
-    ]
-  },
-  'Vendor & Stakeholder Relations': {
-    category: 'Operations Optimization',
-    title: 'Vendor & Stakeholder Relations',
-    level: '94%',
-    tag: 'Contractual Stewardship & Partner Alignment',
-    points: [
-      'Strategic negotiation of commercial contracts, supply agreements, and service level commitments.',
-      'End-to-end vendor evaluation, dispute mediation, payment term alignment, and reconciliation.',
-      'Government liaison, regulatory authority communication, and institutional stakeholder relationship building.',
-      'Transparent milestone accounting and high-trust relationship management across regional partners.'
-    ]
-  },
-  'Cost Optimization & Budgeting': {
-    category: 'Operations Optimization',
-    title: 'Cost Optimization & Budgeting',
+  'Automated ERP & Banking Pipelines': {
+    category: 'Corporate Controller & BI',
+    title: 'Automated ERP & Banking Pipelines',
     level: '96%',
-    tag: 'Fiscal Prudence & Expenditure Control',
+    tag: 'API Integration & Real-Time Sync',
     points: [
-      'Variance analysis tracking budgeted vs actual departmental expenditures to curb margin leakage.',
-      'Identification of operational redundancies, renegotiating logistics overheads, and administrative costs.',
-      'Cash flow forecasting, liquidity protection, and return on investment (ROI) evaluation for capital expenses.',
-      'Prudent fiscal frameworks ensuring sustainable operational efficiency across commercial ventures.'
+      'Automated Bank Reconciliation Statement (BRS) pipelines reconciling high-volume corporate accounts daily.',
+      'ERP data ingestion scripts connecting point-of-sale invoicing, distributor portals, and central Tally ledgers.',
+      'Automated journal voucher batch generation reducing manual transcription errors to absolute zero.',
+      'Real-time cash ledger positioning providing accurate working capital visibility for strategic treasury management.'
     ]
   },
-  'Data-Driven Decision Making': {
-    category: 'Operations Optimization',
-    title: 'Data-Driven Decision Making',
-    level: '95%',
-    tag: 'Quantitative Synthesis & Strategic Foresight',
+  'Statutory Tax Strategy & Audits': {
+    category: 'Corporate Controller & BI',
+    title: 'Statutory Tax Strategy & Audits',
+    level: '98%',
+    tag: 'Tax Optimization & Risk Mitigation',
     points: [
-      'Translating raw multi-source business data into actionable executive insights and strategic forecasts.',
-      'Scenario planning, sensitivity modeling, and risk-weighted decision frameworks.',
-      'Executive KPI synthesis combining operational velocity with balance sheet health metrics.',
-      'Facilitating high-conviction management decisions with verified empirical telemetry.'
+      'Strategic tax planning under Corporate Income Tax and GST legislation to legally minimize effective tax rates.',
+      'Automated GSTR-2B Input Tax Credit (ITC) audits recovering 100% eligible credits without mismatch notices.',
+      'Comprehensive preparation for statutory tax audits, Section 44AB tax audit reports, and departmental assessments.',
+      'Advance tax scheduling, withholding tax (TDS) optimization, and statutory compliance risk mitigation.'
+    ]
+  },
+  'Working Capital & Liquidity Modeling': {
+    category: 'Corporate Controller & BI',
+    title: 'Working Capital & Liquidity Modeling',
+    level: '94%',
+    tag: 'Treasury & Cash Runway Management',
+    points: [
+      'Dynamic rolling cash flow forecasts modeling 13-week liquidity, debtor collections, and creditor disbursements.',
+      'Inventory turnover optimization and days sales outstanding (DSO) reduction strategies improving cash velocity.',
+      'Working capital financing optimization, credit facility monitoring, and interest expense containment.',
+      'Stress testing financial liquidity against macroeconomic supply chain disruptions and margin pressures.'
+    ]
+  },
+  'Executive KPI & Variance Analytics': {
+    category: 'Corporate Controller & BI',
+    title: 'Executive KPI & Variance Analytics',
+    level: '96%',
+    tag: 'Strategic Telemetry & Operational Metrics',
+    points: [
+      'Continuous variance analysis identifying cost overruns between budgeted standards and actual operational expenses.',
+      'Executive dashboard delivery tracking EBITDA, gross contribution margins, overhead ratios, and return on capital.',
+      'Cross-departmental productivity benchmarking combining financial output metrics with operational manpower data.',
+      'Empirical board-level presentations translating complex ledger data into decisive strategic business guidance.'
+    ]
+  },
+  'Internal Audit Trail Engineering': {
+    category: 'Corporate Controller & BI',
+    title: 'Internal Audit Trail Engineering',
+    level: '95%',
+    tag: 'Regulatory Traceability & Forensic Rigor',
+    points: [
+      'Implementation of immutable audit trails complying with MCA and statutory corporate governance mandates.',
+      'Systematic transaction tracking verifying voucher creation, modification logs, and authorization timestamps.',
+      'Forensic ledger scrutiny detecting irregular accounting entries, unapproved write-offs, and compliance deviations.',
+      'Audit-ready electronic documentation archives ensuring rapid turnaround during statutory inspections.'
     ]
   }
 };
+
+const OVERVIEW_CATEGORIES = [
+  {
+    name: 'Financial & Statutory Core',
+    skills: ['Tally Prime & ERP 9', 'GST Filing & Compliance', 'Income Tax E-Filing', 'Financial Auditing & Ledgers']
+  },
+  {
+    name: 'Data Intelligence & Operations',
+    skills: ['MIS Reporting & Analytics', 'MS Excel (Advanced)', 'Commercial Computing & Office IT Suite', 'Windows OS Administration']
+  }
+];
 
 const ACCOUNTANT_CATEGORIES = [
   {
@@ -328,27 +339,31 @@ const MIS_CATEGORIES = [
 
 const OTHER_CATEGORIES = [
   {
-    name: 'Strategy & Leadership',
-    skills: ['Strategic Operations & Governance', 'Cross-Functional Consulting', 'Executive Problem Solving', 'Change Management & Mentorship']
+    name: 'Executive Business Intelligence & Dashboards',
+    skills: ['Power BI & Fiscal Dashboards', 'Multi-Entity Ledger Consolidation', 'Executive KPI & Variance Analytics', 'Automated ERP & Banking Pipelines']
   },
   {
-    name: 'Operations Optimization',
-    skills: ['Process Automation & Workflows', 'Vendor & Stakeholder Relations', 'Cost Optimization & Budgeting', 'Data-Driven Decision Making']
+    name: 'Corporate Controls, Strategy & Leadership',
+    skills: ['Corporate Financial Controls', 'Statutory Tax Strategy & Audits', 'Working Capital & Liquidity Modeling', 'Internal Audit Trail Engineering']
   }
 ];
 
+const OVERVIEW_SKILLS_FLAT = OVERVIEW_CATEGORIES.flatMap((c) => c.skills);
 const ACCOUNTANT_SKILLS_FLAT = ACCOUNTANT_CATEGORIES.flatMap((c) => c.skills);
 const MIS_SKILLS_FLAT = MIS_CATEGORIES.flatMap((c) => c.skills);
 const OTHER_SKILLS_FLAT = OTHER_CATEGORIES.flatMap((c) => c.skills);
 
 // Backward compatibility alias for legacy event dispatches
 SKILL_DATA['Computer Applications (ADCA)'] = SKILL_DATA['Commercial Computing & Office IT Suite'];
+SKILL_DATA['Strategic Operations & Governance'] = SKILL_DATA['Corporate Financial Controls'];
+SKILL_DATA['Process Automation & Workflows'] = SKILL_DATA['Automated ERP & Banking Pipelines'];
 
 export default function SkillsSection() {
-  const { activeRole, isMIS, isOther } = useRoleTab();
-  const categories = isOther ? OTHER_CATEGORIES : (isMIS ? MIS_CATEGORIES : ACCOUNTANT_CATEGORIES);
-  const currentSkillsFlat = isOther ? OTHER_SKILLS_FLAT : (isMIS ? MIS_SKILLS_FLAT : ACCOUNTANT_SKILLS_FLAT);
-  const defaultSkill = isOther ? 'Strategic Operations & Governance' : (isMIS ? 'MIS Reporting & Analytics' : 'Tally Prime & ERP 9');
+  const { activeRole, isOverview, isMIS, isOther } = useRoleTab();
+  const isOverviewRole = Boolean(isOverview || activeRole === 'overview');
+  const categories = isOverviewRole ? OVERVIEW_CATEGORIES : (isOther ? OTHER_CATEGORIES : (isMIS ? MIS_CATEGORIES : ACCOUNTANT_CATEGORIES));
+  const currentSkillsFlat = isOverviewRole ? OVERVIEW_SKILLS_FLAT : (isOther ? OTHER_SKILLS_FLAT : (isMIS ? MIS_SKILLS_FLAT : ACCOUNTANT_SKILLS_FLAT));
+  const defaultSkill = isOverviewRole ? 'Tally Prime & ERP 9' : (isOther ? 'Power BI & Fiscal Dashboards' : (isMIS ? 'MIS Reporting & Analytics' : 'Tally Prime & ERP 9'));
 
   const [userSelectedSkill, setUserSelectedSkill] = useState(null);
 
@@ -358,7 +373,7 @@ export default function SkillsSection() {
     : defaultSkill;
 
   const activeData = SKILL_DATA[selectedSkill] || SKILL_DATA[defaultSkill];
-  const accentColor = isOther ? '#8B5CF6' : (isMIS ? '#3B82F6' : '#FF4D6D');
+  const accentColor = isOverviewRole ? '#6366F1' : (isOther ? '#8B5CF6' : (isMIS ? '#3B82F6' : '#FF4D6D'));
 
   useEffect(() => {
     const handleSelectSkill = (e) => {
@@ -378,7 +393,7 @@ export default function SkillsSection() {
       {/* Section Pill Badge - Reel style */}
       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs">
         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
-        02 ✦ Skills &bull; {isOther ? 'Multidisciplinary & Leadership Stack' : (isMIS ? 'Data & MIS Stack' : 'Accounting & Tax Stack')}
+        02 ✦ Skills &bull; {isOverviewRole ? 'Executive Overview Stack' : (isOther ? 'Corporate Controller & BI Stack' : (isMIS ? 'Data & MIS Stack' : 'Accounting & Tax Stack'))}
       </div>
 
       {/* Heading matching Reel t=9.5s: "What I work with" */}
@@ -387,13 +402,28 @@ export default function SkillsSection() {
           What I work with
         </h2>
         <p className="mt-3 text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
-          {isOther
-            ? 'Hover or tap any skill to inspect strategic governance, cross-functional consulting, workflow automation, and operational optimization.'
+          {isOverviewRole
+            ? 'Hover or tap any skill to inspect the curated dual-domain technical matrix synthesizing certified statutory accounting, audited financial ledgers, and large-scale government MIS systems.'
+            : isOther
+            ? 'Hover or tap any skill to inspect specialized corporate controller competencies: Power BI fiscal intelligence, multi-entity ledger consolidation, automated ERP reconciliation, and statutory risk governance.'
             : isMIS
             ? 'Hover or tap any skill to inspect executive MIS telemetry, advanced data modeling, government database portals, and IT infrastructure administration.'
             : 'Hover or tap any skill to inspect statutory tax compliance, double-entry Tally bookkeeping, audited financial ledgers, and commercial management.'}
         </p>
       </div>
+
+      {/* AI-Synthesized Role Banner */}
+      {Boolean(isOther || activeRole === 'other') && (
+        <div className="mb-8 p-4 rounded-2xl bg-purple-50/90 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 shadow-xs flex items-center gap-3.5 text-purple-900 dark:text-purple-200">
+          <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 text-lg">
+            🤖
+          </div>
+          <div className="text-xs sm:text-sm font-medium leading-relaxed">
+            <span className="font-bold text-purple-700 dark:text-purple-300">🤖 AI-Synthesized Role (Derived from Verified Tracks):</span>{' '}
+            This specialized profile was synthesized by AI from verified Accountant (Statutory Finance) and MIS (Data Analytics &amp; Operations) competencies.
+          </div>
+        </div>
+      )}
 
       <div
         role="tabpanel"
@@ -449,7 +479,9 @@ export default function SkillsSection() {
           <div
             className="absolute top-0 right-0 w-48 h-48 rounded-full blur-2xl pointer-events-none"
             style={{
-              backgroundColor: isOther
+              backgroundColor: isOverviewRole
+                ? 'rgba(99, 102, 241, 0.15)'
+                : isOther
                 ? 'rgba(139, 92, 246, 0.15)'
                 : (isMIS ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 77, 109, 0.15)')
             }}
@@ -494,7 +526,9 @@ export default function SkillsSection() {
             <div className="h-2 w-full bg-stone-800 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${
-                  isOther
+                  isOverviewRole
+                    ? 'from-[#6366F1] to-[#A5B4FC]'
+                    : isOther
                     ? 'from-[#8B5CF6] to-[#C4B5FD]'
                     : (isMIS ? 'from-[#3B82F6] to-[#93C5FD]' : 'from-[#FF4D6D] to-[#FFA4B6]')
                 }`}

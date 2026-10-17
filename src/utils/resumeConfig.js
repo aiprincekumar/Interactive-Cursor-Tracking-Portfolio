@@ -5,6 +5,23 @@
  */
 
 export const RESUME_ROLE_CONFIG = {
+  overview: {
+    id: 'overview',
+    fileName: 'resume.pdf',
+    downloadFilename: 'Atul_Verma_Overview_Resume.pdf',
+    label: 'Overview Resume',
+    badge: 'Executive Summary',
+    subBadge: 'Curated Financial & Data Leadership',
+    accent: '#6366F1',
+    accentHover: '#4F46E5',
+    accentActive: '#4338CA',
+    bgLight: 'bg-indigo-50',
+    borderLight: 'border-indigo-200',
+    textAccent: 'text-[#6366F1]',
+    ringAccent: 'focus-visible:ring-[#6366F1]',
+    glowColor: 'rgba(99, 102, 241, 0.35)',
+    confettiColors: ['#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE', '#FFFFFF']
+  },
   accountant: {
     id: 'accountant',
     fileName: 'resume-accountant.pdf',
@@ -41,11 +58,11 @@ export const RESUME_ROLE_CONFIG = {
   },
   other: {
     id: 'other',
-    fileName: 'resume.pdf',
-    downloadFilename: 'Atul_Verma_Resume.pdf',
-    label: 'Comprehensive Resume',
-    badge: 'Multidisciplinary',
-    subBadge: 'Multidisciplinary Career Track',
+    fileName: 'resume-controller.pdf',
+    downloadFilename: 'Atul_Verma_BI_Corporate_Controller_Resume.pdf',
+    label: 'Controller & BI Resume',
+    badge: 'AI-Synthesized Controller Track',
+    subBadge: 'Business Intelligence & Corporate Controller',
     accent: '#8B5CF6',
     accentHover: '#7C3AED',
     accentActive: '#6D28D9',
@@ -66,7 +83,7 @@ export const RESUME_ROLE_CONFIG = {
  * @returns {object} Resume configuration object with resolved paths and share helper
  */
 export function getResumeConfig(roleId) {
-  const normalizedRole = (roleId || '').toLowerCase();
+  const normalizedRole = typeof roleId === 'string' ? roleId.trim().toLowerCase() : '';
   const config = RESUME_ROLE_CONFIG[normalizedRole] || RESUME_ROLE_CONFIG.other;
 
   // Resolve base path safely for Vite environment

@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Image, FlaskConical, X } from 'lucide-react';
+import { Image, FlaskConical, Sliders, X } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 
 export default function ExploreSubBar({
@@ -21,16 +21,31 @@ export default function ExploreSubBar({
     },
     {
       id: 'playground',
-      label: 'Lab',
+      label: 'Lab Studio',
       href: '#playground',
       icon: FlaskConical,
-      desc: 'Interactive Playground'
+      desc: 'Physics Sandbox'
+    },
+    {
+      id: 'drawer',
+      label: 'Quick Drawer',
+      action: 'open-drawer',
+      icon: Sliders,
+      desc: 'Tune Anywhere'
     }
   ];
 
-  const handleJump = (targetId) => {
+  const handleJump = (item) => {
+    const targetItem = typeof item === 'string' ? items.find((i) => i.id === item) || { id: item } : item;
+    if (targetItem.action === 'open-drawer' || targetItem.id === 'drawer') {
+      if (soundEnabled) soundFX.playRibbonSweep('up');
+      window.dispatchEvent(new CustomEvent('portfolio:open-lab-drawer'));
+      window.dispatchEvent(new CustomEvent('open-lab-drawer'));
+      if (onClose) onClose();
+      return;
+    }
     if (soundEnabled) soundFX.playFocusBeep();
-    const el = document.getElementById(targetId);
+    const el = document.getElementById(targetItem.id) || document.getElementById('playground') || document.getElementById('lab');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
@@ -81,7 +96,7 @@ export default function ExploreSubBar({
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-2" role="group" aria-label="Showcase and Lab quick links">
+        <div className="grid grid-cols-3 gap-2" role="group" aria-label="Showcase and Lab quick links">
           {items.map((item, index) => {
             const Icon = item.icon;
             return (
@@ -91,21 +106,21 @@ export default function ExploreSubBar({
                   buttonRefs.current[index] = el;
                 }}
                 type="button"
-                onClick={() => handleJump(item.id)}
+                onClick={() => handleJump(item)}
                 onMouseEnter={() => {
                   if (soundEnabled) soundFX.playChipHover();
                 }}
-                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-[#FAF8F5] dark:bg-stone-900/90 hover:bg-white dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white transition-all duration-200 cursor-pointer select-none shadow-2xs group text-left focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+                className="flex items-center gap-2 px-2.5 py-2 rounded-xl border border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-[#FAF8F5] dark:bg-stone-900/90 hover:bg-white dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white transition-all duration-200 cursor-pointer select-none shadow-2xs group text-left focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                 title={`Jump to ${item.label}`}
               >
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white transition-colors duration-200">
-                  <Icon className="w-4 h-4" />
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white transition-colors duration-200">
+                  <Icon className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-bold font-mono tracking-tight text-[#18181B] dark:text-white">
+                  <span className="text-[11px] font-bold font-mono tracking-tight text-[#18181B] dark:text-white truncate">
                     {item.label}
                   </span>
-                  <span className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
+                  <span className="text-[9px] text-stone-500 dark:text-stone-400 truncate">
                     {item.desc}
                   </span>
                 </div>
@@ -155,7 +170,7 @@ export default function ExploreSubBar({
                   buttonRefs.current[index] = el;
                 }}
                 type="button"
-                onClick={() => handleJump(item.id)}
+                onClick={() => handleJump(item)}
                 onMouseEnter={() => {
                   if (soundEnabled) soundFX.playChipHover();
                 }}

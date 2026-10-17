@@ -66,7 +66,8 @@ export default function ButterflyCursor({
   trailEnabled = true,
   scale = 1,
   gravity = 0,
-  particleColor = '#FF4D6D'
+  particleColor = '#FF4D6D',
+  wingDynamics = 1.0
 }) {
   const butterflyRef = useRef(null);
   const canvasRef = useRef(null);
@@ -76,6 +77,7 @@ export default function ButterflyCursor({
   const trailEnabledRef = useRef(trailEnabled);
   const gravityRef = useRef(gravity);
   const particleColorRef = useRef(particleColor);
+  const wingDynamicsRef = useRef(wingDynamics);
 
   // Kinematic state store (persists across frames without triggering React re-renders)
   const posRef = useRef({
@@ -123,6 +125,10 @@ export default function ButterflyCursor({
   useEffect(() => {
     particleColorRef.current = particleColor;
   }, [particleColor]);
+
+  useEffect(() => {
+    wingDynamicsRef.current = wingDynamics;
+  }, [wingDynamics]);
 
   useEffect(() => {
     // Passive pointer tracking
@@ -266,7 +272,8 @@ export default function ButterflyCursor({
 
       // 4. Dynamic Wing Flutter Frequency
       // Fast flight (> 200 px/s): 0.08s rapid flap | Glide / hover (< 40 px/s): 0.16s gentle flap
-      const targetFlutter = state.speedPxPerSec > 220 ? 0.08 : state.speedPxPerSec > 50 ? 0.11 : 0.16;
+      const baseFlutter = state.speedPxPerSec > 220 ? 0.08 : state.speedPxPerSec > 50 ? 0.11 : 0.16;
+      const targetFlutter = baseFlutter / Math.max(0.2, wingDynamicsRef.current || 1.0);
       state.flutterDuration += (targetFlutter - state.flutterDuration) * (1.0 - Math.exp(-8.0 * dt));
 
       // 5. Zero Layout Thrashing DOM Update
@@ -279,7 +286,7 @@ export default function ButterflyCursor({
 
         // Hardware-accelerated 3D transform combining translate, heading rotation, and bank roll
         b.style.transform = `translate3d(${posX}px, ${posY}px, 0) rotate(${rotZ}deg) rotateY(${rollY}deg) scale(${scaleRef.current || 1})`;
-        b.style.setProperty('--flutter-duration', `${state.flutterDuration.toFixed(2)}s`);
+        b.style.setProperty('--flutter-duration', `${state.flutterDuration.toFixed(3)}s`);
 
         // Maintain full visibility across the entire page
         const nextOpacity = '1';

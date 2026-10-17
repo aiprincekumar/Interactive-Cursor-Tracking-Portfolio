@@ -67,13 +67,13 @@ test('3. AboutSection renders OTHER_STORY and OTHER_COMPETENCIES natively for "o
   const content = fs.readFileSync(path.join(rootDir, 'src/components/AboutSection.jsx'), 'utf-8');
   assert(content.includes('OTHER_COMPETENCIES'), 'OTHER_COMPETENCIES defined');
   assert(content.includes('OTHER_STORY'), 'OTHER_STORY defined');
-  assert(content.includes('Cross-Functional Strategy'), 'Card 1: Cross-Functional Strategy present');
-  assert(content.includes('Operations Governance'), 'Card 2: Operations Governance present');
-  assert(content.includes('Stakeholder Management'), 'Card 3: Stakeholder Management present');
-  assert(content.includes('Business Transformation'), 'Card 4: Business Transformation present');
+  assert(content.includes('Corporate Financial Controls'), 'Card 1: Corporate Financial Controls present');
+  assert(content.includes('Power BI Fiscal Dashboards'), 'Card 2: Power BI Fiscal Dashboards present');
+  assert(content.includes('ERP Automation & Reconciliation'), 'Card 3: ERP Automation & Reconciliation present');
+  assert(content.includes('Statutory Auditing & Tax Strategy'), 'Card 4: Statutory Auditing & Tax Strategy present');
   assert(content.includes("isOther ? OTHER_COMPETENCIES : (isMIS ? MIS_COMPETENCIES : ACCOUNTANT_COMPETENCIES)"), 'Competencies dynamically selected for role');
   assert(content.includes("isOther ? OTHER_STORY : (isMIS ? MIS_STORY : ACCOUNTANT_STORY)"), 'Story dynamically selected for role');
-  assert(content.includes("Multidisciplinary Operations & Strategy Specialist"), 'BioData professional role handles isOther');
+  assert(content.includes("Business Intelligence & Corporate Controller"), 'BioData professional role handles isOther');
   assert(content.includes("isOther ? '#8B5CF6'"), 'Plum/purple accent color assigned for other role');
 });
 
@@ -81,16 +81,16 @@ test('3. AboutSection renders OTHER_STORY and OTHER_COMPETENCIES natively for "o
 test('4. SkillsSection renders OTHER_CATEGORIES and skills matrix natively for "other" role', () => {
   const content = fs.readFileSync(path.join(rootDir, 'src/components/SkillsSection.jsx'), 'utf-8');
   assert(content.includes('OTHER_CATEGORIES'), 'OTHER_CATEGORIES defined');
-  assert(content.includes('Strategy & Leadership'), 'Category: Strategy & Leadership present');
-  assert(content.includes('Operations Optimization'), 'Category: Operations Optimization present');
-  assert(content.includes('Strategic Operations & Governance'), 'Skill: Strategic Operations & Governance present');
-  assert(content.includes('Process Automation & Workflows'), 'Skill: Process Automation & Workflows present');
-  assert(content.includes('Cross-Functional Consulting'), 'Skill: Cross-Functional Consulting present');
-  assert(content.includes('Executive Problem Solving'), 'Skill: Executive Problem Solving present');
-  assert(content.includes('Vendor & Stakeholder Relations'), 'Skill: Vendor & Stakeholder Relations present');
-  assert(content.includes('Cost Optimization & Budgeting'), 'Skill: Cost Optimization & Budgeting present');
-  assert(content.includes("isOther ? OTHER_CATEGORIES : (isMIS ? MIS_CATEGORIES : ACCOUNTANT_CATEGORIES)"), 'Categories dynamically mapped');
-  assert(content.includes("defaultSkill = isOther ? 'Strategic Operations & Governance'"), 'defaultSkill properly set for other role');
+  assert(content.includes('Executive Business Intelligence & Dashboards'), 'Category: Executive Business Intelligence & Dashboards present');
+  assert(content.includes('Corporate Controls, Strategy & Leadership'), 'Category: Corporate Controls, Strategy & Leadership present');
+  assert(content.includes('Power BI & Fiscal Dashboards'), 'Skill: Power BI & Fiscal Dashboards present');
+  assert(content.includes('Corporate Financial Controls'), 'Skill: Corporate Financial Controls present');
+  assert(content.includes('Multi-Entity Ledger Consolidation'), 'Skill: Multi-Entity Ledger Consolidation present');
+  assert(content.includes('Automated ERP & Banking Pipelines'), 'Skill: Automated ERP & Banking Pipelines present');
+  assert(content.includes('Statutory Tax Strategy & Audits'), 'Skill: Statutory Tax Strategy & Audits present');
+  assert(content.includes('Working Capital & Liquidity Modeling'), 'Skill: Working Capital & Liquidity Modeling present');
+  assert(content.includes("categories = isOverviewRole ? OVERVIEW_CATEGORIES : (isOther ? OTHER_CATEGORIES : (isMIS ? MIS_CATEGORIES : ACCOUNTANT_CATEGORIES))"), 'Categories dynamically mapped');
+  assert(content.includes("defaultSkill = isOverviewRole ? 'Tally Prime & ERP 9' : (isOther ? 'Power BI & Fiscal Dashboards'"), 'defaultSkill properly set for other role');
 });
 
 // 5. ExperienceSection Native 'other' role implementation
@@ -100,9 +100,9 @@ test('5. ExperienceSection renders OTHER_ROLES natively for "other" role', () =>
   assert(content.includes('exp-other-01'), 'exp-other-01 defined');
   assert(content.includes('exp-other-02'), 'exp-other-02 defined');
   assert(content.includes('exp-other-03'), 'exp-other-03 defined');
-  assert(content.includes('Multidisciplinary Business & Tax Consultant'), 'Role: Multidisciplinary Business & Tax Consultant present');
-  assert(content.includes('Operations & Workflow Management Lead'), 'Role: Operations & Workflow Management Lead present');
-  assert(content.includes('Executive Administrator & Public Programs Lead'), 'Role: Executive Administrator & Public Programs Lead present');
+  assert(content.includes('Corporate Financial Controller & Tax Strategy Lead'), 'Role: Corporate Financial Controller & Tax Strategy Lead present');
+  assert(content.includes('BI Systems Architect & Financial Operations Lead'), 'Role: BI Systems Architect & Financial Operations Lead present');
+  assert(content.includes('Executive Data & Enterprise Compliance Director'), 'Role: Executive Data & Enterprise Compliance Director present');
   assert(content.includes('OTHER_ROLES.includes(exp.id)'), 'Filter checks OTHER_ROLES for isOther');
 });
 
@@ -110,12 +110,12 @@ test('5. ExperienceSection renders OTHER_ROLES natively for "other" role', () =>
 test('6. ProjectsSection renders OTHER_PROJECTS natively with interactive mockups, metrics, tags for "other" role', () => {
   const content = fs.readFileSync(path.join(rootDir, 'src/components/ProjectsSection.jsx'), 'utf-8');
   assert(content.includes('OTHER_PROJECTS'), 'OTHER_PROJECTS defined');
-  assert(content.includes('Enterprise Workflow Transformation Initiative'), 'Project 05 title present');
-  assert(content.includes('Strategic Business Operations Advisory'), 'Project 06 title present');
-  assert(content.includes('+45%'), 'Process efficiency metric present');
-  assert(content.includes('₹35L+'), 'Cost optimization metric present');
-  assert(content.includes('Workflow Automation'), 'Tag present');
-  assert(content.includes('simulateSync') || content.includes('runWorkflowSimulation'), 'Interactive simulation capability present');
+  assert(content.includes('Executive Power BI Fiscal Intelligence & Reconciliation Engine'), 'Project 05 title present');
+  assert(content.includes('Corporate Financial Controls & Internal Audit Governance'), 'Project 06 title present');
+  assert(content.includes('₹25Cr+'), 'Ledger volume metric present');
+  assert(content.includes('₹45L+'), 'Tax variance prevented metric present');
+  assert(content.includes('Corporate Controls'), 'Tag present');
+  assert(content.includes('runWorkflowSimulation'), 'Interactive simulation capability present');
   assert(content.includes('cycleGovernanceState'), 'Interactive governance state capability present');
   assert(content.includes('isOther || activeRole === \'other\''), 'Condition for rendering other role projects present');
 });

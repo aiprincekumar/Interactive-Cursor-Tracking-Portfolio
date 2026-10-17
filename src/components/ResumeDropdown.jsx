@@ -192,7 +192,10 @@ export default function ResumeDropdown({
       iframe.style.border = '0';
       iframe.src = pdfPath;
 
-      iframe.onload = () => {
+      let printTriggered = false;
+      const doPrint = () => {
+        if (printTriggered) return;
+        printTriggered = true;
         try {
           iframe.contentWindow?.focus();
           iframe.contentWindow?.print();
@@ -200,7 +203,7 @@ export default function ResumeDropdown({
           // If cross-origin or PDF plugin restriction prevents iframe print, open window and print
           const printWindow = window.open(pdfPath, '_blank');
           printWindow?.focus();
-          printWindow?.print();
+          printWindow?.print?.();
         } finally {
           setTimeout(() => {
             if (document.body.contains(iframe)) {
@@ -209,6 +212,14 @@ export default function ResumeDropdown({
           }, 60000);
         }
       };
+
+      iframe.onload = doPrint;
+      // Fallback timer: if iframe loading a binary PDF doesn't fire onload within 1200ms
+      setTimeout(() => {
+        if (!printTriggered) {
+          doPrint();
+        }
+      }, 1200);
 
       document.body.appendChild(iframe);
     } catch {

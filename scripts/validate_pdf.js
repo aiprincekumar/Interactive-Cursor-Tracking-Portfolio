@@ -4,7 +4,8 @@ import path from 'path';
 const filesToValidate = [
   'public/resume-accountant.pdf',
   'public/resume-mis.pdf',
-  'public/resume.pdf'
+  'public/resume.pdf',
+  'public/resume-controller.pdf'
 ];
 
 // If a specific file is passed in CLI args, validate only that file

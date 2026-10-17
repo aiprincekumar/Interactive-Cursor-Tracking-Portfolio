@@ -42,6 +42,7 @@ export default function DynamicCursorManager({
   scale = 1,
   gravity = 0,
   particleColor = '#FF4D6D',
+  wingDynamics = 1.0,
   reducedMotion: propReducedMotion
 }) {
   const isDesktopCursor = useDesktopCursorSupport();
@@ -93,6 +94,7 @@ export default function DynamicCursorManager({
         scale={scale}
         gravity={gravity}
         particleColor={particleColor}
+        wingDynamics={wingDynamics}
       />
     );
   }
@@ -108,6 +110,7 @@ export default function DynamicCursorManager({
       scale={scale}
       gravity={gravity}
       particleColor={particleColor}
+      wingDynamics={wingDynamics}
     />
   );
 }
