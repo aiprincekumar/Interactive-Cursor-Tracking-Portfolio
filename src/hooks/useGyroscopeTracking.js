@@ -101,7 +101,7 @@ export function useGyroscopeTracking({
   // Reactive state for UI indicators & toggle buttons
   const [isSupported] = useState(checkInitialSupport);
   const [isTouchDevice] = useState(checkIsTouchDevice);
-  const [isInsecureContext] = useState(checkIsInsecureContext);
+  const [isInsecureContext, setIsInsecureContext] = useState(checkIsInsecureContext);
   const [permissionState, setPermissionState] = useState(checkInitialPermission);
   const [isActive, setIsActive] = useState(false);
   const [isGyroScrollActive, setIsGyroScrollActive] = useState(scrollEnabled);
@@ -116,6 +116,9 @@ export function useGyroscopeTracking({
     const state = gyroStateRef.current;
     const angle = getScreenAngle();
     state.screenAngle = angle;
+    const currentInsecure = checkIsInsecureContext();
+    state.isInsecureContext = currentInsecure;
+    setIsInsecureContext(currentInsecure);
 
     if (angle === 90 || angle === -90 || angle === 270) {
       // Landscape: resting pitch is along gamma

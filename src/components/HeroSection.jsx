@@ -948,7 +948,7 @@ export default function HeroSection({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    triggerHud('Insecure HTTP: Android Chrome requires HTTPS. Use https:// link or "npm run dev:host"!', 3500);
+                    triggerHud("Insecure HTTP: Android Chrome requires HTTPS. Use https:// link or 'npm run dev:host'!", 3500);
                   }}
                   aria-label="Insecure HTTP Warning"
                   title="Insecure HTTP: Android Chrome requires HTTPS. Use https:// link or 'npm run dev:host'!"
@@ -1002,7 +1002,7 @@ export default function HeroSection({
                 onClick={(e) => {
                   e.stopPropagation();
                   if (gyro.isInsecureContext) {
-                    triggerHud('Insecure HTTP: Android Chrome requires HTTPS. Use https:// link or "npm run dev:host"!', 3500);
+                    triggerHud("Insecure HTTP: Android Chrome requires HTTPS. Use https:// link or 'npm run dev:host'!", 3500);
                     return;
                   }
                   const willBeActive = !gyro.isGyroScrollActive;
@@ -1016,7 +1016,7 @@ export default function HeroSection({
                 aria-label="Toggle Gyro Tilt Scroll"
                 title={
                   gyro.isInsecureContext
-                    ? 'Insecure HTTP: Android Chrome requires HTTPS. Use https:// link or npm run dev:host!'
+                    ? "Insecure HTTP: Android Chrome requires HTTPS. Use https:// link or 'npm run dev:host'!"
                     : gyro.isGyroScrollActive
                       ? 'Tilt Scroll: ON (Tilt device in any direction to scroll)'
                       : 'Tilt Scroll: OFF'
@@ -1029,15 +1029,23 @@ export default function HeroSection({
               >
                 {!gyro.isGyroScrollActive
                   ? 'Scroll OFF'
-                  : gyro.activeScrollDir?.includes('down')
-                    ? 'Scroll ON ↓'
-                    : gyro.activeScrollDir?.includes('up')
-                      ? 'Scroll ON ↑'
-                      : gyro.activeScrollDir?.includes('left')
-                        ? 'Scroll ON ←'
-                        : gyro.activeScrollDir?.includes('right')
-                          ? 'Scroll ON →'
-                          : 'Scroll ON'}
+                  : gyro.activeScrollDir === 'down-right'
+                    ? 'Scroll ON ↘'
+                    : gyro.activeScrollDir === 'down-left'
+                      ? 'Scroll ON ↙'
+                      : gyro.activeScrollDir === 'up-right'
+                        ? 'Scroll ON ↗'
+                        : gyro.activeScrollDir === 'up-left'
+                          ? 'Scroll ON ↖'
+                          : gyro.activeScrollDir?.includes('down')
+                            ? 'Scroll ON ↓'
+                            : gyro.activeScrollDir?.includes('up')
+                              ? 'Scroll ON ↑'
+                              : gyro.activeScrollDir?.includes('left')
+                                ? 'Scroll ON ←'
+                                : gyro.activeScrollDir?.includes('right')
+                                  ? 'Scroll ON →'
+                                  : 'Scroll ON'}
               </button>
             </div>
           )}

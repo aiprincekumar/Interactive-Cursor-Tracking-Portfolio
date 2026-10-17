@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode: _mode } = {}) => ({
   base: '/Interactive-Cursor-Tracking-Portfolio/',
   plugins: [
     tailwindcss(),
@@ -12,6 +12,6 @@ export default defineConfig({
     basicSsl(),
   ],
   server: {
-    host: true,
+    host: true, // exposes on 0.0.0.0 (all LAN IPs)
   },
-})
+}))

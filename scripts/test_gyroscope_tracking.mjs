@@ -192,6 +192,59 @@ function computeNormalizedGyro({
   console.log(`[PASS] Case E4: Acceleration curve verified: gentle crawl at 0.24 (${speedGentle.toFixed(2)}px/f) vs swift panning at 0.48 (${speedSwift.toFixed(2)}px/f).`);
 }
 
+// Case E5: Live Scroll Direction Emission & Deduplication Lifecycle Simulation
+{
+  function createDirectionalEmitter() {
+    let lastActiveScrollDir = null;
+    const emitted = [];
+
+    const onFrame = (currentScrollDir) => {
+      if (lastActiveScrollDir !== currentScrollDir) {
+        lastActiveScrollDir = currentScrollDir;
+        emitted.push(currentScrollDir);
+      }
+    };
+
+    return { onFrame, getEmitted: () => emitted };
+  }
+
+  const emitter = createDirectionalEmitter();
+
+  // Frame sequence simulating real user tilt gesture interactions:
+  // 1-2: resting
+  emitter.onFrame(null);
+  emitter.onFrame(null);
+
+  // 3-4: tilt forward (scrolling down)
+  emitter.onFrame('down');
+  emitter.onFrame('down'); // redundant frame - deduplicated
+
+  // 5: diagonal tilt (scrolling down-right)
+  emitter.onFrame('down-right');
+
+  // 6-7: tilt back to rest
+  emitter.onFrame(null);
+  emitter.onFrame(null); // redundant frame - deduplicated
+
+  // 8: tilt backwards (scrolling up)
+  emitter.onFrame('up');
+
+  // 9: tilt left
+  emitter.onFrame('left');
+
+  // 10: tilt right
+  emitter.onFrame('right');
+
+  // 11: return to rest
+  emitter.onFrame(null);
+
+  const history = emitter.getEmitted();
+  assert.deepStrictEqual(history, ['down', 'down-right', null, 'up', 'left', 'right', null],
+    `Emitted history should match directional lifecycle without duplicates, got ${JSON.stringify(history)}`);
+  assert.strictEqual(history.length, 7, `Should only emit 7 discrete directional state changes, got ${history.length}`);
+  console.log('[PASS] Case E5: Live scroll direction state emission properly dispatches and deduplicates direction transitions.');
+}
+
 // Case F: Tilting Phone Backward / Up in Portrait (gamma = 0°, beta = 25°)
 {
   const res = computeNormalizedGyro({ beta: 25, gamma: 0, baselineBeta: 45, baselineGamma: 0 });
