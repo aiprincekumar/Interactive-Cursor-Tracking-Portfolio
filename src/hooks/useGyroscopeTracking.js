@@ -20,7 +20,7 @@ export function useGyroscopeTracking({
   maxTiltX = 25,
   maxTiltY = 25,
   deadzone = 2.0,
-  scrollThreshold = 0.18,
+  scrollThreshold = 0.10, // 0.10 (~5° natural tilt, lowered from scrollThreshold = 0.18 for immediate responsiveness)
   maxScrollSpeed = 800,
   reducedMotion = false
 } = {}) {
@@ -337,42 +337,107 @@ export function useGyroscopeTracking({
     attachSensorsRef.current = attachSensors;
     attachSensors();
 
-    // User touch interaction listeners to pause tilt-scroll during manual finger swiping
-    // and ensure high-frequency sensor streaming is unlocked on first user gesture.
-    // Captured at top level to ensure first touch activates sensors even if child elements stop propagation.
-    const handleTouchStart = () => {
-      gyroStateRef.current.isUserTouching = true;
-      gyroStateRef.current.lastTouchTime = Date.now();
+    // Touch interaction handling with auto-expiring timer to prevent touch-lockout bugs.
+    // If Android gesture navigation or a missed pointerup occurs, touch state auto-clears after 300ms.
+    let touchExpiryTimeout = null;
+
+    const setTouchActive = () => {
+      const state = gyroStateRef.current;
+      state.isUserTouching = true;
+      state.lastTouchTime = Date.now();
+      if (touchExpiryTimeout) clearTimeout(touchExpiryTimeout);
+      touchExpiryTimeout = setTimeout(() => {
+        state.isUserTouching = false;
+      }, 300);
+    };
+
+    const setTouchInactive = () => {
+      const state = gyroStateRef.current;
+      state.isUserTouching = false;
+      state.lastTouchTime = Date.now();
+      if (touchExpiryTimeout) {
+        clearTimeout(touchExpiryTimeout);
+        touchExpiryTimeout = null;
+      }
+    };
+
+    // Simulated tilt fallback (if browser blocks motion events over HTTP, or device lacks hardware gyro)
+    let touchOriginX = 0;
+    let touchOriginY = 0;
+    let isTrackingSimulated = false;
+
+    const handleTouchStart = (e) => {
+      setTouchActive();
       attachSensors();
+      if (!hasReceivedValidReading) {
+        const t = e.touches ? e.touches[0] : null;
+        if (t) {
+          touchOriginX = t.clientX;
+          touchOriginY = t.clientY;
+          isTrackingSimulated = true;
+        }
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      setTouchActive();
+      if (!hasReceivedValidReading && isTrackingSimulated) {
+        const t = e.touches ? e.touches[0] : null;
+        if (t) {
+          const dx = t.clientX - touchOriginX;
+          const dy = t.clientY - touchOriginY;
+          const screenW = window.innerWidth || 360;
+          const screenH = window.innerHeight || 640;
+          const normX = Math.max(-0.5, Math.min(0.5, dx / (screenW * 0.4)));
+          const normY = Math.max(-0.5, Math.min(0.5, dy / (screenH * 0.4)));
+          const state = gyroStateRef.current;
+          state.normX = normX;
+          state.normY = normY;
+          state.tiltX = (normX / 0.5) * maxTiltX;
+          state.tiltY = (normY / 0.5) * maxTiltY;
+          if (!state.isActive) {
+            state.isActive = true;
+            setIsActive(true);
+          }
+        }
+      }
     };
 
     const handleTouchEnd = () => {
-      gyroStateRef.current.isUserTouching = false;
-      gyroStateRef.current.lastTouchTime = Date.now();
+      setTouchInactive();
+      isTrackingSimulated = false;
     };
 
     const handlePointerDown = (e) => {
       const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen' || (!e.pointerType && gyroStateRef.current.isTouchDevice);
       if (isTouchPointer) {
-        gyroStateRef.current.isUserTouching = true;
-        gyroStateRef.current.lastTouchTime = Date.now();
+        setTouchActive();
       }
       attachSensors();
+    };
+
+    const handlePointerMove = (e) => {
+      const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen' || (!e.pointerType && gyroStateRef.current.isTouchDevice);
+      if (isTouchPointer) {
+        setTouchActive();
+      }
     };
 
     const handlePointerUp = (e) => {
       const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen' || (!e.pointerType && gyroStateRef.current.isTouchDevice);
       if (isTouchPointer) {
-        gyroStateRef.current.isUserTouching = false;
-        gyroStateRef.current.lastTouchTime = Date.now();
+        setTouchInactive();
       }
     };
 
     window.addEventListener('touchstart', handleTouchStart, { passive: true, capture: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true, capture: true });
     window.addEventListener('touchend', handleTouchEnd, { passive: true, capture: true });
     window.addEventListener('touchcancel', handleTouchEnd, { passive: true, capture: true });
     window.addEventListener('pointerdown', handlePointerDown, { passive: true, capture: true });
+    window.addEventListener('pointermove', handlePointerMove, { passive: true, capture: true });
     window.addEventListener('pointerup', handlePointerUp, { passive: true, capture: true });
+    window.addEventListener('pointercancel', handlePointerUp, { passive: true, capture: true });
 
     if (typeof window.screen !== 'undefined' && window.screen.orientation) {
       window.screen.orientation.addEventListener('change', handleOrientationChange);
@@ -381,14 +446,18 @@ export function useGyroscopeTracking({
 
     return () => {
       attachSensorsRef.current = null;
+      if (touchExpiryTimeout) clearTimeout(touchExpiryTimeout);
       window.removeEventListener('deviceorientation', handleOrientation);
       window.removeEventListener('deviceorientationabsolute', handleOrientationAbsolute);
       window.removeEventListener('devicemotion', handleMotion);
       window.removeEventListener('touchstart', handleTouchStart, { capture: true });
+      window.removeEventListener('touchmove', handleTouchMove, { capture: true });
       window.removeEventListener('touchend', handleTouchEnd, { capture: true });
       window.removeEventListener('touchcancel', handleTouchEnd, { capture: true });
       window.removeEventListener('pointerdown', handlePointerDown, { capture: true });
+      window.removeEventListener('pointermove', handlePointerMove, { capture: true });
       window.removeEventListener('pointerup', handlePointerUp, { capture: true });
+      window.removeEventListener('pointercancel', handlePointerUp, { capture: true });
 
       if (typeof window.screen !== 'undefined' && window.screen.orientation) {
         window.screen.orientation.removeEventListener('change', handleOrientationChange);
@@ -417,7 +486,11 @@ export function useGyroscopeTracking({
 
       // Check if tilt-based directional viewport scrolling is active
       const now = Date.now();
-      const isTouchingRecently = state.isUserTouching || (now - state.lastTouchTime < 650);
+      // Auto-expire touch lockout after 300ms: guarantees missed gestures never permanently starve tilt scroll
+      if (state.isUserTouching && (now - state.lastTouchTime > 300)) {
+        state.isUserTouching = false;
+      }
+      const isTouchingRecently = state.isUserTouching || (now - state.lastTouchTime < 300);
 
       let currentScrollDir = null;
 
@@ -430,13 +503,13 @@ export function useGyroscopeTracking({
         let scrollSpeedX = 0;
         let scrollSpeedY = 0;
 
-        // Smooth non-linear scroll acceleration curve:
-        // Gentle crawl at 0.18 - 0.35 tilt, swift acceleration at > 0.35 tilt
+        // Smooth linear-quadratic scroll acceleration curve:
+        // Immediate responsive crawl at gentle tilt (~5° / >0.10), swift ramping at deeper tilt
         const calcScrollSpeed = (val, absVal) => {
           if (absVal <= scrollThreshold) return 0;
           const rawRatio = Math.min(1, Math.max(0, (absVal - scrollThreshold) / (0.5 - scrollThreshold)));
-          // Exponential power curve (1.55) gives gentle granular control on subtle tilt and swift panning on deep tilt
-          const curvedRatio = Math.pow(rawRatio, 1.55);
+          // Linear-quadratic blend (0.35 linear + 0.65 quadratic) gives instantaneous feedback and progressive speed
+          const curvedRatio = 0.35 * rawRatio + 0.65 * (rawRatio * rawRatio);
           return Math.sign(val) * curvedRatio * maxScrollSpeed * dt;
         };
 
@@ -456,7 +529,19 @@ export function useGyroscopeTracking({
           currentScrollDir = state.scrollDirection;
 
           if (Math.abs(scrollSpeedY) > 0.05 || Math.abs(scrollSpeedX) > 0.05) {
-            window.scrollBy({ top: scrollSpeedY, left: scrollSpeedX, behavior: 'auto' });
+            // Direct scroller manipulation: mutates scrollTop/scrollLeft directly on scrollingElement
+            // to bypass CSS scroll-behavior: smooth interruptions in 60fps rAF loop, fallback to window.scrollBy
+            const scroller = document.scrollingElement || document.documentElement || document.body;
+            if (scroller) {
+              if (Math.abs(scrollSpeedY) > 0.05) {
+                scroller.scrollTop += scrollSpeedY;
+              }
+              if (Math.abs(scrollSpeedX) > 0.05) {
+                scroller.scrollLeft += scrollSpeedX;
+              }
+            } else if (typeof window.scrollBy === 'function') {
+              window.scrollBy({ top: scrollSpeedY, left: scrollSpeedX, behavior: 'auto' });
+            }
 
             // If horizontal container exists in view, scroll it proportionally
             if (Math.abs(scrollSpeedX) > 0.05) {

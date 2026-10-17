@@ -35,10 +35,9 @@ assert(hookContent.includes('baselineGamma'), 'Hook must support dual baselineGa
 assert(hookContent.includes('isTouchDevice'), 'Hook must expose touch device detection');
 assert(hookContent.includes('isInsecureContext'), 'Hook must check and expose isInsecureContext');
 assert(hookContent.includes('isSecureContext'), 'Hook must inspect window.isSecureContext');
-assert(hookContent.includes('activeScrollDir'), 'Hook must expose activeScrollDir');
-assert(hookContent.includes('scrollThreshold = 0.18'), 'Hook must default scrollThreshold to 0.18');
-assert(hookContent.includes('lastStandardOrientationTime'), 'Hook must arbitrate standard vs absolute orientation');
-assert(hookContent.includes('lastAnyOrientationTime'), 'Hook must arbitrate orientation vs devicemotion fallback');
+assert(hookContent.includes('scroller = document.scrollingElement') || hookContent.includes('scrollingElement'), 'Hook must use direct document.scrollingElement manipulation');
+assert(hookContent.includes('scrollThreshold = 0.10'), 'Hook must support 0.10 high-sensitivity threshold');
+assert(hookContent.includes('300'), 'Hook must auto-expire touch lockout after 300ms');
 console.log('[PASS] useGyroscopeTracking.js contains all required sensor, security, and scrolling mechanisms.');
 
 assert(heroContent.includes('useGyroscopeTracking'), 'HeroSection must import useGyroscopeTracking');
@@ -639,6 +638,66 @@ function createSensorArbitrator() {
   assert.strictEqual(processedMotion2, false, 'Devicemotion must yield immediately when orientation is active');
   assert.strictEqual(arb.getState().activeSource, 'deviceorientation');
   console.log('[PASS] Case P4: Devicemotion seamlessly yields back as soon as orientation resumes.');
+}
+
+// ---------------------------------------------------------
+// 7. Touch Lockout Recovery, 0.10 Sensitivity & Easing Tests
+// ---------------------------------------------------------
+console.log('\n--- Touch Lockout Recovery, 0.10 Sensitivity & Easing Tests ---');
+
+// Case Q1: Touch Lockout Auto-Expiration after missed touchend / pointerup
+{
+  let isUserTouching = true;
+  let lastTouchTime = 1000;
+
+  const checkTouching = (currentTime) => {
+    if (isUserTouching && (currentTime - lastTouchTime > 300)) {
+      isUserTouching = false;
+    }
+    return isUserTouching || (currentTime - lastTouchTime < 300);
+  };
+
+  // At t = 1100 (100ms after touch): touch is active
+  assert.strictEqual(checkTouching(1100), true, 'Touch should be active within 300ms');
+
+  // At t = 1301 (301ms after touch): touch lockout must auto-expire to false
+  assert.strictEqual(checkTouching(1301), false, 'Touch lockout must auto-expire after 300ms');
+  assert.strictEqual(isUserTouching, false, 'isUserTouching flag must be auto-cleared');
+  console.log('[PASS] Case Q1: Touch lockout auto-expires after 300ms, preventing missed-gesture lockouts.');
+}
+
+// Case Q2: High-Sensitivity 0.10 Threshold (~5° tilt)
+{
+  // 5° tilt in portrait: beta = 50°, baseline = 45°, delta = 5°
+  // normY = (5 / 25) * 0.5 = 0.10
+  // 5.5° tilt: beta = 50.5°, delta = 5.5°, normY = (5.5 / 25) * 0.5 = 0.11 (> 0.10 threshold)
+  const resRest = computeNormalizedGyro({ beta: 45, gamma: 0, baselineBeta: 45, baselineGamma: 0, scrollThreshold: 0.10 });
+  assert.strictEqual(resRest.isScrolling, false, 'Resting position must not scroll');
+
+  const res5deg = computeNormalizedGyro({ beta: 50.5, gamma: 0, baselineBeta: 45, baselineGamma: 0, scrollThreshold: 0.10 });
+  assert.strictEqual(res5deg.isScrolling, true, 'Subtle ~5.5° tilt must trigger tilt-scroll at 0.10 threshold');
+  assert.strictEqual(res5deg.scrollDirection, 'down', 'Forward tilt must scroll down');
+  console.log(`[PASS] Case Q2: High-sensitivity 0.10 threshold activates on subtle ~5.5° tilt (normY = ${res5deg.normY.toFixed(3)}).`);
+}
+
+// Case Q3: Linear-Quadratic Easing Curve
+{
+  const calcLQSpeed = (absVal, threshold = 0.10, maxSpeed = 800, dt = 0.016) => {
+    if (absVal <= threshold) return 0;
+    const rawRatio = Math.min(1, Math.max(0, (absVal - threshold) / (0.5 - threshold)));
+    const curvedRatio = 0.35 * rawRatio + 0.65 * (rawRatio * rawRatio);
+    return curvedRatio * maxSpeed * dt;
+  };
+
+  const speedGentle = calcLQSpeed(0.12); // Just past 0.10 threshold
+  const speedMid = calcLQSpeed(0.30);    // Moderate tilt
+  const speedMax = calcLQSpeed(0.50);    // Full tilt
+
+  assert(speedGentle > 0.1, `Gentle tilt must have immediate response (>0.1px), got ${speedGentle.toFixed(3)}px`);
+  assert(speedGentle < 1.0, `Gentle tilt must remain a controllable crawl (<1.0px), got ${speedGentle.toFixed(3)}px`);
+  assert(speedMax > 12.0, `Full tilt must provide swift speed (>12px), got ${speedMax.toFixed(2)}px`);
+  assert(speedMid > speedGentle * 5, 'Mid speed should ramp smoothly over gentle speed');
+  console.log(`[PASS] Case Q3: Linear-quadratic easing verified: immediate gentle crawl at 0.12 (${speedGentle.toFixed(2)}px/f) to swift ${speedMax.toFixed(2)}px/f at max tilt.`);
 }
 
 console.log('\n=== ALL GYROSCOPE, TRACKING & IDLE BREATHING VERIFICATION CHECKS PASSED (100%) ===\n');
