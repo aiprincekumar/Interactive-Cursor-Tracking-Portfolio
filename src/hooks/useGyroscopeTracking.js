@@ -95,7 +95,8 @@ export function useGyroscopeTracking({
     scrollDirection: null, // null | 'up' | 'down' | 'left' | 'right' | 'down-right' ...
     isScrolling: false,
     isUserTouching: false,
-    lastTouchTime: 0
+    lastTouchTime: 0,
+    isSimulatedTracking: false
   });
 
   // Reactive state for UI indicators & toggle buttons
@@ -364,7 +365,6 @@ export function useGyroscopeTracking({
     // Simulated tilt fallback (if browser blocks motion events over HTTP, or device lacks hardware gyro)
     let touchOriginX = 0;
     let touchOriginY = 0;
-    let isTrackingSimulated = false;
 
     const handleTouchStart = (e) => {
       setTouchActive();
@@ -374,14 +374,14 @@ export function useGyroscopeTracking({
         if (t) {
           touchOriginX = t.clientX;
           touchOriginY = t.clientY;
-          isTrackingSimulated = true;
+          gyroStateRef.current.isSimulatedTracking = true;
         }
       }
     };
 
     const handleTouchMove = (e) => {
       setTouchActive();
-      if (!hasReceivedValidReading && isTrackingSimulated) {
+      if (!hasReceivedValidReading && gyroStateRef.current.isSimulatedTracking) {
         const t = e.touches ? e.touches[0] : null;
         if (t) {
           const dx = t.clientX - touchOriginX;
@@ -405,13 +405,26 @@ export function useGyroscopeTracking({
 
     const handleTouchEnd = () => {
       setTouchInactive();
-      isTrackingSimulated = false;
+      const state = gyroStateRef.current;
+      if (state.isSimulatedTracking) {
+        state.isSimulatedTracking = false;
+        // Re-center character and cease simulated scrolling when finger lifts
+        state.normX = 0;
+        state.normY = 0;
+        state.tiltX = 0;
+        state.tiltY = 0;
+      }
     };
 
     const handlePointerDown = (e) => {
       const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen' || (!e.pointerType && gyroStateRef.current.isTouchDevice);
       if (isTouchPointer) {
         setTouchActive();
+        if (!hasReceivedValidReading) {
+          touchOriginX = e.clientX;
+          touchOriginY = e.clientY;
+          gyroStateRef.current.isSimulatedTracking = true;
+        }
       }
       attachSensors();
     };
@@ -420,6 +433,23 @@ export function useGyroscopeTracking({
       const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen' || (!e.pointerType && gyroStateRef.current.isTouchDevice);
       if (isTouchPointer) {
         setTouchActive();
+        if (!hasReceivedValidReading && gyroStateRef.current.isSimulatedTracking) {
+          const dx = e.clientX - touchOriginX;
+          const dy = e.clientY - touchOriginY;
+          const screenW = window.innerWidth || 360;
+          const screenH = window.innerHeight || 640;
+          const normX = Math.max(-0.5, Math.min(0.5, dx / (screenW * 0.4)));
+          const normY = Math.max(-0.5, Math.min(0.5, dy / (screenH * 0.4)));
+          const state = gyroStateRef.current;
+          state.normX = normX;
+          state.normY = normY;
+          state.tiltX = (normX / 0.5) * maxTiltX;
+          state.tiltY = (normY / 0.5) * maxTiltY;
+          if (!state.isActive) {
+            state.isActive = true;
+            setIsActive(true);
+          }
+        }
       }
     };
 
@@ -427,6 +457,15 @@ export function useGyroscopeTracking({
       const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen' || (!e.pointerType && gyroStateRef.current.isTouchDevice);
       if (isTouchPointer) {
         setTouchInactive();
+        const state = gyroStateRef.current;
+        if (state.isSimulatedTracking) {
+          state.isSimulatedTracking = false;
+          // Re-center character and cease simulated scrolling when touch pointer lifts
+          state.normX = 0;
+          state.normY = 0;
+          state.tiltX = 0;
+          state.tiltY = 0;
+        }
       }
     };
 
@@ -494,7 +533,10 @@ export function useGyroscopeTracking({
 
       let currentScrollDir = null;
 
-      if (state.isActive && isGyroScrollActive && !isTouchingRecently) {
+      // Allow tilt scrolling if active and either not touching recently, OR actively in simulated touch-drag mode
+      const canTiltScroll = state.isActive && isGyroScrollActive && (!isTouchingRecently || state.isSimulatedTracking);
+
+      if (canTiltScroll) {
         const normX = state.smoothedNormX;
         const normY = state.smoothedNormY;
         const absX = Math.abs(normX);
@@ -523,6 +565,9 @@ export function useGyroscopeTracking({
 
         if (absX > scrollThreshold || absY > scrollThreshold) {
           state.isScrolling = true;
+          if (typeof document !== 'undefined' && document.documentElement && !document.documentElement.classList.contains('tilt-scrolling')) {
+            document.documentElement.classList.add('tilt-scrolling');
+          }
           const dirY = absY > scrollThreshold ? (normY > 0 ? 'down' : 'up') : '';
           const dirX = absX > scrollThreshold ? (normX > 0 ? 'right' : 'left') : '';
           state.scrollDirection = dirY && dirX ? `${dirY}-${dirX}` : (dirY || dirX || null);
@@ -564,11 +609,17 @@ export function useGyroscopeTracking({
           state.isScrolling = false;
           state.scrollDirection = null;
           currentScrollDir = null;
+          if (typeof document !== 'undefined' && document.documentElement && document.documentElement.classList.contains('tilt-scrolling')) {
+            document.documentElement.classList.remove('tilt-scrolling');
+          }
         }
       } else {
         state.isScrolling = false;
         state.scrollDirection = null;
         currentScrollDir = null;
+        if (typeof document !== 'undefined' && document.documentElement && document.documentElement.classList.contains('tilt-scrolling')) {
+          document.documentElement.classList.remove('tilt-scrolling');
+        }
       }
 
       if (lastActiveScrollDirRef.current !== currentScrollDir) {
@@ -582,6 +633,9 @@ export function useGyroscopeTracking({
     rafId = requestAnimationFrame(scrollTick);
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
+      if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.classList.remove('tilt-scrolling');
+      }
       if (lastActiveScrollDirRef.current !== null) {
         lastActiveScrollDirRef.current = null;
         setActiveScrollDir(null);

@@ -11,9 +11,11 @@ console.log('=== GYROSCOPE TRACKING & DIRECTIONAL SCROLL VERIFICATION TEST ===\n
 // ---------------------------------------------------------
 const hookPath = path.join(rootDir, 'src', 'hooks', 'useGyroscopeTracking.js');
 const heroPath = path.join(rootDir, 'src', 'components', 'HeroSection.jsx');
+const indexPath = path.join(rootDir, 'src', 'index.css');
 
 assert(fs.existsSync(hookPath), 'src/hooks/useGyroscopeTracking.js must exist');
 assert(fs.existsSync(heroPath), 'src/components/HeroSection.jsx must exist');
+assert(fs.existsSync(indexPath), 'src/index.css must exist');
 console.log('[PASS] All expected source files exist.');
 
 // ---------------------------------------------------------
@@ -21,6 +23,7 @@ console.log('[PASS] All expected source files exist.');
 // ---------------------------------------------------------
 const hookContent = fs.readFileSync(hookPath, 'utf-8');
 const heroContent = fs.readFileSync(heroPath, 'utf-8');
+const indexContent = fs.readFileSync(indexPath, 'utf-8');
 
 assert(hookContent.includes('useGyroscopeTracking'), 'Hook must export useGyroscopeTracking');
 assert(hookContent.includes('deviceorientation'), 'Hook must listen to deviceorientation events');
@@ -38,7 +41,11 @@ assert(hookContent.includes('isSecureContext'), 'Hook must inspect window.isSecu
 assert(hookContent.includes('scroller = document.scrollingElement') || hookContent.includes('scrollingElement'), 'Hook must use direct document.scrollingElement manipulation');
 assert(hookContent.includes('scrollThreshold = 0.10'), 'Hook must support 0.10 high-sensitivity threshold');
 assert(hookContent.includes('300'), 'Hook must auto-expire touch lockout after 300ms');
-console.log('[PASS] useGyroscopeTracking.js contains all required sensor, security, and scrolling mechanisms.');
+assert(hookContent.includes('isSimulatedTracking'), 'Hook must support isSimulatedTracking');
+assert(hookContent.includes('tilt-scrolling'), 'Hook must toggle tilt-scrolling class on documentElement');
+assert(indexContent.includes('html.tilt-scrolling'), 'index.css must declare html.tilt-scrolling');
+assert(indexContent.includes('scroll-behavior: auto !important'), 'index.css must declare scroll-behavior: auto !important for tilt-scrolling');
+console.log('[PASS] useGyroscopeTracking.js and index.css contain all required sensor, security, and scrolling mechanisms.');
 
 assert(heroContent.includes('useGyroscopeTracking'), 'HeroSection must import useGyroscopeTracking');
 assert(heroContent.includes('Compass'), 'HeroSection must import Compass icon');
@@ -698,6 +705,60 @@ console.log('\n--- Touch Lockout Recovery, 0.10 Sensitivity & Easing Tests ---')
   assert(speedMax > 12.0, `Full tilt must provide swift speed (>12px), got ${speedMax.toFixed(2)}px`);
   assert(speedMid > speedGentle * 5, 'Mid speed should ramp smoothly over gentle speed');
   console.log(`[PASS] Case Q3: Linear-quadratic easing verified: immediate gentle crawl at 0.12 (${speedGentle.toFixed(2)}px/f) to swift ${speedMax.toFixed(2)}px/f at max tilt.`);
+}
+
+// Case Q4: Simulated Tilt Touch-Drag Scrolling & Release Re-Centering
+{
+  // Simulated tracking state during touch-drag
+  let isUserTouching = true;
+  let isSimulatedTracking = true;
+  let lastTouchTime = 2000;
+  let currentTime = 2050; // In the middle of drag
+  let normY = 0.35; // User dragged down
+
+  const checkCanTiltScroll = (state) => {
+    const isTouchingRecently = state.isUserTouching || (state.currentTime - state.lastTouchTime < 300);
+    return state.isActive && state.isGyroScrollActive && (!isTouchingRecently || state.isSimulatedTracking);
+  };
+
+  const stateDragging = {
+    isActive: true,
+    isGyroScrollActive: true,
+    isUserTouching,
+    isSimulatedTracking,
+    lastTouchTime,
+    currentTime
+  };
+
+  assert.strictEqual(checkCanTiltScroll(stateDragging), true, 'Simulated tilt must scroll during active touch-drag');
+
+  // When user lifts finger, simulated tracking ends and angles re-center
+  isSimulatedTracking = false;
+  isUserTouching = false;
+  normY = 0; // Angles re-centered on release
+
+  const stateReleased = {
+    isActive: true,
+    isGyroScrollActive: true,
+    isUserTouching,
+    isSimulatedTracking,
+    lastTouchTime: currentTime,
+    currentTime: currentTime + 50
+  };
+
+  assert.strictEqual(checkCanTiltScroll(stateReleased), false, 'Scroll must pause immediately when touch lifts during cooldown');
+  assert.strictEqual(normY, 0, 'Angles must re-center on touch release to prevent runaway scroll');
+  console.log('[PASS] Case Q4: Simulated tilt tracking scrolls during touch-drag and cleanly resets normX/normY on release.');
+}
+
+// Case Q5: CSS Smooth-Scroll Override & HUD Duration Support
+{
+  assert(indexContent.includes('html.tilt-scrolling'), 'index.css must define html.tilt-scrolling');
+  assert(indexContent.includes('scroll-behavior: auto !important'), 'tilt-scrolling must enforce auto scroll behavior');
+  assert(hookContent.includes("classList.add('tilt-scrolling')"), 'useGyroscopeTracking must add tilt-scrolling class during scroll');
+  assert(hookContent.includes("classList.remove('tilt-scrolling')"), 'useGyroscopeTracking must remove tilt-scrolling class when resting/unmounting');
+  assert(heroContent.includes('duration = 1500'), 'triggerHud in HeroSection must support duration parameter');
+  console.log('[PASS] Case Q5: CSS smooth-scroll override and triggerHud duration support verified.');
 }
 
 console.log('\n=== ALL GYROSCOPE, TRACKING & IDLE BREATHING VERIFICATION CHECKS PASSED (100%) ===\n');

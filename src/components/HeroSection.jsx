@@ -433,7 +433,7 @@ export default function HeroSection({
   }, [reducedMotion, setIsInsideHero, gyro.gyroStateRef]);
 
   // Floating HUD notification trigger
-  const triggerHud = useCallback((customMsg = null) => {
+  const triggerHud = useCallback((customMsg = null, duration = 1500) => {
     setHudMessage(customMsg);
     setShowHudBadge(true);
     if (hudTimerRef.current) {
@@ -442,7 +442,7 @@ export default function HeroSection({
     hudTimerRef.current = setTimeout(() => {
       setShowHudBadge(false);
       setHudMessage(null);
-    }, 1500);
+    }, duration);
   }, []);
 
   useEffect(() => {
@@ -999,13 +999,14 @@ export default function HeroSection({
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (gyro.isInsecureContext && !gyro.isActive) {
-                    triggerHud("Tip: Use https:// LAN link for sensor access!", 2500);
-                  }
                   const willBeActive = !gyro.isGyroScrollActive;
                   gyro.toggleGyroScroll();
                   if (willBeActive) {
-                    triggerHud('Tilt Scroll ON: Tilt phone forward to scroll down, backward to scroll up', 3000);
+                    if (gyro.isInsecureContext && !gyro.isActive) {
+                      triggerHud('Tilt Scroll ON (Touch/Drag fallback on HTTP. Connect via HTTPS for raw gyro)', 3500);
+                    } else {
+                      triggerHud('Tilt Scroll ON: Tilt phone forward to scroll down, backward to scroll up', 3000);
+                    }
                   } else {
                     triggerHud('Tilt Scroll OFF: Screen locked, only character follows tilt', 2500);
                   }

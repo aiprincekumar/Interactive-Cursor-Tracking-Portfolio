@@ -30,6 +30,10 @@
     color: #18181B;
   }
 
+  html.tilt-scrolling {
+    scroll-behavior: auto !important;
+  }
+
   body {
     background-color: #FAF8F5;
     color: #18181B;
