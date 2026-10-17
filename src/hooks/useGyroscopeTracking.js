@@ -85,7 +85,8 @@ export function useGyroscopeTracking({
     isScrolling: false,
     isUserTouching: false,
     lastTouchTime: 0,
-    isSimulatedTracking: false
+    isSimulatedTracking: false,
+    isUserDisabled: false
   });
 
   // Reactive state for UI indicators & toggle buttons
@@ -118,7 +119,7 @@ export function useGyroscopeTracking({
     state.isCalibrated = true;
     setIsCalibrated(true);
 
-    if (attachSensorsRef.current) {
+    if (attachSensorsRef.current && !state.isUserDisabled) {
       attachSensorsRef.current();
     }
   }, [baselinePitch]);
@@ -136,6 +137,7 @@ export function useGyroscopeTracking({
         gyroStateRef.current.permission = response;
         setPermissionState(response);
         if (response === 'granted') {
+          gyroStateRef.current.isUserDisabled = false;
           gyroStateRef.current.isActive = true;
           setIsActive(true);
           if (attachSensorsRef.current) attachSensorsRef.current();
@@ -157,6 +159,7 @@ export function useGyroscopeTracking({
         gyroStateRef.current.permission = response;
         setPermissionState(response);
         if (response === 'granted') {
+          gyroStateRef.current.isUserDisabled = false;
           gyroStateRef.current.isActive = true;
           setIsActive(true);
           if (attachSensorsRef.current) attachSensorsRef.current();
@@ -172,6 +175,7 @@ export function useGyroscopeTracking({
     } else {
       // Non-iOS / Android Chrome: already granted
       gyroStateRef.current.permission = 'granted';
+      gyroStateRef.current.isUserDisabled = false;
       gyroStateRef.current.isActive = true;
       setPermissionState('granted');
       setIsActive(true);
@@ -179,6 +183,48 @@ export function useGyroscopeTracking({
       return true;
     }
   }, []);
+
+  // Explicit User Toggle for Gyroscope Tracking (ON <-> OFF)
+  const toggleGyroTracking = useCallback(() => {
+    const state = gyroStateRef.current;
+    if (state.isActive) {
+      // Turn OFF tracking
+      state.isUserDisabled = true;
+      state.isActive = false;
+      setIsActive(false);
+
+      // Cleanly zero kinematics and tracking coordinates
+      state.normX = 0;
+      state.normY = 0;
+      state.smoothedNormX = 0;
+      state.smoothedNormY = 0;
+      state.tiltX = 0;
+      state.tiltY = 0;
+      state.isScrolling = false;
+      state.scrollDirection = null;
+      state.isSimulatedTracking = false;
+
+      if (typeof document !== 'undefined' && document.documentElement && document.documentElement.classList.contains('tilt-scrolling')) {
+        document.documentElement.classList.remove('tilt-scrolling');
+      }
+
+      return false;
+    } else {
+      // Turn ON tracking
+      state.isUserDisabled = false;
+      if (permissionState === 'prompt') {
+        requestPermission();
+        return true;
+      }
+      state.isActive = true;
+      setIsActive(true);
+      recalibrate();
+      if (attachSensorsRef.current) {
+        attachSensorsRef.current();
+      }
+      return true;
+    }
+  }, [permissionState, recalibrate, requestPermission]);
 
   // Handle device orientation events, Android absolute/motion fallbacks & auto-calibration
   useEffect(() => {
@@ -197,9 +243,11 @@ export function useGyroscopeTracking({
     let hasReceivedValidReading = false;
 
     const processAngles = (beta, gamma, alpha = 0) => {
+      const state = gyroStateRef.current;
+      // If user has explicitly turned Gyro OFF, do not process angles or auto-enable isActive
+      if (state.isUserDisabled || !state.isActive) return;
       if (beta === null || gamma === null || Number.isNaN(beta) || Number.isNaN(gamma)) return;
 
-      const state = gyroStateRef.current;
       state.rawBeta = beta;
       state.rawGamma = gamma;
       state.rawAlpha = alpha || 0;
@@ -267,6 +315,8 @@ export function useGyroscopeTracking({
     };
 
     const handleOrientation = (e) => {
+      const state = gyroStateRef.current;
+      if (state.isUserDisabled || !state.isActive) return;
       if (e.beta !== null && e.gamma !== null && !Number.isNaN(e.beta) && !Number.isNaN(e.gamma)) {
         lastStandardOrientationTime = Date.now();
         lastAnyOrientationTime = Date.now();
@@ -275,6 +325,8 @@ export function useGyroscopeTracking({
     };
 
     const handleOrientationAbsolute = (e) => {
+      const state = gyroStateRef.current;
+      if (state.isUserDisabled || !state.isActive) return;
       // Prioritize standard orientation (Game Rotation Vector); only use absolute if standard is inactive
       if (Date.now() - lastStandardOrientationTime < 1000) return;
 
@@ -285,6 +337,8 @@ export function useGyroscopeTracking({
     };
 
     const handleMotion = (e) => {
+      const state = gyroStateRef.current;
+      if (state.isUserDisabled || !state.isActive) return;
       // Only fallback to devicemotion gravity vector if orientation events are not active
       if (Date.now() - lastAnyOrientationTime < 1000) return;
 
@@ -311,6 +365,7 @@ export function useGyroscopeTracking({
 
     // Sensor attachment & touch interaction handling
     const attachSensors = () => {
+      if (gyroStateRef.current.isUserDisabled) return;
       window.removeEventListener('deviceorientation', handleOrientation);
       window.removeEventListener('deviceorientationabsolute', handleOrientationAbsolute);
       window.removeEventListener('devicemotion', handleMotion);
@@ -354,7 +409,7 @@ export function useGyroscopeTracking({
     const handleTouchStart = (e) => {
       setTouchActive();
       attachSensors();
-      if (!hasReceivedValidReading) {
+      if (!hasReceivedValidReading && !gyroStateRef.current.isUserDisabled) {
         const t = e.touches ? e.touches[0] : null;
         if (t) {
           touchOriginX = t.clientX;
@@ -366,7 +421,9 @@ export function useGyroscopeTracking({
 
     const handleTouchMove = (e) => {
       setTouchActive();
-      if (!hasReceivedValidReading && gyroStateRef.current.isSimulatedTracking) {
+      const state = gyroStateRef.current;
+      if (state.isUserDisabled || !state.isActive) return;
+      if (!hasReceivedValidReading && state.isSimulatedTracking) {
         const t = e.touches ? e.touches[0] : null;
         if (t) {
           const dx = t.clientX - touchOriginX;
@@ -375,7 +432,6 @@ export function useGyroscopeTracking({
           const screenH = window.innerHeight || 640;
           const normX = Math.max(-0.5, Math.min(0.5, dx / (screenW * 0.4)));
           const normY = Math.max(-0.5, Math.min(0.5, dy / (screenH * 0.4)));
-          const state = gyroStateRef.current;
           state.normX = normX;
           state.normY = normY;
           state.tiltX = (normX / 0.5) * maxTiltX;
@@ -405,7 +461,7 @@ export function useGyroscopeTracking({
       const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen' || (!e.pointerType && gyroStateRef.current.isTouchDevice);
       if (isTouchPointer) {
         setTouchActive();
-        if (!hasReceivedValidReading) {
+        if (!hasReceivedValidReading && !gyroStateRef.current.isUserDisabled) {
           touchOriginX = e.clientX;
           touchOriginY = e.clientY;
           gyroStateRef.current.isSimulatedTracking = true;
@@ -418,14 +474,15 @@ export function useGyroscopeTracking({
       const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen' || (!e.pointerType && gyroStateRef.current.isTouchDevice);
       if (isTouchPointer) {
         setTouchActive();
-        if (!hasReceivedValidReading && gyroStateRef.current.isSimulatedTracking) {
+        const state = gyroStateRef.current;
+        if (state.isUserDisabled || !state.isActive) return;
+        if (!hasReceivedValidReading && state.isSimulatedTracking) {
           const dx = e.clientX - touchOriginX;
           const dy = e.clientY - touchOriginY;
           const screenW = window.innerWidth || 360;
           const screenH = window.innerHeight || 640;
           const normX = Math.max(-0.5, Math.min(0.5, dx / (screenW * 0.4)));
           const normY = Math.max(-0.5, Math.min(0.5, dy / (screenH * 0.4)));
-          const state = gyroStateRef.current;
           state.normX = normX;
           state.normY = normY;
           state.tiltX = (normX / 0.5) * maxTiltX;
@@ -644,7 +701,9 @@ export function useGyroscopeTracking({
     activeScrollDir,
     recalibrate,
     requestPermission,
-    toggleGyroScroll
+    toggleGyroScroll,
+    toggleGyroTracking,
+    toggleGyro: toggleGyroTracking
   };
 }
 

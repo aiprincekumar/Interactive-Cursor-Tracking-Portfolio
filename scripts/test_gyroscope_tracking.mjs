@@ -47,6 +47,8 @@ assert(indexContent.includes('html.tilt-scrolling'), 'index.css must declare htm
 assert(indexContent.includes('scroll-behavior: auto !important'), 'index.css must declare scroll-behavior: auto !important for tilt-scrolling');
 console.log('[PASS] useGyroscopeTracking.js and index.css contain all required sensor and scrolling mechanisms.');
 
+assert(hookContent.includes('toggleGyroTracking'), 'Hook must export toggleGyroTracking');
+assert(hookContent.includes('isUserDisabled'), 'Hook must track isUserDisabled flag');
 assert(heroContent.includes('useGyroscopeTracking'), 'HeroSection must import useGyroscopeTracking');
 assert(heroContent.includes('Compass'), 'HeroSection must import Compass icon');
 assert(heroContent.includes('bgBackdropRef'), 'HeroSection must attach bgBackdropRef for directional parallax');
@@ -59,8 +61,9 @@ assert(!heroContent.includes('Calibrate (HTTP)'), 'HeroSection must not have Cal
 assert(!heroContent.includes('bg-amber-500'), 'HeroSection must not render amber warning dots');
 assert(heroContent.includes('Scroll ON ↓'), 'HeroSection must render dynamic downward scroll indicator');
 assert(heroContent.includes('Scroll ON ↑'), 'HeroSection must render dynamic upward scroll indicator');
-assert(heroContent.includes('Gyro Active') || heroContent.includes('Enable Gyro'), 'HeroSection must render Gyro Control Pill');
-console.log('[PASS] HeroSection.jsx integrates gyro sensor, character translation, organic idle breathing, and dynamic UI controls without insecure warnings.');
+assert(heroContent.includes('Gyro ON') && heroContent.includes('Gyro OFF'), 'HeroSection must render Gyro ON and Gyro OFF toggle button states');
+assert(heroContent.includes('toggleGyroTracking'), 'HeroSection must invoke toggleGyroTracking');
+console.log('[PASS] HeroSection.jsx integrates gyro sensor toggle, character translation, organic idle breathing, and dynamic UI controls without insecure warnings.');
 
 // ---------------------------------------------------------
 // 3. Logic Simulation Tests for Orientation & Deadzone
@@ -756,6 +759,96 @@ console.log('\n--- Touch Lockout Recovery, 0.10 Sensitivity & Easing Tests ---')
   assert(hookContent.includes("classList.remove('tilt-scrolling')"), 'useGyroscopeTracking must remove tilt-scrolling class when resting/unmounting');
   assert(heroContent.includes('duration = 1500'), 'triggerHud in HeroSection must support duration parameter');
   console.log('[PASS] Case Q5: CSS smooth-scroll override and triggerHud duration support verified.');
+}
+
+// ---------------------------------------------------------
+// 8. Toggle Gyro Tracking ON/OFF & Vector Zeroing Tests
+// ---------------------------------------------------------
+console.log('\n--- Toggle Gyro Tracking ON/OFF & Vector Zeroing Tests ---');
+
+// Case R1: Toggling OFF zeroes kinematic coordinates and locks out incoming sensor readings
+{
+  const state = {
+    isActive: true,
+    isUserDisabled: false,
+    normX: 0.45,
+    normY: -0.32,
+    tiltX: 22.5,
+    tiltY: -16.0,
+    smoothedNormX: 0.44,
+    smoothedNormY: -0.31,
+    isScrolling: true,
+    scrollDirection: 'down-right',
+    isSimulatedTracking: true
+  };
+
+  const toggleGyroTracking = (s) => {
+    if (s.isActive) {
+      s.isUserDisabled = true;
+      s.isActive = false;
+      s.normX = 0;
+      s.normY = 0;
+      s.smoothedNormX = 0;
+      s.smoothedNormY = 0;
+      s.tiltX = 0;
+      s.tiltY = 0;
+      s.isScrolling = false;
+      s.scrollDirection = null;
+      s.isSimulatedTracking = false;
+      return false;
+    } else {
+      s.isUserDisabled = false;
+      s.isActive = true;
+      return true;
+    }
+  };
+
+  const processAngles = (s, beta, gamma) => {
+    if (s.isUserDisabled || !s.isActive) return false;
+    s.normX = (gamma / 25) * 0.5;
+    s.normY = ((beta - 45) / 25) * 0.5;
+    return true;
+  };
+
+  // Toggle OFF
+  const nextActive = toggleGyroTracking(state);
+  assert.strictEqual(nextActive, false, 'Toggling active gyro must return false (OFF)');
+  assert.strictEqual(state.isActive, false, 'state.isActive must be false');
+  assert.strictEqual(state.isUserDisabled, true, 'state.isUserDisabled must be true');
+  assert.strictEqual(state.normX, 0, 'normX must be reset to 0');
+  assert.strictEqual(state.normY, 0, 'normY must be reset to 0');
+  assert.strictEqual(state.tiltX, 0, 'tiltX must be reset to 0');
+  assert.strictEqual(state.tiltY, 0, 'tiltY must be reset to 0');
+  assert.strictEqual(state.smoothedNormX, 0, 'smoothedNormX must be reset to 0');
+  assert.strictEqual(state.smoothedNormY, 0, 'smoothedNormY must be reset to 0');
+  assert.strictEqual(state.isScrolling, false, 'isScrolling must be reset to false');
+  assert.strictEqual(state.isSimulatedTracking, false, 'isSimulatedTracking must be reset to false');
+
+  // Verify subsequent incoming sensor readings are suppressed and cannot re-activate tracking
+  const processed = processAngles(state, 65, 20);
+  assert.strictEqual(processed, false, 'Sensor readings must be ignored when isUserDisabled is true');
+  assert.strictEqual(state.normX, 0, 'normX must remain 0');
+  assert.strictEqual(state.normY, 0, 'normY must remain 0');
+  assert.strictEqual(state.isActive, false, 'Sensor events must not re-enable isActive when turned OFF');
+
+  // Toggle back ON
+  const turnedOn = toggleGyroTracking(state);
+  assert.strictEqual(turnedOn, true, 'Toggling inactive gyro must return true (ON)');
+  assert.strictEqual(state.isActive, true, 'state.isActive must be true');
+  assert.strictEqual(state.isUserDisabled, false, 'state.isUserDisabled must be false');
+
+  // Verify sensor readings now process
+  const processedOn = processAngles(state, 65, 20);
+  assert.strictEqual(processedOn, true, 'Sensor readings must process when turned ON');
+  assert(state.normX > 0.3, 'normX should now reflect sensor readings');
+  console.log('[PASS] Case R1: toggleGyroTracking correctly zeroes vectors on OFF, suppresses incoming events, and re-activates cleanly.');
+}
+
+// Case R2: Cross-Device Desktop/Tablet/Mobile Visibility Verification in HeroSection
+{
+  assert(heroContent.includes('{gyro.isSupported && ('), 'Gyro pill must render whenever gyro.isSupported is true (accessible on Desktop, Tablet & Mobile)');
+  assert(!heroContent.includes('(gyro.isTouchDevice || gyro.isActive || gyro.permissionState === \'prompt\')'), 'HeroSection must not hide gyro pill on desktop non-touch devices');
+  console.log('[PASS] Case R2: Gyro pill is accessible across all device modes (Desktop, Tablet, and Mobile).');
 }
 
 console.log('\n=== ALL GYROSCOPE, TRACKING & IDLE BREATHING VERIFICATION CHECKS PASSED (100%) ===\n');

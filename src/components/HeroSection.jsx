@@ -194,6 +194,14 @@ export default function HeroSection({
           state.targetNormY = gState.normY;
           state.isHovered = true;
         }
+      } else if (!state.isPointerInteracting) {
+        // When Gyro is OFF and no pointer interaction is ongoing:
+        // Follow pointer if hovered inside hero, otherwise return to idle center (0, 0)
+        if (!isInsideHeroRef.current) {
+          state.targetNormX = 0;
+          state.targetNormY = 0;
+          state.isHovered = false;
+        }
       }
 
       // Frame-rate independent exponential damping (lambda = 15.0 for swift, buttery-smooth follow)
@@ -936,14 +944,14 @@ export default function HeroSection({
 
         {/* Row 2 on Mobile / Right Column on Desktop: Camera Controls, Gyro Pill & Scale Pill */}
         <div className="flex items-center justify-center self-center md:self-auto md:justify-end flex-wrap sm:flex-nowrap gap-2 sm:gap-3 pointer-events-auto w-full sm:w-auto">
-          {/* Gyro Sensor & Tilt-Scroll Control Pill (Mobile & Gyro-enabled devices) */}
-          {gyro.isSupported && (gyro.isTouchDevice || gyro.isActive || gyro.permissionState === 'prompt') && (
+          {/* Gyro Sensor & Tilt-Scroll Control Pill (Available in all modes: Desktop, Tablet & Mobile) */}
+          {gyro.isSupported && (
             <div
               onClick={(e) => e.stopPropagation()}
               onPointerDown={(e) => e.stopPropagation()}
               className="bg-white/80 backdrop-blur-xl border border-white/90 shadow-md rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 text-[#18181B] max-w-full"
             >
-              {/* Gyro Sensor Calibration & Activation Button */}
+              {/* Gyro Sensor Activation & Toggle Button */}
               <button
                 type="button"
                 onClick={(e) => {
@@ -951,34 +959,76 @@ export default function HeroSection({
                   if (gyro.permissionState === 'prompt') {
                     gyro.requestPermission().then((granted) => {
                       if (granted) {
-                        triggerHud('Gyro Enabled & Active');
+                        triggerHud('Gyroscope Tracking ON: Active & Calibrated');
                       } else {
-                        triggerHud('Gyro Permission Denied');
+                        triggerHud('Gyroscope Permission Denied');
                       }
                     });
                   } else {
-                    gyro.recalibrate();
-                    triggerHud('Gyro Calibrated: 0°');
+                    const nextActive = gyro.toggleGyroTracking();
+                    if (nextActive) {
+                      triggerHud('Gyroscope Tracking ON: Active & Calibrated');
+                    } else {
+                      triggerHud('Gyroscope Tracking OFF: Switched to Cursor/Idle mode');
+                    }
                   }
                 }}
-                aria-label={gyro.permissionState === 'prompt' ? 'Enable Gyroscope' : 'Recalibrate Gyroscope baseline'}
-                title={gyro.permissionState === 'prompt' ? 'Enable Gyroscope Tracking' : 'Recalibrate Gyroscope Baseline'}
+                aria-label={
+                  gyro.permissionState === 'prompt'
+                    ? 'Enable Gyroscope Tracking'
+                    : gyro.permissionState === 'denied'
+                      ? 'Gyroscope Blocked'
+                      : gyro.isActive
+                        ? 'Disable Gyroscope Tracking'
+                        : 'Enable Gyroscope Tracking'
+                }
+                title={
+                  gyro.permissionState === 'prompt'
+                    ? 'Enable Gyroscope Tracking'
+                    : gyro.permissionState === 'denied'
+                      ? 'Gyroscope Permission Denied in Browser'
+                      : gyro.isActive
+                        ? 'Click to turn Gyro OFF (revert to cursor/idle)'
+                        : 'Click to turn Gyro ON (tilt tracking)'
+                }
                 className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold hover:text-[#FF3F6C] active:scale-95 transition-all cursor-pointer"
               >
-                <Compass className={`w-3.5 h-3.5 text-[#FF4D6D] ${gyro.isActive ? 'animate-spin-slow' : ''}`} />
+                <Compass className={`w-3.5 h-3.5 text-[#FF4D6D] ${gyro.isActive ? 'animate-spin-slow' : 'opacity-60'}`} />
                 <span>
                   {gyro.permissionState === 'prompt'
                     ? 'Enable Gyro'
                     : gyro.permissionState === 'denied'
                       ? 'Gyro Blocked'
                       : gyro.isActive
-                        ? 'Gyro Active'
-                        : 'Calibrate'}
+                        ? 'Gyro ON'
+                        : 'Gyro OFF'}
                 </span>
-                {gyro.isActive && (
+                {gyro.isActive ? (
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                ) : (
+                  <span className="w-1.5 h-1.5 rounded-full bg-stone-300" />
                 )}
               </button>
+
+              {/* Recalibrate button accessible when Gyro is ON */}
+              {gyro.isActive && (
+                <>
+                  <div className="w-[1px] h-3 bg-stone-200" />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      gyro.recalibrate();
+                      triggerHud('Gyroscope Recalibrated: Baseline 0°');
+                    }}
+                    aria-label="Recalibrate Gyroscope baseline angle"
+                    title="Recalibrate current tilt angle as resting center (0°)"
+                    className="text-[9px] sm:text-[10px] font-semibold text-stone-500 hover:text-[#FF3F6C] px-1 py-0.5 rounded transition-all cursor-pointer"
+                  >
+                    Calibrate
+                  </button>
+                </>
+              )}
 
               <div className="w-[1px] h-3 bg-stone-200" />
 
