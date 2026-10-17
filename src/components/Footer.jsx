@@ -9,7 +9,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="border-t border-purple-950/40 bg-[#161220] text-stone-300 py-16 px-4 md:px-8 relative overflow-hidden select-none">
+    <footer className="border-t border-purple-950/40 dark:border-[#2D2340] bg-[#161220] dark:bg-[#0B0813] text-stone-300 py-16 px-4 md:px-8 relative overflow-hidden select-none transition-colors duration-300">
       {/* Giant Faint Watermark Text matching Reel t=16.8s */}
       <div className="absolute inset-x-0 bottom-2 text-center pointer-events-none select-none overflow-hidden opacity-[0.06]">
         <span className="text-[14vw] font-black uppercase tracking-tighter text-white font-['Outfit',sans-serif] whitespace-nowrap">
@@ -49,7 +49,7 @@ export default function Footer() {
             type="button"
             onClick={scrollToTop}
             aria-label="Scroll back to top of page"
-            className="p-3 rounded-full bg-[#241E33] hover:bg-[#FF4D6D] text-white border border-purple-800/40 transition-all duration-200 active:scale-95 shadow-md cursor-pointer"
+            className="p-3 rounded-full bg-[#241E33] dark:bg-[#161122] hover:bg-[#FF4D6D] text-white border border-purple-800/40 dark:border-[#2D2340] transition-all duration-200 active:scale-95 shadow-md cursor-pointer"
             title="Back to Top"
           >
             <ArrowUp className="w-4 h-4" />

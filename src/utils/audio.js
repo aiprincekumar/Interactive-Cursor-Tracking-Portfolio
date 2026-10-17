@@ -6,6 +6,8 @@ class SoundFX {
     this.ctx = null;
     this.masterGain = null;
     this.enabled = true;
+    this.pitchMultiplier = 1.0;
+    this.baseFrequency = 440;
   }
 
   init() {
@@ -34,6 +36,54 @@ class SoundFX {
     }
   }
 
+  setPitchMultiplier(mult) {
+    const val = typeof mult === 'number' && !isNaN(mult) ? mult : 1.0;
+    this.pitchMultiplier = Math.max(0.5, Math.min(2.5, val));
+  }
+
+  getPitchMultiplier() {
+    return this.pitchMultiplier;
+  }
+
+  setBaseFrequency(freq) {
+    const val = typeof freq === 'number' && !isNaN(freq) ? freq : 440;
+    this.baseFrequency = Math.max(20, Math.min(20000, val));
+  }
+
+  getBaseFrequency() {
+    return this.baseFrequency;
+  }
+
+  resetAudioDefaults() {
+    this.pitchMultiplier = 1.0;
+    this.baseFrequency = 440;
+  }
+
+  playTonePreview(frequency = 440, type = 'sine') {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    const freqVal = typeof frequency === 'number' && !isNaN(frequency) ? frequency : (this.baseFrequency || 440);
+    const targetFreq = Math.max(20, freqVal * this.pitchMultiplier);
+    osc.type = type;
+    osc.frequency.setValueAtTime(targetFreq, t);
+
+    // Smooth 120ms preview tone with attack and decay envelope
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(0.12, t + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.12);
+  }
+
   triggerHaptic(pattern) {
     if (typeof window !== 'undefined' && 'navigator' in window && window.navigator.vibrate) {
       try {
@@ -58,8 +108,8 @@ class SoundFX {
     const osc1 = this.ctx.createOscillator();
     const gain1 = this.ctx.createGain();
     osc1.type = 'triangle';
-    osc1.frequency.setValueAtTime(2200, t);
-    osc1.frequency.exponentialRampToValueAtTime(140, t + 0.04);
+    osc1.frequency.setValueAtTime(2200 * this.pitchMultiplier, t);
+    osc1.frequency.exponentialRampToValueAtTime(Math.max(1, 140 * this.pitchMultiplier), t + 0.04);
     gain1.gain.setValueAtTime(0.4, t);
     gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
     osc1.connect(gain1);
@@ -78,7 +128,7 @@ class SoundFX {
     noise.buffer = buffer;
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(3200, t + 0.02);
+    filter.frequency.setValueAtTime(3200 * this.pitchMultiplier, t + 0.02);
     filter.Q.setValueAtTime(2.5, t + 0.02);
     const noiseGain = this.ctx.createGain();
     noiseGain.gain.setValueAtTime(0.35, t + 0.02);
@@ -93,8 +143,8 @@ class SoundFX {
     const osc2 = this.ctx.createOscillator();
     const gain2 = this.ctx.createGain();
     osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(800, t + 0.09);
-    osc2.frequency.exponentialRampToValueAtTime(350, t + 0.15);
+    osc2.frequency.setValueAtTime(800 * this.pitchMultiplier, t + 0.09);
+    osc2.frequency.exponentialRampToValueAtTime(Math.max(1, 350 * this.pitchMultiplier), t + 0.15);
     gain2.gain.setValueAtTime(0.2, t + 0.09);
     gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
     osc2.connect(gain2);
@@ -114,7 +164,7 @@ class SoundFX {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(1400, t);
+    osc.frequency.setValueAtTime(1400 * this.pitchMultiplier, t);
     gain.gain.setValueAtTime(0.08, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
 
@@ -137,7 +187,7 @@ class SoundFX {
       const gain = this.ctx.createGain();
       const startTime = t + idx * 0.04;
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, startTime);
+      osc.frequency.setValueAtTime(freq * this.pitchMultiplier, startTime);
       gain.gain.setValueAtTime(0.05, startTime);
       gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.12);
       osc.connect(gain);
@@ -157,8 +207,8 @@ class SoundFX {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(440, t);
-    osc.frequency.exponentialRampToValueAtTime(880, t + 0.05);
+    osc.frequency.setValueAtTime(440 * this.pitchMultiplier, t);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(1, 880 * this.pitchMultiplier), t + 0.05);
     gain.gain.setValueAtTime(0.08, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
 
@@ -179,11 +229,11 @@ class SoundFX {
     const gain = this.ctx.createGain();
     osc.type = 'sine';
     if (isOpen) {
-      osc.frequency.setValueAtTime(320, t);
-      osc.frequency.exponentialRampToValueAtTime(560, t + 0.08);
+      osc.frequency.setValueAtTime(320 * this.pitchMultiplier, t);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(1, 560 * this.pitchMultiplier), t + 0.08);
     } else {
-      osc.frequency.setValueAtTime(560, t);
-      osc.frequency.exponentialRampToValueAtTime(320, t + 0.08);
+      osc.frequency.setValueAtTime(560 * this.pitchMultiplier, t);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(1, 320 * this.pitchMultiplier), t + 0.08);
     }
     gain.gain.setValueAtTime(0.06, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
@@ -210,7 +260,7 @@ class SoundFX {
       const gain = this.ctx.createGain();
       const startTime = t + idx * 0.045;
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, startTime);
+      osc.frequency.setValueAtTime(freq * this.pitchMultiplier, startTime);
       gain.gain.setValueAtTime(0.09, startTime);
       gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.14);
       osc.connect(gain);
@@ -229,7 +279,7 @@ class SoundFX {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(1760, t);
+    osc.frequency.setValueAtTime(1760 * this.pitchMultiplier, t);
     gain.gain.setValueAtTime(0.02, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
 

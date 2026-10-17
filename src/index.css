@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-outfit: "Outfit", sans-serif;
@@ -20,14 +22,32 @@
     --primary-hover: #E03554;
     --primary-light: #FFF0F3;
     --primary-soft: #FFE4E8;
-    --bg-page: #FAF8F5;
     --primary-glow: rgba(255, 77, 109, 0.25);
+    --accent-glow: rgba(255, 77, 109, 0.15);
+
+    --bg-page: #FAF8F5;
+    --text-primary: #18181B;
+    --text-secondary: #52525B;
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --card-border: #E7E2D8;
+    --card-border-subtle: #ECE7DF;
+  }
+
+  .dark {
+    --bg-page: #0B0813;
+    --text-primary: #F5F2F8;
+    --text-secondary: #A99EBA;
+    --card-bg: rgba(22, 17, 34, 0.85);
+    --card-border: #2D2340;
+    --card-border-subtle: #201830;
+    --primary-glow: rgba(217, 70, 239, 0.28);
+    --accent-glow: rgba(139, 92, 246, 0.22);
   }
 
   html {
     scroll-behavior: smooth;
-    background-color: #FAF8F5;
-    color: #18181B;
+    background-color: var(--bg-page);
+    color: var(--text-primary);
   }
 
   html.tilt-scrolling {
@@ -35,8 +55,8 @@
   }
 
   body {
-    background-color: #FAF8F5;
-    color: #18181B;
+    background-color: var(--bg-page);
+    color: var(--text-primary);
     overflow-x: hidden;
   }
 }
@@ -48,12 +68,32 @@
 ::-webkit-scrollbar-track {
   background: #F4EFEA;
 }
+.dark ::-webkit-scrollbar-track,
+::-webkit-scrollbar-track:where(.dark *) {
+  background: #0B0813;
+}
 ::-webkit-scrollbar-thumb {
   background: #D8D2C8;
   border-radius: 4px;
 }
+.dark ::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:where(.dark *) {
+  background: #2D2340;
+}
 ::-webkit-scrollbar-thumb:hover {
   background: #FF4D6D;
+}
+.dark ::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:where(.dark *):hover {
+  background: #D946EF;
+}
+
+/* Smooth Theme Transitions */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
 /* Hide scrollbar utility for clean horizontal scroll ribbons */
@@ -74,6 +114,14 @@
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
 }
 
+.dark .glass-panel {
+  background: rgba(22, 17, 34, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(45, 35, 64, 0.85);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 25px -5px rgba(217, 70, 239, 0.12);
+}
+
 .glass-card {
   background: #FFFFFF;
   border: 1px solid #ECE7DF;
@@ -84,6 +132,37 @@
   transform: translateY(-4px);
   box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.08);
   border-color: #E2DBD0;
+}
+
+.dark .glass-card {
+  background: rgba(22, 17, 34, 0.88);
+  border: 1px solid #2D2340;
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.5);
+}
+.dark .glass-card:hover {
+  border-color: rgba(217, 70, 239, 0.45);
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.6), 0 0 25px -4px var(--primary-glow);
+}
+
+/* Deep Obsidian Plum Theme Engine Utilities */
+.obsidian-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.obsidian-glow {
+  box-shadow: 0 0 40px -10px var(--primary-glow), 0 0 80px -20px var(--accent-glow);
+}
+
+.obsidian-glow-border {
+  border-color: rgba(217, 70, 239, 0.35);
+  box-shadow: 0 0 20px -3px var(--primary-glow);
+}
+
+.obsidian-ambient-mesh {
+  background: radial-gradient(circle at 50% 0%, rgba(217, 70, 239, 0.08) 0%, rgba(139, 92, 246, 0.04) 40%, transparent 70%);
 }
 
 /* Shutter flash overlay animation */
@@ -167,6 +246,10 @@
 .bg-dot-pattern {
   background-image: radial-gradient(rgba(24, 24, 27, 0.06) 1px, transparent 1px);
   background-size: 24px 24px;
+}
+.dark .bg-dot-pattern,
+.dark.bg-dot-pattern {
+  background-image: radial-gradient(rgba(217, 70, 239, 0.12) 1px, transparent 1px);
 }
 
 .font-handwriting {

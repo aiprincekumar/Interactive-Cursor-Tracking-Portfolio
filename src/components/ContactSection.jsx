@@ -279,12 +279,12 @@ export default function ContactSection() {
 
   return (
     <section id="contact" className="py-24 px-4 md:px-8 max-w-5xl mx-auto scroll-mt-28">
-      <div className="bg-white rounded-3xl p-6 sm:p-10 md:p-14 border border-[#E7E2D8] shadow-xl shadow-stone-900/5 relative overflow-hidden">
+      <div className="bg-white dark:bg-[#161122] rounded-3xl p-6 sm:p-10 md:p-14 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xl shadow-stone-900/5 relative overflow-hidden">
         {/* Soft background ambient light */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-[#FF4D6D]/8 to-transparent rounded-full blur-3xl pointer-events-none" />
 
         {/* Section Pill Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] border border-[#E7E2D8] text-[#18181B] text-xs font-bold uppercase tracking-wider mb-8 shadow-xs">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-8 shadow-xs">
           <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />
           06 ✦ Contact &bull; Inquiries &amp; HQ
         </div>
@@ -295,7 +295,7 @@ export default function ContactSection() {
           aria-label="Contact and location tabs"
           aria-orientation="horizontal"
           onKeyDown={handleKeyDown}
-          className="flex p-1.5 bg-[#FAF8F5] rounded-2xl border border-[#ECE7DF] gap-1.5 mb-8 overflow-x-auto no-scrollbar"
+          className="flex p-1.5 bg-[#FAF8F5] dark:bg-[#100C1A]/80 rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] gap-1.5 mb-8 overflow-x-auto no-scrollbar"
         >
           {CONTACT_TABS.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -314,14 +314,14 @@ export default function ContactSection() {
                 onMouseEnter={() => soundFX.playChipHover()}
                 className={`flex-1 min-w-[150px] sm:min-w-0 min-h-[44px] flex items-center justify-center gap-2.5 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold font-mono transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] whitespace-nowrap ${
                   isActive
-                    ? 'bg-white text-[#18181B] shadow-sm border border-[#E7E2D8]'
-                    : 'text-stone-600 hover:text-[#18181B] hover:bg-white/60'
+                    ? 'bg-white dark:bg-[#201830] text-[#18181B] dark:text-[#F5F2F8] shadow-sm border border-[#E7E2D8] dark:border-[#2D2340]'
+                    : 'text-stone-600 dark:text-[#A99EBA] hover:text-[#18181B] dark:hover:text-[#F5F2F8] hover:bg-white/60 dark:hover:bg-[#201830]/60'
                 }`}
               >
                 <Icon className={`w-4 h-4 transition-colors shrink-0 ${isActive ? 'text-[#FF4D6D]' : 'text-stone-400'}`} />
                 <span className="truncate whitespace-nowrap">{tab.label}</span>
                 {isActive && (
-                  <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 bg-[#FFF0F3] border border-[#FFD1DC] text-[#FF4D6D]">
+                  <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 border border-[#FFD1DC] dark:border-[#FF4D6D]/30 text-[#FF4D6D]">
                     {tab.badge}
                   </span>
                 )}
@@ -345,13 +345,13 @@ export default function ContactSection() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
               {/* Left Column: Giant Display Typography & Channels */}
               <div className="lg:col-span-7">
-                <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-[#18181B] tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-6">
+                <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-6">
                   Let's build<br />
                   something<br />
                   <span className="text-[#FF4D6D]">meaningful</span>.
                 </h2>
 
-                <p className="text-stone-600 text-sm sm:text-base max-w-md font-normal leading-relaxed mb-8">
+                <p className="text-stone-600 dark:text-stone-400 text-sm sm:text-base max-w-md font-normal leading-relaxed mb-8">
                   Have a role, a project, or a question about my work? Email is the quickest way to reach me.
                 </p>
 
@@ -370,7 +370,7 @@ export default function ContactSection() {
                     type="button"
                     onClick={copyEmail}
                     aria-label="Copy email address"
-                    className="p-3.5 rounded-full bg-[#FAF8F5] hover:bg-stone-200 text-stone-700 border border-[#E7E2D8] transition-colors cursor-pointer"
+                    className="p-3.5 rounded-full bg-[#FAF8F5] dark:bg-stone-900 hover:bg-stone-200 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border border-[#E7E2D8] dark:border-stone-800 transition-colors cursor-pointer"
                     title="Copy Email"
                   >
                     {emailCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -378,13 +378,13 @@ export default function ContactSection() {
                 </div>
 
                 {/* Social Channels */}
-                <div className="space-y-3.5 pt-6 border-t border-[#ECE7DF]">
+                <div className="space-y-3.5 pt-6 border-t border-[#ECE7DF] dark:border-stone-800">
                   <div className="flex items-center justify-between">
-                    <div className="text-xs font-mono text-stone-500 uppercase tracking-wider font-bold flex items-center gap-2">
+                    <div className="text-xs font-mono text-stone-500 dark:text-stone-400 uppercase tracking-wider font-bold flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#FF4D6D]" />
                       Connect Directly
                     </div>
-                    <span className="text-[11px] font-mono text-stone-400">
+                    <span className="text-[11px] font-mono text-stone-400 dark:text-stone-500">
                       7 Channels
                     </span>
                   </div>
@@ -401,7 +401,7 @@ export default function ContactSection() {
                           aria-label={item.ariaLabel}
                           title={item.name}
                           onClick={() => soundFX.playSparkle()}
-                          className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#FAF8F5] text-stone-700 border border-[#E7E2D8] text-xs font-bold transition-all duration-200 shadow-2xs hover:shadow-md hover:-translate-y-0.5 active:scale-95 ${item.hoverClass}`}
+                          className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#FAF8F5] dark:bg-stone-900/80 text-stone-700 dark:text-stone-300 border border-[#E7E2D8] dark:border-stone-800 text-xs font-bold transition-all duration-200 shadow-2xs hover:shadow-md hover:-translate-y-0.5 active:scale-95 ${item.hoverClass}`}
                         >
                           <Icon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
                           <span>{item.name}</span>
@@ -414,26 +414,26 @@ export default function ContactSection() {
               </div>
 
               {/* Right Column: Direct Message Box */}
-              <div className="lg:col-span-5 bg-[#FAF8F5] p-6 sm:p-8 rounded-3xl border border-[#E4DFD5]">
-                <h3 className="font-['Outfit',sans-serif] text-xl font-bold text-[#18181B] mb-1">
+              <div className="lg:col-span-5 bg-[#FAF8F5] dark:bg-[#100C1A] p-6 sm:p-8 rounded-3xl border border-[#E4DFD5] dark:border-[#2D2340]">
+                <h3 className="font-['Outfit',sans-serif] text-xl font-bold text-[#18181B] dark:text-[#F5F2F8] mb-1">
                   Send a Quick Note
                 </h3>
-                <p className="text-xs text-stone-500 mb-5">
+                <p className="text-xs text-stone-500 dark:text-stone-400 mb-5">
                   Replies typically dispatched within 24 hours.
                 </p>
 
                 {formSubmitted ? (
-                  <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-center animate-in zoom-in-95">
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-2 text-emerald-600">
+                  <div className="p-6 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-center animate-in zoom-in-95">
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center mx-auto mb-2 text-emerald-600">
                       <Check className="w-5 h-5" />
                     </div>
                     <div className="font-bold text-sm">Message Sent!</div>
-                    <div className="text-xs text-emerald-700 mt-1">Thank you for reaching out, Atul will respond shortly!</div>
+                    <div className="text-xs text-emerald-700 dark:text-emerald-400 mt-1">Thank you for reaching out, Atul will respond shortly!</div>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-3.5">
                     <div>
-                      <label htmlFor="contact-name" className="block text-[11px] font-mono font-bold text-stone-600 mb-1">NAME</label>
+                      <label htmlFor="contact-name" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1">NAME</label>
                       <input
                         id="contact-name"
                         type="text"
@@ -441,12 +441,12 @@ export default function ContactSection() {
                         placeholder="Alex Rivera"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-3.5 py-2 rounded-xl border border-[#DCD5CB] bg-white focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B]"
+                        className="w-full px-3.5 py-2 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-white dark:bg-stone-900/80 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="contact-email" className="block text-[11px] font-mono font-bold text-stone-600 mb-1">EMAIL</label>
+                      <label htmlFor="contact-email" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1">EMAIL</label>
                       <input
                         id="contact-email"
                         type="email"
@@ -454,12 +454,12 @@ export default function ContactSection() {
                         placeholder="alex@enterprise.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-3.5 py-2 rounded-xl border border-[#DCD5CB] bg-white focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B]"
+                        className="w-full px-3.5 py-2 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-white dark:bg-stone-900/80 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="contact-message" className="block text-[11px] font-mono font-bold text-stone-600 mb-1">MESSAGE</label>
+                      <label htmlFor="contact-message" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1">MESSAGE</label>
                       <textarea
                         id="contact-message"
                         required
@@ -467,13 +467,13 @@ export default function ContactSection() {
                         placeholder="Tell me about your idea, role, or challenge..."
                         value={formData.message}
                         onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        className="w-full px-3.5 py-2 rounded-xl border border-[#DCD5CB] bg-white focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] resize-none"
+                        className="w-full px-3.5 py-2 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-white dark:bg-stone-900/80 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 resize-none"
                       />
                     </div>
 
                     <button
                       type="submit"
-                      className="w-full py-3 rounded-xl bg-[#18181B] hover:bg-black text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
+                      className="w-full py-3 rounded-xl bg-[#18181B] hover:bg-black dark:bg-white dark:text-[#18181B] dark:hover:bg-stone-200 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
                     >
                       <Send className="w-3.5 h-3.5" />
                       <span>Send Message</span>
@@ -498,17 +498,17 @@ export default function ContactSection() {
             className="animate-tab-fade space-y-6 focus:outline-none"
           >
             {/* Header Address Card with 1-Click Copy & Google Maps Action */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#FAF8F5] border border-[#E7E2D8] flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-2xs">
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-2xs">
               <div className="flex items-start sm:items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#FFF0F3] border border-[#FFD1DC] flex items-center justify-center text-[#FF4D6D] shrink-0 shadow-2xs">
+                <div className="w-12 h-12 rounded-2xl bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 border border-[#FFD1DC] dark:border-[#FF4D6D]/30 flex items-center justify-center text-[#FF4D6D] shrink-0 shadow-2xs">
                   <MapPin className="w-6 h-6" />
                 </div>
                 <div>
-                  <div className="text-[11px] font-mono text-stone-500 uppercase tracking-wider font-bold flex items-center gap-2">
+                  <div className="text-[11px] font-mono text-stone-500 dark:text-stone-400 uppercase tracking-wider font-bold flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#FF4D6D]" />
                     Location &amp; Headquarters
                   </div>
-                  <p className="text-sm sm:text-base font-bold text-[#18181B] mt-0.5 leading-snug">
+                  <p className="text-sm sm:text-base font-bold text-[#18181B] dark:text-[#F5F2F8] mt-0.5 leading-snug">
                     {fullAddress}
                   </p>
                 </div>
@@ -521,8 +521,8 @@ export default function ContactSection() {
                   onClick={copyAddress}
                   className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold font-mono transition-all duration-200 cursor-pointer shadow-2xs active:scale-95 ${
                     addressCopied
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                      : 'bg-white hover:bg-stone-100 text-stone-700 border-[#E7E2D8]'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800'
+                      : 'bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border-[#E7E2D8] dark:border-stone-700'
                   }`}
                   title="Copy full office address"
                 >
@@ -543,7 +543,7 @@ export default function ContactSection() {
                   href="https://maps.google.com/?q=Daltonganj%2C+Medininagar%2C+Palamau%2C+Jharkhand+822101"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#18181B] hover:bg-black text-white text-xs font-bold font-mono transition-all duration-200 shadow-2xs hover:shadow-sm active:scale-95 group"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#18181B] hover:bg-black dark:bg-white dark:text-[#18181B] dark:hover:bg-stone-200 text-white text-xs font-bold font-mono transition-all duration-200 shadow-2xs hover:shadow-sm active:scale-95 group"
                 >
                   <span>View in Google Maps</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -552,11 +552,11 @@ export default function ContactSection() {
             </div>
 
             {/* Interactive Map Box with Floating Controls Toolbar */}
-            <div className="relative rounded-2xl overflow-hidden border border-[#E7E2D8] shadow-sm bg-stone-100 group/map">
+            <div className="relative rounded-2xl overflow-hidden border border-[#E7E2D8] dark:border-stone-800 shadow-sm bg-stone-100 dark:bg-stone-900 group/map">
               {/* Floating Map Controls Toolbar (Top-Right) */}
-              <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 p-1.5 bg-white/95 backdrop-blur-md rounded-xl border border-[#E7E2D8] shadow-md transition-all">
+              <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 p-1.5 bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-md rounded-xl border border-[#E7E2D8] dark:border-stone-800 shadow-md transition-all">
                 {/* Current Zoom Level Badge */}
-                <div className="px-2.5 py-1 rounded-lg bg-[#FAF8F5] border border-[#ECE7DF] text-[11px] font-mono font-bold text-stone-700 flex items-center gap-1 select-none">
+                <div className="px-2.5 py-1 rounded-lg bg-[#FAF8F5] dark:bg-stone-900 border border-[#ECE7DF] dark:border-stone-700 text-[11px] font-mono font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1 select-none">
                   <span className="text-stone-400">Zoom</span>
                   <span className="text-[#FF4D6D]">{zoom}x</span>
                 </div>
@@ -568,7 +568,7 @@ export default function ContactSection() {
                   disabled={zoom >= 18}
                   aria-label="Zoom in map"
                   title="Zoom In"
-                  className="p-1.5 rounded-lg text-stone-700 hover:text-[#18181B] hover:bg-stone-100 active:scale-90 transition-all disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+                  className="p-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800 active:scale-90 transition-all disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
                 >
                   <ZoomIn className="w-4 h-4" />
                 </button>
@@ -580,7 +580,7 @@ export default function ContactSection() {
                   disabled={zoom <= 11}
                   aria-label="Zoom out map"
                   title="Zoom Out"
-                  className="p-1.5 rounded-lg text-stone-700 hover:text-[#18181B] hover:bg-stone-100 active:scale-90 transition-all disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+                  className="p-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800 active:scale-90 transition-all disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
                 >
                   <ZoomOut className="w-4 h-4" />
                 </button>
@@ -591,7 +591,7 @@ export default function ContactSection() {
                   onClick={handleResetZoom}
                   aria-label="Reset map zoom"
                   title="Reset Zoom to 14x"
-                  className="p-1.5 rounded-lg text-stone-700 hover:text-[#FF4D6D] hover:bg-pink-50 active:scale-90 transition-all cursor-pointer"
+                  className="p-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:text-[#FF4D6D] dark:hover:text-[#FF4D6D] hover:bg-pink-50 dark:hover:bg-pink-950/30 active:scale-90 transition-all cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
@@ -610,12 +610,12 @@ export default function ContactSection() {
             </div>
 
             {/* Travel / Directions Highlight Note */}
-            <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#ECE7DF] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-stone-600">
+            <div className="p-4 rounded-xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#ECE7DF] dark:border-[#2D2340] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-stone-600 dark:text-stone-400">
               <div className="flex items-center gap-2.5 font-medium">
                 <Navigation className="w-4 h-4 text-[#FF4D6D] shrink-0" />
                 <span>Palamu District Hub &bull; 5 mins from Medininagar Railway Station (DTO)</span>
               </div>
-              <div className="inline-flex items-center gap-1.5 text-stone-500 font-mono text-[11px]">
+              <div className="inline-flex items-center gap-1.5 text-stone-500 dark:text-stone-400 font-mono text-[11px]">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                 <span>Open for in-person consultation by appointment</span>
               </div>

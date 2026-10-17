@@ -207,12 +207,12 @@ export default function ExperienceSection() {
 
   return (
     <section id="experience" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
-      <div className="bg-white rounded-3xl border border-[#E7E2D8] p-8 md:p-12 shadow-xl shadow-stone-900/5 relative overflow-hidden">
+      <div className="bg-white dark:bg-[#161122] rounded-3xl border border-[#E7E2D8] dark:border-[#2D2340] p-8 md:p-12 shadow-xl shadow-stone-900/5 dark:shadow-black/50 relative overflow-hidden transition-colors duration-300">
         {/* Soft subtle background glow */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-[#FF4D6D]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-[#FF4D6D]/5 dark:from-[#D946EF]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
 
         {/* Section Pill Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] border border-[#E7E2D8] text-[#18181B] text-xs font-bold uppercase tracking-wider mb-6 shadow-xs">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-6 shadow-xs transition-colors">
           <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />
           03 ✦ Experience
         </div>
@@ -220,11 +220,11 @@ export default function ExperienceSection() {
         {/* Header with Title, Period Pill, and Coral Accent Line */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
           <div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#18181B] tracking-tight font-['Outfit',sans-serif]">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#18181B] dark:text-[#F5F2F8] tracking-tight font-['Outfit',sans-serif] transition-colors">
               Journey &amp; Experience
             </h2>
             <div className="w-12 h-1 bg-[#FF4D6D] rounded-full mt-4" />
-            <p className="mt-3 text-stone-600 text-sm md:text-base max-w-xl font-normal leading-relaxed">
+            <p className="mt-3 text-stone-600 dark:text-stone-300 text-sm md:text-base max-w-xl font-normal leading-relaxed transition-colors">
               {isOther
                 ? 'Versatile career trajectory across multidisciplinary consulting, commercial operations leadership, executive administration, and strategic execution.'
                 : 'Comprehensive career journey spanning financial accounting, statutory GST/Income Tax compliance, government skill mission MIS, and regional field operations.'}
@@ -232,9 +232,9 @@ export default function ExperienceSection() {
           </div>
 
           {/* Subtitle / Period Pill Badge */}
-          <div className="flex items-center gap-3 bg-[#FAF8F5] px-4 py-2.5 rounded-2xl border border-[#ECE7DF] shadow-2xs self-start md:self-end">
+          <div className="flex items-center gap-3 bg-[#FAF8F5] dark:bg-[#100C1A] px-4 py-2.5 rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] shadow-2xs self-start md:self-end transition-colors">
             <Calendar className="w-4 h-4 text-[#FF4D6D]" />
-            <span className="text-xs sm:text-sm font-mono font-bold text-[#18181B]">
+            <span className="text-xs sm:text-sm font-mono font-bold text-[#18181B] dark:text-stone-200">
               {activeRole === 'accountant'
                 ? '2020 — 2026 • 4+ Years Core Accounting & 3+ Years Tax Practice'
                 : activeRole === 'mis'
@@ -260,26 +260,26 @@ export default function ExperienceSection() {
                 key={exp.id}
                 id={exp.targetId || exp.id}
                 onClick={() => handleCardClick(exp.id)}
-                className={`scroll-mt-28 group cursor-pointer rounded-2xl p-6 sm:p-7 border transition-all duration-300 relative flex flex-col justify-between hover:-translate-y-1 hover:border-[#FF4D6D]/30 hover:shadow-lg hover:shadow-[#FF4D6D]/5 ${
+                className={`scroll-mt-28 group cursor-pointer rounded-2xl p-6 sm:p-7 border transition-all duration-300 relative flex flex-col justify-between hover:-translate-y-1 hover:border-[#FF4D6D]/30 dark:hover:border-[#D946EF]/50 hover:shadow-lg hover:shadow-[#D946EF]/5 ${
                   isSelected
-                    ? 'bg-[#FAF8F5] border-[#FF4D6D] ring-2 ring-[#FF4D6D]/10 shadow-md'
-                    : 'bg-[#FAF8F5]/80 border-[#ECE7DF]'
+                    ? 'bg-[#FAF8F5] dark:bg-[#100C1A] border-[#FF4D6D] ring-2 ring-[#FF4D6D]/20 shadow-md'
+                    : 'bg-[#FAF8F5]/80 dark:bg-[#100C1A]/90 border-[#ECE7DF] dark:border-[#2D2340]'
                 }`}
               >
                 <div>
                   {/* Top Bar with Period and Status Node */}
                   <div className="flex items-center justify-between mb-4">
                     <span
-                      className={`text-xs font-mono font-bold px-3 py-1 rounded-full border ${
+                      className={`text-xs font-mono font-bold px-3 py-1 rounded-full border transition-colors ${
                         exp.activeHighlight
-                          ? 'text-[#FF4D6D] bg-[#FFF0F3] border-[#FFD1DC]'
-                          : 'text-stone-600 bg-white border-[#ECE7DF]'
+                          ? 'text-[#FF4D6D] dark:text-pink-300 bg-[#FFF0F3] dark:bg-pink-950/40 border-[#FFD1DC] dark:border-pink-900/60'
+                          : 'text-stone-600 dark:text-stone-300 bg-white dark:bg-[#201830] border-[#ECE7DF] dark:border-[#2D2340]'
                       }`}
                     >
                       {exp.period}
                     </span>
 
-                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-stone-500 font-medium">
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-stone-500 dark:text-stone-400 font-medium">
                       <span
                         className="w-2 h-2 rounded-full animate-pulse"
                         style={{ backgroundColor: exp.accentColor }}
@@ -290,11 +290,11 @@ export default function ExperienceSection() {
 
                   {/* Role Title and Company */}
                   <div className="mb-4">
-                    <h3 className="text-xl font-extrabold text-[#18181B] font-['Outfit',sans-serif] group-hover:text-[#FF4D6D] transition-colors flex items-center gap-2">
+                    <h3 className="text-xl font-extrabold text-[#18181B] dark:text-[#F4F4F5] font-['Outfit',sans-serif] group-hover:text-[#FF4D6D] dark:group-hover:text-[#FF4D6D] transition-colors flex items-center gap-2">
                       {exp.role}
                     </h3>
-                    <div className="flex items-center gap-2 text-xs text-stone-500 font-medium mt-1">
-                      <Briefcase className="w-3.5 h-3.5 text-stone-400" />
+                    <div className="flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400 font-medium mt-1">
+                      <Briefcase className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
                       <span>{exp.company}</span>
                       <span>•</span>
                       <span>{exp.location}</span>
@@ -302,14 +302,14 @@ export default function ExperienceSection() {
                   </div>
 
                   {/* Summary Description */}
-                  <p className="text-xs sm:text-sm text-stone-600 font-normal leading-relaxed mb-5">
+                  <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-normal leading-relaxed mb-5">
                     {exp.description}
                   </p>
 
                   {/* Bullet Deliverables */}
-                  <div className="space-y-2 mb-6 pt-4 border-t border-[#ECE7DF]">
+                  <div className="space-y-2 mb-6 pt-4 border-t border-[#ECE7DF] dark:border-[#2D2340]">
                     {exp.deliverables.map((bullet, bIdx) => (
-                      <div key={bIdx} className="flex items-start gap-2 text-xs text-stone-700 font-medium leading-relaxed">
+                      <div key={bIdx} className="flex items-start gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium leading-relaxed">
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#FF4D6D] shrink-0 mt-0.5" />
                         <span>{bullet}</span>
                       </div>
@@ -318,12 +318,12 @@ export default function ExperienceSection() {
                 </div>
 
                 {/* Tech Stack Pills */}
-                <div className="pt-4 border-t border-[#ECE7DF]">
+                <div className="pt-4 border-t border-[#ECE7DF] dark:border-[#2D2340]">
                   <div className="flex flex-wrap gap-1.5">
                     {exp.techStack.map((tech) => (
                       <span
                         key={tech}
-                        className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white border border-[#E7E2D8] text-stone-700 shadow-2xs group-hover:border-[#FF4D6D]/20 transition-colors"
+                        className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white dark:bg-[#201830] border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-[#A99EBA] shadow-2xs group-hover:border-[#FF4D6D]/20 dark:group-hover:border-[#FF4D6D]/40 transition-colors"
                       >
                         {tech}
                       </span>

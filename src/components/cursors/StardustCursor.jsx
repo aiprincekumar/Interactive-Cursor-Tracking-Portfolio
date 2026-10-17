@@ -9,12 +9,60 @@ import React, { useEffect, useRef } from 'react';
  * - Additive canvas 4-point diamond sparkle stars and iridescent dust
  * - Hardware-accelerated GPU transforms (60-120+ FPS lock)
  */
+/**
+ * Generates an array of tinted rgba color prefixes from a base hex or rgb string.
+ */
+function getTintedPalette(baseColor) {
+  if (!baseColor || typeof baseColor !== 'string') return null;
+  let r = 255, g = 215, b = 0;
+  const trimmed = baseColor.trim();
+
+  if (trimmed.startsWith('#')) {
+    let hex = trimmed.slice(1);
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    if (hex.length === 6) {
+      const num = parseInt(hex, 16);
+      if (!isNaN(num)) {
+        r = (num >> 16) & 255;
+        g = (num >> 8) & 255;
+        b = num & 255;
+      }
+    }
+  } else if (trimmed.startsWith('rgb')) {
+    const parts = trimmed.match(/\d+/g);
+    if (parts && parts.length >= 3) {
+      r = Math.min(255, Math.max(0, parseInt(parts[0], 10)));
+      g = Math.min(255, Math.max(0, parseInt(parts[1], 10)));
+      b = Math.min(255, Math.max(0, parseInt(parts[2], 10)));
+    }
+  } else {
+    return null;
+  }
+
+  const tintR = Math.min(255, Math.round(r * 0.75 + 64));
+  const tintG = Math.min(255, Math.round(g * 0.75 + 64));
+  const tintB = Math.min(255, Math.round(b * 0.75 + 64));
+
+  const warmR = Math.min(255, Math.round(r * 0.9 + 25));
+  const warmG = Math.min(255, Math.round(g * 0.85 + 20));
+  const warmB = Math.max(0, Math.round(b * 0.65));
+
+  return [
+    `rgba(${r}, ${g}, ${b},`,
+    `rgba(${tintR}, ${tintG}, ${tintB},`,
+    `rgba(${warmR}, ${warmG}, ${warmB},`,
+    'rgba(255, 255, 255,'
+  ];
+}
+
 export default function StardustCursor({
   heroRef,
   isInsideHero,
   speed = 0.16,
   trailEnabled = true,
-  scale = 1
+  scale = 1,
+  gravity = 0,
+  particleColor = null
 }) {
   const wandRef = useRef(null);
   const canvasRef = useRef(null);
@@ -22,6 +70,8 @@ export default function StardustCursor({
   const speedRef = useRef(speed);
   const scaleRef = useRef(scale);
   const trailEnabledRef = useRef(trailEnabled);
+  const gravityRef = useRef(gravity);
+  const particleColorRef = useRef(particleColor);
 
   const posRef = useRef({
     currentX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
@@ -56,6 +106,14 @@ export default function StardustCursor({
   }, [trailEnabled]);
 
   useEffect(() => {
+    gravityRef.current = gravity;
+  }, [gravity]);
+
+  useEffect(() => {
+    particleColorRef.current = particleColor;
+  }, [particleColor]);
+
+  useEffect(() => {
     const handlePointerMove = (e) => {
       const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
       const clientY = e.clientY ?? (e.touches && e.touches[0]?.clientY);
@@ -79,13 +137,14 @@ export default function StardustCursor({
     const handlePointerDown = () => {
       if (!trailEnabledRef.current) return;
       const state = posRef.current;
-      const celestialColors = [
+      const defaultCelestialColors = [
         'rgba(255, 215, 0,',   // Gold
         'rgba(255, 105, 180,', // Hot pink
         'rgba(167, 139, 250,', // Purple / Lavender
         'rgba(56, 189, 248,',  // Cyan / Sky
         'rgba(255, 255, 255,'  // Pure diamond white
       ];
+      const celestialColors = (particleColorRef.current && getTintedPalette(particleColorRef.current)) || defaultCelestialColors;
 
       for (let i = 0; i < 14; i++) {
         const ang = Math.random() * Math.PI * 2;
@@ -195,13 +254,14 @@ export default function StardustCursor({
                 const px = state.lastEmitX + (state.currentX - state.lastEmitX) * t + (Math.random() - 0.5) * 6;
                 const py = state.lastEmitY + (state.currentY - state.lastEmitY) * t + (Math.random() - 0.5) * 6;
 
-                const palette = [
+                const defaultPalette = [
                   'rgba(255, 215, 0,',
                   'rgba(244, 114, 182,',
                   'rgba(192, 132, 252,',
                   'rgba(96, 165, 250,',
                   'rgba(255, 255, 255,'
                 ];
+                const palette = (particleColorRef.current && getTintedPalette(particleColorRef.current)) || defaultPalette;
                 const color = palette[Math.floor(Math.random() * palette.length)];
 
                 particlesRef.current.push({
@@ -230,6 +290,7 @@ export default function StardustCursor({
 
             for (let i = particlesRef.current.length - 1; i >= 0; i--) {
               const p = particlesRef.current[i];
+              p.vy += (gravityRef.current || 0) * dt;
               p.x += p.vx * dt;
               p.y += p.vy * dt;
               p.vx *= 0.96;

@@ -322,7 +322,7 @@ const MIS_CATEGORIES = [
   },
   {
     name: 'IT Systems & Hardware Infrastructure',
-    skills: ['Windows OS Administration', 'Commercial Computing & Office IT Suite', 'Hardware Diagnosis & Maintenance', 'Network & Software Support']
+    skills: ['Windows OS Administration', 'Commercial Computing & Office IT Suite', 'DTP Design Suite', 'Hardware Diagnosis & Maintenance', 'Network & Software Support']
   }
 ];
 
@@ -376,17 +376,17 @@ export default function SkillsSection() {
   return (
     <section id="skills" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
       {/* Section Pill Badge - Reel style */}
-      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E7E2D8] text-[#18181B] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs">
+      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs">
         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
         02 ✦ Skills &bull; {isOther ? 'Multidisciplinary & Leadership Stack' : (isMIS ? 'Data & MIS Stack' : 'Accounting & Tax Stack')}
       </div>
 
       {/* Heading matching Reel t=9.5s: "What I work with" */}
       <div className="mb-8">
-        <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#18181B] tracking-tight font-['Outfit',sans-serif]">
+        <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#18181B] dark:text-[#F5F2F8] tracking-tight font-['Outfit',sans-serif]">
           What I work with
         </h2>
-        <p className="mt-3 text-stone-600 text-sm md:text-base max-w-xl font-normal leading-relaxed">
+        <p className="mt-3 text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
           {isOther
             ? 'Hover or tap any skill to inspect strategic governance, cross-functional consulting, workflow automation, and operational optimization.'
             : isMIS
@@ -403,9 +403,9 @@ export default function SkillsSection() {
         className="animate-tab-fade grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
       >
         {/* Left Column: Categorized Pill Matrix matching Reel t=9.5s */}
-        <div className="lg:col-span-7 space-y-6 bg-white p-6 sm:p-8 rounded-3xl border border-[#E7E2D8] shadow-md shadow-stone-900/5">
+        <div className="lg:col-span-7 space-y-6 bg-white dark:bg-[#161122] p-6 sm:p-8 rounded-3xl border border-[#E7E2D8] dark:border-[#2D2340] shadow-md shadow-stone-900/5">
           {categories.map((cat) => (
-            <div key={cat.name} className="space-y-2.5 pb-5 border-b border-[#ECE7DF] last:border-b-0 last:pb-0">
+            <div key={cat.name} className="space-y-2.5 pb-5 border-b border-[#ECE7DF] dark:border-[#2D2340] last:border-b-0 last:pb-0">
               <div
                 className="text-xs font-bold uppercase tracking-wider font-mono"
                 style={{ color: accentColor }}
@@ -430,8 +430,8 @@ export default function SkillsSection() {
                       }}
                       className={`scroll-mt-28 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 active:scale-95 cursor-pointer ${
                         isSelected
-                          ? 'bg-[#18181B] text-white shadow-md shadow-black/15 scale-105 border border-black'
-                          : 'bg-[#FAF8F5] text-stone-700 hover:text-[#18181B] hover:bg-[#F2ECE4] border border-[#E7E2D8]'
+                          ? 'bg-[#18181B] dark:bg-white text-white dark:text-[#18181B] shadow-md shadow-black/15 scale-105 border border-black dark:border-white'
+                          : 'bg-[#FAF8F5] dark:bg-[#100C1A] text-stone-700 dark:text-[#A99EBA] hover:text-[#18181B] dark:hover:text-[#F5F2F8] hover:bg-[#F2ECE4] dark:hover:bg-[#201830] border border-[#E7E2D8] dark:border-[#2D2340]'
                       }`}
                     >
                       {skill}

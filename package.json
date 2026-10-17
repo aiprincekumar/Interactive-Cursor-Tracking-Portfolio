@@ -11,12 +11,14 @@
     "prebuild": "npm run generate:resume",
     "build": "vite build",
     "lint": "oxlint",
+    "test": "node scripts/verify_marquee.mjs",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
+    "jszip": "^3.10.2",
     "lucide-react": "^1.54.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

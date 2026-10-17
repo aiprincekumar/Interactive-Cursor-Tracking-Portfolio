@@ -40,6 +40,8 @@ export default function DynamicCursorManager({
   speed = 0.14,
   trailEnabled = true,
   scale = 1,
+  gravity = 0,
+  particleColor = '#FF4D6D',
   reducedMotion: propReducedMotion
 }) {
   const isDesktopCursor = useDesktopCursorSupport();
@@ -89,6 +91,8 @@ export default function DynamicCursorManager({
         speed={speed}
         trailEnabled={trailEnabled}
         scale={scale}
+        gravity={gravity}
+        particleColor={particleColor}
       />
     );
   }
@@ -102,6 +106,8 @@ export default function DynamicCursorManager({
       speed={speed}
       trailEnabled={trailEnabled}
       scale={scale}
+      gravity={gravity}
+      particleColor={particleColor}
     />
   );
 }

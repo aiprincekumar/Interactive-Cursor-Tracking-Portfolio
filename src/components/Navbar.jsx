@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, VolumeX, Menu, X, Search, LayoutGrid } from 'lucide-react';
+import { Volume2, VolumeX, Menu, X, Search, LayoutGrid, Sun, Moon } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { CURSOR_LIST } from '../utils/cursorConstants';
 import CursorSelectorRibbon from './CursorSelectorRibbon';
@@ -11,6 +11,7 @@ import RoleTabsBar from './RoleTabsBar';
 import ExploreSubBar from './ExploreSubBar';
 import { useRoleTab } from '../context/RoleContext';
 import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar({
   soundEnabled,
@@ -29,6 +30,16 @@ export default function Navbar({
   }
   const activeRole = propActiveRole ?? roleContext?.activeRole ?? 'accountant';
   const onSelectRole = propOnSelectRole ?? roleContext?.selectRole;
+
+  let themeContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    themeContext = useTheme();
+  } catch {
+    // In case Navbar is mounted outside ThemeProvider
+  }
+  const isDark = themeContext?.isDark ?? false;
+  const toggleTheme = themeContext?.toggleTheme ?? (() => {});
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isRibbonOpen, setIsRibbonOpen] = useState(false);
@@ -213,21 +224,21 @@ export default function Navbar({
   return (
     <>
       <header ref={navContainerRef} className="fixed top-0 left-0 right-0 z-40 px-3 md:px-8 py-3.5">
-        <div className="relative max-w-7xl mx-auto bg-[#FAF8F5]/90 backdrop-blur-md rounded-full border border-[#E7E2D8] px-3 sm:px-4 md:px-5 py-2 shadow-xs flex items-center justify-between">
+        <div className="relative max-w-7xl mx-auto bg-[#FAF8F5]/90 dark:bg-[#161122]/90 backdrop-blur-md rounded-full border border-[#E7E2D8] dark:border-[#2D2340] px-3 sm:px-4 md:px-5 py-2 shadow-xs flex items-center justify-between transition-colors">
           {/* Brand Logo - Atul Verma (AV) */}
           <a href="#hero" className="flex items-center gap-2 group shrink-0">
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-[#E7E2D8] bg-[#18181B] flex items-center justify-center text-white text-xs font-bold shadow-xs group-hover:scale-105 transition-transform">
-              <span className="font-mono text-[11px] text-[#FAF8F5]">AV</span>
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-[#E7E2D8] dark:border-[#2D2340] bg-[#18181B] dark:bg-[#201830] flex items-center justify-center text-white text-xs font-bold shadow-xs group-hover:scale-105 transition-transform">
+              <span className="font-mono text-[11px] text-[#FAF8F5] dark:text-[#F5F2F8]">AV</span>
             </div>
             <div className="hidden sm:block">
-              <span className="font-extrabold text-[#18181B] text-xs lg:text-sm tracking-tight font-['Outfit',sans-serif] whitespace-nowrap">
+              <span className="font-extrabold text-[#18181B] dark:text-white text-xs lg:text-sm tracking-tight font-['Outfit',sans-serif] whitespace-nowrap">
                 Atul Verma
               </span>
             </div>
           </a>
 
           {/* Desktop Nav Links with ScrollSpy */}
-          <nav className="hidden md:flex items-center gap-0.5 lg:gap-1 bg-[#F0EBE1]/70 px-2 lg:px-3 py-1 rounded-full border border-[#E5DFD5] shadow-xs" aria-label="Main Navigation">
+          <nav className="hidden md:flex items-center gap-0.5 lg:gap-1 bg-[#F0EBE1]/70 dark:bg-[#0B0813]/85 px-2 lg:px-3 py-1 rounded-full border border-[#E5DFD5] dark:border-[#2D2340]/80 shadow-xs" aria-label="Main Navigation">
             {navLinks.map((link) => {
               const isActive = activeSection === link.id;
               return (
@@ -240,8 +251,8 @@ export default function Navbar({
                   }}
                   className={`text-[11px] lg:text-xs font-semibold rounded-full px-2 lg:px-2.5 py-1 transition-all duration-200 select-none whitespace-nowrap ${
                     isActive
-                      ? 'bg-white text-[#18181B] shadow-xs font-bold scale-[1.02]'
-                      : 'text-stone-600 hover:text-[#18181B] hover:bg-white/60'
+                      ? 'bg-white dark:bg-[#201830] text-[#18181B] dark:text-[#F5F2F8] shadow-xs font-bold scale-[1.02]'
+                      : 'text-stone-600 dark:text-[#A99EBA] hover:text-[#18181B] dark:hover:text-[#F5F2F8] hover:bg-white/60 dark:hover:bg-[#201830]/60'
                   }`}
                 >
                   {link.label}
@@ -250,7 +261,7 @@ export default function Navbar({
             })}
           </nav>
 
-          {/* Right Action Group - Strict Order: [🔍 Search] -> [✨ Explore] -> [Role Switcher] -> [🦋 Cursor] -> [🔊 Sound] -> [📄 Resume] -> [☰ Menu] */}
+          {/* Right Action Group - Strict Order: [🔍 Search] -> [✨ Explore] -> [Role Switcher] -> [🦋 Cursor] -> [🌓 Theme] -> [🔊 Sound] -> [📄 Resume] -> [☰ Menu] */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             {/* 1. Global Search Trigger Button */}
             <button
@@ -266,14 +277,14 @@ export default function Navbar({
               aria-label="Search portfolio (Cmd+K)"
               aria-haspopup="dialog"
               aria-expanded={isSearchOpen}
-              className="group relative h-8 w-8 sm:w-auto sm:px-2.5 sm:py-1 rounded-full flex items-center justify-center gap-1.5 bg-white/80 hover:bg-white text-stone-700 hover:text-[#18181B] border border-[#E7E2D8] hover:border-stone-300 shadow-2xs hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+              className="group relative h-8 w-8 sm:w-auto sm:px-2.5 sm:py-1 rounded-full flex items-center justify-center gap-1.5 bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
               title="Search portfolio (Cmd+K or Ctrl+K)"
             >
-              <Search className="w-3.5 h-3.5 text-stone-600 group-hover:text-[#18181B] transition-colors" />
-              <span className="hidden lg:inline-block text-[11px] font-semibold text-stone-600 group-hover:text-[#18181B]">
+              <Search className="w-3.5 h-3.5 text-stone-600 dark:text-stone-300 group-hover:text-[#18181B] dark:group-hover:text-white transition-colors" />
+              <span className="hidden lg:inline-block text-[11px] font-semibold text-stone-600 dark:text-stone-300 group-hover:text-[#18181B] dark:group-hover:text-white">
                 Search
               </span>
-              <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono font-bold text-stone-500 bg-[#F0EBE1] border border-[#E5DFD5] rounded shadow-2xs leading-none">
+              <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono font-bold text-stone-500 dark:text-stone-400 bg-[#F0EBE1] dark:bg-stone-900 border border-[#E5DFD5] dark:border-stone-700 rounded shadow-2xs leading-none">
                 ⌘K
               </kbd>
             </button>
@@ -286,19 +297,19 @@ export default function Navbar({
               aria-expanded={isExploreOpen}
               className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${
                 isExploreOpen
-                  ? 'bg-[#18181B] text-white border-[#18181B] shadow-xs scale-105'
-                  : 'bg-white/80 hover:bg-white text-stone-700 hover:text-[#18181B] border-[#E7E2D8] hover:border-stone-300 shadow-2xs hover:scale-105 active:scale-95'
+                  ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
+                  : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95'
               }`}
               title="Explore Showcase & Lab (Gallery, Playground)"
             >
               <LayoutGrid
                 className="w-4 h-4 transition-transform duration-200"
-                style={{ color: isExploreOpen ? '#FFFFFF' : '#FF4D6D' }}
+                style={{ color: isExploreOpen ? (isDark ? '#18181B' : '#FFFFFF') : '#FF4D6D' }}
               />
               {/* Dynamic Indicator Dot with ping animation */}
               <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 pointer-events-none">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
               </span>
             </button>
 
@@ -332,8 +343,8 @@ export default function Navbar({
                 aria-expanded={isRibbonOpen}
                 className={`desktop-cursor-only hidden lg:flex relative w-8 h-8 rounded-full items-center justify-center transition-all duration-200 border cursor-pointer ${
                   isRibbonOpen
-                    ? 'bg-[#18181B] text-white border-[#18181B] shadow-xs scale-105'
-                    : 'bg-white/80 hover:bg-white text-stone-700 hover:text-[#18181B] border-[#E7E2D8] hover:border-stone-300 shadow-2xs hover:scale-105'
+                    ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
+                    : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105'
                 }`}
                 title={`Active Cursor: ${activeCursorData.name} (Click to customize)`}
               >
@@ -342,10 +353,25 @@ export default function Navbar({
                 </span>
                 <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
                 </span>
               </button>
             )}
+
+            {/* Theme Toggle Button (Light / Dark) */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              className="p-2 rounded-full text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-all cursor-pointer relative group"
+            >
+              {isDark ? (
+                <Sun className="w-4 h-4 text-amber-400 hover:rotate-45 transition-transform duration-300" />
+              ) : (
+                <Moon className="w-4 h-4 text-stone-600 hover:-rotate-12 transition-transform duration-300" />
+              )}
+            </button>
 
             {/* 5. Audio Toggle Button */}
             <button
@@ -357,13 +383,13 @@ export default function Navbar({
                 if (next) soundFX.playSparkle();
               }}
               aria-label={soundEnabled ? 'Mute Audio' : 'Enable Audio'}
-              className="p-2 rounded-full text-stone-600 hover:text-[#18181B] hover:bg-stone-200/50 transition-colors cursor-pointer"
+              className="p-2 rounded-full text-stone-600 dark:text-stone-400 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer"
               title={soundEnabled ? 'Mute Audio' : 'Enable Audio'}
             >
               {soundEnabled ? (
                 <Volume2 className="w-4 h-4 text-[#FF4D6D]" />
               ) : (
-                <VolumeX className="w-4 h-4 text-stone-400" />
+                <VolumeX className="w-4 h-4 text-stone-400 dark:text-stone-500" />
               )}
             </button>
 
@@ -387,7 +413,7 @@ export default function Navbar({
               }}
               aria-label={mobileMenuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
               aria-expanded={mobileMenuOpen}
-              className="p-2 rounded-xl md:hidden text-stone-700 hover:bg-stone-100 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden cursor-pointer"
+              className="p-2 rounded-xl md:hidden text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden cursor-pointer"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -450,7 +476,7 @@ export default function Navbar({
 
         {/* Mobile Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden mt-2 max-w-7xl mx-auto bg-[#FAF8F5]/98 backdrop-blur-xl rounded-2xl border border-[#E7E2D8] p-4 shadow-xl flex flex-col gap-2.5 animate-in slide-in-from-top-2">
+          <div className="md:hidden mt-2 max-w-7xl mx-auto bg-[#FAF8F5]/98 dark:bg-[#161122]/98 backdrop-blur-xl rounded-2xl border border-[#E7E2D8] dark:border-[#2D2340] p-4 shadow-xl flex flex-col gap-2.5 animate-in slide-in-from-top-2">
             {/* 1. Mobile Career Track Switcher Card */}
             <RoleTabsBar
               variant="drawer"
@@ -470,13 +496,13 @@ export default function Navbar({
                 setIsSearchOpen(true);
                 if (soundEnabled) soundFX.playFocusBeep();
               }}
-              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white border border-[#E7E2D8] text-stone-700 hover:text-[#18181B] shadow-2xs font-medium text-xs transition-colors mb-1 cursor-pointer"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white dark:bg-stone-800 border border-[#E7E2D8] dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white shadow-2xs font-medium text-xs transition-colors mb-1 cursor-pointer"
             >
               <span className="flex items-center gap-2">
                 <Search className="w-4 h-4 text-[#FF4D6D]" />
                 <span>Search portfolio...</span>
               </span>
-              <kbd className="px-1.5 py-0.5 text-[9px] font-mono font-bold text-stone-500 bg-[#F0EBE1] border border-[#E5DFD5] rounded shadow-2xs">
+              <kbd className="px-1.5 py-0.5 text-[9px] font-mono font-bold text-stone-500 dark:text-stone-400 bg-[#F0EBE1] dark:bg-stone-900 border border-[#E5DFD5] dark:border-stone-700 rounded shadow-2xs">
                 ⌘K
               </kbd>
             </button>
@@ -487,6 +513,25 @@ export default function Navbar({
               onClose={() => setMobileMenuOpen(false)}
               soundEnabled={soundEnabled}
             />
+
+            {/* Theme Toggle in Mobile Drawer */}
+            <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-white dark:bg-stone-800 border border-[#E7E2D8] dark:border-stone-700 text-stone-700 dark:text-stone-200 text-xs font-semibold">
+              <span className="flex items-center gap-2">
+                {isDark ? (
+                  <Sun className="w-4 h-4 text-amber-400" />
+                ) : (
+                  <Moon className="w-4 h-4 text-stone-600 dark:text-stone-300" />
+                )}
+                <span>Theme Mode</span>
+              </span>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-[11px] font-mono text-stone-700 dark:text-stone-200 font-bold transition-colors cursor-pointer"
+              >
+                {isDark ? 'Light Mode ☀️' : 'Dark Mode 🌙'}
+              </button>
+            </div>
 
             {/* Navigation Links */}
             {navLinks.map((link) => {
@@ -502,8 +547,8 @@ export default function Navbar({
                   }}
                   className={`text-sm font-semibold py-2 px-3 rounded-xl transition-colors flex items-center justify-between ${
                     isActive
-                      ? 'bg-white text-[#FF4D6D] font-bold shadow-2xs'
-                      : 'text-stone-700 hover:text-[#FF4D6D] hover:bg-stone-100'
+                      ? 'bg-white dark:bg-stone-800 text-[#FF4D6D] font-bold shadow-2xs'
+                      : 'text-stone-700 dark:text-stone-300 hover:text-[#FF4D6D] dark:hover:text-[#FF4D6D] hover:bg-stone-100 dark:hover:bg-stone-800/60'
                   }`}
                 >
                   <span>{link.label}</span>
@@ -513,8 +558,8 @@ export default function Navbar({
             })}
 
             {/* Mobile Resume Actions */}
-            <div className="pt-2 mt-1 border-t border-[#E7E2D8] flex flex-col gap-1.5">
-              <div className="text-[10px] font-bold text-stone-500 uppercase tracking-wider px-1 select-none">
+            <div className="pt-2 mt-1 border-t border-[#E7E2D8] dark:border-stone-800 flex flex-col gap-1.5">
+              <div className="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider px-1 select-none">
                 Resume Options
               </div>
               <ResumeDropdown

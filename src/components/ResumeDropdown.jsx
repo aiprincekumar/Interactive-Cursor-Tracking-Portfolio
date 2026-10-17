@@ -316,10 +316,10 @@ export default function ResumeDropdown({
             inDrawer
               ? 'left-0 right-0 top-full mt-2 w-full'
               : 'right-0 mt-2.5 w-68 origin-top-right'
-          } bg-[#FAF8F5]/98 backdrop-blur-xl rounded-2xl border p-1.5 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150 focus:outline-hidden`}
+          } bg-[#FAF8F5]/98 dark:bg-[#161122] backdrop-blur-xl rounded-2xl border dark:border-[#2D2340] p-1.5 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150 focus:outline-hidden text-stone-200`}
         >
           {/* Header Label: Displays active role badge, tailored title, and PDF tag */}
-          <div className="px-3 py-2 border-b border-[#E7E2D8]/70 mb-1 select-none flex items-center justify-between">
+          <div className="px-3 py-2 border-b border-[#E7E2D8]/70 dark:border-[#2D2340] mb-1 select-none flex items-center justify-between">
             <div className="min-w-0 pr-2">
               <div className="flex items-center gap-1.5">
                 <span
@@ -327,9 +327,9 @@ export default function ResumeDropdown({
                   style={{ backgroundColor: accent }}
                   aria-hidden="true"
                 />
-                <p className="text-[11px] font-bold text-[#18181B] truncate">{label}</p>
+                <p className="text-[11px] font-bold text-[#18181B] dark:text-white truncate">{label}</p>
               </div>
-              <p className="text-[9.5px] font-medium text-stone-500 pl-3.5 truncate">{badge}</p>
+              <p className="text-[9.5px] font-medium text-stone-500 dark:text-stone-400 pl-3.5 truncate">{badge}</p>
             </div>
             <span
               className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border shrink-0"
@@ -348,11 +348,11 @@ export default function ResumeDropdown({
             type="button"
             role="menuitem"
             onClick={handleViewOnline}
-            className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 hover:text-[#18181B] hover:bg-white transition-colors cursor-pointer group"
+            className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-white dark:hover:bg-stone-800/80 transition-colors cursor-pointer group"
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <span
-                className="p-1.5 rounded-lg bg-stone-100 text-stone-600 transition-colors shrink-0 group-hover:text-white"
+                className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 transition-colors shrink-0 group-hover:text-white"
                 style={{
                   '--hover-bg': accent
                 }}
@@ -368,11 +368,11 @@ export default function ResumeDropdown({
                 <Eye className="w-3.5 h-3.5" />
               </span>
               <div className="truncate">
-                <p className="font-bold text-[#18181B] leading-tight">View Online</p>
-                <p className="text-[10px] text-stone-500 font-normal leading-tight">Open active PDF in new tab</p>
+                <p className="font-bold text-[#18181B] dark:text-white leading-tight">View Online</p>
+                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">Open active PDF in new tab</p>
               </div>
             </div>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md bg-stone-100 text-stone-600 font-bold shrink-0 ml-2">
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold shrink-0 ml-2">
               PREVIEW
             </span>
           </button>
@@ -382,7 +382,7 @@ export default function ResumeDropdown({
             type="button"
             role="menuitem"
             onClick={handleDownloadPdf}
-            className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 hover:text-[#18181B] hover:bg-white transition-colors cursor-pointer group"
+            className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-white dark:hover:bg-stone-800/80 transition-colors cursor-pointer group"
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <span
@@ -394,8 +394,8 @@ export default function ResumeDropdown({
                 <Download className="w-3.5 h-3.5" />
               </span>
               <div className="truncate">
-                <p className="font-bold text-[#18181B] leading-tight">Download PDF</p>
-                <p className="text-[10px] text-stone-500 font-normal leading-tight">Role-tailored dossier</p>
+                <p className="font-bold text-[#18181B] dark:text-white leading-tight">Download PDF</p>
+                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">Role-tailored dossier</p>
               </div>
             </div>
             <span
@@ -414,23 +414,23 @@ export default function ResumeDropdown({
             type="button"
             role="menuitem"
             onClick={handleCopyOrShare}
-            className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 hover:text-[#18181B] hover:bg-white transition-colors cursor-pointer group"
+            className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-white dark:hover:bg-stone-800/80 transition-colors cursor-pointer group"
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <span
                 className={`p-1.5 rounded-lg transition-colors shrink-0 ${
                   copied
-                    ? 'bg-emerald-100 text-emerald-600'
-                    : 'bg-stone-100 text-stone-600'
+                    ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
                 }`}
               >
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               </span>
               <div className="truncate">
-                <p className="font-bold text-[#18181B] leading-tight">
+                <p className="font-bold text-[#18181B] dark:text-white leading-tight">
                   {copied ? 'Link Copied!' : 'Share / Copy Link'}
                 </p>
-                <p className="text-[10px] text-stone-500 font-normal leading-tight">
+                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">
                   {copied ? 'Ready with active role' : `Share link with ?role=${activeRole}`}
                 </p>
               </div>
@@ -438,8 +438,8 @@ export default function ResumeDropdown({
             <span
               className={`text-[9px] font-mono px-1.5 py-0.5 rounded-md font-bold shrink-0 ml-2 transition-colors ${
                 copied
-                  ? 'bg-emerald-100 text-emerald-700 animate-in fade-in'
-                  : 'bg-stone-100 text-stone-600'
+                  ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 animate-in fade-in'
+                  : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
               }`}
             >
               {copied ? 'COPIED!' : 'SHARE'}
@@ -451,18 +451,18 @@ export default function ResumeDropdown({
             type="button"
             role="menuitem"
             onClick={handlePrintResume}
-            className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 hover:text-[#18181B] hover:bg-white transition-colors cursor-pointer group"
+            className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-white dark:hover:bg-stone-800/80 transition-colors cursor-pointer group"
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <span className="p-1.5 rounded-lg bg-stone-100 text-stone-600 group-hover:bg-stone-200 transition-colors shrink-0">
+              <span className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 group-hover:bg-stone-200 dark:group-hover:bg-stone-700 transition-colors shrink-0">
                 <Printer className="w-3.5 h-3.5" />
               </span>
               <div className="truncate">
-                <p className="font-bold text-[#18181B] leading-tight">Print Resume</p>
-                <p className="text-[10px] text-stone-500 font-normal leading-tight">Print active role PDF</p>
+                <p className="font-bold text-[#18181B] dark:text-white leading-tight">Print Resume</p>
+                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">Print active role PDF</p>
               </div>
             </div>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md bg-stone-100 text-stone-600 font-bold shrink-0 ml-2">
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold shrink-0 ml-2">
               PRINT
             </span>
           </button>

@@ -31,6 +31,30 @@ export default function App() {
     return false;
   });
 
+  const [particleColor, setParticleColor] = useState(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const saved = localStorage.getItem('physics_particle_color');
+      if (saved) return saved;
+    }
+    return '#FF4D6D';
+  });
+
+  const [gravity, setGravity] = useState(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const saved = localStorage.getItem('physics_gravity');
+      if (saved !== null && !isNaN(Number(saved))) return Number(saved);
+    }
+    return 0;
+  });
+
+  const [audioPitch, setAudioPitch] = useState(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const saved = localStorage.getItem('physics_audio_pitch');
+      if (saved !== null && !isNaN(Number(saved))) return Number(saved);
+    }
+    return 1.0;
+  });
+
   const [activeCursor, setActiveCursor] = useState(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
       const saved = localStorage.getItem('active_cursor_variant');
@@ -58,6 +82,40 @@ export default function App() {
     }
   }, [activeCursor]);
 
+  // Sync particleColor to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.setItem('physics_particle_color', particleColor);
+      } catch {
+        // Ignore quota/security errors
+      }
+    }
+  }, [particleColor]);
+
+  // Sync gravity to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.setItem('physics_gravity', gravity.toString());
+      } catch {
+        // Ignore quota/security errors
+      }
+    }
+  }, [gravity]);
+
+  // Sync audioPitch to localStorage and soundFX
+  useEffect(() => {
+    soundFX.setPitchMultiplier(audioPitch);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.setItem('physics_audio_pitch', audioPitch.toString());
+      } catch {
+        // Ignore quota/security errors
+      }
+    }
+  }, [audioPitch]);
+
   const handleSelectCursor = (cursorId) => {
     setActiveCursor(cursorId);
     try {
@@ -76,9 +134,9 @@ export default function App() {
 
   return (
     <RoleProvider soundEnabled={soundEnabled}>
-      <div className="min-h-screen bg-[#FAF8F5] text-[#18181B] relative selection:bg-[#FF4D6D] selection:text-white overflow-x-hidden">
+      <div className="min-h-screen bg-[#FAF8F5] dark:bg-[#0B0813] text-[#18181B] dark:text-[#F5F2F8] transition-colors duration-300 relative selection:bg-[#FF4D6D] selection:text-white overflow-x-hidden">
         {/* Background Subtle Mesh Dots */}
-        <div className="fixed inset-0 bg-dot-pattern opacity-50 pointer-events-none z-0" />
+        <div className="fixed inset-0 bg-dot-pattern opacity-50 dark:opacity-30 pointer-events-none z-0 transition-opacity duration-300" />
 
         {/* Dynamic Multi-Variant Interactive Cursor Manager */}
         {!reducedMotion && (
@@ -90,6 +148,8 @@ export default function App() {
             trailEnabled={trailEnabled}
             scale={butterflyScale}
             reducedMotion={reducedMotion}
+            gravity={gravity}
+            particleColor={particleColor}
           />
         )}
 
@@ -152,6 +212,12 @@ export default function App() {
             setSoundEnabled={setSoundEnabled}
             reducedMotion={reducedMotion}
             setReducedMotion={setReducedMotion}
+            gravity={gravity}
+            setGravity={setGravity}
+            particleColor={particleColor}
+            setParticleColor={setParticleColor}
+            audioPitch={audioPitch}
+            setAudioPitch={setAudioPitch}
           />
 
           {/* 9. Contact: "Let's build something meaningful." (Reel t=16.1s - 16.9s) */}

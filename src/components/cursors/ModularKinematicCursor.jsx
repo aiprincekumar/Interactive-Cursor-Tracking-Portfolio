@@ -15,13 +15,61 @@ import { getKinematicProfile } from './kinematicProfiles';
  * - Click reaction particle bursts tailored to each cursor's aesthetic
  * - Zero CPU/GPU overhead when unmounted; cleanly tears down animation loop & event listeners
  */
+/**
+ * Generates an array of tinted rgba color prefixes from a base hex or rgb string.
+ */
+function getTintedPalette(baseColor) {
+  if (!baseColor || typeof baseColor !== 'string') return null;
+  let r = 255, g = 77, b = 109;
+  const trimmed = baseColor.trim();
+
+  if (trimmed.startsWith('#')) {
+    let hex = trimmed.slice(1);
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    if (hex.length === 6) {
+      const num = parseInt(hex, 16);
+      if (!isNaN(num)) {
+        r = (num >> 16) & 255;
+        g = (num >> 8) & 255;
+        b = num & 255;
+      }
+    }
+  } else if (trimmed.startsWith('rgb')) {
+    const parts = trimmed.match(/\d+/g);
+    if (parts && parts.length >= 3) {
+      r = Math.min(255, Math.max(0, parseInt(parts[0], 10)));
+      g = Math.min(255, Math.max(0, parseInt(parts[1], 10)));
+      b = Math.min(255, Math.max(0, parseInt(parts[2], 10)));
+    }
+  } else {
+    return null;
+  }
+
+  const tintR = Math.min(255, Math.round(r * 0.75 + 64));
+  const tintG = Math.min(255, Math.round(g * 0.75 + 64));
+  const tintB = Math.min(255, Math.round(b * 0.75 + 64));
+
+  const warmR = Math.min(255, Math.round(r * 0.9 + 25));
+  const warmG = Math.min(255, Math.round(g * 0.85 + 20));
+  const warmB = Math.max(0, Math.round(b * 0.65));
+
+  return [
+    `rgba(${r}, ${g}, ${b},`,
+    `rgba(${tintR}, ${tintG}, ${tintB},`,
+    `rgba(${warmR}, ${warmG}, ${warmB},`,
+    'rgba(255, 255, 255,'
+  ];
+}
+
 export default function ModularKinematicCursor({
   cursorId = 'butterfly',
   heroRef: _heroRef,
   isInsideHero = false,
   speed = 0.14,
   trailEnabled = true,
-  scale = 1
+  scale = 1,
+  gravity = 0,
+  particleColor = null
 }) {
   const avatarRef = useRef(null);
   const canvasRef = useRef(null);
@@ -29,6 +77,8 @@ export default function ModularKinematicCursor({
   const speedRef = useRef(speed);
   const scaleRef = useRef(scale);
   const trailEnabledRef = useRef(trailEnabled);
+  const gravityRef = useRef(gravity);
+  const particleColorRef = useRef(particleColor);
 
   const profile = getKinematicProfile(cursorId);
 
@@ -65,6 +115,14 @@ export default function ModularKinematicCursor({
     trailEnabledRef.current = trailEnabled;
   }, [trailEnabled]);
 
+  useEffect(() => {
+    gravityRef.current = gravity;
+  }, [gravity]);
+
+  useEffect(() => {
+    particleColorRef.current = particleColor;
+  }, [particleColor]);
+
   // Pointer event tracking
   useEffect(() => {
     const handlePointerMove = (e) => {
@@ -91,7 +149,8 @@ export default function ModularKinematicCursor({
       if (!trailEnabledRef.current) return;
       const state = posRef.current;
       const burstConfig = profile.clickBurst || { count: 12, speed: 80 };
-      const palette = profile.trail.colors;
+      const customPalette = particleColorRef.current ? getTintedPalette(particleColorRef.current) : null;
+      const palette = customPalette || profile.trail.colors;
 
       for (let i = 0; i < burstConfig.count; i++) {
         const ang = Math.random() * Math.PI * 2;
@@ -280,7 +339,8 @@ export default function ModularKinematicCursor({
 
               const maxLimit = profile.trail.maxParticles || 45;
               if (particlesRef.current.length < maxLimit) {
-                const palette = profile.trail.colors;
+                const customPalette = particleColorRef.current ? getTintedPalette(particleColorRef.current) : null;
+                const palette = customPalette || profile.trail.colors;
                 const color = palette[Math.floor(Math.random() * palette.length)];
                 const sizeRange = profile.trail.size || [1.5, 3.5];
                 const size = Math.random() * (sizeRange[1] - sizeRange[0]) + sizeRange[0];
@@ -311,6 +371,7 @@ export default function ModularKinematicCursor({
             // Update & draw active particles
             for (let i = particlesRef.current.length - 1; i >= 0; i--) {
               const p = particlesRef.current[i];
+              p.vy += (gravityRef.current || 0) * dt;
               p.x += p.vx * dt;
               p.y += p.vy * dt;
               p.alpha -= p.decay * dt;

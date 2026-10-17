@@ -16,7 +16,8 @@ import {
   Mail,
   MessageCircle,
   MapPin,
-  Sliders
+  Sliders,
+  Sun
 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { SEARCH_ITEMS } from '../utils/searchCatalog';
@@ -24,6 +25,7 @@ import { searchCatalogItems, ALIAS_MAP } from '../utils/fuzzySearch';
 import { useRoleTab } from '../context/RoleContext';
 import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
 import { getResumeConfig } from '../utils/resumeConfig';
+import { useTheme } from '../context/ThemeContext';
 
 const CATEGORIES = ['All', 'Actions', 'Sections', 'Projects', 'Skills', 'Experience', 'Education'];
 
@@ -84,6 +86,7 @@ function getItemIcon(item, defaultIcon) {
   if (item.actionType === 'external' && item.id === 'act-whatsapp') return MessageCircle;
   if (item.actionType === 'external' && item.id === 'act-maps') return MapPin;
   if (item.actionType === 'scroll' && item.targetId === 'playground') return Sliders;
+  if (item.actionType === 'toggle-theme' || item.id === 'act-theme') return Sun;
   if (item.category === 'Actions') return Zap;
   return defaultIcon;
 }
@@ -94,22 +97,24 @@ function getVerificationBadgeClass(matchType, isSelected) {
     return 'bg-white/20 text-white border border-white/30';
   }
   switch (matchType) {
+    case 'Theme Setting':
+      return 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800';
     case 'Statutory Compliance':
-      return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+      return 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800';
     case 'Software Tool':
-      return 'bg-violet-50 text-violet-700 border border-violet-200';
+      return 'bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800';
     case 'Quick Action':
-      return 'bg-amber-50 text-amber-700 border border-amber-200';
+      return 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800';
     case 'Project Deliverable':
-      return 'bg-rose-50 text-[#FF4D6D] border border-rose-200';
+      return 'bg-rose-50 dark:bg-rose-950/60 text-[#FF4D6D] border border-rose-200 dark:border-rose-900';
     case 'Field Location':
-      return 'bg-orange-50 text-orange-700 border border-orange-200';
+      return 'bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800';
     case 'Academic Record':
-      return 'bg-purple-50 text-purple-700 border border-purple-200';
+      return 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800';
     case 'Verified Skill':
-      return 'bg-sky-50 text-sky-700 border border-sky-200';
+      return 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800';
     default:
-      return 'bg-stone-100 text-stone-600 border border-stone-200';
+      return 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700';
   }
 }
 
@@ -133,6 +138,15 @@ export default function CommandPalette({
     // In case CommandPalette is mounted outside RoleProvider
   }
   const onSelectRole = propOnSelectRole ?? roleContext?.selectRole;
+
+  let themeContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    themeContext = useTheme();
+  } catch {
+    // In case CommandPalette is mounted outside ThemeProvider
+  }
+  const toggleTheme = themeContext?.toggleTheme;
 
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -310,7 +324,17 @@ export default function CommandPalette({
       }
     }
 
-    // 2. Quick Action: Download Verified Resume PDF (Active Role)
+    // 2. Quick Action: Toggle Theme (Light / Dark Mode)
+    if (item.actionType === 'toggle-theme' || item.id === 'act-theme') {
+      if (toggleTheme) {
+        toggleTheme();
+      } else if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('toggle-theme'));
+      }
+      return;
+    }
+
+    // 3. Quick Action: Download Verified Resume PDF (Active Role)
     if (item.actionType === 'download-resume') {
       const activeRole = roleContext?.activeRole || 'accountant';
       const resumeConfig = getResumeConfig(activeRole);
@@ -324,19 +348,19 @@ export default function CommandPalette({
       return;
     }
 
-    // 3. Quick Action: Direct Email mailto
+    // 4. Quick Action: Direct Email mailto
     if (item.actionType === 'mailto') {
       window.location.href = item.actionUrl || 'mailto:atulravi2015@gmail.com';
       return;
     }
 
-    // 4. Quick Action: External Link (WhatsApp / Google Maps)
+    // 5. Quick Action: External Link (WhatsApp / Google Maps)
     if (item.actionType === 'external' && item.actionUrl) {
       window.open(item.actionUrl, '_blank', 'noopener,noreferrer');
       return;
     }
 
-    // 5. Tab dispatch for Qualifications, Bio-Data & Education
+    // 6. Tab dispatch for Qualifications, Bio-Data & Education
     if (item.tab === 'qualifications' || item.targetId?.startsWith('edu-')) {
       window.dispatchEvent(new CustomEvent('switch-about-tab', { detail: { tab: 'qualifications' } }));
     } else if (item.tab === 'biodata') {
@@ -408,10 +432,10 @@ export default function CommandPalette({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl bg-[#FAF8F5] rounded-3xl border border-[#E7E2D8] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-150"
+        className="w-full max-w-2xl bg-[#FAF8F5] dark:bg-[#18181B] rounded-3xl border border-[#E7E2D8] dark:border-stone-800 shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-150 transition-colors"
       >
         {/* Search Input Bar */}
-        <div className="flex items-center px-4 sm:px-5 py-4 border-b border-[#E7E2D8] bg-white gap-3 shrink-0">
+        <div className="flex items-center px-4 sm:px-5 py-4 border-b border-[#E7E2D8] dark:border-stone-800 bg-white dark:bg-stone-900 gap-3 shrink-0">
           <Search className="w-5 h-5 text-[#FF4D6D] shrink-0" />
           <input
             ref={inputRef}
@@ -423,7 +447,7 @@ export default function CommandPalette({
             }}
             onKeyDown={handleKeyDown}
             placeholder='Search GST, Tally, ITR, Resume, Excel, MIS, Skills, or Actions...'
-            className="w-full bg-transparent text-sm sm:text-base font-medium text-[#18181B] placeholder-stone-400 focus:outline-none"
+            className="w-full bg-transparent text-sm sm:text-base font-medium text-[#18181B] dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none"
             aria-label="Search portfolio catalog"
           />
           {query && (
@@ -434,7 +458,7 @@ export default function CommandPalette({
                 setSelectedIndex(0);
                 inputRef.current?.focus();
               }}
-              className="p-1 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
+              className="p-1 rounded-md text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
               aria-label="Clear search query"
             >
               <X className="w-4 h-4" />
@@ -443,17 +467,17 @@ export default function CommandPalette({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-stone-400 hover:text-[#18181B] hover:bg-stone-100 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-stone-400 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
             aria-label="Close command palette"
           >
-            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-stone-100 border border-stone-200">
+            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300">
               ESC
             </span>
           </button>
         </div>
 
         {/* Category Filter Chips */}
-        <div className="px-4 py-2.5 bg-[#FAF8F5] border-b border-[#E7E2D8] flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+        <div className="px-4 py-2.5 bg-[#FAF8F5] dark:bg-stone-900/60 border-b border-[#E7E2D8] dark:border-stone-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
           {CATEGORIES.map((cat) => {
             const isActive = selectedCategory === cat;
             return (
@@ -467,8 +491,8 @@ export default function CommandPalette({
                 }}
                 className={`text-xs font-semibold px-3 py-1 rounded-full transition-all duration-150 cursor-pointer whitespace-nowrap ${
                   isActive
-                    ? 'bg-[#18181B] text-white shadow-xs'
-                    : 'bg-white text-stone-600 hover:text-[#18181B] hover:bg-stone-100 border border-[#E7E2D8]'
+                    ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 shadow-xs'
+                    : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-700 border border-[#E7E2D8] dark:border-stone-700'
                 }`}
               >
                 {cat}
@@ -479,9 +503,9 @@ export default function CommandPalette({
 
         {/* Recent Searches Row (when query is empty and recent searches exist) */}
         {!query && recentSearches.length > 0 && (
-          <div className="px-4 py-2 bg-white/70 border-b border-[#E7E2D8] flex items-center justify-between gap-2 shrink-0">
+          <div className="px-4 py-2 bg-white/70 dark:bg-stone-900/40 border-b border-[#E7E2D8] dark:border-stone-800 flex items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-              <span className="text-[10px] uppercase font-mono font-bold text-stone-400 flex items-center gap-1 shrink-0">
+              <span className="text-[10px] uppercase font-mono font-bold text-stone-400 dark:text-stone-500 flex items-center gap-1 shrink-0">
                 <Clock className="w-3 h-3" /> Recent:
               </span>
               {recentSearches.map((term) => (
@@ -491,7 +515,7 @@ export default function CommandPalette({
                     setQuery(term);
                     setSelectedIndex(0);
                   }}
-                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-stone-100 hover:bg-[#FFF0F3] hover:text-[#FF4D6D] border border-stone-200 text-stone-600 text-xs font-medium cursor-pointer transition-colors"
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 hover:bg-[#FFF0F3] dark:hover:bg-[#FF4D6D]/15 hover:text-[#FF4D6D] border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-xs font-medium cursor-pointer transition-colors"
                 >
                   <span>{term}</span>
                   <button
@@ -508,7 +532,7 @@ export default function CommandPalette({
             <button
               type="button"
               onClick={clearAllRecent}
-              className="text-[10px] font-mono text-stone-400 hover:text-red-500 shrink-0 cursor-pointer transition-colors"
+              className="text-[10px] font-mono text-stone-400 dark:text-stone-500 hover:text-red-500 shrink-0 cursor-pointer transition-colors"
               title="Clear all recent searches"
             >
               Clear
@@ -519,10 +543,10 @@ export default function CommandPalette({
         {/* Results List (Grouped by Category) */}
         <div ref={listRef} className="overflow-y-auto p-3 space-y-4">
           {totalCount === 0 ? (
-            <div className="py-12 px-6 text-center text-stone-500">
-              <SearchX className="w-10 h-10 mx-auto text-stone-300 mb-2" />
-              <p className="text-sm font-bold text-stone-700">No results found for &ldquo;{query}&rdquo;</p>
-              <p className="text-xs text-stone-400 mt-1 mb-4">
+            <div className="py-12 px-6 text-center text-stone-500 dark:text-stone-400">
+              <SearchX className="w-10 h-10 mx-auto text-stone-300 dark:text-stone-600 mb-2" />
+              <p className="text-sm font-bold text-stone-700 dark:text-stone-200">No results found for &ldquo;{query}&rdquo;</p>
+              <p className="text-xs text-stone-400 dark:text-stone-500 mt-1 mb-4">
                 Spelling tolerance active. Try typing &ldquo;GST&rdquo;, &ldquo;taly&rdquo;, &ldquo;excl&rdquo;, &ldquo;ITR&rdquo;, &ldquo;Resume&rdquo;, or &ldquo;Actions&rdquo;
               </p>
               <div className="flex flex-wrap justify-center gap-1.5 max-w-md mx-auto">
@@ -535,7 +559,7 @@ export default function CommandPalette({
                       setSelectedIndex(0);
                       inputRef.current?.focus();
                     }}
-                    className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-white border border-[#E7E2D8] hover:border-[#FF4D6D] hover:text-[#FF4D6D] text-stone-600 transition-colors cursor-pointer"
+                    className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-white dark:bg-stone-800 border border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D] hover:text-[#FF4D6D] dark:hover:text-[#FF4D6D] text-stone-600 dark:text-stone-300 transition-colors cursor-pointer"
                   >
                     {sug}
                   </button>
@@ -550,12 +574,12 @@ export default function CommandPalette({
               return (
                 <div key={category} className="space-y-1">
                   {/* Category Header */}
-                  <div className="flex items-center justify-between px-2 pt-1 pb-1 text-[11px] font-mono font-bold uppercase tracking-wider text-stone-400">
+                  <div className="flex items-center justify-between px-2 pt-1 pb-1 text-[11px] font-mono font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                     <span className="flex items-center gap-1.5">
                       <DefaultIcon className={`w-3.5 h-3.5 ${meta.color}`} />
                       <span>{meta.label}</span>
                     </span>
-                    <span className="text-[10px] bg-stone-200/60 text-stone-600 px-2 py-0.2 rounded-full font-mono">
+                    <span className="text-[10px] bg-stone-200/60 dark:bg-stone-800 text-stone-600 dark:text-stone-400 px-2 py-0.2 rounded-full font-mono">
                       {items.length}
                     </span>
                   </div>
@@ -576,16 +600,16 @@ export default function CommandPalette({
                           onMouseEnter={() => setSelectedIndex(item.flatIndex)}
                           className={`group flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all duration-150 cursor-pointer select-none ${
                             isSelected
-                              ? 'bg-[#18181B] text-white shadow-md scale-[1.008]'
-                              : 'hover:bg-white text-stone-800'
+                              ? 'bg-[#18181B] dark:bg-stone-800 text-white shadow-md scale-[1.008]'
+                              : 'hover:bg-white dark:hover:bg-stone-850/80 text-stone-800 dark:text-stone-200'
                           }`}
                         >
                           <div className="flex items-center gap-3 min-w-0">
                             <div
                               className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
                                 isSelected
-                                  ? 'bg-stone-800 border-stone-700 text-[#FF4D6D]'
-                                  : 'bg-white border-[#E7E2D8] text-stone-500 group-hover:text-[#FF4D6D]'
+                                  ? 'bg-stone-800 dark:bg-stone-700 border-stone-700 dark:border-stone-600 text-[#FF4D6D]'
+                                  : 'bg-white dark:bg-stone-800 border-[#E7E2D8] dark:border-stone-700 text-stone-500 dark:text-stone-400 group-hover:text-[#FF4D6D]'
                               }`}
                             >
                               <ItemIcon className="w-4 h-4" />
@@ -603,7 +627,7 @@ export default function CommandPalette({
                                     className={`text-[9px] font-mono px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0 flex items-center gap-1 ${
                                       isSelected
                                         ? 'bg-emerald-400 text-stone-950 shadow-xs'
-                                        : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                        : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700'
                                     }`}
                                   >
                                     <Sparkles className="w-2.5 h-2.5" />
@@ -626,7 +650,7 @@ export default function CommandPalette({
                                     className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0 ${
                                       isSelected
                                         ? 'bg-[#FF4D6D] text-white shadow-xs'
-                                        : 'bg-rose-50 text-[#FF4D6D] border border-rose-200'
+                                        : 'bg-rose-50 dark:bg-rose-950/60 text-[#FF4D6D] border border-rose-200 dark:border-rose-900'
                                     }`}
                                   >
                                     💼 Accountant
@@ -637,7 +661,7 @@ export default function CommandPalette({
                                     className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0 ${
                                       isSelected
                                         ? 'bg-blue-500 text-white shadow-xs'
-                                        : 'bg-sky-50 text-sky-700 border border-sky-200'
+                                        : 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
                                     }`}
                                   >
                                     📊 MIS
@@ -647,7 +671,7 @@ export default function CommandPalette({
 
                               <p
                                 className={`text-[11px] truncate mt-0.5 ${
-                                  isSelected ? 'text-stone-300' : 'text-stone-500'
+                                  isSelected ? 'text-stone-300 dark:text-stone-300' : 'text-stone-500 dark:text-stone-400'
                                 }`}
                               >
                                 <HighlightedText text={item.description} query={query} />
@@ -657,7 +681,7 @@ export default function CommandPalette({
 
                           <div className="flex items-center gap-1 shrink-0 ml-3">
                             {isSelected && (
-                              <span className="flex items-center gap-1 text-[10px] font-mono font-semibold text-stone-300 bg-stone-800 px-2 py-0.5 rounded-md">
+                              <span className="flex items-center gap-1 text-[10px] font-mono font-semibold text-stone-300 bg-stone-800 dark:bg-stone-700 px-2 py-0.5 rounded-md">
                                 <span>Go</span>
                                 <CornerDownLeft className="w-3 h-3 text-[#FF4D6D]" />
                               </span>
@@ -674,22 +698,22 @@ export default function CommandPalette({
         </div>
 
         {/* Footer Keyboard Hints & Context */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-t border-[#E7E2D8] bg-[#FAF8F5] text-[11px] font-mono text-stone-500 select-none shrink-0">
+        <div className="flex items-center justify-between px-4 py-2.5 border-t border-[#E7E2D8] dark:border-stone-800 bg-[#FAF8F5] dark:bg-stone-900 text-[11px] font-mono text-stone-500 dark:text-stone-400 select-none shrink-0">
           <div className="flex items-center gap-3">
             <span>
-              <kbd className="px-1.5 py-0.5 rounded bg-white border border-stone-200 shadow-2xs">↑</kbd>{' '}
-              <kbd className="px-1.5 py-0.5 rounded bg-white border border-stone-200 shadow-2xs">↓</kbd> Navigate
+              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-2xs text-stone-700 dark:text-stone-300">↑</kbd>{' '}
+              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-2xs text-stone-700 dark:text-stone-300">↓</kbd> Navigate
             </span>
             <span>
-              <kbd className="px-1.5 py-0.5 rounded bg-white border border-stone-200 shadow-2xs">↵</kbd> Select
+              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-2xs text-stone-700 dark:text-stone-300">↵</kbd> Select
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="hidden sm:inline text-stone-400 font-sans text-[11px]">
+            <span className="hidden sm:inline text-stone-400 dark:text-stone-500 font-sans text-[11px]">
               {totalCount} results
             </span>
             <span>
-              <kbd className="px-1.5 py-0.5 rounded bg-white border border-stone-200 shadow-2xs">esc</kbd> Dismiss
+              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-2xs text-stone-700 dark:text-stone-300">esc</kbd> Dismiss
             </span>
           </div>
         </div>

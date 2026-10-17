@@ -12,12 +12,61 @@ import React, { useEffect, useRef } from 'react';
  * - High-speed additive canvas stardust trail emitter (zero shadowBlur for 120 FPS lock)
  * - Zero layout thrashing (GPU composited transforms, passive pointer events)
  */
+/**
+ * Generates an array of tinted rgba color prefixes from a base hex or rgb string.
+ * Accents include radiant primary, pastel glow, cosmic warm/gold shimmer, and pure diamond sparkle.
+ */
+function getTintedPalette(baseColor) {
+  if (!baseColor || typeof baseColor !== 'string') return null;
+  let r = 255, g = 77, b = 109;
+  const trimmed = baseColor.trim();
+
+  if (trimmed.startsWith('#')) {
+    let hex = trimmed.slice(1);
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    if (hex.length === 6) {
+      const num = parseInt(hex, 16);
+      if (!isNaN(num)) {
+        r = (num >> 16) & 255;
+        g = (num >> 8) & 255;
+        b = num & 255;
+      }
+    }
+  } else if (trimmed.startsWith('rgb')) {
+    const parts = trimmed.match(/\d+/g);
+    if (parts && parts.length >= 3) {
+      r = Math.min(255, Math.max(0, parseInt(parts[0], 10)));
+      g = Math.min(255, Math.max(0, parseInt(parts[1], 10)));
+      b = Math.min(255, Math.max(0, parseInt(parts[2], 10)));
+    }
+  } else {
+    return null;
+  }
+
+  const tintR = Math.min(255, Math.round(r * 0.75 + 64));
+  const tintG = Math.min(255, Math.round(g * 0.75 + 64));
+  const tintB = Math.min(255, Math.round(b * 0.75 + 64));
+
+  const warmR = Math.min(255, Math.round(r * 0.9 + 25));
+  const warmG = Math.min(255, Math.round(g * 0.85 + 20));
+  const warmB = Math.max(0, Math.round(b * 0.65));
+
+  return [
+    `rgba(${r}, ${g}, ${b},`,
+    `rgba(${tintR}, ${tintG}, ${tintB},`,
+    `rgba(${warmR}, ${warmG}, ${warmB},`,
+    'rgba(255, 255, 255,'
+  ];
+}
+
 export default function ButterflyCursor({
   heroRef,
   isInsideHero,
   speed = 0.14,
   trailEnabled = true,
-  scale = 1
+  scale = 1,
+  gravity = 0,
+  particleColor = '#FF4D6D'
 }) {
   const butterflyRef = useRef(null);
   const canvasRef = useRef(null);
@@ -25,6 +74,8 @@ export default function ButterflyCursor({
   const speedRef = useRef(speed);
   const scaleRef = useRef(scale);
   const trailEnabledRef = useRef(trailEnabled);
+  const gravityRef = useRef(gravity);
+  const particleColorRef = useRef(particleColor);
 
   // Kinematic state store (persists across frames without triggering React re-renders)
   const posRef = useRef({
@@ -66,6 +117,14 @@ export default function ButterflyCursor({
   }, [trailEnabled]);
 
   useEffect(() => {
+    gravityRef.current = gravity;
+  }, [gravity]);
+
+  useEffect(() => {
+    particleColorRef.current = particleColor;
+  }, [particleColor]);
+
+  useEffect(() => {
     // Passive pointer tracking
     const handlePointerMove = (e) => {
       const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
@@ -90,12 +149,13 @@ export default function ButterflyCursor({
     const handlePointerDown = () => {
       if (!trailEnabledRef.current) return;
       const state = posRef.current;
-      const burstPalette = [
+      const defaultBurstPalette = [
         'rgba(255, 77, 109,',
         'rgba(255, 105, 180,',
         'rgba(255, 215, 0,',
         'rgba(255, 255, 255,'
       ];
+      const burstPalette = getTintedPalette(particleColorRef.current) || defaultBurstPalette;
       for (let i = 0; i < 7; i++) {
         const angle = Math.random() * Math.PI * 2;
         const spd = Math.random() * 55 + 25;
@@ -253,13 +313,14 @@ export default function ButterflyCursor({
                   const px = state.lastEmitX + (renderX - state.lastEmitX) * t + (Math.random() - 0.5) * 6;
                   const py = state.lastEmitY + (renderY - state.lastEmitY) * t + (Math.random() - 0.5) * 6;
                   
-                  // Palette: Hot Pink, Radiant Salmon, Stardust Gold, Pure Rose Pearl
-                  const palette = [
+                  // Palette: Hot Pink, Radiant Salmon, Stardust Gold, Pure Rose Pearl (or dynamic tinted shades)
+                  const defaultPalette = [
                     'rgba(255, 63, 108,',
                     'rgba(255, 105, 180,',
                     'rgba(255, 215, 0,',
                     'rgba(255, 182, 193,'
                   ];
+                  const palette = getTintedPalette(particleColorRef.current) || defaultPalette;
                   const color = palette[Math.floor(Math.random() * palette.length)];
 
                   particlesRef.current.push({
@@ -293,6 +354,7 @@ export default function ButterflyCursor({
 
             for (let i = particlesRef.current.length - 1; i >= 0; i--) {
               const p = particlesRef.current[i];
+              p.vy += (gravityRef.current || 0) * dt;
               p.x += p.vx * dt;
               p.y += p.vy * dt;
               p.vx *= 0.97; // Aerodynamic drag

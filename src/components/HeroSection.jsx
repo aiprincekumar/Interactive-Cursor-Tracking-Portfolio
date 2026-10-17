@@ -5,6 +5,7 @@ import { NotionIcon, GithubIcon, LinkedinIcon, YoutubeIcon, FacebookIcon, Instag
 import confetti from 'canvas-confetti';
 import { useRoleTab } from '../context/RoleContext';
 import { useGyroscopeTracking } from '../hooks/useGyroscopeTracking';
+import { formatVintageTimestamp } from '../utils/polaroidExport';
 
 /**
  * Full-Screen Reel-Accurate Character Hero Section
@@ -606,7 +607,7 @@ export default function HeroSection({
         id: Date.now(),
         state: activePose,
         imageSrc: poseData.src,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        timestamp: formatVintageTimestamp(new Date()),
         title: poseData.title,
         likes: Math.floor(Math.random() * 25) + 10,
         scale: userScaleRef.current
@@ -652,7 +653,7 @@ export default function HeroSection({
         }
         triggerCapture();
       }}
-      className={`relative w-full h-screen min-h-screen overflow-hidden select-none bg-[#FAF8F5] flex items-center justify-center cursor-pointer ${
+      className={`relative w-full h-screen min-h-screen overflow-hidden select-none bg-[#FAF8F5] dark:bg-[#0B0813] flex items-center justify-center cursor-pointer transition-colors duration-300 ${
         isInsideHero && !reducedMotion ? 'cursor-none' : ''
       }`}
       style={{ touchAction: 'pan-y' }}
@@ -670,12 +671,12 @@ export default function HeroSection({
           ref={bgBackdropRef}
           src={IMG_BG_HERO}
           alt="Studio Stage Backdrop"
-          className="w-full h-full object-cover object-[center_32%] pointer-events-none select-none will-change-transform"
+          className="w-full h-full object-cover object-[center_32%] pointer-events-none select-none will-change-transform dark:brightness-[0.88] dark:contrast-[1.08] transition-[filter] duration-300"
           loading="eager"
           decoding="sync"
         />
         {/* Soft atmospheric overlay for studio depth and contrast */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10 dark:from-[#0B0813]/70 dark:via-[#0B0813]/20 dark:to-[#0B0813]/40 pointer-events-none transition-colors duration-300" />
       </div>
 
       {/* 3. Full-Bleed Full-Width Character Flat 2D Stage (Covers entire Hero Viewport - 10 Total Poses) */}
@@ -788,8 +789,8 @@ export default function HeroSection({
       </div>
 
       {/* 4. Subtle Ambient Light Blend & Seamless Transition to Marquee */}
-      <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.12)] pointer-events-none z-0" />
-      <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#FAF8F5] via-[#FAF8F5]/60 to-transparent pointer-events-none z-0" />
+      <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_120px_rgba(11,8,19,0.7)] pointer-events-none z-0" />
+      <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#FAF8F5] via-[#FAF8F5]/60 to-transparent dark:from-[#0B0813] dark:via-[#0B0813]/60 pointer-events-none z-0 transition-colors duration-300" />
 
       {/* 4.5. Floating Zoom HUD Badge */}
       {showHudBadge && (
@@ -798,7 +799,7 @@ export default function HeroSection({
           aria-live="polite"
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-40 transition-all duration-200 animate-in fade-in zoom-in-95"
         >
-          <div className="px-5 py-2.5 rounded-full bg-[#18181B]/85 backdrop-blur-xl border border-white/20 text-white font-mono text-xs sm:text-sm font-semibold shadow-2xl flex items-center gap-2.5 max-w-[92vw] text-center">
+          <div className="px-5 py-2.5 rounded-full bg-[#18181B]/85 dark:bg-[#161122]/95 backdrop-blur-xl border border-white/20 dark:border-[#2D2340] text-white font-mono text-xs sm:text-sm font-semibold shadow-2xl flex items-center gap-2.5 max-w-[92vw] text-center">
             <span className="w-2 h-2 rounded-full bg-[#FF4D6D] animate-ping shrink-0" />
             <span>{hudMessage || `Zoom: ${Math.round(userScale * 100)}%`}</span>
           </div>
@@ -828,12 +829,12 @@ export default function HeroSection({
               }`}
             >
               {activeTrack?.heroTitle && (
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#18181B] tracking-tight leading-tight font-['Outfit',sans-serif] drop-shadow-xs">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#18181B] dark:text-[#F4F4F5] tracking-tight leading-tight font-['Outfit',sans-serif] drop-shadow-xs transition-colors duration-300">
                   {activeTrack.heroTitle}
                 </h1>
               )}
               {activeTrack?.heroSubtitle && (
-                <p className="text-sm sm:text-base md:text-lg font-semibold text-[#27272A] tracking-tight drop-shadow-2xs">
+                <p className="text-sm sm:text-base md:text-lg font-semibold text-[#27272A] dark:text-stone-300 tracking-tight drop-shadow-2xs transition-colors duration-300">
                   {activeTrack.heroSubtitle}
                 </p>
               )}
@@ -850,7 +851,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
               title="Notion"
             >
               <NotionIcon className="w-4 h-4" />
@@ -864,7 +865,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
               title="GitHub (Coming Soon)"
             >
               <GithubIcon className="w-4 h-4" />
@@ -878,7 +879,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
               title="LinkedIn"
             >
               <LinkedinIcon className="w-4 h-4" />
@@ -892,7 +893,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
               title="YouTube"
             >
               <YoutubeIcon className="w-4 h-4" />
@@ -906,7 +907,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
               title="Facebook"
             >
               <FacebookIcon className="w-4 h-4" />
@@ -920,7 +921,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#161122]/85 dark:hover:bg-[#201830] backdrop-blur-md border border-[#E7E2D8] dark:border-[#2D2340] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-[#A99EBA] hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
               title="Instagram"
             >
               <InstagramIcon className="w-4 h-4" />
@@ -934,7 +935,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-md border border-[#E7E2D8] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] hover:text-[#FF3F6C] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#161122]/85 dark:hover:bg-[#201830] backdrop-blur-md border border-[#E7E2D8] dark:border-[#2D2340] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-[#A99EBA] hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
               title="X (formerly Twitter)"
             >
               <TwitterIcon className="w-4 h-4" />
@@ -949,7 +950,7 @@ export default function HeroSection({
             <div
               onClick={(e) => e.stopPropagation()}
               onPointerDown={(e) => e.stopPropagation()}
-              className="bg-white/80 backdrop-blur-xl border border-white/90 shadow-md rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 text-[#18181B] max-w-full"
+              className="bg-white/80 dark:bg-[#161122]/85 backdrop-blur-xl border border-white/90 dark:border-[#2D2340] shadow-md rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 text-[#18181B] dark:text-[#F5F2F8] max-w-full transition-colors duration-300"
             >
               {/* Gyro Sensor Activation & Toggle Button */}
               <button
@@ -991,7 +992,7 @@ export default function HeroSection({
                         ? 'Click to turn Gyro OFF (revert to cursor/idle)'
                         : 'Click to turn Gyro ON (tilt tracking)'
                 }
-                className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold hover:text-[#FF3F6C] active:scale-95 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] active:scale-95 transition-all cursor-pointer"
               >
                 <Compass className={`w-3.5 h-3.5 text-[#FF4D6D] ${gyro.isActive ? 'animate-spin-slow' : 'opacity-60'}`} />
                 <span>
@@ -1006,14 +1007,14 @@ export default function HeroSection({
                 {gyro.isActive ? (
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 ) : (
-                  <span className="w-1.5 h-1.5 rounded-full bg-stone-300" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-stone-300 dark:bg-stone-600" />
                 )}
               </button>
 
               {/* Recalibrate button accessible when Gyro is ON */}
               {gyro.isActive && (
                 <>
-                  <div className="w-[1px] h-3 bg-stone-200" />
+                  <div className="w-[1px] h-3 bg-stone-200 dark:bg-stone-700" />
                   <button
                     type="button"
                     onClick={(e) => {
@@ -1023,14 +1024,14 @@ export default function HeroSection({
                     }}
                     aria-label="Recalibrate Gyroscope baseline angle"
                     title="Recalibrate current tilt angle as resting center (0°)"
-                    className="text-[9px] sm:text-[10px] font-semibold text-stone-500 hover:text-[#FF3F6C] px-1 py-0.5 rounded transition-all cursor-pointer"
+                    className="text-[9px] sm:text-[10px] font-semibold text-stone-500 dark:text-stone-400 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] px-1 py-0.5 rounded transition-all cursor-pointer"
                   >
                     Calibrate
                   </button>
                 </>
               )}
 
-              <div className="w-[1px] h-3 bg-stone-200" />
+              <div className="w-[1px] h-3 bg-stone-200 dark:bg-stone-700" />
 
               <button
                 type="button"
@@ -1052,8 +1053,8 @@ export default function HeroSection({
                 }
                 className={`text-[9px] sm:text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full transition-all cursor-pointer flex items-center gap-1 ${
                   gyro.isGyroScrollActive
-                    ? `bg-[#18181B] text-white shadow-2xs ${gyro.activeScrollDir ? 'ring-1 ring-[#FF4D6D] animate-pulse' : 'ring-1 ring-emerald-500/50'}`
-                    : 'bg-stone-100 text-stone-500 hover:text-[#18181B]'
+                    ? `bg-[#18181B] dark:bg-stone-200 text-white dark:text-[#18181B] shadow-2xs ${gyro.activeScrollDir ? 'ring-1 ring-[#FF4D6D] animate-pulse' : 'ring-1 ring-emerald-500/50'}`
+                    : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 hover:text-[#18181B] dark:hover:text-stone-200'
                 }`}
               >
                 {!gyro.isGyroScrollActive
@@ -1086,7 +1087,7 @@ export default function HeroSection({
           <div
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
-            className="bg-white/80 backdrop-blur-xl border border-white/90 shadow-md rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 text-[#18181B] max-w-full"
+            className="bg-white/80 dark:bg-[#161122]/85 backdrop-blur-xl border border-white/90 dark:border-[#2D2340] shadow-md rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 text-[#18181B] dark:text-[#F5F2F8] max-w-full transition-colors duration-300"
           >
             {/* [-] button */}
             <button
@@ -1098,7 +1099,7 @@ export default function HeroSection({
               disabled={userScale <= 0.5}
               aria-label="Decrease scale"
               title="Decrease scale (-10%)"
-              className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/5 active:scale-90 text-[#18181B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
+              className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 text-[#18181B] dark:text-stone-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
             >
               <Minus className="w-3.5 h-3.5" />
             </button>
@@ -1117,7 +1118,7 @@ export default function HeroSection({
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
               aria-label="Character scale slider"
-              className="w-14 sm:w-20 h-1.5 bg-stone-200/80 rounded-lg appearance-none cursor-pointer accent-[#18181B] focus:outline-none shrink-1"
+              className="w-14 sm:w-20 h-1.5 bg-stone-200/80 dark:bg-stone-700 rounded-lg appearance-none cursor-pointer accent-[#18181B] dark:accent-[#FF4D6D] focus:outline-none shrink-1"
             />
 
             {/* [+] button */}
@@ -1130,7 +1131,7 @@ export default function HeroSection({
               disabled={userScale >= 2.0}
               aria-label="Increase scale"
               title="Increase scale (+10%)"
-              className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/5 active:scale-90 text-[#18181B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
+              className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 text-[#18181B] dark:text-stone-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
@@ -1144,7 +1145,7 @@ export default function HeroSection({
               }}
               aria-label="Reset scale to 100%"
               title="Reset scale to 100%"
-              className="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono font-bold bg-stone-100/90 hover:bg-stone-200/90 active:scale-95 text-[#18181B] transition-all border border-stone-200/60 cursor-pointer shrink-0"
+              className="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono font-bold bg-stone-100/90 dark:bg-stone-800 hover:bg-stone-200/90 dark:hover:bg-stone-700 active:scale-95 text-[#18181B] dark:text-stone-200 transition-all border border-stone-200/60 dark:border-stone-700 cursor-pointer shrink-0"
             >
               100%
             </button>
@@ -1159,14 +1160,14 @@ export default function HeroSection({
             }}
             aria-label="Shoot a look photo"
             title="Shoot a look"
-            className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-[#18181B] hover:bg-black text-white backdrop-blur-xl shadow-lg shadow-black/15 hover:shadow-xl hover:scale-105 active:scale-95 transition-all group border border-white/20 cursor-pointer shrink-0"
+            className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-[#18181B] hover:bg-black dark:bg-[#201830] dark:hover:bg-[#2D2340] text-white backdrop-blur-xl shadow-lg shadow-black/15 hover:shadow-xl hover:scale-105 active:scale-95 transition-all group border border-white/20 dark:border-[#2D2340] cursor-pointer shrink-0"
           >
             <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-white transition-transform group-hover:scale-110" />
             {photosCount === 0 && (
               <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-[#FF4D6D] animate-pulse pointer-events-none" />
             )}
             {photosCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-[#FF4D6D] text-white text-[9px] sm:text-[10px] font-mono font-bold min-w-4 sm:min-w-5 h-4 sm:h-5 px-1 rounded-full flex items-center justify-center shadow-md border-2 border-[#FAF8F5] pointer-events-none">
+              <span className="absolute -top-1.5 -right-1.5 bg-[#FF4D6D] text-white text-[9px] sm:text-[10px] font-mono font-bold min-w-4 sm:min-w-5 h-4 sm:h-5 px-1 rounded-full flex items-center justify-center shadow-md border-2 border-[#FAF8F5] dark:border-[#0B0813] pointer-events-none">
                 {photosCount}
               </span>
             )}
@@ -1178,7 +1179,7 @@ export default function HeroSection({
             onClick={(e) => e.stopPropagation()}
             aria-label="View Moments"
             title="View Moments"
-            className="w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-white/90 hover:bg-white text-[#18181B] backdrop-blur-xl border border-[#E7E2D8] shadow-xs hover:shadow-md hover:scale-105 active:scale-95 transition-all group cursor-pointer shrink-0"
+            className="w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-white/90 hover:bg-white dark:bg-[#161122]/90 dark:hover:bg-[#201830] text-[#18181B] dark:text-[#F5F2F8] backdrop-blur-xl border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs hover:shadow-md hover:scale-105 active:scale-95 transition-all group cursor-pointer shrink-0"
           >
             <Images className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF4D6D] transition-transform group-hover:scale-110" />
           </a>

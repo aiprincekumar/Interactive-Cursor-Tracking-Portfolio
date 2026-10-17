@@ -78,6 +78,18 @@ export const SEARCH_ITEMS = [
     description: 'Jump to the real-time Physics Lab & Cursor Tuner to customize flight speed, spring dynamics and trail particles.',
     keywords: 'change cursor style butterfly spark trail physics lab interactive tuner playground flight speed quick actions'
   },
+  {
+    id: 'act-theme',
+    title: '🌓 Toggle Theme (Light / Dark Mode)',
+    category: 'Actions',
+    targetId: 'hero',
+    badge: 'Quick Action',
+    matchType: 'Theme Setting',
+    role: 'both',
+    actionType: 'toggle-theme',
+    description: 'Switch between warm parchment light mode and deep luxury dark mode instantly with audio feedback.',
+    keywords: 'toggle theme light dark mode night day switch color scheme appearance display'
+  },
 
   // ==========================================
   // --- 2. SECTIONS / NAVIGATION (10 Items) ---

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Camera, Download, Heart, ZoomIn, X, Share2 } from 'lucide-react';
+import { Camera, Download, Heart, ZoomIn, X, Share2, Archive, Loader2 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
+import { exportAllPolaroidsZip, downloadSinglePolaroid } from '../utils/polaroidExport';
 
 const BASE_URL = import.meta.env.BASE_URL || './';
 
@@ -10,7 +11,7 @@ const INITIAL_PHOTOS = [
     imageSrc: `${BASE_URL}assets/hero_poses/05-center-front.png`,
     state: 'center',
     title: 'First Shutter • Tokyo Studio',
-    timestamp: '10:42 AM',
+    timestamp: 'ATUL VERMA • 17 OCT 2026 10:42 AM',
     note: 'The butterfly paused right before the lens. Captured with 35mm f/1.8.',
     likes: 142
   },
@@ -19,7 +20,7 @@ const INITIAL_PHOTOS = [
     imageSrc: `${BASE_URL}assets/hero_poses/03-center-left.png`,
     state: 'left',
     title: 'Drift to the West Horizon',
-    timestamp: '11:15 AM',
+    timestamp: 'ATUL VERMA • 17 OCT 2026 11:15 AM',
     note: 'Quick flick of the wrist, framed the butterfly against the pastel light.',
     likes: 98
   },
@@ -28,7 +29,7 @@ const INITIAL_PHOTOS = [
     imageSrc: `${BASE_URL}assets/hero_poses/04-center-right.png`,
     state: 'right',
     title: 'Right-Side Shutter Snap',
-    timestamp: '01:30 PM',
+    timestamp: 'ATUL VERMA • 17 OCT 2026 01:30 PM',
     note: 'A soft smile as the stardust trail settled across the creative workspace.',
     likes: 187
   }
@@ -39,6 +40,9 @@ export default function CameraRollGallery({ capturedPhotos }) {
   const [likes, setLikes] = useState({});
   const [poppingId, setPoppingId] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(null);
+  const [isDownloadingSingle, setIsDownloadingSingle] = useState(false);
 
   const allPhotos = [...capturedPhotos, ...INITIAL_PHOTOS];
 
@@ -67,20 +71,90 @@ export default function CameraRollGallery({ capturedPhotos }) {
     setTimeout(() => setPoppingId(null), 400);
   };
 
+  const handleExportAll = async () => {
+    if (isExporting || allPhotos.length === 0) return;
+    soundFX.playShutter();
+    setIsExporting(true);
+    setExportProgress({ current: 0, total: allPhotos.length });
+    try {
+      await exportAllPolaroidsZip(allPhotos, (current, total) => {
+        setExportProgress({ current, total });
+      });
+      soundFX.playSparkle();
+    } catch (err) {
+      console.error('Failed to export polaroid archive:', err);
+    } finally {
+      setIsExporting(false);
+      setExportProgress(null);
+    }
+  };
+
+  const handleDownloadSingle = async () => {
+    if (!selectedPhoto || isDownloadingSingle) return;
+    soundFX.playShutter();
+    setIsDownloadingSingle(true);
+    try {
+      await downloadSinglePolaroid(selectedPhoto);
+      soundFX.playSparkle();
+    } catch (err) {
+      console.error('Failed to download polaroid:', err);
+    } finally {
+      setIsDownloadingSingle(false);
+    }
+  };
+
   return (
     <section id="gallery" className="py-20 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
-      {/* Section Header */}
-      <div className="text-center max-w-2xl mx-auto mb-14">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E7E2D8] text-[#18181B] text-xs font-bold uppercase tracking-wider mb-3 shadow-xs">
-          <Camera className="w-3.5 h-3.5 text-[#FF4D6D]" />
-          Camera Roll & Moments
+      {/* Section Header with Export All (ZIP) Action */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
+        <div className="text-left max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-stone-900 border border-[#E7E2D8] dark:border-stone-800 text-[#18181B] dark:text-stone-200 text-xs font-bold uppercase tracking-wider mb-3 shadow-xs">
+            <Camera className="w-3.5 h-3.5 text-[#FF4D6D]" />
+            Camera Roll & Moments
+          </div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif]">
+            Captured Polaroid Studio
+          </h2>
+          <p className="mt-3 text-stone-600 dark:text-stone-400 text-sm md:text-base font-normal leading-relaxed">
+            Every shutter click in the interactive hero records a frame directly to this physical reel. Tap any photo to inspect details.
+          </p>
         </div>
-        <h2 className="text-3xl md:text-4xl font-extrabold text-[#18181B] tracking-tight font-['Outfit',sans-serif]">
-          Captured Polaroid Studio
-        </h2>
-        <p className="mt-3 text-stone-600 text-sm md:text-base font-normal leading-relaxed">
-          Every shutter click in the interactive hero records a frame directly to this physical reel. Tap any photo to inspect details.
-        </p>
+
+        {/* Export All (ZIP) Action Button */}
+        <div className="flex items-center gap-3 shrink-0 self-start sm:self-end">
+          <button
+            type="button"
+            onClick={handleExportAll}
+            disabled={isExporting || allPhotos.length === 0}
+            className={`inline-flex items-center gap-2.5 px-5 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+              isExporting
+                ? 'bg-stone-200 dark:bg-stone-800 text-stone-500 cursor-wait'
+                : allPhotos.length === 0
+                ? 'bg-stone-100 dark:bg-stone-800/50 text-stone-400 cursor-not-allowed border border-stone-200 dark:border-stone-800'
+                : 'bg-[#18181B] dark:bg-white text-white dark:text-[#18181B] hover:bg-[#FF4D6D] dark:hover:bg-[#FF4D6D] dark:hover:text-white hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 cursor-pointer'
+            }`}
+            aria-label="Export all polaroids as ZIP archive"
+          >
+            {isExporting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-[#FF4D6D]" />
+                <span>
+                  {exportProgress
+                    ? `Exporting... (${exportProgress.current}/${exportProgress.total})`
+                    : 'Exporting...'}
+                </span>
+              </>
+            ) : (
+              <>
+                <Archive className="w-4 h-4 text-[#FF4D6D]" />
+                <span>Export All (ZIP)</span>
+                <span className="ml-0.5 px-2 py-0.5 rounded-full text-[10px] font-mono bg-white/20 dark:bg-black/10 text-current font-extrabold">
+                  {allPhotos.length}
+                </span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Grid of Polaroid Cards */}
@@ -132,23 +206,35 @@ export default function CameraRollGallery({ capturedPhotos }) {
                     loading="lazy"
                   />
                 </div>
-                <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-xs text-[10px] font-mono text-stone-700 font-semibold border border-stone-200">
-                  {photo.timestamp}
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
-                  <span className="text-xs font-bold text-white bg-black/60 backdrop-blur-xs px-3 py-1 rounded-full flex items-center gap-1.5">
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                  <span className="text-xs font-bold text-white bg-black/65 backdrop-blur-xs px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md">
                     <ZoomIn className="w-3.5 h-3.5" /> Inspect Polaroid
                   </span>
                 </div>
               </div>
 
-              {/* Handwritten Note / Caption */}
-              <div className="mt-4 px-1 flex items-start justify-between">
-                <div className="min-w-0 pr-2">
-                  <h3 className="font-['Caveat',cursive] text-2xl font-bold text-[#18181B] leading-none truncate">
+              {/* Bottom White Chin - Stacked Left-Aligned Layout */}
+              <div className="mt-4 px-1 flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1 flex flex-col items-start text-left">
+                  {/* Line 1: Polaroid Handwritten Title */}
+                  <h3 className="font-['Caveat',cursive] text-2xl font-bold text-[#18181B] leading-tight truncate w-full text-left">
                     {photo.title}
                   </h3>
-                  <p className="text-xs text-stone-500 mt-1 line-clamp-1">
+
+                  {/* Line 2: Vintage Amber LED Digital Timestamp Badge */}
+                  <div className="mt-1 self-start inline-flex items-center px-2 py-0.5 rounded-md bg-[#1c1917] border border-[#292524] text-[#FF7700] font-mono text-[10px] font-bold tracking-wider select-none shadow-xs"
+                    style={{
+                      textShadow: '0 0 6px rgba(255, 119, 0, 0.65)',
+                      fontFamily: '"Courier New", Courier, monospace, monospace'
+                    }}
+                    title={photo.timestamp}
+                  >
+                    {photo.timestamp}
+                  </div>
+
+                  {/* Line 3: Caption / Note */}
+                  <p className="text-xs text-stone-500 mt-1 line-clamp-1 w-full text-left">
                     {photo.note || 'Snapshot captured with custom interactive cursor.'}
                   </p>
                 </div>
@@ -158,7 +244,7 @@ export default function CameraRollGallery({ capturedPhotos }) {
                   type="button"
                   onClick={(e) => handleLike(photo.id, e)}
                   aria-label={`Like ${photo.title}, ${currentLikes} likes`}
-                  className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden shrink-0 ${
+                  className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden shrink-0 mt-0.5 ${
                     likes[photo.id]
                       ? 'bg-rose-50 text-[#FF4D6D] border-rose-200 shadow-xs'
                       : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
@@ -188,18 +274,18 @@ export default function CameraRollGallery({ capturedPhotos }) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl border border-[#E7E2D8] relative animate-in zoom-in-95 duration-200"
+            className="bg-white dark:bg-[#161122] rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl border border-[#E7E2D8] dark:border-[#2D2340] relative animate-in zoom-in-95 duration-200 text-left"
           >
             <button
               type="button"
               onClick={() => setSelectedPhoto(null)}
               aria-label="Close enlarged polaroid view"
-              className="absolute top-4 right-4 p-2 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 transition-colors focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+              className="absolute top-4 right-4 p-2 rounded-full bg-stone-100 dark:bg-[#201830] hover:bg-stone-200 dark:hover:bg-[#2D2340] text-stone-700 dark:text-stone-300 transition-colors focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="aspect-[16/9] rounded-2xl overflow-hidden mb-4 border border-stone-200 shadow-inner bg-gradient-to-b from-[#8C9EB2] via-[#B8C8D8] to-[#DCE4ED]">
+            <div className="aspect-[16/9] rounded-2xl overflow-hidden mb-4 border border-stone-200 dark:border-[#2D2340] shadow-inner bg-gradient-to-b from-[#8C9EB2] via-[#B8C8D8] to-[#DCE4ED] relative">
               <img
                 src={selectedPhoto.imageSrc}
                 alt={selectedPhoto.title}
@@ -208,31 +294,40 @@ export default function CameraRollGallery({ capturedPhotos }) {
               />
             </div>
 
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-mono text-[#FF4D6D] font-bold bg-[#FAF8F5] border border-[#E7E2D8] px-2.5 py-1 rounded-full">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2 text-left">
+              <span className="text-xs font-mono text-[#FF4D6D] font-bold bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] px-2.5 py-1 rounded-full">
                 SHUTTER LOG • {selectedPhoto.timestamp}
               </span>
-              <span className="text-xs text-stone-600 font-mono font-medium capitalize">
+              <span className="text-xs text-stone-600 dark:text-stone-400 font-mono font-medium capitalize">
                 {selectedPhoto.state || 'Camera Capture'} • {selectedPhoto.scale ? `${Math.round(selectedPhoto.scale * 100)}% scale` : '35mm f/1.8'}
               </span>
             </div>
 
-            <h3 className="font-['Outfit',sans-serif] text-2xl font-bold text-[#18181B]">
+            <h3 className="font-['Outfit',sans-serif] text-2xl font-bold text-[#18181B] dark:text-white text-left">
               {selectedPhoto.title}
             </h3>
 
-            <p className="text-sm text-stone-600 mt-2 font-normal leading-relaxed">
+            <p className="text-sm text-stone-600 dark:text-stone-300 mt-2 font-normal leading-relaxed text-left">
               {selectedPhoto.note || 'Recorded in high-fidelity from the interactive character viewpoint tracking the butterfly cursor.'}
             </p>
 
             <div className="mt-6 flex items-center gap-3">
-              <a
-                href={selectedPhoto.imageSrc}
-                download={`polaroid-${selectedPhoto.id}.jpg`}
-                className="flex-1 py-2.5 px-4 bg-[#18181B] hover:bg-[#FF4D6D] text-white font-bold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all"
+              <button
+                type="button"
+                onClick={handleDownloadSingle}
+                disabled={isDownloadingSingle}
+                className="flex-1 py-2.5 px-4 bg-[#18181B] dark:bg-stone-100 hover:bg-[#FF4D6D] dark:hover:bg-[#FF4D6D] text-white dark:text-stone-900 dark:hover:text-white font-bold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-60 cursor-pointer disabled:cursor-wait"
               >
-                <Download className="w-4 h-4" /> Download Frame
-              </a>
+                {isDownloadingSingle ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-[#FF4D6D]" /> Downloading...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" /> Download Frame
+                  </>
+                )}
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -241,7 +336,7 @@ export default function CameraRollGallery({ capturedPhotos }) {
                   soundFX.playSparkle();
                   setTimeout(() => setCopiedLink(false), 2000);
                 }}
-                className="py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-colors"
+                className="py-2.5 px-4 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 font-bold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 <Share2 className="w-4 h-4" />
                 {copiedLink ? 'Link Copied!' : 'Share'}

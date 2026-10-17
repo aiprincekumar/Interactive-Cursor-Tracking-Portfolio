@@ -71,12 +71,12 @@ export default function ExploreSubBar({
   // ----------------------------------------------------
   if (variant === 'drawer-card') {
     return (
-      <div className={`w-full bg-white rounded-2xl border border-[#E7E2D8] p-2.5 shadow-2xs ${className}`}>
+      <div className={`w-full bg-white dark:bg-stone-800 rounded-2xl border border-[#E7E2D8] dark:border-stone-700 p-2.5 shadow-2xs ${className}`}>
         <div className="flex items-center justify-between mb-2 px-1">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-stone-500">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
             Showcase & Lab
           </span>
-          <span className="text-[10px] font-mono font-bold text-[#FF4D6D] bg-[#FFF0F3] px-2 py-0.5 rounded-full border border-[#FFD1DC]">
+          <span className="text-[10px] font-mono font-bold text-[#FF4D6D] bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 px-2 py-0.5 rounded-full border border-[#FFD1DC] dark:border-[#FF4D6D]/30">
             Explore
           </span>
         </div>
@@ -95,17 +95,17 @@ export default function ExploreSubBar({
                 onMouseEnter={() => {
                   if (soundEnabled) soundFX.playChipHover();
                 }}
-                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-[#E7E2D8] hover:border-[#FF4D6D]/40 bg-[#FAF8F5] hover:bg-white text-stone-700 hover:text-[#18181B] transition-all duration-200 cursor-pointer select-none shadow-2xs group text-left focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-[#FAF8F5] dark:bg-stone-900/90 hover:bg-white dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white transition-all duration-200 cursor-pointer select-none shadow-2xs group text-left focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                 title={`Jump to ${item.label}`}
               >
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[#FFF0F3] text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white transition-colors duration-200">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white transition-colors duration-200">
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-bold font-mono tracking-tight text-[#18181B]">
+                  <span className="text-xs font-bold font-mono tracking-tight text-[#18181B] dark:text-white">
                     {item.label}
                   </span>
-                  <span className="text-[10px] text-stone-500 truncate">
+                  <span className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
                     {item.desc}
                   </span>
                 </div>
@@ -128,14 +128,14 @@ export default function ExploreSubBar({
         role="region"
         aria-label="Explore Showcase & Lab Bar"
         onKeyDown={handleKeyDown}
-        className={`mt-2 max-w-7xl mx-auto flex items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FAF8F5]/95 backdrop-blur-md rounded-full border border-[#E7E2D8] shadow-md animate-in fade-in slide-in-from-top-2 duration-200 gap-2 sm:gap-4 select-none ${className}`}
+        className={`mt-2 max-w-7xl mx-auto flex items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FAF8F5]/95 dark:bg-[#18181B]/95 backdrop-blur-md rounded-full border border-[#E7E2D8] dark:border-stone-800 shadow-md animate-in fade-in slide-in-from-top-2 duration-200 gap-2 sm:gap-4 select-none ${className}`}
       >
         {/* Left Side Label / Badge */}
         <div className="hidden sm:flex items-center gap-1.5 pl-1 shrink-0">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-stone-500">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
             EXPLORE
           </span>
-          <span className="text-[10px] font-mono font-bold text-[#FF4D6D] bg-[#FFF0F3] px-2 py-0.5 rounded-full border border-[#FFD1DC]">
+          <span className="text-[10px] font-mono font-bold text-[#FF4D6D] bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 px-2 py-0.5 rounded-full border border-[#FFD1DC] dark:border-[#FF4D6D]/30">
             SHOWCASE & LAB
           </span>
         </div>
@@ -159,14 +159,14 @@ export default function ExploreSubBar({
                 onMouseEnter={() => {
                   if (soundEnabled) soundFX.playChipHover();
                 }}
-                className="group relative flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full border border-[#E7E2D8] hover:border-[#FF4D6D]/40 bg-white/70 hover:bg-white text-stone-700 hover:text-[#18181B] transition-all duration-200 cursor-pointer select-none shrink-0 text-xs font-bold font-mono shadow-2xs hover:shadow-xs hover:scale-[1.02] active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+                className="group relative flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full border border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-white/70 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white transition-all duration-200 cursor-pointer select-none shrink-0 text-xs font-bold font-mono shadow-2xs hover:shadow-xs hover:scale-[1.02] active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                 title={`Jump to ${item.label}`}
               >
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shrink-0 bg-[#FFF0F3] text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white transition-colors duration-200">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shrink-0 bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white transition-colors duration-200">
                   <Icon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 </div>
                 <span className="tracking-tight whitespace-nowrap">{item.label}</span>
-                <span className="hidden md:inline text-[10px] font-normal text-stone-400 group-hover:text-stone-500">
+                <span className="hidden md:inline text-[10px] font-normal text-stone-400 dark:text-stone-400 group-hover:text-stone-500 dark:group-hover:text-stone-300">
                   {item.id === 'gallery' ? 'Showcase' : 'Playground'}
                 </span>
               </button>
@@ -175,7 +175,7 @@ export default function ExploreSubBar({
         </div>
 
         {/* Right Close Button [×] */}
-        <div className="flex items-center shrink-0 pl-1 pr-1 border-l border-stone-200/50 sm:border-transparent">
+        <div className="flex items-center shrink-0 pl-1 pr-1 border-l border-stone-200/50 dark:border-stone-700 sm:border-transparent">
           <button
             type="button"
             onClick={() => {
@@ -186,7 +186,7 @@ export default function ExploreSubBar({
             }}
             aria-label="Close Explore Bar"
             title="Close (Esc)"
-            className="w-7 h-7 rounded-full flex items-center justify-center text-stone-500 hover:text-[#18181B] hover:bg-stone-200/60 border border-transparent hover:border-stone-300 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+            className="w-7 h-7 rounded-full flex items-center justify-center text-stone-500 dark:text-stone-400 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-stone-800 border border-transparent hover:border-stone-300 dark:hover:border-stone-600 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
           >
             <X className="w-4 h-4" />
           </button>

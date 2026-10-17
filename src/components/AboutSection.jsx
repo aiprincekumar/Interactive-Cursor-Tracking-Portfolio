@@ -463,10 +463,10 @@ export default function AboutSection({ soundEnabled = true }) {
 
   return (
     <section id="about" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
-      <div className="bg-white rounded-3xl p-6 sm:p-10 md:p-14 border border-[#E7E2D8] shadow-xl shadow-stone-900/5 relative overflow-hidden">
+      <div className="bg-white dark:bg-[#121216] rounded-3xl p-6 sm:p-10 md:p-14 border border-[#E7E2D8] dark:border-stone-800 shadow-xl shadow-stone-900/5 dark:shadow-black/40 relative overflow-hidden transition-colors duration-300">
         {/* Soft subtle background glow */}
         <div
-          className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none transition-colors duration-500"
+          className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none transition-colors duration-500 dark:opacity-40"
           style={{
             background: isMIS
               ? 'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%)'
@@ -476,12 +476,12 @@ export default function AboutSection({ soundEnabled = true }) {
 
         {/* Top Header Row with Section Badge and Subtitle Indicator */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] border border-[#E7E2D8] text-[#18181B] text-xs font-bold uppercase tracking-wider shadow-xs w-fit">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] dark:bg-[#18181B] border border-[#E7E2D8] dark:border-stone-800 text-[#18181B] dark:text-stone-200 text-xs font-bold uppercase tracking-wider shadow-xs w-fit transition-colors">
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
             01 ✦ About &bull; {isOther ? 'Multidisciplinary Profile' : (isMIS ? 'Data & MIS Profile' : 'Accounting & Tax Profile')}
           </div>
 
-          <div className="flex items-center gap-2 text-stone-500 font-mono text-xs">
+          <div className="flex items-center gap-2 text-stone-500 dark:text-stone-400 font-mono text-xs">
             <BadgeCheck className="w-4 h-4" style={{ color: accentColor }} />
             <span>Verified Professional Dossier</span>
           </div>
@@ -489,7 +489,7 @@ export default function AboutSection({ soundEnabled = true }) {
 
         {/* Section Heading */}
         <div className="mb-6">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#18181B] tracking-tight font-['Outfit',sans-serif] leading-none">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#18181B] dark:text-[#F4F4F5] tracking-tight font-['Outfit',sans-serif] leading-none transition-colors duration-300">
             Who I am
           </h2>
           <div className="w-12 h-1 rounded-full mt-5 transition-all duration-300" style={{ backgroundColor: accentColor }} />
@@ -501,7 +501,7 @@ export default function AboutSection({ soundEnabled = true }) {
           aria-label="About section tabs"
           aria-orientation="horizontal"
           onKeyDown={handleKeyDown}
-          className="flex p-1.5 bg-[#FAF8F5] rounded-2xl border border-[#ECE7DF] gap-1.5 mb-10 overflow-x-auto no-scrollbar"
+          className="flex p-1.5 bg-[#FAF8F5] dark:bg-[#18181B] rounded-2xl border border-[#ECE7DF] dark:border-stone-800 gap-1.5 mb-10 overflow-x-auto no-scrollbar transition-colors"
         >
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -528,19 +528,19 @@ export default function AboutSection({ soundEnabled = true }) {
                       : 'focus-visible:ring-2 focus-visible:ring-[#FF4D6D]'
                 } whitespace-nowrap ${
                   isActive
-                    ? 'bg-white text-[#18181B] shadow-sm border border-[#E7E2D8]'
-                    : 'text-stone-600 hover:text-[#18181B] hover:bg-white/60'
+                    ? 'bg-white dark:bg-[#27272A] text-[#18181B] dark:text-[#F4F4F5] shadow-sm border border-[#E7E2D8] dark:border-stone-700'
+                    : 'text-stone-600 dark:text-stone-400 hover:text-[#18181B] dark:hover:text-stone-200 hover:bg-white/60 dark:hover:bg-stone-800/60'
                 }`}
               >
-                <Icon className={`w-4 h-4 transition-colors shrink-0 ${isActive ? (isOther ? 'text-[#8B5CF6]' : (isMIS ? 'text-[#3B82F6]' : 'text-[#FF4D6D]')) : 'text-stone-400'}`} />
+                <Icon className={`w-4 h-4 transition-colors shrink-0 ${isActive ? (isOther ? 'text-[#8B5CF6]' : (isMIS ? 'text-[#3B82F6]' : 'text-[#FF4D6D]')) : 'text-stone-400 dark:text-stone-500'}`} />
                 <span className="truncate whitespace-nowrap">{tab.label}</span>
                 {isActive && (
                   <span className={`hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
                     isOther
-                      ? 'bg-purple-50 border border-purple-200 text-[#8B5CF6]'
+                      ? 'bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-[#8B5CF6] dark:text-purple-300'
                       : isMIS
-                        ? 'bg-blue-50 border border-blue-200 text-[#3B82F6]'
-                        : 'bg-[#FFF0F3] border border-[#FFD1DC] text-[#FF4D6D]'
+                        ? 'bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-[#3B82F6] dark:text-blue-300'
+                        : 'bg-[#FFF0F3] dark:bg-pink-950/40 border border-[#FFD1DC] dark:border-pink-900/60 text-[#FF4D6D] dark:text-pink-300'
                   }`}>
                     {tab.badge}
                   </span>
@@ -571,15 +571,15 @@ export default function AboutSection({ soundEnabled = true }) {
             >
               {/* Executive 3-Paragraph Narrative */}
               <div className="space-y-4">
-                <p className="text-base sm:text-lg md:text-xl text-[#18181B] font-medium leading-relaxed font-['Outfit',sans-serif]">
+                <p className="text-base sm:text-lg md:text-xl text-[#18181B] dark:text-[#F4F4F5] font-medium leading-relaxed font-['Outfit',sans-serif] transition-colors">
                   {story.p1}
                 </p>
 
-                <p className="text-stone-600 text-sm sm:text-base leading-relaxed font-normal">
+                <p className="text-stone-600 dark:text-stone-300 text-sm sm:text-base leading-relaxed font-normal transition-colors">
                   {story.p2}
                 </p>
 
-                <p className="text-stone-600 text-sm sm:text-base leading-relaxed font-normal">
+                <p className="text-stone-600 dark:text-stone-300 text-sm sm:text-base leading-relaxed font-normal transition-colors">
                   {story.p3}
                 </p>
               </div>
@@ -587,10 +587,10 @@ export default function AboutSection({ soundEnabled = true }) {
               {/* Prominent Career Vision & Strategic Objective (Aligned) */}
               <div className={`p-6 sm:p-7 rounded-2xl bg-gradient-to-br ${
                 isOther
-                  ? 'from-[#F5F3FF] via-white to-[#FAF8F5] border-[#8B5CF6]/25'
+                  ? 'from-[#F5F3FF] via-white to-[#FAF8F5] dark:from-purple-950/20 dark:via-[#161122] dark:to-[#161122] border-[#8B5CF6]/25 dark:border-[#8B5CF6]/30'
                   : isMIS
-                    ? 'from-[#EFF6FF] via-white to-[#FAF8F5] border-[#3B82F6]/30'
-                    : 'from-[#FFF5F7] via-white to-[#FAF8F5] border-[#FF4D6D]/20'
+                    ? 'from-[#EFF6FF] via-white to-[#FAF8F5] dark:from-blue-950/20 dark:via-[#161122] dark:to-[#161122] border-[#3B82F6]/30 dark:border-[#3B82F6]/30'
+                    : 'from-[#FFF5F7] via-white to-[#FAF8F5] dark:from-pink-950/20 dark:via-[#161122] dark:to-[#161122] border-[#FF4D6D]/20 dark:border-[#FF4D6D]/30'
               } border-2 shadow-xs relative overflow-hidden transition-all duration-300`}>
                 <div className="flex items-center justify-between mb-3">
                   <div
@@ -601,18 +601,18 @@ export default function AboutSection({ soundEnabled = true }) {
                     <span>{story.visionTitle}</span>
                   </div>
                   <span
-                    className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-white border font-bold ${
+                    className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-white dark:bg-[#201830] border font-bold ${
                       isOther
-                        ? 'border-purple-200 text-[#8B5CF6]'
+                        ? 'border-purple-200 dark:border-purple-800/60 text-[#8B5CF6] dark:text-purple-300'
                         : isMIS
-                          ? 'border-blue-200 text-[#3B82F6]'
-                          : 'border-[#FFD1DC] text-[#FF4D6D]'
+                          ? 'border-blue-200 dark:border-blue-800/60 text-[#3B82F6] dark:text-blue-300'
+                          : 'border-[#FFD1DC] dark:border-pink-900/60 text-[#FF4D6D] dark:text-pink-300'
                     }`}
                   >
                     {isOther ? 'Strategic Alignment' : (isMIS ? 'Analytics Alignment' : 'Leadership Alignment')}
                   </span>
                 </div>
-                <p className="text-[#18181B] text-sm sm:text-base font-semibold leading-relaxed font-['Outfit',sans-serif]">
+                <p className="text-[#18181B] dark:text-stone-100 text-sm sm:text-base font-semibold leading-relaxed font-['Outfit',sans-serif] transition-colors">
                   {story.visionQuote}
                 </p>
               </div>
@@ -620,11 +620,11 @@ export default function AboutSection({ soundEnabled = true }) {
               {/* 4 High-Level Core Competency Pillars */}
               <div className="pt-2">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#18181B] uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#18181B] dark:text-stone-200 uppercase tracking-wider">
                     <CheckCircle2 className="w-4 h-4" style={{ color: accentColor }} />
                     <span>{isOther ? 'Strategic Competency Pillars' : (isMIS ? 'Data & MIS Competency Pillars' : 'Core Competency Pillars')}</span>
                   </div>
-                  <span className="text-[11px] font-mono text-stone-500 font-medium">
+                  <span className="text-[11px] font-mono text-stone-500 dark:text-stone-400 font-medium">
                     4 Strategic Domains
                   </span>
                 </div>
@@ -635,30 +635,30 @@ export default function AboutSection({ soundEnabled = true }) {
                     return (
                       <div 
                         key={comp.title}
-                        className="p-5 sm:p-6 rounded-2xl bg-[#FAF8F5] border border-[#ECE7DF] hover:border-stone-400/50 transition-all duration-200 flex flex-col justify-between group"
+                        className="p-5 sm:p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#161122] border border-[#ECE7DF] dark:border-[#2D2340] hover:border-stone-400/50 dark:hover:border-[#3D3055] transition-all duration-200 flex flex-col justify-between group"
                       >
                         <div>
                           <div className="flex items-center justify-between mb-3.5">
-                            <div className={`w-9 h-9 rounded-xl ${comp.bgLight} border ${comp.borderLight} flex items-center justify-center shrink-0`}>
+                            <div className={`w-9 h-9 rounded-xl ${comp.bgLight} dark:bg-stone-800/80 border ${comp.borderLight} dark:border-stone-700 flex items-center justify-center shrink-0`}>
                               <Icon className="w-4 h-4" style={{ color: comp.accent }} />
                             </div>
-                            <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-white border border-[#ECE7DF] text-stone-600">
+                            <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-white dark:bg-[#201830] border border-[#ECE7DF] dark:border-[#2D2340] text-stone-600 dark:text-[#A99EBA]">
                               {comp.tag}
                             </span>
                           </div>
 
-                          <h3 className="text-sm sm:text-base font-extrabold text-[#18181B] font-['Outfit',sans-serif] group-hover:text-stone-900 transition-colors mb-2">
+                          <h3 className="text-sm sm:text-base font-extrabold text-[#18181B] dark:text-[#F5F2F8] font-['Outfit',sans-serif] group-hover:text-stone-900 dark:group-hover:text-white transition-colors mb-2">
                             {comp.title}
                           </h3>
 
-                          <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-normal">
+                          <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-normal">
                             {comp.description}
                           </p>
                         </div>
 
-                        <div className="mt-4 pt-3 border-t border-[#ECE7DF]/70 flex items-center justify-between text-[11px] font-mono text-stone-500">
+                        <div className="mt-4 pt-3 border-t border-[#ECE7DF]/70 dark:border-[#2D2340] flex items-center justify-between text-[11px] font-mono text-stone-500 dark:text-stone-400">
                           <span>Pillar Domain</span>
-                          <span className="font-semibold text-stone-700">{comp.category}</span>
+                          <span className="font-semibold text-stone-700 dark:text-stone-300">{comp.category}</span>
                         </div>
                       </div>
                     );
@@ -681,31 +681,31 @@ export default function AboutSection({ soundEnabled = true }) {
               } focus-visible:ring-offset-2 rounded-2xl`}
             >
             {/* Header intro */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#ECE7DF] gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#ECE7DF] dark:border-stone-800 gap-2">
               <div>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-[#18181B] font-['Outfit',sans-serif]">
+                <h3 className="text-xl sm:text-2xl font-extrabold text-[#18181B] dark:text-[#F4F4F5] font-['Outfit',sans-serif] transition-colors">
                   Academic &amp; Technical Qualifications
                 </h3>
-                <p className="text-xs sm:text-sm text-stone-500 font-mono mt-1">
+                <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-mono mt-1">
                   3-Tier Educational Breakdown • Board Certified &amp; Institution Verified
                 </p>
               </div>
-              <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-[#FFF0F3] border border-[#FFD1DC] text-[#FF4D6D] self-start sm:self-auto">
+              <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-[#FFF0F3] dark:bg-pink-950/40 border border-[#FFD1DC] dark:border-pink-900/60 text-[#FF4D6D] dark:text-pink-300 self-start sm:self-auto">
                 3 Milestones
               </span>
             </div>
 
             {/* Visual Timeline Cards */}
-            <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-2 sm:before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-[#E7E2D8]">
+            <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-2 sm:before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-[#E7E2D8] dark:before:bg-[#2D2340]">
               {CREDENTIALS.map((cred) => (
                 <div 
                   key={cred.level}
                   id={cred.targetId || ('edu-' + cred.level)}
-                  className="scroll-mt-28 relative p-6 sm:p-7 rounded-2xl bg-[#FAF8F5] border border-[#ECE7DF] hover:border-[#FF4D6D]/30 transition-all duration-200 group"
+                  className="scroll-mt-28 relative p-6 sm:p-7 rounded-2xl bg-[#FAF8F5] dark:bg-[#161122] border border-[#ECE7DF] dark:border-[#2D2340] hover:border-[#FF4D6D]/30 dark:hover:border-[#D946EF]/50 transition-all duration-200 group"
                 >
                   {/* Timeline Node Dot */}
                   <div 
-                    className="absolute -left-[30px] sm:-left-[39px] top-6 w-4 h-4 rounded-full bg-white border-3 transition-transform duration-200 group-hover:scale-125"
+                    className="absolute -left-[30px] sm:-left-[39px] top-6 w-4 h-4 rounded-full bg-white dark:bg-[#161122] border-3 transition-transform duration-200 group-hover:scale-125"
                     style={{ borderColor: cred.accentColor }}
                   />
 
@@ -718,36 +718,36 @@ export default function AboutSection({ soundEnabled = true }) {
                       >
                         Tier {cred.level}
                       </span>
-                      <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-white border border-[#ECE7DF] text-stone-700">
+                      <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-white dark:bg-[#201830] border border-[#ECE7DF] dark:border-[#2D2340] text-stone-700 dark:text-[#A99EBA]">
                         {cred.boardBadge}
                       </span>
                     </div>
 
-                    <span className="text-[11px] font-mono font-bold text-stone-500 bg-[#ECE7DF]/50 px-2.5 py-0.5 rounded-full">
+                    <span className="text-[11px] font-mono font-bold text-stone-500 dark:text-[#A99EBA] bg-[#ECE7DF]/50 dark:bg-[#201830] px-2.5 py-0.5 rounded-full">
                       {cred.domainBadge}
                     </span>
                   </div>
 
                   {/* Title & Institution */}
-                  <h4 className="text-base sm:text-lg md:text-xl font-extrabold text-[#18181B] font-['Outfit',sans-serif] group-hover:text-[#FF4D6D] transition-colors">
+                  <h4 className="text-base sm:text-lg md:text-xl font-extrabold text-[#18181B] dark:text-[#F5F2F8] font-['Outfit',sans-serif] group-hover:text-[#FF4D6D] dark:group-hover:text-[#FF4D6D] transition-colors">
                     {cred.title}
                   </h4>
 
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-stone-600 font-medium mt-1.5 mb-4">
-                    <Building2 className="w-3.5 h-3.5 text-stone-400" />
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-stone-600 dark:text-stone-400 font-medium mt-1.5 mb-4">
+                    <Building2 className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
                     <span>{cred.institution}</span>
                     <span>•</span>
-                    <MapPin className="w-3.5 h-3.5 text-stone-400" />
+                    <MapPin className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
                     <span>{cred.location}</span>
                   </div>
 
                   {/* Syllabus / Credential Highlights */}
-                  <div className="space-y-2 pt-3 border-t border-[#ECE7DF]">
-                    <div className="text-[11px] font-mono uppercase tracking-wider text-stone-500 font-bold mb-1">
+                  <div className="space-y-2 pt-3 border-t border-[#ECE7DF] dark:border-[#2D2340]">
+                    <div className="text-[11px] font-mono uppercase tracking-wider text-stone-500 dark:text-stone-400 font-bold mb-1">
                       Key Highlights &amp; Scope
                     </div>
                     {cred.highlights.map((item, idx) => (
-                      <div key={idx} className="flex items-start gap-2 text-xs text-stone-700 font-normal leading-relaxed">
+                      <div key={idx} className="flex items-start gap-2 text-xs text-stone-700 dark:text-stone-300 font-normal leading-relaxed">
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#FF4D6D] shrink-0 mt-0.5" />
                         <span>{item}</span>
                       </div>
@@ -758,12 +758,12 @@ export default function AboutSection({ soundEnabled = true }) {
             </div>
 
             {/* Academic Accreditation Footer Pill */}
-            <div className="p-4 rounded-xl bg-gradient-to-r from-[#FAF8F5] via-white to-[#FAF8F5] border border-[#ECE7DF] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600 font-mono">
+            <div className="p-4 rounded-xl bg-gradient-to-r from-[#FAF8F5] via-white to-[#FAF8F5] dark:from-[#18181B] dark:via-[#1E1E24] dark:to-[#18181B] border border-[#ECE7DF] dark:border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600 dark:text-stone-400 font-mono transition-colors">
               <div className="flex items-center gap-2">
                 <FileCheck2 className="w-4 h-4 text-[#FF4D6D]" />
                 <span>All certificates, mark sheets &amp; diplomas are verified with state and central boards.</span>
               </div>
-              <span className="font-bold text-[#18181B] bg-white px-3 py-1 rounded-lg border border-[#ECE7DF]">
+              <span className="font-bold text-[#18181B] dark:text-stone-200 bg-white dark:bg-[#27272A] px-3 py-1 rounded-lg border border-[#ECE7DF] dark:border-stone-700">
                 Originals Available Upon Request
               </span>
             </div>
@@ -783,22 +783,22 @@ export default function AboutSection({ soundEnabled = true }) {
               } focus-visible:ring-offset-2 rounded-2xl`}
             >
             {/* Header intro with verified seal */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#ECE7DF] gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#ECE7DF] dark:border-stone-800 gap-3">
               <div>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-[#18181B] font-['Outfit',sans-serif]">
+                <h3 className="text-xl sm:text-2xl font-extrabold text-[#18181B] dark:text-[#F4F4F5] font-['Outfit',sans-serif] transition-colors">
                   Official Bio-Data Dossier
                 </h3>
-                <p className="text-xs sm:text-sm text-stone-500 font-mono mt-1">
+                <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-mono mt-1">
                   Verified Personal Demographics &amp; Administrative Identity Record
                 </p>
               </div>
 
               <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold self-start sm:self-auto shadow-2xs ${
                 isOther
-                  ? 'bg-purple-50 border border-purple-200 text-[#8B5CF6]'
+                  ? 'bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-[#8B5CF6] dark:text-purple-300'
                   : isMIS
-                    ? 'bg-blue-50 border border-blue-200 text-[#3B82F6]'
-                    : 'bg-[#FFF0F3] border border-[#FFD1DC] text-[#FF4D6D]'
+                    ? 'bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-[#3B82F6] dark:text-blue-300'
+                    : 'bg-[#FFF0F3] dark:bg-pink-950/40 border border-[#FFD1DC] dark:border-pink-900/60 text-[#FF4D6D] dark:text-pink-300'
               }`}>
                 <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: accentColor }} />
                 <span>Verified Candidate Record</span>
@@ -806,31 +806,31 @@ export default function AboutSection({ soundEnabled = true }) {
             </div>
 
             {/* Main Credential Card */}
-            <div className="bg-[#FAF8F5] rounded-2xl border border-[#ECE7DF] p-6 sm:p-8 space-y-6 shadow-2xs">
+            <div className="bg-[#FAF8F5] dark:bg-[#161122] rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] p-6 sm:p-8 space-y-6 shadow-2xs transition-colors">
               {/* Profile Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E7E2D8]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E7E2D8] dark:border-[#2D2340]">
                 <div className="flex items-center gap-3.5">
                   <div
-                    className="w-12 h-12 rounded-2xl bg-white border border-[#E7E2D8] flex items-center justify-center font-bold text-lg font-mono shadow-2xs"
+                    className="w-12 h-12 rounded-2xl bg-white dark:bg-[#201830] border border-[#E7E2D8] dark:border-[#2D2340] flex items-center justify-center font-bold text-lg font-mono shadow-2xs transition-colors"
                     style={{ color: accentColor }}
                   >
                     AV
                   </div>
                   <div>
-                    <h4 className="text-lg sm:text-xl font-extrabold text-[#18181B] font-['Outfit',sans-serif]">
+                    <h4 className="text-lg sm:text-xl font-extrabold text-[#18181B] dark:text-[#F5F2F8] font-['Outfit',sans-serif] transition-colors">
                       Atul Verma
                     </h4>
-                    <p className="text-xs sm:text-sm text-stone-500 font-mono">
+                    <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-mono">
                       {isOther ? 'Multidisciplinary Operations & Strategy' : (isMIS ? 'MIS Executive & Analytics Specialist' : 'Accountant & Tax Consultant')} • Daltonganj, Jharkhand
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-mono px-3 py-1 rounded-full bg-white border border-[#E7E2D8] text-stone-700 font-semibold">
+                  <span className="text-[11px] font-mono px-3 py-1 rounded-full bg-white dark:bg-[#201830] border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-[#A99EBA] font-semibold">
                     YOB: 1991
                   </span>
-                  <span className="text-[11px] font-mono px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold">
+                  <span className="text-[11px] font-mono px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-semibold">
                     Indian Citizen
                   </span>
                 </div>
@@ -843,19 +843,19 @@ export default function AboutSection({ soundEnabled = true }) {
                   return (
                     <div 
                       key={field.label}
-                      className="p-4 rounded-xl bg-white border border-[#E7E2D8] flex flex-col justify-between space-y-2 hover:border-[#FF4D6D]/30 transition-colors"
+                      className="p-4 rounded-xl bg-white dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] flex flex-col justify-between space-y-2 hover:border-[#FF4D6D]/30 dark:hover:border-[#D946EF]/50 transition-colors"
                     >
-                      <div className="flex items-center justify-between text-stone-500">
+                      <div className="flex items-center justify-between text-stone-500 dark:text-stone-400">
                         <span className="text-xs font-mono flex items-center gap-1.5">
                           <Icon className="w-3.5 h-3.5 text-[#FF4D6D]" />
                           <span>{field.label}</span>
                         </span>
-                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#FAF8F5] border border-[#ECE7DF] text-stone-500">
+                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#FAF8F5] dark:bg-[#201830] border border-[#ECE7DF] dark:border-[#2D2340] text-stone-500 dark:text-[#A99EBA]">
                           {field.badge}
                         </span>
                       </div>
 
-                      <div className="font-bold text-[#18181B] text-xs sm:text-sm">
+                      <div className="font-bold text-[#18181B] dark:text-stone-100 text-xs sm:text-sm">
                         {field.value}
                       </div>
                     </div>
@@ -866,7 +866,7 @@ export default function AboutSection({ soundEnabled = true }) {
               {/* Full Address Card with One-Click Copy */}
               <div className="pt-2">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-mono font-bold text-stone-600 flex items-center gap-1.5 uppercase tracking-wider">
+                  <span className="text-xs font-mono font-bold text-stone-600 dark:text-stone-400 flex items-center gap-1.5 uppercase tracking-wider">
                     <MapPin className="w-3.5 h-3.5 text-[#FF4D6D]" />
                     <span>Permanent / Residential Address</span>
                   </span>
@@ -879,12 +879,12 @@ export default function AboutSection({ soundEnabled = true }) {
                     }}
                     aria-label={addressCopied ? "Address copied to clipboard" : "Copy permanent address to clipboard"}
                     aria-live="polite"
-                    className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-[#FF4D6D] bg-white hover:bg-[#FFF0F3] border border-[#FFD1DC] px-3 py-1.5 rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
+                    className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-[#FF4D6D] bg-white dark:bg-[#201830] hover:bg-[#FFF0F3] dark:hover:bg-pink-950/30 border border-[#FFD1DC] dark:border-pink-900/60 px-3 py-1.5 rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
                   >
                     {addressCopied ? (
                       <>
-                        <Check className="w-3.5 h-3.5 text-emerald-600" />
-                        <span className="text-emerald-600">Copied!</span>
+                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-emerald-600 dark:text-emerald-400">Copied!</span>
                       </>
                     ) : (
                       <>
@@ -895,11 +895,11 @@ export default function AboutSection({ soundEnabled = true }) {
                   </button>
                 </div>
 
-                <div className="bg-white p-4 rounded-xl border border-[#E7E2D8] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="font-medium text-[#18181B] text-xs sm:text-sm leading-relaxed">
+                <div className="bg-white dark:bg-[#100C1A] p-4 rounded-xl border border-[#E7E2D8] dark:border-[#2D2340] flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
+                  <div className="font-medium text-[#18181B] dark:text-stone-200 text-xs sm:text-sm leading-relaxed">
                     {fullAddress}
                   </div>
-                  <div className="shrink-0 flex items-center gap-1.5 font-mono text-[11px] text-stone-500">
+                  <div className="shrink-0 flex items-center gap-1.5 font-mono text-[11px] text-stone-500 dark:text-stone-400">
                     <span className="w-2 h-2 rounded-full bg-emerald-500" />
                     <span>Verified Postal PIN: 822101</span>
                   </div>
@@ -908,9 +908,9 @@ export default function AboutSection({ soundEnabled = true }) {
             </div>
 
             {/* Official Authentication Note */}
-            <div className="p-4 rounded-xl bg-white border border-[#ECE7DF] flex items-start gap-3">
+            <div className="p-4 rounded-xl bg-white dark:bg-[#161122] border border-[#ECE7DF] dark:border-[#2D2340] flex items-start gap-3 transition-colors">
               <Briefcase className="w-4 h-4 text-[#FF4D6D] shrink-0 mt-0.5" />
-              <p className="text-xs text-stone-600 leading-relaxed font-normal">
+              <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed font-normal">
                 This Bio-Data Dossier constitutes an authenticated executive profile for commercial engagements, senior accounting roles, tax advisory retainers, and distribution leadership opportunities.
               </p>
             </div>
