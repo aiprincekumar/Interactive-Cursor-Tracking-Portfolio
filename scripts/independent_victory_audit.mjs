@@ -19,7 +19,7 @@ async function runAudit() {
   vm.createContext(roleVm);
   vm.runInContext(pureJs + '; this.DEFAULT_ROLE = DEFAULT_ROLE; this.ROLE_TRACKS = ROLE_TRACKS; this.OVERVIEW_ROLE = OVERVIEW_ROLE; this.PRIMARY_ROLES = PRIMARY_ROLES; this.OTHER_ROLE = OTHER_ROLE; this.normalizeRole = normalizeRole; this.isValidRole = isValidRole;', roleVm);
 
-  const { DEFAULT_ROLE, ROLE_TRACKS, OVERVIEW_ROLE, PRIMARY_ROLES, OTHER_ROLE, normalizeRole, isValidRole } = roleVm;
+  const { DEFAULT_ROLE, ROLE_TRACKS, OVERVIEW_ROLE, _PRIMARY_ROLES, OTHER_ROLE, normalizeRole, isValidRole } = roleVm;
 
   // R1.1: 4 tracks in fixed sequence
   assert.strictEqual(ROLE_TRACKS.length, 4, 'ROLE_TRACKS length must be 4');
