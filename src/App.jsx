@@ -13,6 +13,7 @@ import InteractivePlayground from './components/InteractivePlayground';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import LabStudioDrawer from './components/LabStudioDrawer';
+import BackToTopButton from './components/BackToTopButton';
 import { soundFX } from './utils/audio';
 import { useLab } from './context/LabContext';
 import { RoleProvider } from './context/RoleContext';
@@ -21,7 +22,7 @@ export default function App() {
   const heroRef = useRef(null);
   const [isInsideHero, setIsInsideHero] = useState(false);
   const [capturedPhotos, setCapturedPhotos] = useState([]);
-  const [forcedState, setForcedState] = useState(null);
+  const [forcedState] = useState(null);
   const [reducedMotion, setReducedMotion] = useState(() => {
     if (typeof window !== 'undefined' && window.matchMedia) {
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -38,13 +39,7 @@ export default function App() {
     particleColor,
     soundEnabled,
     setSoundEnabled,
-    audioPitch,
-    setCursorScale,
-    setFlightSpeed,
-    setGravity,
-    setTrailEnabled,
-    setParticleColor,
-    setAudioPitch
+    customCursorEnabled
   } = useLab();
 
   const [activeCursor, setActiveCursor] = useState(() => {
@@ -83,7 +78,7 @@ export default function App() {
     } catch {
       // Ignore
     }
-    soundFX.playCursorSelect();
+    soundFX.playCursorSelect(cursorId);
   };
 
   const handlePhotoCaptured = (newPhoto) => {
@@ -102,6 +97,7 @@ export default function App() {
           activeCursor={activeCursor}
           heroRef={heroRef}
           isInsideHero={isInsideHero}
+          customCursorEnabled={customCursorEnabled}
           speed={flightSpeed}
           trailEnabled={trailEnabled}
           scale={cursorScale}
@@ -114,6 +110,9 @@ export default function App() {
 
       {/* Global Quick Lab Studio Slide-Out Drawer & Floating Action Button */}
       <LabStudioDrawer />
+
+      {/* Floating Back-To-Top Button with Scroll Progress Indicator */}
+      <BackToTopButton />
 
       {/* Top Navbar */}
       <Navbar
@@ -160,27 +159,8 @@ export default function App() {
           capturedPhotos={capturedPhotos}
         />
 
-        {/* 8. Real-Time Physics & Cursor Tuner Lab */}
-        <InteractivePlayground
-          butterflySpeed={flightSpeed}
-          setButterflySpeed={setFlightSpeed}
-          trailEnabled={trailEnabled}
-          setTrailEnabled={setTrailEnabled}
-          butterflyScale={cursorScale}
-          setButterflyScale={setCursorScale}
-          forcedState={forcedState}
-          setForcedState={setForcedState}
-          soundEnabled={soundEnabled}
-          setSoundEnabled={setSoundEnabled}
-          reducedMotion={reducedMotion}
-          setReducedMotion={setReducedMotion}
-          gravity={gravity}
-          setGravity={setGravity}
-          particleColor={particleColor}
-          setParticleColor={setParticleColor}
-          audioPitch={audioPitch}
-          setAudioPitch={setAudioPitch}
-        />
+        {/* 8. Portfolio Control Center */}
+        <InteractivePlayground />
 
         {/* 9. Contact: "Let's build something meaningful." (Reel t=16.1s - 16.9s) */}
         <ContactSection />

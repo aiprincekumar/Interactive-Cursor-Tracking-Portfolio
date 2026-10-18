@@ -2,8 +2,426 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { soundFX } from '../utils/audio';
 
-export const LAB_STORAGE_KEY = 'portfolio_lab_config';
+export const CONTROL_CENTER_STORAGE_KEY = 'portfolio_control_center';
+export const LAB_STORAGE_KEY = 'portfolio_lab_config'; // Legacy mirror key
+export const LEGACY_STUDIO_STORAGE_KEY = 'lab_studio_state'; // Legacy studio drawer state key
 
+export const FACTORY_DEFAULTS = {
+  version: 2,
+  audio: {
+    soundEnabled: true,
+    masterVolume: 0.8, // 0.0 - 1.0 (80%)
+    pitchMultiplier: 1.0, // 0.5x - 2.0x
+    soundMatchingMode: 'dynamic' // 'dynamic' | 'universal'
+  },
+  cursor: {
+    customCursorEnabled: true,
+    cursorScale: 1.0, // 0.5x - 2.0x
+    flightLerpSpeed: 'natural', // 'dreamy' | 'natural' | 'snappy'
+    stardustTrailEnabled: true,
+    particleColor: '#FF4D6D'
+  },
+  hero: {
+    gazeMode: 'auto', // 'auto' | 'fixed'
+    poseOverride: null, // null or number 0-9
+    characterZoom: 1.0, // 0.5x - 2.0x
+    flashConfettiEnabled: true
+  },
+  preferences: {
+    defaultStartupRole: 'accountant', // 'accountant' | 'mis' | 'controller'
+    defaultCursorEnabled: true,
+    defaultAudioEnabled: true,
+    reducedMotion: false
+  }
+};
+
+export const FLIGHT_SPEED_MAP = {
+  dreamy: 0.08,
+  natural: 0.14,
+  snappy: 0.24
+};
+
+export const POSE_INDEX_MAP = [
+  'idle',         // 0: 00-rear-view
+  'upper-center', // 1: 01-center-up
+  'lower-center', // 2: 02-lower-center
+  'left',         // 3: 03-center-left
+  'right',        // 4: 04-center-right
+  'center',       // 5: 05-center-front
+  'upper-left',   // 6: 06-upper-left
+  'lower-left',   // 7: 07-lower-left
+  'upper-right',  // 8: 08-upper-right
+  'lower-right'   // 9: 09-lower-right
+];
+
+// Helper clamps & sanitizers
+function clamp(val, min, max, fallback) {
+  const num = typeof val === 'number' ? val : parseFloat(val);
+  if (isNaN(num)) return fallback;
+  return Math.min(Math.max(num, min), max);
+}
+
+function clampScale(val) {
+  return parseFloat(clamp(val, 0.5, 2.0, 1.0).toFixed(2));
+}
+
+function clampVolume(val) {
+  const num = typeof val === 'number' ? val : parseFloat(val);
+  if (isNaN(num)) return 0.8;
+  if (num > 1.0) {
+    return parseFloat(clamp(num / 100, 0.0, 1.0, 0.8).toFixed(2));
+  }
+  return parseFloat(clamp(num, 0.0, 1.0, 0.8).toFixed(2));
+}
+
+function clampPitch(val) {
+  return parseFloat(clamp(val, 0.5, 2.0, 1.0).toFixed(2));
+}
+
+function validateColor(val) {
+  if (typeof val === 'string' && /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(val)) {
+    return val;
+  }
+  return '#FF4D6D';
+}
+
+function normalizeFlightSpeedKey(speedVal) {
+  if (typeof speedVal === 'string') {
+    const s = speedVal.toLowerCase();
+    if (s === 'dreamy' || s === 'natural' || s === 'snappy') return s;
+  }
+  if (typeof speedVal === 'number') {
+    if (speedVal <= 0.10) return 'dreamy';
+    if (speedVal >= 0.19) return 'snappy';
+    return 'natural';
+  }
+  return 'natural';
+}
+
+function normalizePoseOverride(val) {
+  if (val === null || val === undefined || val === 'auto') return null;
+  if (typeof val === 'number') {
+    if (val >= 0 && val <= 9) return Math.floor(val);
+    return null;
+  }
+  if (typeof val === 'string') {
+    const idx = POSE_INDEX_MAP.indexOf(val.toLowerCase());
+    if (idx !== -1) return idx;
+    const num = parseInt(val, 10);
+    if (!isNaN(num) && num >= 0 && num <= 9) return num;
+  }
+  return null;
+}
+
+export function loadSavedControlCenterConfig() {
+  if (typeof window === 'undefined') {
+    return JSON.parse(JSON.stringify(FACTORY_DEFAULTS));
+  }
+
+  // Tier 1: Look for current portfolio_control_center key
+  try {
+    const raw = localStorage.getItem(CONTROL_CENTER_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        const audio = parsed.audio || {};
+        const cursor = parsed.cursor || {};
+        const hero = parsed.hero || {};
+        const preferences = parsed.preferences || {};
+
+        return {
+          version: 2,
+          audio: {
+            soundEnabled: typeof audio.soundEnabled === 'boolean'
+              ? audio.soundEnabled
+              : (typeof parsed.soundEnabled === 'boolean' ? parsed.soundEnabled : FACTORY_DEFAULTS.audio.soundEnabled),
+            masterVolume: clampVolume(audio.masterVolume ?? parsed.masterVolume ?? FACTORY_DEFAULTS.audio.masterVolume),
+            pitchMultiplier: clampPitch(audio.pitchMultiplier ?? parsed.pitchMultiplier ?? parsed.audioPitch ?? FACTORY_DEFAULTS.audio.pitchMultiplier),
+            soundMatchingMode: (audio.soundMatchingMode === 'universal' || parsed.soundMatchingMode === 'universal') ? 'universal' : 'dynamic'
+          },
+          cursor: {
+            customCursorEnabled: typeof cursor.customCursorEnabled === 'boolean'
+              ? cursor.customCursorEnabled
+              : (typeof parsed.customCursorEnabled === 'boolean' ? parsed.customCursorEnabled : FACTORY_DEFAULTS.cursor.customCursorEnabled),
+            cursorScale: clampScale(cursor.cursorScale ?? parsed.cursorScale ?? FACTORY_DEFAULTS.cursor.cursorScale),
+            flightLerpSpeed: normalizeFlightSpeedKey(cursor.flightLerpSpeed ?? parsed.flightLerpSpeed ?? parsed.flightSpeed),
+            stardustTrailEnabled: typeof cursor.stardustTrailEnabled === 'boolean'
+              ? cursor.stardustTrailEnabled
+              : (typeof parsed.trailEnabled === 'boolean' ? parsed.trailEnabled : FACTORY_DEFAULTS.cursor.stardustTrailEnabled),
+            particleColor: validateColor(cursor.particleColor ?? parsed.particleColor ?? FACTORY_DEFAULTS.cursor.particleColor)
+          },
+          hero: {
+            gazeMode: (hero.gazeMode === 'fixed' || parsed.gazeMode === 'fixed' || parsed.heroGazeMode === 'fixed') ? 'fixed' : 'auto',
+            poseOverride: normalizePoseOverride(hero.poseOverride ?? parsed.poseOverride ?? parsed.heroPoseOverride),
+            characterZoom: clampScale(hero.characterZoom ?? parsed.characterZoom ?? parsed.characterScale ?? parsed.heroScale ?? FACTORY_DEFAULTS.hero.characterZoom),
+            flashConfettiEnabled: typeof hero.flashConfettiEnabled === 'boolean'
+              ? hero.flashConfettiEnabled
+              : (typeof parsed.flashConfettiEnabled === 'boolean'
+                  ? parsed.flashConfettiEnabled
+                  : (typeof parsed.cameraEffectsEnabled === 'boolean' ? parsed.cameraEffectsEnabled : FACTORY_DEFAULTS.hero.flashConfettiEnabled))
+          },
+          preferences: {
+            defaultStartupRole: (preferences.defaultStartupRole || parsed.defaultStartupRole || parsed.defaultRole || 'accountant'),
+            defaultCursorEnabled: typeof preferences.defaultCursorEnabled === 'boolean'
+              ? preferences.defaultCursorEnabled
+              : (typeof parsed.defaultCursorEnabled === 'boolean' ? parsed.defaultCursorEnabled : FACTORY_DEFAULTS.preferences.defaultCursorEnabled),
+            defaultAudioEnabled: typeof preferences.defaultAudioEnabled === 'boolean'
+              ? preferences.defaultAudioEnabled
+              : (typeof parsed.defaultAudioEnabled === 'boolean' ? parsed.defaultAudioEnabled : FACTORY_DEFAULTS.preferences.defaultAudioEnabled),
+            reducedMotion: typeof preferences.reducedMotion === 'boolean'
+              ? preferences.reducedMotion
+              : (typeof parsed.reducedMotion === 'boolean' ? parsed.reducedMotion : FACTORY_DEFAULTS.preferences.reducedMotion)
+          }
+        };
+      }
+    }
+  } catch {
+    // Malformed JSON; proceed to legacy migration
+  }
+
+  // Tier 2: Migration from legacy portfolio_lab_config, lab_studio_state, and individual loose keys
+  try {
+    const rawLegacyLab = localStorage.getItem(LAB_STORAGE_KEY);
+    const rawLegacyStudio = localStorage.getItem(LEGACY_STUDIO_STORAGE_KEY) ?? localStorage.getItem('lab_studio_state');
+
+    let legacyLab = null;
+    if (rawLegacyLab) {
+      try {
+        const p = JSON.parse(rawLegacyLab);
+        if (p && typeof p === 'object') legacyLab = p;
+      } catch {
+        legacyLab = null;
+      }
+    }
+
+    let legacyStudio = null;
+    if (rawLegacyStudio) {
+      try {
+        const p = JSON.parse(rawLegacyStudio);
+        if (p && typeof p === 'object') legacyStudio = p;
+      } catch {
+        legacyStudio = null;
+      }
+    }
+
+    const legacyColor = localStorage.getItem('physics_particle_color');
+    const legacyPitch = localStorage.getItem('physics_audio_pitch');
+    const legacySound = localStorage.getItem('soundEnabled') ?? localStorage.getItem('portfolio_sound_enabled');
+
+    // Helper for boolean resolution across nested and flat legacy representations
+    const resolveBoolean = (candidates, fallback) => {
+      for (const val of candidates) {
+        if (typeof val === 'boolean') return val;
+      }
+      return fallback;
+    };
+
+    const soundEnabled = resolveBoolean(
+      [
+        legacyStudio?.audio?.soundEnabled,
+        legacyStudio?.soundEnabled,
+        legacyLab?.audio?.soundEnabled,
+        legacyLab?.soundEnabled
+      ],
+      legacySound !== null ? legacySound === 'true' : FACTORY_DEFAULTS.audio.soundEnabled
+    );
+
+    const masterVolume = clampVolume(
+      legacyStudio?.audio?.masterVolume ??
+      legacyStudio?.masterVolume ??
+      legacyLab?.audio?.masterVolume ??
+      legacyLab?.masterVolume ??
+      FACTORY_DEFAULTS.audio.masterVolume
+    );
+
+    const pitchMultiplier = clampPitch(
+      legacyStudio?.audio?.pitchMultiplier ??
+      legacyStudio?.audio?.audioPitch ??
+      legacyStudio?.pitchMultiplier ??
+      legacyStudio?.audioPitch ??
+      legacyLab?.audio?.pitchMultiplier ??
+      legacyLab?.audio?.audioPitch ??
+      legacyLab?.pitchMultiplier ??
+      legacyLab?.audioPitch ??
+      (legacyPitch !== null ? parseFloat(legacyPitch) : FACTORY_DEFAULTS.audio.pitchMultiplier)
+    );
+
+    const soundMatchingMode = (
+      legacyStudio?.audio?.soundMatchingMode === 'universal' ||
+      legacyStudio?.soundMatchingMode === 'universal' ||
+      legacyLab?.audio?.soundMatchingMode === 'universal' ||
+      legacyLab?.soundMatchingMode === 'universal'
+    ) ? 'universal' : 'dynamic';
+
+    const customCursorEnabled = resolveBoolean(
+      [
+        legacyStudio?.cursor?.customCursorEnabled,
+        legacyStudio?.customCursorEnabled,
+        legacyLab?.cursor?.customCursorEnabled,
+        legacyLab?.customCursorEnabled
+      ],
+      FACTORY_DEFAULTS.cursor.customCursorEnabled
+    );
+
+    const cursorScale = clampScale(
+      legacyStudio?.cursor?.cursorScale ??
+      legacyStudio?.cursorScale ??
+      legacyLab?.cursor?.cursorScale ??
+      legacyLab?.cursorScale ??
+      FACTORY_DEFAULTS.cursor.cursorScale
+    );
+
+    const flightLerpSpeed = normalizeFlightSpeedKey(
+      legacyStudio?.cursor?.flightLerpSpeed ??
+      legacyStudio?.cursor?.flightSpeed ??
+      legacyStudio?.flightLerpSpeed ??
+      legacyStudio?.flightSpeed ??
+      legacyLab?.cursor?.flightLerpSpeed ??
+      legacyLab?.cursor?.flightSpeed ??
+      legacyLab?.flightLerpSpeed ??
+      legacyLab?.flightSpeed ??
+      FACTORY_DEFAULTS.cursor.flightLerpSpeed
+    );
+
+    const stardustTrailEnabled = resolveBoolean(
+      [
+        legacyStudio?.cursor?.stardustTrailEnabled,
+        legacyStudio?.cursor?.trailEnabled,
+        legacyStudio?.stardustTrailEnabled,
+        legacyStudio?.trailEnabled,
+        legacyLab?.cursor?.stardustTrailEnabled,
+        legacyLab?.cursor?.trailEnabled,
+        legacyLab?.stardustTrailEnabled,
+        legacyLab?.trailEnabled
+      ],
+      FACTORY_DEFAULTS.cursor.stardustTrailEnabled
+    );
+
+    const particleColor = validateColor(
+      legacyStudio?.cursor?.particleColor ??
+      legacyStudio?.particleColor ??
+      legacyLab?.cursor?.particleColor ??
+      legacyLab?.particleColor ??
+      legacyColor ??
+      FACTORY_DEFAULTS.cursor.particleColor
+    );
+
+    const gazeCandidate = legacyStudio?.hero?.gazeMode ??
+      legacyStudio?.gazeMode ??
+      legacyStudio?.heroGazeMode ??
+      legacyLab?.hero?.gazeMode ??
+      legacyLab?.gazeMode ??
+      legacyLab?.heroGazeMode;
+    const gazeMode = gazeCandidate === 'fixed' ? 'fixed' : 'auto';
+
+    const poseCandidate = legacyStudio?.hero?.poseOverride ??
+      legacyStudio?.poseOverride ??
+      legacyStudio?.heroPoseOverride ??
+      legacyLab?.hero?.poseOverride ??
+      legacyLab?.poseOverride ??
+      legacyLab?.heroPoseOverride;
+    const poseOverride = normalizePoseOverride(poseCandidate);
+
+    const characterZoom = clampScale(
+      legacyStudio?.hero?.characterZoom ??
+      legacyStudio?.hero?.characterScale ??
+      legacyStudio?.characterZoom ??
+      legacyStudio?.characterScale ??
+      legacyStudio?.heroScale ??
+      legacyLab?.hero?.characterZoom ??
+      legacyLab?.hero?.characterScale ??
+      legacyLab?.characterZoom ??
+      legacyLab?.characterScale ??
+      legacyLab?.heroScale ??
+      FACTORY_DEFAULTS.hero.characterZoom
+    );
+
+    const flashConfettiEnabled = resolveBoolean(
+      [
+        legacyStudio?.hero?.flashConfettiEnabled,
+        legacyStudio?.flashConfettiEnabled,
+        legacyStudio?.cameraEffectsEnabled,
+        legacyLab?.hero?.flashConfettiEnabled,
+        legacyLab?.flashConfettiEnabled,
+        legacyLab?.cameraEffectsEnabled
+      ],
+      FACTORY_DEFAULTS.hero.flashConfettiEnabled
+    );
+
+    const defaultStartupRole = (
+      legacyStudio?.preferences?.defaultStartupRole ||
+      legacyStudio?.defaultStartupRole ||
+      legacyStudio?.defaultRole ||
+      legacyLab?.preferences?.defaultStartupRole ||
+      legacyLab?.defaultStartupRole ||
+      legacyLab?.defaultRole ||
+      FACTORY_DEFAULTS.preferences.defaultStartupRole
+    );
+
+    const defaultCursorEnabled = resolveBoolean(
+      [
+        legacyStudio?.preferences?.defaultCursorEnabled,
+        legacyStudio?.defaultCursorEnabled,
+        legacyLab?.preferences?.defaultCursorEnabled,
+        legacyLab?.defaultCursorEnabled
+      ],
+      FACTORY_DEFAULTS.preferences.defaultCursorEnabled
+    );
+
+    const defaultAudioEnabled = resolveBoolean(
+      [
+        legacyStudio?.preferences?.defaultAudioEnabled,
+        legacyStudio?.defaultAudioEnabled,
+        legacyLab?.preferences?.defaultAudioEnabled,
+        legacyLab?.defaultAudioEnabled
+      ],
+      FACTORY_DEFAULTS.preferences.defaultAudioEnabled
+    );
+
+    const reducedMotion = resolveBoolean(
+      [
+        legacyStudio?.preferences?.reducedMotion,
+        legacyStudio?.reducedMotion,
+        legacyLab?.preferences?.reducedMotion,
+        legacyLab?.reducedMotion
+      ],
+      FACTORY_DEFAULTS.preferences.reducedMotion
+    );
+
+    return {
+      version: 2,
+      audio: {
+        soundEnabled,
+        masterVolume,
+        pitchMultiplier,
+        soundMatchingMode
+      },
+      cursor: {
+        customCursorEnabled,
+        cursorScale,
+        flightLerpSpeed,
+        stardustTrailEnabled,
+        particleColor
+      },
+      hero: {
+        gazeMode,
+        poseOverride,
+        characterZoom,
+        flashConfettiEnabled
+      },
+      preferences: {
+        defaultStartupRole,
+        defaultCursorEnabled,
+        defaultAudioEnabled,
+        reducedMotion
+      }
+    };
+  } catch {
+    return JSON.parse(JSON.stringify(FACTORY_DEFAULTS));
+  }
+}
+
+// Backward-compatible exports
 export const DEFAULT_LAB_CONFIG = {
   cursorScale: 1.0,
   flightSpeed: 0.14,
@@ -33,203 +451,49 @@ export const LAB_PRESETS = {
     soundEnabled: true,
     masterVolume: 0.8,
     audioPitch: 1.0
-  },
-  cyberpunk: {
-    id: 'cyberpunk',
-    name: 'Cyberpunk Zero-G',
-    label: 'Cyberpunk Zero-G',
-    description: 'High agility, negative anti-gravity float, electric cyan stardust, and crisp high pitch.',
-    cursorScale: 1.2,
-    flightSpeed: 0.25,
-    wingDynamics: 1.5,
-    gravity: -25,
-    trailEnabled: true,
-    particleColor: '#00F2FE',
-    soundEnabled: true,
-    masterVolume: 0.85,
-    audioPitch: 1.35
-  },
-  arcade: {
-    id: 'arcade',
-    name: 'Retro Arcade',
-    label: 'Retro Arcade',
-    description: 'Instant response, heavy arcade bounce, golden coin particles, and resonant retro pitch.',
-    cursorScale: 1.15,
-    flightSpeed: 0.20,
-    wingDynamics: 1.3,
-    gravity: 95,
-    trailEnabled: true,
-    particleColor: '#FFD700',
-    soundEnabled: true,
-    masterVolume: 0.9,
-    audioPitch: 0.8
-  },
-  zen: {
-    id: 'zen',
-    name: 'Zen Minimalist',
-    label: 'Zen Minimalist',
-    description: 'Ultra-delicate float, slow fluid glide, zero gravity, and organic emerald calm.',
-    cursorScale: 0.85,
-    flightSpeed: 0.07,
-    wingDynamics: 0.7,
-    gravity: 0,
-    trailEnabled: true,
-    particleColor: '#10B981',
-    soundEnabled: true,
-    masterVolume: 0.6,
-    audioPitch: 1.0
-  },
-  hyper: {
-    id: 'hyper',
-    name: 'Hyper Velocity',
-    label: 'Hyper Velocity',
-    description: 'Oversized supersonic tracking, buzzing wing frenzy, heavy dive gravity, and intense whistle.',
-    cursorScale: 1.35,
-    flightSpeed: 0.28,
-    wingDynamics: 1.8,
-    gravity: 45,
-    trailEnabled: true,
-    particleColor: '#FF4D6D',
-    soundEnabled: true,
-    masterVolume: 1.0,
-    audioPitch: 1.75
   }
 };
-
-// Preset aliases for flexible naming across components and blueprints
-LAB_PRESETS.cyberpunk_zerog = LAB_PRESETS.cyberpunk;
-LAB_PRESETS['cyberpunk-zerog'] = LAB_PRESETS.cyberpunk;
-LAB_PRESETS.retro_arcade = LAB_PRESETS.arcade;
-LAB_PRESETS['retro-arcade'] = LAB_PRESETS.arcade;
-LAB_PRESETS.zen_minimalist = LAB_PRESETS.zen;
-LAB_PRESETS['zen-minimalist'] = LAB_PRESETS.zen;
-LAB_PRESETS.hyper_velocity = LAB_PRESETS.hyper;
-LAB_PRESETS['hyper-velocity'] = LAB_PRESETS.hyper;
-
-// Clamping and validation utilities
-function clamp(val, min, max, fallback) {
-  const num = typeof val === 'number' ? val : parseFloat(val);
-  if (isNaN(num)) return fallback;
-  return Math.min(Math.max(num, min), max);
-}
-
-function clampScale(val) {
-  return parseFloat(clamp(val, 0.5, 2.0, 1.0).toFixed(2));
-}
-
-function clampFlightSpeed(val) {
-  return parseFloat(clamp(val, 0.05, 0.35, 0.14).toFixed(2));
-}
-
-function clampWingDynamics(val) {
-  return parseFloat(clamp(val, 0.5, 2.0, 1.0).toFixed(2));
-}
-
-function clampGravity(val) {
-  return Math.round(clamp(val, -60, 140, 0));
-}
-
-function clampVolume(val) {
-  return parseFloat(clamp(val, 0.0, 1.0, 0.8).toFixed(2));
-}
-
-function clampPitch(val) {
-  return parseFloat(clamp(val, 0.5, 2.0, 1.0).toFixed(2));
-}
-
-function validateColor(val) {
-  if (typeof val === 'string' && /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(val)) {
-    return val;
-  }
-  return '#FF4D6D';
-}
-
-function loadSavedConfig() {
-  if (typeof window === 'undefined') return { ...DEFAULT_LAB_CONFIG };
-
-  // 1. Try unified JSON key
-  try {
-    const raw = localStorage.getItem(LAB_STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object') {
-        const cursorScale = clampScale(parsed.cursorScale ?? parsed.cursor?.scale ?? DEFAULT_LAB_CONFIG.cursorScale);
-        const flightSpeed = clampFlightSpeed(parsed.flightSpeed ?? parsed.cursor?.speed ?? DEFAULT_LAB_CONFIG.flightSpeed);
-        const wingDynamics = clampWingDynamics(parsed.wingDynamics ?? parsed.cursor?.wingDynamics ?? DEFAULT_LAB_CONFIG.wingDynamics);
-        const gravity = clampGravity(parsed.gravity ?? parsed.physics?.gravity ?? DEFAULT_LAB_CONFIG.gravity);
-        const trailEnabled = typeof parsed.trailEnabled === 'boolean'
-          ? parsed.trailEnabled
-          : (typeof parsed.physics?.trailEnabled === 'boolean' ? parsed.physics.trailEnabled : DEFAULT_LAB_CONFIG.trailEnabled);
-        const particleColor = validateColor(parsed.particleColor ?? parsed.physics?.particleColor ?? DEFAULT_LAB_CONFIG.particleColor);
-        const soundEnabled = typeof parsed.soundEnabled === 'boolean'
-          ? parsed.soundEnabled
-          : (typeof parsed.audio?.soundEnabled === 'boolean' ? parsed.audio.soundEnabled : DEFAULT_LAB_CONFIG.soundEnabled);
-        const masterVolume = clampVolume(parsed.masterVolume ?? parsed.audio?.volume ?? DEFAULT_LAB_CONFIG.masterVolume);
-        const audioPitch = clampPitch(parsed.audioPitch ?? parsed.audio?.pitch ?? DEFAULT_LAB_CONFIG.audioPitch);
-        const activePreset = typeof parsed.activePreset === 'string' && LAB_PRESETS[parsed.activePreset]
-          ? parsed.activePreset
-          : 'default';
-
-        return {
-          cursorScale,
-          flightSpeed,
-          wingDynamics,
-          gravity,
-          trailEnabled,
-          particleColor,
-          soundEnabled,
-          masterVolume,
-          audioPitch,
-          isDrawerOpen: false,
-          activePreset
-        };
-      }
-    }
-  } catch {
-    // Malformed JSON; proceed to legacy migration
-  }
-
-  // 2. Safe Migration from Legacy Keys
-  try {
-    const legacyColor = localStorage.getItem('physics_particle_color');
-    const legacyGravity = localStorage.getItem('physics_gravity');
-    const legacyPitch = localStorage.getItem('physics_audio_pitch');
-    const legacySound = localStorage.getItem('soundEnabled') ?? localStorage.getItem('portfolio_sound_enabled');
-
-    return {
-      ...DEFAULT_LAB_CONFIG,
-      particleColor: legacyColor ? validateColor(legacyColor) : DEFAULT_LAB_CONFIG.particleColor,
-      gravity: legacyGravity !== null ? clampGravity(legacyGravity) : DEFAULT_LAB_CONFIG.gravity,
-      audioPitch: legacyPitch !== null ? clampPitch(legacyPitch) : DEFAULT_LAB_CONFIG.audioPitch,
-      soundEnabled: legacySound !== null ? legacySound === 'true' : DEFAULT_LAB_CONFIG.soundEnabled,
-      isDrawerOpen: false
-    };
-  } catch {
-    return { ...DEFAULT_LAB_CONFIG };
-  }
-}
 
 export const LabContext = createContext(null);
 
 export function LabProvider({ children, initialSoundEnabled }) {
-  const [cursorScale, setCursorScaleState] = useState(() => loadSavedConfig().cursorScale);
-  const [flightSpeed, setFlightSpeedState] = useState(() => loadSavedConfig().flightSpeed);
-  const [wingDynamics, setWingDynamicsState] = useState(() => loadSavedConfig().wingDynamics);
-  const [gravity, setGravityState] = useState(() => loadSavedConfig().gravity);
-  const [trailEnabled, setTrailEnabledState] = useState(() => loadSavedConfig().trailEnabled);
-  const [particleColor, setParticleColorState] = useState(() => loadSavedConfig().particleColor);
+  const initialConfig = useMemo(() => loadSavedControlCenterConfig(), []);
+
+  // Audio Tab State
   const [soundEnabled, setSoundEnabledState] = useState(() => {
     if (typeof initialSoundEnabled === 'boolean') return initialSoundEnabled;
-    return loadSavedConfig().soundEnabled;
+    return initialConfig.audio.soundEnabled;
   });
-  const [masterVolume, setMasterVolumeState] = useState(() => loadSavedConfig().masterVolume);
-  const [audioPitch, setAudioPitchState] = useState(() => loadSavedConfig().audioPitch);
+  const [masterVolume, setMasterVolumeState] = useState(initialConfig.audio.masterVolume);
+  const [pitchMultiplier, setPitchMultiplierState] = useState(initialConfig.audio.pitchMultiplier);
+  const [soundMatchingMode, setSoundMatchingModeState] = useState(initialConfig.audio.soundMatchingMode);
+
+  // Cursor Tab State
+  const [customCursorEnabled, setCustomCursorEnabledState] = useState(initialConfig.cursor.customCursorEnabled);
+  const [cursorScale, setCursorScaleState] = useState(initialConfig.cursor.cursorScale);
+  const [flightLerpSpeed, setFlightLerpSpeedState] = useState(initialConfig.cursor.flightLerpSpeed);
+  const [stardustTrailEnabled, setStardustTrailEnabledState] = useState(initialConfig.cursor.stardustTrailEnabled);
+  const [particleColor, setParticleColorState] = useState(initialConfig.cursor.particleColor);
+
+  // Hero Tab State
+  const [gazeMode, setGazeModeState] = useState(initialConfig.hero.gazeMode);
+  const [poseOverride, setPoseOverrideState] = useState(initialConfig.hero.poseOverride);
+  const [characterZoom, setCharacterZoomState] = useState(initialConfig.hero.characterZoom);
+  const [flashConfettiEnabled, setFlashConfettiEnabledState] = useState(initialConfig.hero.flashConfettiEnabled);
+
+  // Preferences Tab State
+  const [defaultStartupRole, setDefaultStartupRoleState] = useState(initialConfig.preferences.defaultStartupRole);
+  const [defaultCursorEnabled, setDefaultCursorEnabledState] = useState(initialConfig.preferences.defaultCursorEnabled);
+  const [defaultAudioEnabled, setDefaultAudioEnabledState] = useState(initialConfig.preferences.defaultAudioEnabled);
+  const [reducedMotion, setReducedMotionState] = useState(initialConfig.preferences.reducedMotion);
+
+  // Runtime UI State
+  const [activeTab, setActiveTab] = useState('audio');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [activePreset, setActivePreset] = useState(() => loadSavedConfig().activePreset);
 
   const isInitialMount = useRef(true);
 
-  // Sync Audio Engine on state change
+  // Synchronize audio engine live
   useEffect(() => {
     try {
       if (soundFX) {
@@ -240,214 +504,233 @@ export function LabProvider({ children, initialSoundEnabled }) {
           soundFX.setMasterVolume(masterVolume);
         }
         if (typeof soundFX.setPitchMultiplier === 'function') {
-          soundFX.setPitchMultiplier(audioPitch);
+          soundFX.setPitchMultiplier(pitchMultiplier);
+        }
+        if (typeof soundFX.setSoundMatchingMode === 'function') {
+          soundFX.setSoundMatchingMode(soundMatchingMode);
         }
       }
     } catch {
-      // Ignore initial browser audio context restrictions
+      // Handled silently
     }
-  }, [soundEnabled, masterVolume, audioPitch]);
+  }, [soundEnabled, masterVolume, pitchMultiplier, soundMatchingMode]);
 
-  // Persist to unified localStorage key and emit sync event
+  // Persist unified state to localStorage under CONTROL_CENTER_STORAGE_KEY & LAB_STORAGE_KEY
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const payload = {
-      version: 1,
-      cursorScale,
-      flightSpeed,
-      wingDynamics,
-      gravity,
-      trailEnabled,
-      particleColor,
-      soundEnabled,
-      masterVolume,
-      audioPitch,
-      activePreset,
-      cursor: {
-        scale: cursorScale,
-        speed: flightSpeed,
-        wingDynamics
-      },
-      physics: {
-        gravity,
-        trailEnabled,
-        particleColor
-      },
+      version: 2,
       audio: {
         soundEnabled,
-        volume: masterVolume,
-        pitch: audioPitch
+        masterVolume,
+        pitchMultiplier,
+        soundMatchingMode
+      },
+      cursor: {
+        customCursorEnabled,
+        cursorScale,
+        flightLerpSpeed,
+        stardustTrailEnabled,
+        particleColor
+      },
+      hero: {
+        gazeMode,
+        poseOverride,
+        characterZoom,
+        flashConfettiEnabled
+      },
+      preferences: {
+        defaultStartupRole,
+        defaultCursorEnabled,
+        defaultAudioEnabled,
+        reducedMotion
       },
       updatedAt: new Date().toISOString()
     };
 
     try {
-      localStorage.setItem(LAB_STORAGE_KEY, JSON.stringify(payload));
-      // Keep legacy keys updated for zero-regression backward compatibility
+      localStorage.setItem(CONTROL_CENTER_STORAGE_KEY, JSON.stringify(payload));
+
+      // Keep legacy keys updated for seamless fallback
+      const legacyPayload = {
+        version: 1,
+        cursorScale,
+        flightSpeed: FLIGHT_SPEED_MAP[flightLerpSpeed] || 0.14,
+        wingDynamics: 1.0,
+        gravity: 0,
+        trailEnabled: stardustTrailEnabled,
+        particleColor,
+        soundEnabled,
+        masterVolume,
+        audioPitch: pitchMultiplier,
+        activePreset: 'custom',
+        updatedAt: payload.updatedAt
+      };
+      localStorage.setItem(LAB_STORAGE_KEY, JSON.stringify(legacyPayload));
       localStorage.setItem('physics_particle_color', particleColor);
-      localStorage.setItem('physics_gravity', gravity.toString());
-      localStorage.setItem('physics_audio_pitch', audioPitch.toString());
+      localStorage.setItem('physics_audio_pitch', pitchMultiplier.toString());
     } catch {
       // Storage quota or sandboxed environment
     }
 
-    // Skip dispatching outbound events on initial mount
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
 
     try {
+      window.dispatchEvent(new CustomEvent('portfolio:control-center-change', { detail: payload }));
       window.dispatchEvent(new CustomEvent('portfolio:lab-change', { detail: payload }));
     } catch {
       // Ignore
     }
   }, [
-    cursorScale,
-    flightSpeed,
-    wingDynamics,
-    gravity,
-    trailEnabled,
-    particleColor,
     soundEnabled,
     masterVolume,
-    audioPitch,
-    activePreset
+    pitchMultiplier,
+    soundMatchingMode,
+    customCursorEnabled,
+    cursorScale,
+    flightLerpSpeed,
+    stardustTrailEnabled,
+    particleColor,
+    gazeMode,
+    poseOverride,
+    characterZoom,
+    flashConfettiEnabled,
+    defaultStartupRole,
+    defaultCursorEnabled,
+    defaultAudioEnabled,
+    reducedMotion
   ]);
 
-  // Actions
-  const setCursorScale = useCallback((val) => {
-    const clamped = clampScale(val);
-    setCursorScaleState(clamped);
-    setActivePreset('custom');
-  }, []);
-
-  const setFlightSpeed = useCallback((val) => {
-    const clamped = clampFlightSpeed(val);
-    setFlightSpeedState(clamped);
-    setActivePreset('custom');
-  }, []);
-
-  const setWingDynamics = useCallback((val) => {
-    const clamped = clampWingDynamics(val);
-    setWingDynamicsState(clamped);
-    setActivePreset('custom');
-  }, []);
-
-  const setGravity = useCallback((val) => {
-    const clamped = clampGravity(val);
-    setGravityState(clamped);
-    setActivePreset('custom');
-  }, []);
-
-  const setTrailEnabled = useCallback((val) => {
-    setTrailEnabledState(Boolean(val));
-    setActivePreset('custom');
-  }, []);
-
-  const setParticleColor = useCallback((val) => {
-    const validated = validateColor(val);
-    setParticleColorState(validated);
-    setActivePreset('custom');
-  }, []);
-
+  // --- Audio Setters ---
   const setSoundEnabled = useCallback((val) => {
     const enabled = Boolean(val);
     setSoundEnabledState(enabled);
-    try {
-      if (soundFX && typeof soundFX.setEnabled === 'function') {
-        soundFX.setEnabled(enabled);
-      }
-    } catch {
-      // Ignore
+    if (soundFX && typeof soundFX.setEnabled === 'function') {
+      soundFX.setEnabled(enabled);
     }
   }, []);
 
   const setMasterVolume = useCallback((val) => {
     const clamped = clampVolume(val);
     setMasterVolumeState(clamped);
-    setActivePreset('custom');
-    try {
-      if (soundFX && typeof soundFX.setMasterVolume === 'function') {
-        soundFX.setMasterVolume(clamped);
-      }
-    } catch {
-      // Ignore
+    if (soundFX && typeof soundFX.setMasterVolume === 'function') {
+      soundFX.setMasterVolume(clamped);
     }
   }, []);
 
-  const setAudioPitch = useCallback((val) => {
+  const setPitchMultiplier = useCallback((val) => {
     const clamped = clampPitch(val);
-    setAudioPitchState(clamped);
-    setActivePreset('custom');
-    try {
-      if (soundFX && typeof soundFX.setPitchMultiplier === 'function') {
-        soundFX.setPitchMultiplier(clamped);
-      }
-    } catch {
-      // Ignore
+    setPitchMultiplierState(clamped);
+    if (soundFX && typeof soundFX.setPitchMultiplier === 'function') {
+      soundFX.setPitchMultiplier(clamped);
     }
   }, []);
 
-  const applyPreset = useCallback((presetKey) => {
-    const key = typeof presetKey === 'string' ? presetKey.toLowerCase() : '';
-    const preset = LAB_PRESETS[key];
-    if (!preset) return false;
-
-    setCursorScaleState(preset.cursorScale);
-    setFlightSpeedState(preset.flightSpeed);
-    setWingDynamicsState(preset.wingDynamics);
-    setGravityState(preset.gravity);
-    setTrailEnabledState(preset.trailEnabled);
-    setParticleColorState(preset.particleColor);
-    setSoundEnabledState(preset.soundEnabled);
-    setMasterVolumeState(preset.masterVolume);
-    setAudioPitchState(preset.audioPitch);
-    setActivePreset(preset.id || key);
-
-    // Audio feedback on preset activation
-    try {
-      if (preset.soundEnabled && soundFX) {
-        if (typeof soundFX.playSparkle === 'function') {
-          soundFX.playSparkle();
-        } else if (typeof soundFX.playCosmicSparkle === 'function') {
-          soundFX.playCosmicSparkle();
-        }
-      }
-    } catch {
-      // Ignore
+  const setSoundMatchingMode = useCallback((mode) => {
+    const validMode = mode === 'universal' ? 'universal' : 'dynamic';
+    setSoundMatchingModeState(validMode);
+    if (soundFX && typeof soundFX.setSoundMatchingMode === 'function') {
+      soundFX.setSoundMatchingMode(validMode);
     }
-
-    try {
-      window.dispatchEvent(new CustomEvent('portfolio:preset-applied', { detail: { presetKey: key, preset } }));
-    } catch {
-      // Ignore
-    }
-
-    return true;
   }, []);
 
+  // --- Cursor Setters ---
+  const setCustomCursorEnabled = useCallback((val) => {
+    setCustomCursorEnabledState(Boolean(val));
+  }, []);
+
+  const setCursorScale = useCallback((val) => {
+    setCursorScaleState(clampScale(val));
+  }, []);
+
+  const setFlightLerpSpeed = useCallback((speedKeyOrNum) => {
+    setFlightLerpSpeedState(normalizeFlightSpeedKey(speedKeyOrNum));
+  }, []);
+
+  const setStardustTrailEnabled = useCallback((val) => {
+    setStardustTrailEnabledState(Boolean(val));
+  }, []);
+
+  const setParticleColor = useCallback((val) => {
+    setParticleColorState(validateColor(val));
+  }, []);
+
+  // --- Hero Setters ---
+  const setGazeMode = useCallback((mode) => {
+    setGazeModeState(mode === 'fixed' ? 'fixed' : 'auto');
+  }, []);
+
+  const setPoseOverride = useCallback((pose) => {
+    setPoseOverrideState(normalizePoseOverride(pose));
+  }, []);
+
+  const setCharacterZoom = useCallback((zoom) => {
+    setCharacterZoomState(clampScale(zoom));
+  }, []);
+
+  const setFlashConfettiEnabled = useCallback((val) => {
+    setFlashConfettiEnabledState(Boolean(val));
+  }, []);
+
+  // --- Preferences Setters ---
+  const setDefaultStartupRole = useCallback((role) => {
+    const cleanRole = typeof role === 'string' ? role.toLowerCase() : 'accountant';
+    setDefaultStartupRoleState(cleanRole);
+  }, []);
+
+  const setDefaultCursorEnabled = useCallback((val) => {
+    setDefaultCursorEnabledState(Boolean(val));
+  }, []);
+
+  const setDefaultAudioEnabled = useCallback((val) => {
+    setDefaultAudioEnabledState(Boolean(val));
+  }, []);
+
+  const setReducedMotion = useCallback((val) => {
+    setReducedMotionState(Boolean(val));
+  }, []);
+
+  // --- 1-Click Factory Reset ---
   const resetDefaults = useCallback(() => {
-    const d = DEFAULT_LAB_CONFIG;
-    setCursorScaleState(d.cursorScale);
-    setFlightSpeedState(d.flightSpeed);
-    setWingDynamicsState(d.wingDynamics);
-    setGravityState(d.gravity);
-    setTrailEnabledState(d.trailEnabled);
-    setParticleColorState(d.particleColor);
-    setSoundEnabledState(d.soundEnabled);
-    setMasterVolumeState(d.masterVolume);
-    setAudioPitchState(d.audioPitch);
-    setActivePreset('default');
+    const f = FACTORY_DEFAULTS;
 
+    // Audio
+    setSoundEnabledState(f.audio.soundEnabled);
+    setMasterVolumeState(f.audio.masterVolume);
+    setPitchMultiplierState(f.audio.pitchMultiplier);
+    setSoundMatchingModeState(f.audio.soundMatchingMode);
+
+    // Cursor
+    setCustomCursorEnabledState(f.cursor.customCursorEnabled);
+    setCursorScaleState(f.cursor.cursorScale);
+    setFlightLerpSpeedState(f.cursor.flightLerpSpeed);
+    setStardustTrailEnabledState(f.cursor.stardustTrailEnabled);
+    setParticleColorState(f.cursor.particleColor);
+
+    // Hero
+    setGazeModeState(f.hero.gazeMode);
+    setPoseOverrideState(f.hero.poseOverride);
+    setCharacterZoomState(f.hero.characterZoom);
+    setFlashConfettiEnabledState(f.hero.flashConfettiEnabled);
+
+    // Preferences
+    setDefaultStartupRoleState(f.preferences.defaultStartupRole);
+    setDefaultCursorEnabledState(f.preferences.defaultCursorEnabled);
+    setDefaultAudioEnabledState(f.preferences.defaultAudioEnabled);
+    setReducedMotionState(f.preferences.reducedMotion);
+
+    // Sync Audio Engine
     try {
       if (soundFX) {
         if (typeof soundFX.resetAudioDefaults === 'function') {
           soundFX.resetAudioDefaults();
         }
-        if (typeof soundFX.playPop === 'function') {
-          soundFX.playPop();
+        if (typeof soundFX.playCrystalChime === 'function') {
+          soundFX.playCrystalChime();
         }
       }
     } catch {
@@ -455,86 +738,98 @@ export function LabProvider({ children, initialSoundEnabled }) {
     }
 
     try {
-      window.dispatchEvent(new CustomEvent('portfolio:lab-reset', { detail: d }));
+      localStorage.setItem(CONTROL_CENTER_STORAGE_KEY, JSON.stringify(f));
+      window.dispatchEvent(new CustomEvent('portfolio:control-center-reset', { detail: f }));
     } catch {
       // Ignore
     }
   }, []);
 
+  // --- Drawer Actions ---
   const openDrawer = useCallback(() => {
     setIsDrawerOpen(true);
     try {
-      if (soundFX && typeof soundFX.playRibbonToggle === 'function') {
-        soundFX.playRibbonToggle(true);
+      if (soundEnabled && soundFX?.playRibbonSweep) {
+        soundFX.playRibbonSweep('up');
       }
     } catch {
       // Ignore
     }
-  }, []);
+  }, [soundEnabled]);
 
   const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false);
     try {
-      if (soundFX && typeof soundFX.playRibbonToggle === 'function') {
-        soundFX.playRibbonToggle(false);
+      if (soundEnabled && soundFX?.playRibbonSweep) {
+        soundFX.playRibbonSweep('down');
       }
     } catch {
       // Ignore
     }
-  }, []);
+  }, [soundEnabled]);
 
   const toggleDrawer = useCallback(() => {
     setIsDrawerOpen((prev) => {
       const next = !prev;
       try {
-        if (soundFX && typeof soundFX.playRibbonToggle === 'function') {
-          soundFX.playRibbonToggle(next);
+        if (soundEnabled && soundFX?.playRibbonSweep) {
+          soundFX.playRibbonSweep(next ? 'up' : 'down');
         }
       } catch {
         // Ignore
       }
       return next;
     });
-  }, []);
+  }, [soundEnabled]);
 
-  // Custom Event Listeners
+  // Global Window Event Listeners
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const handleOpen = () => openDrawer();
     const handleClose = () => closeDrawer();
     const handleToggle = () => toggleDrawer();
-    const handlePreset = (e) => {
-      const key = e.detail?.presetKey || e.detail?.preset || e.detail;
-      if (key) applyPreset(key);
-    };
+    const handleReset = () => resetDefaults();
 
-    // Support both namespaced and legacy event names
     window.addEventListener('portfolio:open-lab-drawer', handleOpen);
     window.addEventListener('open-lab-drawer', handleOpen);
     window.addEventListener('portfolio:close-lab-drawer', handleClose);
     window.addEventListener('close-lab-drawer', handleClose);
     window.addEventListener('portfolio:toggle-lab-drawer', handleToggle);
     window.addEventListener('toggle-lab-drawer', handleToggle);
-    window.addEventListener('portfolio:apply-lab-preset', handlePreset);
-    window.addEventListener('apply-lab-preset', handlePreset);
+    window.addEventListener('portfolio:reset-control-center', handleReset);
 
-    // Multi-tab synchronization via storage event
+    // Multi-tab sync via storage event
     const handleStorage = (e) => {
-      if (e.key === LAB_STORAGE_KEY && e.newValue) {
+      if (e.key === CONTROL_CENTER_STORAGE_KEY && e.newValue) {
         try {
-          const incoming = JSON.parse(e.newValue);
-          if (incoming && typeof incoming === 'object') {
-            if (incoming.cursorScale !== undefined) setCursorScaleState(clampScale(incoming.cursorScale));
-            if (incoming.flightSpeed !== undefined) setFlightSpeedState(clampFlightSpeed(incoming.flightSpeed));
-            if (incoming.wingDynamics !== undefined) setWingDynamicsState(clampWingDynamics(incoming.wingDynamics));
-            if (incoming.gravity !== undefined) setGravityState(clampGravity(incoming.gravity));
-            if (incoming.trailEnabled !== undefined) setTrailEnabledState(Boolean(incoming.trailEnabled));
-            if (incoming.particleColor !== undefined) setParticleColorState(validateColor(incoming.particleColor));
-            if (incoming.soundEnabled !== undefined) setSoundEnabledState(Boolean(incoming.soundEnabled));
-            if (incoming.masterVolume !== undefined) setMasterVolumeState(clampVolume(incoming.masterVolume));
-            if (incoming.audioPitch !== undefined) setAudioPitchState(clampPitch(incoming.audioPitch));
-            if (incoming.activePreset !== undefined) setActivePreset(incoming.activePreset);
+          const inc = JSON.parse(e.newValue);
+          if (inc && typeof inc === 'object') {
+            if (inc.audio) {
+              if (inc.audio.soundEnabled !== undefined) setSoundEnabledState(Boolean(inc.audio.soundEnabled));
+              if (inc.audio.masterVolume !== undefined) setMasterVolumeState(clampVolume(inc.audio.masterVolume));
+              if (inc.audio.pitchMultiplier !== undefined) setPitchMultiplierState(clampPitch(inc.audio.pitchMultiplier));
+              if (inc.audio.soundMatchingMode !== undefined) setSoundMatchingModeState(inc.audio.soundMatchingMode);
+            }
+            if (inc.cursor) {
+              if (inc.cursor.customCursorEnabled !== undefined) setCustomCursorEnabledState(Boolean(inc.cursor.customCursorEnabled));
+              if (inc.cursor.cursorScale !== undefined) setCursorScaleState(clampScale(inc.cursor.cursorScale));
+              if (inc.cursor.flightLerpSpeed !== undefined) setFlightLerpSpeedState(normalizeFlightSpeedKey(inc.cursor.flightLerpSpeed));
+              if (inc.cursor.stardustTrailEnabled !== undefined) setStardustTrailEnabledState(Boolean(inc.cursor.stardustTrailEnabled));
+              if (inc.cursor.particleColor !== undefined) setParticleColorState(validateColor(inc.cursor.particleColor));
+            }
+            if (inc.hero) {
+              if (inc.hero.gazeMode !== undefined) setGazeModeState(inc.hero.gazeMode);
+              if (inc.hero.poseOverride !== undefined) setPoseOverrideState(normalizePoseOverride(inc.hero.poseOverride));
+              if (inc.hero.characterZoom !== undefined) setCharacterZoomState(clampScale(inc.hero.characterZoom));
+              if (inc.hero.flashConfettiEnabled !== undefined) setFlashConfettiEnabledState(Boolean(inc.hero.flashConfettiEnabled));
+            }
+            if (inc.preferences) {
+              if (inc.preferences.defaultStartupRole !== undefined) setDefaultStartupRoleState(inc.preferences.defaultStartupRole);
+              if (inc.preferences.defaultCursorEnabled !== undefined) setDefaultCursorEnabledState(Boolean(inc.preferences.defaultCursorEnabled));
+              if (inc.preferences.defaultAudioEnabled !== undefined) setDefaultAudioEnabledState(Boolean(inc.preferences.defaultAudioEnabled));
+              if (inc.preferences.reducedMotion !== undefined) setReducedMotionState(Boolean(inc.preferences.reducedMotion));
+            }
           }
         } catch {
           // Ignore parse errors from other tabs
@@ -551,83 +846,152 @@ export function LabProvider({ children, initialSoundEnabled }) {
       window.removeEventListener('close-lab-drawer', handleClose);
       window.removeEventListener('portfolio:toggle-lab-drawer', handleToggle);
       window.removeEventListener('toggle-lab-drawer', handleToggle);
-      window.removeEventListener('portfolio:apply-lab-preset', handlePreset);
-      window.removeEventListener('apply-lab-preset', handlePreset);
+      window.removeEventListener('portfolio:reset-control-center', handleReset);
       window.removeEventListener('storage', handleStorage);
     };
-  }, [openDrawer, closeDrawer, toggleDrawer, applyPreset]);
+  }, [openDrawer, closeDrawer, toggleDrawer, resetDefaults]);
 
-  // Memoized Context Value
+  // Derived kinematic speed number
+  const flightSpeed = useMemo(() => {
+    return FLIGHT_SPEED_MAP[flightLerpSpeed] || 0.14;
+  }, [flightLerpSpeed]);
+
+  // Memoized context value
   const value = useMemo(() => ({
-    // State values
-    cursorScale,
-    flightSpeed,
-    wingDynamics,
-    gravity,
-    trailEnabled,
-    particleColor,
+    // Tab 1: Audio Studio
     soundEnabled,
     masterVolume,
-    audioPitch,
-    isDrawerOpen,
-    activePreset,
-
-    // Preset Data
-    presets: LAB_PRESETS,
-    LAB_PRESETS,
-    DEFAULT_LAB_CONFIG,
-
-    // Actions
-    setCursorScale,
-    setFlightSpeed,
-    setWingDynamics,
-    setGravity,
-    setTrailEnabled,
-    setParticleColor,
+    pitchMultiplier,
+    soundMatchingMode,
     setSoundEnabled,
     setMasterVolume,
-    setAudioPitch,
-    applyPreset,
-    resetDefaults,
-    resetToDefaults: resetDefaults,
+    setPitchMultiplier,
+    setSoundMatchingMode,
+
+    // Tab 2: Cursor & Dynamics
+    customCursorEnabled,
+    cursorScale,
+    flightLerpSpeed,
+    flightSpeed,
+    stardustTrailEnabled,
+    particleColor,
+    setCustomCursorEnabled,
+    setCursorScale,
+    setFlightLerpSpeed,
+    setFlightSpeed: setFlightLerpSpeed,
+    setStardustTrailEnabled,
+    setParticleColor,
+
+    // Tab 3: Hero & Character Control
+    gazeMode,
+    poseOverride,
+    characterZoom,
+    flashConfettiEnabled,
+    setGazeMode,
+    setPoseOverride,
+    setCharacterZoom,
+    setFlashConfettiEnabled,
+
+    // Tab 4: Startup & Preferences
+    defaultStartupRole,
+    defaultCursorEnabled,
+    defaultAudioEnabled,
+    reducedMotion,
+    setDefaultStartupRole,
+    setDefaultCursorEnabled,
+    setDefaultAudioEnabled,
+    setReducedMotion,
+
+    // Runtime UI State & Actions
+    activeTab,
+    setActiveTab,
+    isDrawerOpen,
     openDrawer,
     closeDrawer,
     toggleDrawer,
+    resetDefaults,
+    resetToDefaults: resetDefaults,
+    resetToFactoryDefaults: resetDefaults,
 
-    // Aliases for compatibility
-    setCursorSpeed: setFlightSpeed,
+    // Legacy Aliases & Safety Fallbacks
+    audioPitch: pitchMultiplier,
+    setAudioPitch: setPitchMultiplier,
     setAudioVolume: setMasterVolume,
-
-    // Helper dynamic flags
-    isZeroG: gravity === 0,
-    isAntiGravity: gravity < 0,
-    isHeavyGravity: gravity > 50
+    trailEnabled: stardustTrailEnabled,
+    setTrailEnabled: setStardustTrailEnabled,
+    characterScale: characterZoom,
+    setCharacterScale: setCharacterZoom,
+    heroScale: characterZoom,
+    setHeroScale: setCharacterZoom,
+    heroGazeMode: gazeMode,
+    setHeroGazeMode: setGazeMode,
+    heroPoseOverride: poseOverride,
+    setHeroPoseOverride: setPoseOverride,
+    cameraEffectsEnabled: flashConfettiEnabled,
+    setCameraEffectsEnabled: setFlashConfettiEnabled,
+    defaultRole: defaultStartupRole,
+    setDefaultRole: setDefaultStartupRole,
+    startupRole: defaultStartupRole,
+    setStartupRole: setDefaultStartupRole,
+    startupCursorEnabled: defaultCursorEnabled,
+    setStartupCursorEnabled: setDefaultCursorEnabled,
+    startupAudioEnabled: defaultAudioEnabled,
+    setStartupAudioEnabled: setDefaultAudioEnabled,
+    gravity: 0,
+    setGravity: () => {},
+    isZeroG: true,
+    isAntiGravity: false,
+    isHeavyGravity: false,
+    wingDynamics: 1.0,
+    setWingDynamics: () => {},
+    activePreset: 'custom',
+    applyPreset: () => false,
+    presets: LAB_PRESETS,
+    LAB_PRESETS,
+    DEFAULT_LAB_CONFIG
   }), [
-    cursorScale,
-    flightSpeed,
-    wingDynamics,
-    gravity,
-    trailEnabled,
-    particleColor,
     soundEnabled,
     masterVolume,
-    audioPitch,
-    isDrawerOpen,
-    activePreset,
-    setCursorScale,
-    setFlightSpeed,
-    setWingDynamics,
-    setGravity,
-    setTrailEnabled,
-    setParticleColor,
+    pitchMultiplier,
+    soundMatchingMode,
     setSoundEnabled,
     setMasterVolume,
-    setAudioPitch,
-    applyPreset,
-    resetDefaults,
+    setPitchMultiplier,
+    setSoundMatchingMode,
+    customCursorEnabled,
+    cursorScale,
+    flightLerpSpeed,
+    flightSpeed,
+    stardustTrailEnabled,
+    particleColor,
+    setCustomCursorEnabled,
+    setCursorScale,
+    setFlightLerpSpeed,
+    setStardustTrailEnabled,
+    setParticleColor,
+    gazeMode,
+    poseOverride,
+    characterZoom,
+    flashConfettiEnabled,
+    setGazeMode,
+    setPoseOverride,
+    setCharacterZoom,
+    setFlashConfettiEnabled,
+    defaultStartupRole,
+    defaultCursorEnabled,
+    defaultAudioEnabled,
+    reducedMotion,
+    setDefaultStartupRole,
+    setDefaultCursorEnabled,
+    setDefaultAudioEnabled,
+    setReducedMotion,
+    activeTab,
+    setActiveTab,
+    isDrawerOpen,
     openDrawer,
     closeDrawer,
-    toggleDrawer
+    toggleDrawer,
+    resetDefaults
   ]);
 
   return (

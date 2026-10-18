@@ -56,7 +56,7 @@ export default function CursorSelectorRibbon({
   };
 
   const handleSelectCursor = (cursorId) => {
-    soundFX.playCursorSelect();
+    soundFX.playCursorSelect(cursorId);
     if (onSelectCursor) {
       onSelectCursor(cursorId);
     }

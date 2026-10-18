@@ -6,6 +6,7 @@ import confetti from 'canvas-confetti';
 import { useRoleTab } from '../context/RoleContext';
 import { useGyroscopeTracking } from '../hooks/useGyroscopeTracking';
 import { formatVintageTimestamp } from '../utils/polaroidExport';
+import { useLab, POSE_INDEX_MAP } from '../context/LabContext';
 
 /**
  * Full-Screen Reel-Accurate Character Hero Section
@@ -49,6 +50,14 @@ export default function HeroSection({
   reducedMotion
 }) {
   const { activeRole, activeTrack } = useRoleTab();
+  const lab = useLab();
+  const customCursorEnabled = lab?.customCursorEnabled ?? true;
+  const gazeMode = lab?.gazeMode ?? 'auto';
+  const poseOverride = lab?.poseOverride ?? null;
+  const characterZoom = lab?.characterZoom ?? 1.0;
+  const flashConfettiEnabled = lab?.flashConfettiEnabled ?? true;
+  const setCharacterZoom = lab?.setCharacterZoom;
+
   const [isFlashing, setIsFlashing] = useState(false);
   const [photosCount, setPhotosCount] = useState(0);
 
@@ -65,13 +74,21 @@ export default function HeroSection({
   }, [activeRole]);
 
   // Character Scaling System (Baseline 0.95 normalized to 100% / 1.0x, range 0.5 - 2.0)
-  const [userScale, setUserScale] = useState(1.0);
+  const [userScale, setUserScale] = useState(characterZoom || 1.0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showHudBadge, setShowHudBadge] = useState(false);
   const [hudMessage, setHudMessage] = useState(null);
   const hudTimerRef = useRef(null);
   const userScaleRef = useRef(userScale);
   const characterInnerRef = useRef(null);
+
+  // Sync characterZoom from LabContext
+  useEffect(() => {
+    if (typeof characterZoom === 'number') {
+      // oxlint-disable-next-line react/set-state-in-effect
+      setUserScale(characterZoom);
+    }
+  }, [characterZoom]);
 
   // High-performance Mobile & Gyroscope tracking hook
   const gyro = useGyroscopeTracking({
@@ -160,7 +177,10 @@ export default function HeroSection({
       if (bgBackdropRef.current) {
         bgBackdropRef.current.style.transform = 'none';
       }
-      const p = forcedState || (isInsideHeroRef.current ? 'center' : 'idle');
+      const effectiveOverride = poseOverride !== null
+        ? (typeof poseOverride === 'number' ? POSE_INDEX_MAP[poseOverride] : poseOverride)
+        : null;
+      const p = forcedState || effectiveOverride || (gazeMode === 'fixed' ? (effectiveOverride || 'center') : (isInsideHeroRef.current ? 'center' : 'idle'));
       if (imgIdleRef.current) imgIdleRef.current.style.opacity = (p === 'idle' || p === 'rear-view') ? '1' : '0';
       if (imgCenterRef.current) imgCenterRef.current.style.opacity = (p === 'center' || p === 'center-front') ? '1' : '0';
       if (imgUpperCenterRef.current) imgUpperCenterRef.current.style.opacity = (p === 'upper-center' || p === 'center-upper') ? '1' : '0';
@@ -185,10 +205,21 @@ export default function HeroSection({
       const dt = Math.min(Math.max((currentTime - lastTime) / 1000, 0.001), 0.05);
       lastTime = currentTime;
 
+      // Gaze mode and pose override resolution
+      const isFixedGaze = gazeMode === 'fixed';
+      const effectiveOverride = poseOverride !== null
+        ? (typeof poseOverride === 'number' ? POSE_INDEX_MAP[poseOverride] : poseOverride)
+        : null;
+      const activeForcedState = forcedState || effectiveOverride || (isFixedGaze ? (effectiveOverride || 'center') : null);
+
       // Check gyro state if sensor active on mobile / gyro-enabled devices
       const gState = gyro.gyroStateRef.current;
       const isGyroActive = gState && gState.isActive;
-      if (isGyroActive) {
+      if (isFixedGaze) {
+        state.targetNormX = 0;
+        state.targetNormY = 0;
+        state.isHovered = false;
+      } else if (isGyroActive) {
         // Gyro is primary orientation source on mobile/gyro device unless active touch gesture is occurring
         if (!state.isPointerInteracting) {
           state.targetNormX = gState.normX;
@@ -219,13 +250,13 @@ export default function HeroSection({
       const curY = state.currentNormY;
 
       // Directional physical character translation & backdrop parallax shift in gyro / pointer direction
-      const charShiftX = curX * 56;
-      const charShiftY = curY * 42;
+      const charShiftX = isFixedGaze ? 0 : curX * 56;
+      const charShiftY = isFixedGaze ? 0 : curY * 42;
 
       // 1. Organic Idle Breathing Animation (human resting rhythm ~3.8s cycle, ~15 breaths/min)
       let idleOp = Math.max(0, 1 - state.hoverWeight);
-      if (forcedState) {
-        idleOp = (forcedState === 'idle' || forcedState === 'rear-view') ? 1 : 0;
+      if (activeForcedState) {
+        idleOp = (activeForcedState === 'idle' || activeForcedState === 'rear-view') ? 1 : 0;
       }
 
       // Natural breathing blend: 100% active when idle or when pointer/gyro is resting near center.
@@ -248,8 +279,8 @@ export default function HeroSection({
       }
 
       if (bgBackdropRef.current) {
-        const bgShiftX = -curX * 32;
-        const bgShiftY = -curY * 24;
+        const bgShiftX = isFixedGaze ? 0 : -curX * 32;
+        const bgShiftY = isFixedGaze ? 0 : -curY * 24;
         bgBackdropRef.current.style.transform = `translate3d(${bgShiftX.toFixed(2)}px, ${bgShiftY.toFixed(2)}px, 0) scale(1.06)`;
       }
 
@@ -264,17 +295,17 @@ export default function HeroSection({
       let upRightOp = 0;
       let lowRightOp = 0;
 
-      if (forcedState) {
-        centerOp = (forcedState === 'center' || forcedState === 'center-front') ? 1 : 0;
-        upCenterOp = (forcedState === 'upper-center' || forcedState === 'center-upper') ? 1 : 0;
-        lowCenterOp = (forcedState === 'lower-center' || forcedState === 'center-lower') ? 1 : 0;
-        leftOp = (forcedState === 'left' || forcedState === 'center-left') ? 1 : 0;
-        rightOp = (forcedState === 'right' || forcedState === 'center-right') ? 1 : 0;
-        upLeftOp = forcedState === 'upper-left' ? 1 : 0;
-        lowLeftOp = forcedState === 'lower-left' ? 1 : 0;
-        upRightOp = forcedState === 'upper-right' ? 1 : 0;
-        lowRightOp = forcedState === 'lower-right' ? 1 : 0;
-        state.activePose = forcedState;
+      if (activeForcedState) {
+        centerOp = (activeForcedState === 'center' || activeForcedState === 'center-front') ? 1 : 0;
+        upCenterOp = (activeForcedState === 'upper-center' || activeForcedState === 'center-upper') ? 1 : 0;
+        lowCenterOp = (activeForcedState === 'lower-center' || activeForcedState === 'center-lower') ? 1 : 0;
+        leftOp = (activeForcedState === 'left' || activeForcedState === 'center-left') ? 1 : 0;
+        rightOp = (activeForcedState === 'right' || activeForcedState === 'center-right') ? 1 : 0;
+        upLeftOp = activeForcedState === 'upper-left' ? 1 : 0;
+        lowLeftOp = activeForcedState === 'lower-left' ? 1 : 0;
+        upRightOp = activeForcedState === 'upper-right' ? 1 : 0;
+        lowRightOp = activeForcedState === 'lower-right' ? 1 : 0;
+        state.activePose = activeForcedState;
       } else {
         const smoothstep = (min, max, value) => {
           const x = Math.max(0, Math.min(1, (value - min) / (max - min)));
@@ -361,7 +392,7 @@ export default function HeroSection({
         cancelAnimationFrame(localRafId);
       }
     };
-  }, [reducedMotion, forcedState, gyro.gyroStateRef]);
+  }, [reducedMotion, forcedState, gazeMode, poseOverride, gyro.gyroStateRef]);
 
   // High-performance passive window pointer tracking (0ms input latency, no React event queue overhead)
   useEffect(() => {
@@ -465,29 +496,39 @@ export default function HeroSection({
   // Scale action buttons with smooth transition
   const handleZoomIn = useCallback(() => {
     setIsTransitioning(true);
-    setUserScale(prev => Math.min(2.0, Math.round((prev + 0.10) * 100) / 100));
+    setUserScale(prev => {
+      const next = Math.min(2.0, Math.round((prev + 0.10) * 100) / 100);
+      if (setCharacterZoom) setCharacterZoom(next);
+      return next;
+    });
     triggerHud();
-  }, [triggerHud]);
+  }, [triggerHud, setCharacterZoom]);
 
   const handleZoomOut = useCallback(() => {
     setIsTransitioning(true);
-    setUserScale(prev => Math.max(0.5, Math.round((prev - 0.10) * 100) / 100));
+    setUserScale(prev => {
+      const next = Math.max(0.5, Math.round((prev - 0.10) * 100) / 100);
+      if (setCharacterZoom) setCharacterZoom(next);
+      return next;
+    });
     triggerHud();
-  }, [triggerHud]);
+  }, [triggerHud, setCharacterZoom]);
 
   const handleReset = useCallback(() => {
     setIsTransitioning(true);
     setUserScale(1.0);
+    if (setCharacterZoom) setCharacterZoom(1.0);
     triggerHud();
-  }, [triggerHud]);
+  }, [triggerHud, setCharacterZoom]);
 
   // Instantaneous zero-lag slider response
   const handleSliderChange = useCallback((e) => {
     setIsTransitioning(false);
-    const val = parseFloat(e.target.value);
-    setUserScale(val / 100);
+    const val = parseFloat(e.target.value) / 100;
+    setUserScale(val);
+    if (setCharacterZoom) setCharacterZoom(val);
     triggerHud();
-  }, [triggerHud]);
+  }, [triggerHud, setCharacterZoom]);
 
   // Non-passive wheel listener (Ctrl/Meta + Wheel) and 2-finger pinch gesture
   const isPinchingRef = useRef(false);
@@ -568,7 +609,7 @@ export default function HeroSection({
     if (isPinchingRef.current) return;
     soundFX.playShutter();
 
-    if (!reducedMotion) {
+    if (!reducedMotion && flashConfettiEnabled) {
       setIsFlashing(true);
       confetti({
         particleCount: 32,
@@ -617,7 +658,7 @@ export default function HeroSection({
     setTimeout(() => {
       setIsFlashing(false);
     }, 280);
-  }, [reducedMotion, onPhotoCaptured]);
+  }, [reducedMotion, flashConfettiEnabled, onPhotoCaptured]);
 
   return (
     <section
@@ -654,7 +695,7 @@ export default function HeroSection({
         triggerCapture();
       }}
       className={`relative w-full h-screen min-h-screen overflow-hidden select-none bg-[#FAF8F5] dark:bg-[#0B0813] flex items-center justify-center cursor-pointer transition-colors duration-300 ${
-        isInsideHero && !reducedMotion ? 'cursor-none' : ''
+        isInsideHero && !reducedMotion && customCursorEnabled ? 'cursor-none' : ''
       }`}
       style={{ touchAction: 'pan-y' }}
     >

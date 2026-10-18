@@ -8,6 +8,7 @@ import CameraCursor from './cursors/CameraCursor';
 import MinimalCursor from './cursors/MinimalCursor';
 import ModularKinematicCursor from './cursors/ModularKinematicCursor';
 import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
+import { useLab } from '../context/LabContext';
 
 /**
  * Dedicated bespoke cursor components that have specialized interactive mechanics
@@ -32,20 +33,32 @@ const DEDICATED_CURSOR_COMPONENTS = {
  *   is mounted and running an animation loop; unmounted cursors clean up completely.
  * - Mobile / Tablet safety: Auto-disabled on touch / coarse pointer devices to preserve native touch UX.
  * - Accessibility: Fully respects the prefers-reduced-motion media query and user prop overrides.
+ * - Fallback: When customCursorEnabled is false, returns null and cleanly restores system cursor.
  */
 export default function DynamicCursorManager({
   activeCursor = 'butterfly',
   heroRef,
   isInsideHero = false,
-  speed = 0.14,
-  trailEnabled = true,
-  scale = 1,
+  customCursorEnabled: propCustomCursorEnabled,
+  speed,
+  trailEnabled,
+  scale,
   gravity = 0,
-  particleColor = '#FF4D6D',
+  particleColor,
   wingDynamics = 1.0,
   reducedMotion: propReducedMotion
 }) {
+  const lab = useLab();
   const isDesktopCursor = useDesktopCursorSupport();
+
+  const customCursorEnabled = propCustomCursorEnabled !== undefined
+    ? propCustomCursorEnabled
+    : (lab?.customCursorEnabled ?? true);
+
+  const effectiveSpeed = speed ?? lab?.flightSpeed ?? 0.14;
+  const effectiveTrail = trailEnabled ?? lab?.stardustTrailEnabled ?? true;
+  const effectiveScale = scale ?? lab?.cursorScale ?? 1.0;
+  const effectiveParticleColor = particleColor ?? lab?.particleColor ?? '#FF4D6D';
 
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
     if (typeof window !== 'undefined' && window.matchMedia) {
@@ -77,8 +90,20 @@ export default function DynamicCursorManager({
   // Compute effective reduced motion (prop overrides system if passed)
   const effectiveReducedMotion = propReducedMotion !== undefined ? propReducedMotion : prefersReducedMotion;
 
-  // Disable completely on mobile/touch screens (< 1024px or coarse pointer) or if reduced motion is requested
-  if (!isDesktopCursor || effectiveReducedMotion) {
+  // Manage .custom-cursor-disabled class on document body and html root
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const isCursorActive = customCursorEnabled && isDesktopCursor && !effectiveReducedMotion;
+    document.body.classList.toggle('custom-cursor-disabled', !isCursorActive);
+    document.documentElement.classList.toggle('custom-cursor-disabled', !isCursorActive);
+    return () => {
+      document.body.classList.remove('custom-cursor-disabled');
+      document.documentElement.classList.remove('custom-cursor-disabled');
+    };
+  }, [customCursorEnabled, isDesktopCursor, effectiveReducedMotion]);
+
+  // Disable completely if custom cursor is disabled, or on mobile/touch screens, or if reduced motion is requested
+  if (!customCursorEnabled || !isDesktopCursor || effectiveReducedMotion) {
     return null;
   }
 
@@ -89,11 +114,11 @@ export default function DynamicCursorManager({
       <DedicatedComponent
         heroRef={heroRef}
         isInsideHero={isInsideHero}
-        speed={speed}
-        trailEnabled={trailEnabled}
-        scale={scale}
+        speed={effectiveSpeed}
+        trailEnabled={effectiveTrail}
+        scale={effectiveScale}
         gravity={gravity}
-        particleColor={particleColor}
+        particleColor={effectiveParticleColor}
         wingDynamics={wingDynamics}
       />
     );
@@ -105,11 +130,11 @@ export default function DynamicCursorManager({
       cursorId={activeCursor}
       heroRef={heroRef}
       isInsideHero={isInsideHero}
-      speed={speed}
-      trailEnabled={trailEnabled}
-      scale={scale}
+      speed={effectiveSpeed}
+      trailEnabled={effectiveTrail}
+      scale={effectiveScale}
       gravity={gravity}
-      particleColor={particleColor}
+      particleColor={effectiveParticleColor}
       wingDynamics={wingDynamics}
     />
   );

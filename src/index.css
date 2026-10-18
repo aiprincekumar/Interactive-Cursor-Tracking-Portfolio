@@ -322,3 +322,21 @@ html.theme-transition *::after {
   }
 }
 
+/* ==========================================================================
+   Custom Cursor Fallback & System Pointer Enforcement
+   ========================================================================== */
+.custom-cursor-disabled,
+.custom-cursor-disabled * {
+  cursor: auto !important;
+}
+
+.custom-cursor-disabled a,
+.custom-cursor-disabled button,
+.custom-cursor-disabled [role="button"],
+.custom-cursor-disabled [role="tab"],
+.custom-cursor-disabled input[type="range"],
+.custom-cursor-disabled select,
+.custom-cursor-disabled label {
+  cursor: pointer !important;
+}
+

@@ -8,6 +8,7 @@ class SoundFX {
     this.enabled = true;
     this.masterVolume = 0.8; // 0.0 to 1.0 (0% to 100%)
     this.pitchMultiplier = 1.0; // 0.5x to 2.0x
+    this.soundMatchingMode = 'dynamic'; // 'dynamic' | 'universal'
     this.baseFrequency = 440;
     this.lastCursorSelectTime = 0;
   }
@@ -70,6 +71,14 @@ class SoundFX {
     return this.pitchMultiplier;
   }
 
+  setSoundMatchingMode(mode) {
+    this.soundMatchingMode = (mode === 'universal') ? 'universal' : 'dynamic';
+  }
+
+  getSoundMatchingMode() {
+    return this.soundMatchingMode;
+  }
+
   setBaseFrequency(freq) {
     const val = typeof freq === 'number' && !isNaN(freq) ? freq : 440;
     this.baseFrequency = Math.max(20, Math.min(20000, val));
@@ -83,6 +92,7 @@ class SoundFX {
     this.enabled = true;
     this.masterVolume = 0.8;
     this.pitchMultiplier = 1.0;
+    this.soundMatchingMode = 'dynamic';
     this.baseFrequency = 440;
     if (this.ctx && this.masterGain) {
       const t = this.ctx.currentTime;
@@ -433,12 +443,64 @@ class SoundFX {
     this.playLaserFocus();
   }
 
-  playCursorSelect() {
+  playCursorSelect(cursorId) {
     if (!this.enabled) return;
     const now = Date.now();
     if (this.lastCursorSelectTime && now - this.lastCursorSelectTime < 80) return;
     this.lastCursorSelectTime = now;
-    this.playCrystalChime();
+
+    if (this.soundMatchingMode === 'universal') {
+      this.playCrystalChime();
+      return;
+    }
+
+    // Dynamic Sound-Matching based on cursor variant ID or family
+    const id = typeof cursorId === 'string' ? cursorId.toLowerCase() : '';
+    switch (id) {
+      case 'camera':
+      case 'lens':
+      case 'polaroid':
+        this.playPolaroidShutter();
+        break;
+      case 'laser':
+      case 'crosshair':
+      case 'target':
+      case 'sniper':
+        this.playLaserFocus();
+        break;
+      case 'butterfly':
+      case 'stardust':
+      case 'wand':
+      case 'firefly':
+      case 'fairy':
+        this.playCosmicSparkle();
+        break;
+      case 'bubble':
+      case 'drop':
+      case 'balloon':
+        this.playBubblePop();
+        break;
+      case 'airplane':
+      case 'comet':
+      case 'ribbon':
+      case 'swirl':
+        this.playRibbonSweep('up');
+        break;
+      case 'minimal':
+      case 'dot':
+      case 'terminal':
+      case 'code':
+      case 'haptic':
+      case 'click':
+        this.playHapticClick();
+        break;
+      case 'crystal':
+      case 'bell':
+      case 'diamond':
+      default:
+        this.playCrystalChime();
+        break;
+    }
   }
 
   playRibbonToggle(isOpen = true) {

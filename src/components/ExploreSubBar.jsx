@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Image, FlaskConical, Sliders, X } from 'lucide-react';
+import { Image, Sliders, X } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 
 export default function ExploreSubBar({
@@ -21,10 +21,10 @@ export default function ExploreSubBar({
     },
     {
       id: 'playground',
-      label: 'Lab Studio',
+      label: 'Control Center',
       href: '#playground',
-      icon: FlaskConical,
-      desc: 'Physics Sandbox'
+      icon: Sliders,
+      desc: 'Control Center'
     },
     {
       id: 'drawer',

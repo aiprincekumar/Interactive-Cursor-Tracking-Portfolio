@@ -335,3 +335,63 @@ Define and implement the `Other ✨ AI` track as an emergent distinct specializa
 - [ ] `Overview` displays curated flagship highlights exclusively from `Accountant` and `MIS`, with clear visual track badges.
 - [ ] `Other ✨ AI` displays the complete 'Business Intelligence & Corporate Controller' profile with zero generic demo strings and a visible AI disclaimer banner.
 - [ ] `npm run lint` and `npm run build` complete with zero errors.
+
+
+## 2026-10-17T23:46:23Z
+
+Transform the 'Lab' section of the Interactive Cursor-Tracking Portfolio into a clean, theme-matched (Obsidian Dark / Linen Light) all-rounder Portfolio Control Center with a structured 4-tab settings layout. Completely remove irrelevant toy/physics sandbox features (2D bouncing balls, Px/s speedometer, particle burst, arcade presets) and provide real, practical portfolio controls with localStorage persistence.
+
+Working directory: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio
+Integrity mode: development
+
+## Requirements
+
+### R1. Elimination of Irrelevant Toy/Experimental Physics Features
+- Remove the 2D elastic orbs physics simulation canvas (`PhysicsSandbox.jsx`), collision bouncing balls, and gravity trampoline toy mechanics.
+- Remove the Px/s cursor speedometer and telemetry HUD widget.
+- Remove the Particle Burst trigger button and flashy gaming presets (Cyberpunk Zero-G, Arcade, Zen, Hyper).
+- Clean up any unused files and imports cleanly.
+
+### R2. 4-Tab Portfolio Control Center Architecture (In-Page & Floating Drawer)
+Both the in-page `#playground` / `#lab` section and the slide-out `LabStudioDrawer.jsx` must present an identical, theme-matched (Obsidian Dark / Linen Light) 4-tab Control Center:
+1. **🔊 Audio Studio:**
+   - Master sound toggle (On/Off).
+   - Master volume slider (0% to 100%).
+   - Pitch multiplier slider (0.5x to 2.0x — Deep Bass to Sharp Treble).
+   - Sound Matching Mode toggle: Dynamic cursor-sound matching (butterfly=sparkle, laser=focus, camera=shutter, etc.) vs. Universal Voice (consistent subtle chime for all interactions).
+   - 7 acoustic preview buttons.
+2. **✨ Cursor & Dynamics:**
+   - Custom interactive cursor toggle (On/Off — fallback to native system pointer).
+   - Cursor scale multiplier (0.5x to 2.0x) applied globally.
+   - Flight lerp speed (Dreamy / Natural / Snappy).
+   - Stardust particle trail toggle and theme color swatches.
+3. **👤 Hero & Character Control:**
+   - Character gaze tracking mode: Auto Gaze Follow vs. Static Fixed.
+   - 10 3D head pose override selector buttons.
+   - Character zoom/scale slider (0.5x to 2.0x).
+   - Polaroid camera flash and confetti toggle (On/Off).
+4. **⚙️ Startup & Preferences:**
+   - Default startup role track selection (Accountant / MIS Executive / Controller).
+   - Default cursor state on startup (Enabled/Disabled).
+   - Default audio state on startup (Enabled/Disabled).
+   - Reduced motion accessibility toggle.
+   - 1-Click "Reset to Factory Defaults" button.
+
+### R3. Reactive State Persistence & Wiring
+- Centralize all Control Center parameters in `LabContext.jsx` with atomic persistence in `localStorage` (`portfolio_control_center`).
+- Wire `DynamicCursorManager.jsx`, `HeroSection.jsx`, and `src/utils/audio.js` directly to these reactive parameters so tweaking any control immediately updates the live portfolio.
+
+## Acceptance Criteria
+
+### Functionality & Experience
+- [ ] The irrelevant physics sandbox canvas (bouncing balls, speedometer, burst) is completely removed from both in-page Lab and the drawer.
+- [ ] Both in-page `#playground` and the floating drawer render a consistent, elegant 4-tab Control Center matching the portfolio theme.
+- [ ] Toggling "Custom Cursor" off reverts to the native browser pointer cleanly; toggling on restores the selected custom cursor.
+- [ ] Audio volume, pitch (bass/treble), and dynamic sound-matching vs universal voice work cleanly.
+- [ ] Hero character gaze tracking mode, zoom scale, and 10 pose overrides react in real-time from the Control Center.
+- [ ] All settings persist across browser refresh in `localStorage`.
+- [ ] 1-Click Reset restores default values.
+
+### Code Quality & Build
+- [ ] `npm run lint` (`oxlint`) passes with 0 errors.
+- [ ] `npm run build` succeeds cleanly with 0 errors.
