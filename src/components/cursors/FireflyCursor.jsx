@@ -272,6 +272,10 @@ export default function FireflyCursor({
             ctx.restore();
           }
         }
+      } else if (!trailEnabledRef.current && canvasRef.current) {
+        if (particlesRef.current.length > 0) particlesRef.current = [];
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
 
       animationFrameId = requestAnimationFrame(loop);
@@ -292,13 +296,11 @@ export default function FireflyCursor({
 
   return (
     <>
-      {trailEnabled && (
-        <canvas
-          ref={canvasRef}
-          aria-hidden="true"
-          className="fixed inset-0 pointer-events-none z-[60] w-full h-full"
-        />
-      )}
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
+        className="fixed inset-0 pointer-events-none z-[60] w-full h-full"
+      />
 
       <div
         ref={fireflyRef}

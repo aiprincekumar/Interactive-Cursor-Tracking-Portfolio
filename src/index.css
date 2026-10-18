@@ -31,6 +31,39 @@
     --card-bg: rgba(255, 255, 255, 0.85);
     --card-border: #E7E2D8;
     --card-border-subtle: #ECE7DF;
+
+    /* Layout Density Defaults (Comfortable) */
+    --density-spacing-mult: 1.0;
+    --density-card-padding: 1.0;
+    --density-gap-mult: 1.0;
+  }
+
+  /* Real-Time Layout Density Modifiers */
+  html.density-compact {
+    --density-spacing-mult: 0.82;
+    --density-card-padding: 0.88;
+    --density-gap-mult: 0.85;
+  }
+
+  html.density-comfortable {
+    --density-spacing-mult: 1.0;
+    --density-card-padding: 1.0;
+    --density-gap-mult: 1.0;
+  }
+
+  html.density-spacious {
+    --density-spacing-mult: 1.25;
+    --density-card-padding: 1.15;
+    --density-gap-mult: 1.2;
+  }
+
+  /* Responsive Layout Density Adaptive Utility Classes */
+  .density-card-pad {
+    padding: calc(1.25rem * var(--density-card-padding, 1));
+  }
+
+  .density-layout-gap {
+    gap: calc(1rem * var(--density-gap-mult, 1));
   }
 
   .dark {

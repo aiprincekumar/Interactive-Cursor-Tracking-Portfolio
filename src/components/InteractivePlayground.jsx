@@ -27,7 +27,7 @@ export default function InteractivePlayground() {
               System Control & Live Calibration
             </h2>
             <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400 mt-2 max-w-2xl">
-              Fine-tune Web Audio synthesizer acoustics, 60-120 FPS cursor kinematics, 2.5D hero character tracking, and startup career preferences with real-time reactive persistence.
+              Fine-tune Web Audio synthesizer acoustics, cursor kinematics, 2.5D hero tracking, career preferences, and luxury display & visual optics with real-time reactive persistence.
             </p>
           </div>
 
@@ -55,7 +55,7 @@ export default function InteractivePlayground() {
           </div>
         </div>
 
-        {/* 4-Tab Control Center Panel */}
+        {/* 5-Tab Control Center Panel */}
         <ControlCenterPanel variant="workbench" />
       </div>
     </section>

@@ -26,7 +26,7 @@ class SoundFX {
     }
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {
-        // Handled silently until next user gesture
+        // Handled silently until user interaction
       });
     }
   }
@@ -48,8 +48,11 @@ class SoundFX {
   }
 
   setMasterVolume(volume) {
-    const val = typeof volume === 'number' && !isNaN(volume) ? volume : 0.8;
-    this.masterVolume = Math.max(0.0, Math.min(1.0, val));
+    let num = typeof volume === 'number' ? volume : parseFloat(volume);
+    if (isNaN(num)) num = 0.8;
+    // Normalize percentage (e.g. 80 -> 0.8) if sent as > 1.0
+    if (num > 1.0) num = num / 100;
+    this.masterVolume = Math.max(0.0, Math.min(1.0, parseFloat(num.toFixed(2))));
     if (this.ctx && this.masterGain) {
       const t = this.ctx.currentTime;
       const targetGain = this.enabled ? this.masterVolume : 0.0;

@@ -74,7 +74,7 @@ export default function RoleTabsBar({
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Escape' && onClose) {
+    if ((e.key === 'Escape' || (e.key === 'ArrowUp' && (variant === 'floating-bar' || variant === 'sub-bar'))) && onClose) {
       e.preventDefault();
       onClose();
       return;
@@ -104,6 +104,38 @@ export default function RoleTabsBar({
       });
     }
   };
+
+  // Center active career track tab on mount, role change, resize, or orientation change
+  React.useEffect(() => {
+    if (variant === 'floating-bar' || variant === 'sub-bar' || variant === 'drawer') {
+      const scrollActiveIntoView = () => {
+        const activeTab = tabButtonRefs.current[activeRole];
+        if (activeTab && typeof activeTab.scrollIntoView === 'function') {
+          const prefersReducedMotion =
+            typeof window !== 'undefined' &&
+            typeof window.matchMedia === 'function' &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+          activeTab.scrollIntoView({
+            behavior: prefersReducedMotion ? 'auto' : 'smooth',
+            block: 'nearest',
+            inline: 'center'
+          });
+        }
+      };
+
+      const timer = setTimeout(scrollActiveIntoView, 60);
+
+      window.addEventListener('resize', scrollActiveIntoView);
+      window.addEventListener('orientationchange', scrollActiveIntoView);
+
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('resize', scrollActiveIntoView);
+        window.removeEventListener('orientationchange', scrollActiveIntoView);
+      };
+    }
+  }, [activeRole, variant]);
 
   // ----------------------------------------------------
   // VARIANT 1: Mobile Drawer Single Compact Row
@@ -230,6 +262,7 @@ export default function RoleTabsBar({
   if (variant === 'floating-bar' || variant === 'sub-bar') {
     return (
       <div
+        id="floating-career-track-bar"
         className={`mt-2 max-w-7xl mx-auto flex items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FAF8F5]/95 dark:bg-[#161122]/95 backdrop-blur-md rounded-full border border-[#E7E2D8] dark:border-[#2D2340] shadow-md animate-in fade-in slide-in-from-top-2 duration-200 gap-2 sm:gap-4 select-none ${className}`}
         role="region"
         aria-label="Career Track Switcher Bar"

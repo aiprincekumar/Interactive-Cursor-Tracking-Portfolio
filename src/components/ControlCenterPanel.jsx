@@ -19,9 +19,14 @@ import {
   MousePointer,
   Briefcase,
   Layers,
-  Palette
+  Palette,
+  Sun,
+  Moon,
+  Gauge,
+  LayoutGrid
 } from 'lucide-react';
 import { useLab, POSE_INDEX_MAP } from '../context/LabContext';
+import { useTheme } from '../context/ThemeContext';
 import { soundFX, SOUNDBOARD_SOUNDS } from '../utils/audio';
 
 const SOUND_ICONS = {
@@ -81,6 +86,36 @@ const ROLE_OPTIONS = [
   }
 ];
 
+const DENSITY_OPTIONS = [
+  {
+    id: 'compact',
+    name: 'Compact',
+    multiplier: '0.8x spacing',
+    spacingValue: '0.82x',
+    summary: 'Higher information density',
+    desc: 'Compact (0.8x spacing, higher information density)',
+    badge: '0.8x Compact'
+  },
+  {
+    id: 'comfortable',
+    name: 'Comfortable',
+    multiplier: '1.0x spacing',
+    spacingValue: '1.0x',
+    summary: 'Balanced signature luxury',
+    desc: 'Comfortable (1.0x spacing, balanced signature luxury)',
+    badge: '1.0x Default'
+  },
+  {
+    id: 'spacious',
+    name: 'Spacious',
+    multiplier: '1.25x spacing',
+    spacingValue: '1.25x',
+    summary: 'Airy editorial showcase',
+    desc: 'Spacious (1.25x spacing, airy editorial showcase)',
+    badge: '1.25x Spacious'
+  }
+];
+
 export default function ControlCenterPanel({ variant = 'workbench' }) {
   const lab = useLab();
 
@@ -127,13 +162,66 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
     setDefaultAudioEnabled,
     setReducedMotion,
 
+    // Visuals
+    glassBlur,
+    motionSpeed,
+    accentColor,
+    layoutDensity,
+    setGlassBlur,
+    setMotionSpeed,
+    setAccentColor,
+    setLayoutDensity,
+
     // State & Meta
     activeTab,
     setActiveTab,
     resetDefaults
   } = lab;
 
+  const { theme, toggleTheme } = useTheme();
+
   const isDrawer = variant === 'drawer';
+
+  const handleSelectDensity = (densityId) => {
+    setLayoutDensity(densityId);
+    try {
+      soundFX.init();
+      if (soundEnabled) {
+        soundFX.playLaserFocus();
+      }
+    } catch {
+      // Handled silently
+    }
+  };
+
+  const handleDensityKeyDown = (e, currentId) => {
+    const order = ['compact', 'comfortable', 'spacious'];
+    const currentIndex = order.indexOf(currentId);
+    let targetIndex = -1;
+
+    const safeIndex = currentIndex === -1 ? 0 : currentIndex;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      targetIndex = (safeIndex + 1) % order.length;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      targetIndex = (safeIndex - 1 + order.length) % order.length;
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      targetIndex = 0;
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      targetIndex = order.length - 1;
+    }
+
+    if (targetIndex !== -1) {
+      const nextId = order[targetIndex];
+      handleSelectDensity(nextId);
+      const container = e.currentTarget.closest('[role="radiogroup"]');
+      const nextRadio = container?.querySelector(`[data-density-id="${nextId}"]`);
+      nextRadio?.focus();
+    }
+  };
 
   const handleSelectRole = (roleId) => {
     setDefaultStartupRole(roleId);
@@ -150,16 +238,27 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
     }
   };
 
+  const getAccentName = (hex) => {
+    const map = {
+      '#FF4D6D': 'Rose',
+      '#F59E0B': 'Amber',
+      '#06B6D4': 'Cyan',
+      '#10B981': 'Emerald'
+    };
+    return map[hex?.toUpperCase()] || 'Custom';
+  };
+
   const tabs = [
     { id: 'audio', label: 'Audio Studio', icon: Volume2, tag: soundEnabled ? `${Math.round(masterVolume * 100)}%` : 'Muted' },
     { id: 'cursor', label: 'Cursor & Dynamics', icon: Sparkles, tag: customCursorEnabled ? `${cursorScale.toFixed(1)}x` : 'Native' },
     { id: 'hero', label: 'Hero & Character', icon: User, tag: gazeMode === 'fixed' ? 'Fixed' : 'Auto' },
-    { id: 'preferences', label: 'Startup & Preferences', icon: Settings, tag: defaultStartupRole }
+    { id: 'preferences', label: 'Startup & Preferences', icon: Settings, tag: defaultStartupRole },
+    { id: 'visuals', label: 'Display & Visuals', icon: Palette, tag: getAccentName(accentColor) }
   ];
 
   return (
     <div className="w-full flex flex-col gap-6">
-      {/* 4-Tab Navigation Bar */}
+      {/* 5-Tab Navigation Bar */}
       <div
         role="tablist"
         aria-orientation="horizontal"
@@ -264,7 +363,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                 max="100"
                 step="5"
                 value={Math.round(masterVolume * 100)}
-                onChange={(e) => setMasterVolume(parseInt(e.target.value, 10))}
+                onChange={(e) => setMasterVolume(parseFloat(e.target.value) / 100)}
                 className="w-full accent-[#FF4D6D] cursor-pointer"
                 aria-label="Master Volume"
               />
@@ -378,6 +477,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                     key={snd.id}
                     type="button"
                     onClick={() => {
+                      soundFX.init();
                       snd.play();
                     }}
                     className="flex flex-col items-start p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/70 dark:bg-[#201830]/60 hover:bg-[#FF4D6D]/10 hover:border-[#FF4D6D]/40 transition-all text-left group cursor-pointer active:scale-97"
@@ -958,6 +1058,364 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* TAB 5: DISPLAY & VISUALS                                                  */}
+      {/* ========================================================================= */}
+      {activeTab === 'visuals' && (
+        <div
+          role="tabpanel"
+          id="panel-visuals"
+          aria-labelledby="tab-visuals"
+          tabIndex={0}
+          className="flex flex-col gap-6 focus:outline-none animate-fadeIn"
+        >
+          {/* Section Header Banner */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white/70 dark:bg-[#181226]/80 border border-[#E7E2D8] dark:border-[#2D2340]">
+            <div>
+              <h3 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                <Palette className="w-4 h-4 text-[var(--theme-accent,#FF4D6D)]" />
+                <span>Display Optics & Visual Atmosphere</span>
+              </h3>
+              <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                Curate surface refraction, cinematic easing rhythms, and vibrant luxury accent palettes.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-stone-100 dark:bg-[#251A3A] text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-stone-700/60">
+                Active: {theme === 'dark' ? 'Obsidian Dark' : 'Linen Light'} • {getAccentName(accentColor)} • {layoutDensity.charAt(0).toUpperCase() + layoutDensity.slice(1)}
+              </span>
+            </div>
+          </div>
+
+          {/* 4 Responsive Control Cards */}
+          <div className={`grid ${isDrawer ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
+            {/* CARD 1: Theme Switcher Card */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-4">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                    {theme === 'dark' ? <Moon className="w-4 h-4 text-purple-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+                    <span>Theme Surface Mode</span>
+                  </h4>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
+                    {theme === 'dark' ? 'Dark #0B0813' : 'Light #FAF8F5'}
+                  </span>
+                </div>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Switch between deep luxury Obsidian Dark and warm Linen Light studio canvas.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {/* Obsidian Dark Option */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (theme !== 'dark') toggleTheme();
+                  }}
+                  className={`p-3 rounded-xl border flex flex-col gap-2 text-left transition-all cursor-pointer relative ${
+                    theme === 'dark'
+                      ? 'bg-[#1D152D] border-purple-500 text-white shadow-xs ring-2 ring-purple-500/20'
+                      : 'bg-[#181226]/20 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-purple-400/50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="w-4 h-4 rounded-full bg-[#0B0813] border border-purple-400/60 inline-block" />
+                    {theme === 'dark' && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white">Obsidian Dark</div>
+                    <div className="text-[10px] text-stone-400">Deep Plum Canvas (#0B0813)</div>
+                  </div>
+                </button>
+
+                {/* Linen Light Option */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (theme !== 'light') toggleTheme();
+                  }}
+                  className={`p-3 rounded-xl border flex flex-col gap-2 text-left transition-all cursor-pointer relative ${
+                    theme === 'light'
+                      ? 'bg-[#F5F2EB] border-amber-500 text-[#18181B] shadow-xs ring-2 ring-amber-500/20'
+                      : 'bg-[#FAF8F5]/50 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-amber-400/50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="w-4 h-4 rounded-full bg-[#FAF8F5] border border-stone-300 inline-block" />
+                    {theme === 'light' && <Check className="w-3.5 h-3.5 text-amber-600" />}
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-[#18181B]">Linen Light</div>
+                    <div className="text-[10px] text-stone-500">Warm Natural Canvas (#FAF8F5)</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* CARD 2: Glassmorphism Blur Strength Card */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-4">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-cyan-500" />
+                    <span>Glassmorphism Blur Strength</span>
+                  </h4>
+                  <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
+                    {glassBlur === 'subtle' ? '8px' : glassBlur === 'deep' ? '24px' : '16px'}
+                  </span>
+                </div>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Control real-time surface backdrop diffusion on cards, modals, and drawers.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 'subtle', label: 'Subtle', px: '8px', desc: 'Light blur' },
+                  { id: 'balanced', label: 'Balanced', px: '16px', desc: 'Standard studio' },
+                  { id: 'deep', label: 'Deep Frosted', px: '24px', desc: 'Heavy diffusion' }
+                ].map((opt) => {
+                  const isSelected = glassBlur === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        setGlassBlur(opt.id);
+                        if (soundEnabled) soundFX.playHapticClick();
+                      }}
+                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                        isSelected
+                          ? 'bg-cyan-500/10 border-cyan-500 text-cyan-700 dark:text-cyan-300 font-bold shadow-2xs'
+                          : 'border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-cyan-400/40'
+                      }`}
+                    >
+                      <span className="text-xs">{opt.label}</span>
+                      <span className="text-[10px] font-mono text-stone-400 dark:text-stone-500">{opt.px}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* CARD 3: UI Motion & Transition Speed Card */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-4">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                    <Gauge className="w-4 h-4 text-emerald-500" />
+                    <span>Motion & Transition Rhythm</span>
+                  </h4>
+                  <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                    {motionSpeed.toFixed(1)}x
+                  </span>
+                </div>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Global transition timing multiplier for drawer slides, tabs, and micro-animations.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { speed: 0.7, label: 'Snappy', desc: '0.7x (Fast)' },
+                  { speed: 1.0, label: 'Natural', desc: '1.0x (Organic)' },
+                  { speed: 1.4, label: 'Cinematic', desc: '1.4x (Smooth)' }
+                ].map((opt) => {
+                  const isSelected = Math.abs(motionSpeed - opt.speed) < 0.15;
+                  return (
+                    <button
+                      key={opt.speed}
+                      type="button"
+                      onClick={() => {
+                        setMotionSpeed(opt.speed);
+                        if (soundEnabled) soundFX.playHapticClick();
+                      }}
+                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                        isSelected
+                          ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300 font-bold shadow-2xs'
+                          : 'border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-emerald-400/40'
+                      }`}
+                    >
+                      <span className="text-xs">{opt.label}</span>
+                      <span className="text-[10px] font-mono text-stone-400 dark:text-stone-500">{opt.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* CARD 4: Accent Theme Color Card */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-4">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#FF4D6D]" />
+                    <span>Accent Theme Color</span>
+                  </h4>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className="w-3 h-3 rounded-full border border-black/20 dark:border-white/20"
+                      style={{ backgroundColor: accentColor }}
+                    />
+                    <span className="text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300">
+                      {accentColor.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Luxury dynamic brand swatches. Live updates CSS accents, particle trails, and laser focus.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {[
+                  { name: 'Electric Rose', hex: '#FF4D6D', rgb: '255, 77, 109' },
+                  { name: 'Amber Gold', hex: '#F59E0B', rgb: '245, 158, 11' },
+                  { name: 'Neon Cyan', hex: '#06B6D4', rgb: '6, 182, 212' },
+                  { name: 'Emerald Green', hex: '#10B981', rgb: '16, 185, 129' }
+                ].map((c) => {
+                  const isSelected = accentColor.toUpperCase() === c.hex.toUpperCase();
+                  return (
+                    <button
+                      key={c.hex}
+                      type="button"
+                      onClick={() => {
+                        setAccentColor(c.hex);
+                        try {
+                          soundFX.init();
+                          if (soundEnabled) soundFX.playLaserFocus();
+                        } catch {
+                          // Handled silently
+                        }
+                      }}
+                      className={`p-2 rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer relative ${
+                        isSelected
+                          ? 'border-[var(--theme-accent,#FF4D6D)] bg-[var(--theme-accent,#FF4D6D)]/10 ring-2 ring-[var(--theme-accent,#FF4D6D)]/30 scale-102'
+                          : 'border-stone-200 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 bg-white/40 dark:bg-stone-900/40'
+                      }`}
+                    >
+                      <div
+                        className="w-7 h-7 rounded-full shadow-sm flex items-center justify-center transition-transform"
+                        style={{ backgroundColor: c.hex }}
+                      >
+                        {isSelected && <Check className="w-4 h-4 text-white drop-shadow-sm" />}
+                      </div>
+                      <span className="text-[11px] font-bold text-[#18181B] dark:text-white truncate max-w-full">
+                        {c.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* CARD 5: Quick Layout Density Tuner Card */}
+            <div className={`p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-4 ${isDrawer ? '' : 'md:col-span-2'}`}>
+              <div>
+                <div className="flex items-center justify-between mb-1 gap-2">
+                  <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                    <LayoutGrid className="w-4 h-4 text-[var(--theme-accent,#FF4D6D)] shrink-0" />
+                    <span>Layout Density</span>
+                  </h4>
+                  <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--theme-accent,#FF4D6D)]/10 text-[var(--theme-accent,#FF4D6D)] border border-[var(--theme-accent,#FF4D6D)]/20 shrink-0">
+                    {layoutDensity === 'compact' ? 'Compact • 0.8x' : layoutDensity === 'spacious' ? 'Spacious • 1.25x' : 'Comfortable • 1.0x'}
+                  </span>
+                </div>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Real-time spacing, padding, and layout scale optimization across portfolio containers.
+                </p>
+              </div>
+
+              <div
+                role="radiogroup"
+                aria-label="Layout Density Options"
+                className={`grid ${isDrawer ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-3'} gap-3`}
+              >
+                {DENSITY_OPTIONS.map((opt) => {
+                  const isSelected = layoutDensity === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      role="radio"
+                      data-density-id={opt.id}
+                      tabIndex={isSelected ? 0 : -1}
+                      onKeyDown={(e) => handleDensityKeyDown(e, opt.id)}
+                      aria-checked={isSelected}
+                      aria-label={`${opt.name} layout density (${opt.multiplier})`}
+                      onClick={() => handleSelectDensity(opt.id)}
+                      className={`p-3.5 rounded-xl border flex flex-col justify-between text-left transition-all cursor-pointer relative group ${
+                        isSelected
+                          ? 'bg-[var(--theme-accent,#FF4D6D)]/10 border-[var(--theme-accent,#FF4D6D)] text-[#18181B] dark:text-white ring-2 ring-[var(--theme-accent,#FF4D6D)]/30 shadow-[0_0_15px_-3px_rgba(255,77,109,0.25)] scale-[1.01]'
+                          : 'bg-white/40 dark:bg-stone-900/40 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-stone-300 dark:hover:border-stone-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full mb-2">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-colors ${
+                            isSelected
+                              ? 'bg-[var(--theme-accent,#FF4D6D)]/20 text-[var(--theme-accent,#FF4D6D)] border-[var(--theme-accent,#FF4D6D)]/30'
+                              : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 border-stone-200/60 dark:border-stone-700/60'
+                          }`}
+                        >
+                          {opt.multiplier}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {isSelected && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[var(--theme-accent,#FF4D6D)] text-white flex items-center gap-1 shadow-2xs">
+                              <Check className="w-3 h-3" />
+                              <span>Active</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                          <span>{opt.name}</span>
+                          <span className="text-[10px] font-normal text-stone-400 dark:text-stone-500 font-mono">({opt.spacingValue})</span>
+                        </div>
+                        <div className="text-[11px] text-stone-500 dark:text-stone-400 mt-1 leading-snug">
+                          {opt.summary}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* 1-Click Reset to Factory Defaults */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                <RotateCcw className="w-4 h-4 text-[#FF4D6D]" />
+                <span>Reset Visuals to Default</span>
+              </h4>
+              <p className="text-xs text-stone-500 dark:text-stone-400">
+                Atomically restore Audio, Cursor, Hero, Startup, and Display & Visual parameters to clean factory defaults
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                resetDefaults();
+                if (soundEnabled) soundFX.playCrystalChime();
+              }}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-[#FF4D6D] text-stone-700 hover:text-white dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-[#FF4D6D] dark:hover:text-white font-bold text-xs transition-all cursor-pointer shadow-xs active:scale-97"
+              aria-label="Reset Visuals to Default"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Reset Visuals to Default</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

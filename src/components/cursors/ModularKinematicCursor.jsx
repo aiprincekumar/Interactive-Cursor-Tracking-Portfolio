@@ -407,6 +407,10 @@ export default function ModularKinematicCursor({
                 ctx.fill();
               }
             }
+          } else {
+            if (particlesRef.current.length > 0) {
+              particlesRef.current = [];
+            }
           }
         }
       }

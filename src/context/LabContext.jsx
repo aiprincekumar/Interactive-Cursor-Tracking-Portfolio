@@ -32,6 +32,12 @@ export const FACTORY_DEFAULTS = {
     defaultCursorEnabled: true,
     defaultAudioEnabled: true,
     reducedMotion: false
+  },
+  visuals: {
+    glassBlur: 'balanced', // 'subtle' (8px), 'balanced' (16px), 'deep' (24px)
+    motionSpeed: 1.0,      // 0.7 (snappy), 1.0 (natural), 1.4 (cinematic)
+    accentColor: '#FF4D6D', // '#FF4D6D' (Electric Rose), '#F59E0B' (Amber Gold), '#06B6D4' (Neon Cyan), '#10B981' (Emerald)
+    layoutDensity: 'comfortable' // 'compact' | 'comfortable' | 'spacious'
   }
 };
 
@@ -113,6 +119,52 @@ function normalizePoseOverride(val) {
   return null;
 }
 
+export function hexToRgb(hex) {
+  if (typeof hex !== 'string') return '255, 77, 109';
+  const clean = hex.replace('#', '').trim();
+  if (clean.length === 3) {
+    const r = parseInt(clean[0] + clean[0], 16);
+    const g = parseInt(clean[1] + clean[1], 16);
+    const b = parseInt(clean[2] + clean[2], 16);
+    if (!isNaN(r) && !isNaN(g) && !isNaN(b)) return `${r}, ${g}, ${b}`;
+  } else if (clean.length === 6) {
+    const r = parseInt(clean.substring(0, 2), 16);
+    const g = parseInt(clean.substring(2, 4), 16);
+    const b = parseInt(clean.substring(4, 6), 16);
+    if (!isNaN(r) && !isNaN(g) && !isNaN(b)) return `${r}, ${g}, ${b}`;
+  }
+  return '255, 77, 109';
+}
+
+export function normalizeGlassBlur(val) {
+  if (typeof val === 'string') {
+    const s = val.toLowerCase();
+    if (s === 'subtle' || s === 'balanced' || s === 'deep') return s;
+  }
+  return 'balanced';
+}
+
+export function normalizeMotionSpeed(val) {
+  const num = typeof val === 'number' ? val : parseFloat(val);
+  if (isNaN(num)) return 1.0;
+  if (Math.abs(num - 0.7) < 0.15) return 0.7;
+  if (Math.abs(num - 1.4) < 0.2) return 1.4;
+  return 1.0;
+}
+
+export function normalizeAccentColor(val) {
+  return validateColor(val);
+}
+
+export function normalizeLayoutDensity(val) {
+  if (typeof val === 'string') {
+    const s = val.trim().toLowerCase();
+    if (s === 'compact' || s === 'comfortable' || s === 'spacious') return s;
+  }
+  return 'comfortable';
+}
+
+
 export function loadSavedControlCenterConfig() {
   if (typeof window === 'undefined') {
     return JSON.parse(JSON.stringify(FACTORY_DEFAULTS));
@@ -171,6 +223,12 @@ export function loadSavedControlCenterConfig() {
             reducedMotion: typeof preferences.reducedMotion === 'boolean'
               ? preferences.reducedMotion
               : (typeof parsed.reducedMotion === 'boolean' ? parsed.reducedMotion : FACTORY_DEFAULTS.preferences.reducedMotion)
+          },
+          visuals: {
+            glassBlur: normalizeGlassBlur(parsed.visuals?.glassBlur ?? parsed.glassBlur ?? FACTORY_DEFAULTS.visuals.glassBlur),
+            motionSpeed: normalizeMotionSpeed(parsed.visuals?.motionSpeed ?? parsed.motionSpeed ?? FACTORY_DEFAULTS.visuals.motionSpeed),
+            accentColor: validateColor(parsed.visuals?.accentColor ?? parsed.accentColor ?? FACTORY_DEFAULTS.visuals.accentColor),
+            layoutDensity: normalizeLayoutDensity(parsed.visuals?.layoutDensity ?? parsed.layoutDensity ?? FACTORY_DEFAULTS.visuals.layoutDensity)
           }
         };
       }
@@ -414,6 +472,19 @@ export function loadSavedControlCenterConfig() {
         defaultCursorEnabled,
         defaultAudioEnabled,
         reducedMotion
+      },
+      visuals: {
+        glassBlur: FACTORY_DEFAULTS.visuals.glassBlur,
+        motionSpeed: FACTORY_DEFAULTS.visuals.motionSpeed,
+        accentColor: particleColor || FACTORY_DEFAULTS.visuals.accentColor,
+        layoutDensity: normalizeLayoutDensity(
+          legacyStudio?.visuals?.layoutDensity ??
+          legacyStudio?.layoutDensity ??
+          legacyLab?.visuals?.layoutDensity ??
+          legacyLab?.layoutDensity ??
+          (typeof window !== 'undefined' ? localStorage.getItem('portfolio_layout_density') : null) ??
+          FACTORY_DEFAULTS.visuals.layoutDensity
+        )
       }
     };
   } catch {
@@ -487,11 +558,115 @@ export function LabProvider({ children, initialSoundEnabled }) {
   const [defaultAudioEnabled, setDefaultAudioEnabledState] = useState(initialConfig.preferences.defaultAudioEnabled);
   const [reducedMotion, setReducedMotionState] = useState(initialConfig.preferences.reducedMotion);
 
+  // Tab 5: Display & Visuals State
+  const [glassBlur, setGlassBlurState] = useState(initialConfig.visuals.glassBlur);
+  const [motionSpeed, setMotionSpeedState] = useState(initialConfig.visuals.motionSpeed);
+  const [accentColor, setAccentColorState] = useState(initialConfig.visuals.accentColor);
+  const [layoutDensity, setLayoutDensityState] = useState(initialConfig.visuals.layoutDensity);
+
   // Runtime UI State
   const [activeTab, setActiveTab] = useState('audio');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const isInitialMount = useRef(true);
+
+  // Inject Root CSS Custom Properties for Display & Visuals
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    const rootStyle = root.style;
+
+    // 1. Glass Blur: subtle (8px), balanced (16px), deep (24px)
+    const blurPx = glassBlur === 'subtle' ? 8 : glassBlur === 'deep' ? 24 : 16;
+    rootStyle.setProperty('--glass-blur', `${blurPx}px`);
+
+    // 2. Motion Speed Multiplier: 0.7 (snappy), 1.0 (natural), 1.4 (cinematic)
+    rootStyle.setProperty('--motion-speed-mult', `${motionSpeed}`);
+
+    // 3. Accent Theme Color & RGB tuple
+    rootStyle.setProperty('--theme-accent', accentColor);
+    rootStyle.setProperty('--theme-accent-rgb', hexToRgb(accentColor));
+
+    // 4. Layout Density CSS Custom Properties & Dynamic Root Classes
+    const density = normalizeLayoutDensity(layoutDensity);
+    const densityConfigs = {
+      compact: { spacing: '0.82', padding: '0.88', gap: '0.85' },
+      comfortable: { spacing: '1.0', padding: '1.0', gap: '1.0' },
+      spacious: { spacing: '1.25', padding: '1.15', gap: '1.2' }
+    };
+    const currentConfig = densityConfigs[density] || densityConfigs.comfortable;
+    rootStyle.setProperty('--density-spacing-mult', currentConfig.spacing);
+    rootStyle.setProperty('--density-card-padding', currentConfig.padding);
+    rootStyle.setProperty('--density-gap-mult', currentConfig.gap);
+
+    // Toggle density root class on document.documentElement
+    root.classList.remove('density-compact', 'density-comfortable', 'density-spacious');
+    root.classList.add(`density-${density}`);
+
+    // Self-healing DOM resilience against aggressive extensions or external DOM wipes
+    let isHealing = false;
+    const healDensityDOM = () => {
+      if (isHealing) return;
+      isHealing = true;
+      try {
+        const expectedClass = `density-${density}`;
+        if (!root.classList.contains(expectedClass)) {
+          root.classList.remove('density-compact', 'density-comfortable', 'density-spacious');
+          root.classList.add(expectedClass);
+        }
+        if (rootStyle.getPropertyValue('--density-spacing-mult') !== currentConfig.spacing) {
+          rootStyle.setProperty('--density-spacing-mult', currentConfig.spacing);
+        }
+        if (rootStyle.getPropertyValue('--density-card-padding') !== currentConfig.padding) {
+          rootStyle.setProperty('--density-card-padding', currentConfig.padding);
+        }
+        if (rootStyle.getPropertyValue('--density-gap-mult') !== currentConfig.gap) {
+          rootStyle.setProperty('--density-gap-mult', currentConfig.gap);
+        }
+      } finally {
+        isHealing = false;
+      }
+    };
+
+    let observer = null;
+    let fallbackInterval = null;
+    if (typeof MutationObserver !== 'undefined') {
+      observer = new MutationObserver((mutations) => {
+        if (isHealing) return;
+        for (const m of mutations) {
+          if (m.type === 'attributes' && (m.attributeName === 'class' || m.attributeName === 'style')) {
+            const expectedClass = `density-${density}`;
+            const isStyleDrifted =
+              rootStyle.getPropertyValue('--density-spacing-mult') !== currentConfig.spacing ||
+              rootStyle.getPropertyValue('--density-card-padding') !== currentConfig.padding ||
+              rootStyle.getPropertyValue('--density-gap-mult') !== currentConfig.gap;
+            if (!root.classList.contains(expectedClass) || isStyleDrifted) {
+              healDensityDOM();
+            }
+          }
+        }
+      });
+      observer.observe(root, { attributes: true, attributeFilter: ['class', 'style'] });
+    } else {
+      // Periodic fallback for sandboxed or legacy environments without MutationObserver
+      fallbackInterval = setInterval(healDensityDOM, 2000);
+    }
+
+    const handleWindowFocus = () => healDensityDOM();
+    window.addEventListener('focus', handleWindowFocus);
+    document.addEventListener('visibilitychange', handleWindowFocus);
+
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+      if (fallbackInterval) {
+        clearInterval(fallbackInterval);
+      }
+      window.removeEventListener('focus', handleWindowFocus);
+      document.removeEventListener('visibilitychange', handleWindowFocus);
+    };
+  }, [glassBlur, motionSpeed, accentColor, layoutDensity]);
 
   // Synchronize audio engine live
   useEffect(() => {
@@ -545,6 +720,12 @@ export function LabProvider({ children, initialSoundEnabled }) {
         defaultCursorEnabled,
         defaultAudioEnabled,
         reducedMotion
+      },
+      visuals: {
+        glassBlur,
+        motionSpeed,
+        accentColor,
+        layoutDensity
       },
       updatedAt: new Date().toISOString()
     };
@@ -602,7 +783,11 @@ export function LabProvider({ children, initialSoundEnabled }) {
     defaultStartupRole,
     defaultCursorEnabled,
     defaultAudioEnabled,
-    reducedMotion
+    reducedMotion,
+    glassBlur,
+    motionSpeed,
+    accentColor,
+    layoutDensity
   ]);
 
   // --- Audio Setters ---
@@ -680,6 +865,14 @@ export function LabProvider({ children, initialSoundEnabled }) {
   const setDefaultStartupRole = useCallback((role) => {
     const cleanRole = typeof role === 'string' ? role.toLowerCase() : 'accountant';
     setDefaultStartupRoleState(cleanRole);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('portfolio_selected_role', cleanRole);
+        window.dispatchEvent(new CustomEvent('switch-role-tab', { detail: { role: cleanRole, playSound: false } }));
+      } catch {
+        // Ignore
+      }
+    }
   }, []);
 
   const setDefaultCursorEnabled = useCallback((val) => {
@@ -692,6 +885,27 @@ export function LabProvider({ children, initialSoundEnabled }) {
 
   const setReducedMotion = useCallback((val) => {
     setReducedMotionState(Boolean(val));
+  }, []);
+
+  // --- Display & Visuals Setters ---
+  const setGlassBlur = useCallback((blur) => {
+    setGlassBlurState(normalizeGlassBlur(blur));
+  }, []);
+
+  const setMotionSpeed = useCallback((speed) => {
+    setMotionSpeedState(normalizeMotionSpeed(speed));
+  }, []);
+
+  const setAccentColor = useCallback((color) => {
+    const valid = validateColor(color);
+    setAccentColorState(valid);
+    // Also harmonize with particleColor for visual cohesiveness
+    setParticleColorState(valid);
+  }, []);
+
+  const setLayoutDensity = useCallback((density) => {
+    const next = normalizeLayoutDensity(density);
+    setLayoutDensityState((prev) => (prev === next ? prev : next));
   }, []);
 
   // --- 1-Click Factory Reset ---
@@ -722,6 +936,12 @@ export function LabProvider({ children, initialSoundEnabled }) {
     setDefaultCursorEnabledState(f.preferences.defaultCursorEnabled);
     setDefaultAudioEnabledState(f.preferences.defaultAudioEnabled);
     setReducedMotionState(f.preferences.reducedMotion);
+
+    // Visuals
+    setGlassBlurState(f.visuals.glassBlur);
+    setMotionSpeedState(f.visuals.motionSpeed);
+    setAccentColorState(f.visuals.accentColor);
+    setLayoutDensityState(f.visuals.layoutDensity);
 
     // Sync Audio Engine
     try {
@@ -790,6 +1010,13 @@ export function LabProvider({ children, initialSoundEnabled }) {
     const handleClose = () => closeDrawer();
     const handleToggle = () => toggleDrawer();
     const handleReset = () => resetDefaults();
+    const handleSetDensity = (e) => {
+      const d = e?.detail?.density ?? e?.detail;
+      if (d !== undefined) {
+        const next = normalizeLayoutDensity(d);
+        setLayoutDensityState((prev) => (prev === next ? prev : next));
+      }
+    };
 
     window.addEventListener('portfolio:open-lab-drawer', handleOpen);
     window.addEventListener('open-lab-drawer', handleOpen);
@@ -798,6 +1025,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
     window.addEventListener('portfolio:toggle-lab-drawer', handleToggle);
     window.addEventListener('toggle-lab-drawer', handleToggle);
     window.addEventListener('portfolio:reset-control-center', handleReset);
+    window.addEventListener('portfolio:set-layout-density', handleSetDensity);
 
     // Multi-tab sync via storage event
     const handleStorage = (e) => {
@@ -830,6 +1058,22 @@ export function LabProvider({ children, initialSoundEnabled }) {
               if (inc.preferences.defaultAudioEnabled !== undefined) setDefaultAudioEnabledState(Boolean(inc.preferences.defaultAudioEnabled));
               if (inc.preferences.reducedMotion !== undefined) setReducedMotionState(Boolean(inc.preferences.reducedMotion));
             }
+            if (inc.visuals) {
+              if (inc.visuals.glassBlur !== undefined) setGlassBlurState(normalizeGlassBlur(inc.visuals.glassBlur));
+              if (inc.visuals.motionSpeed !== undefined) setMotionSpeedState(normalizeMotionSpeed(inc.visuals.motionSpeed));
+              if (inc.visuals.accentColor !== undefined) {
+                const c = validateColor(inc.visuals.accentColor);
+                setAccentColorState(c);
+                setParticleColorState(c);
+              }
+              if (inc.visuals.layoutDensity !== undefined) {
+                const next = normalizeLayoutDensity(inc.visuals.layoutDensity);
+                setLayoutDensityState((prev) => (prev === next ? prev : next));
+              }
+            } else if (inc.layoutDensity !== undefined) {
+              const next = normalizeLayoutDensity(inc.layoutDensity);
+              setLayoutDensityState((prev) => (prev === next ? prev : next));
+            }
           }
         } catch {
           // Ignore parse errors from other tabs
@@ -847,6 +1091,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
       window.removeEventListener('portfolio:toggle-lab-drawer', handleToggle);
       window.removeEventListener('toggle-lab-drawer', handleToggle);
       window.removeEventListener('portfolio:reset-control-center', handleReset);
+      window.removeEventListener('portfolio:set-layout-density', handleSetDensity);
       window.removeEventListener('storage', handleStorage);
     };
   }, [openDrawer, closeDrawer, toggleDrawer, resetDefaults]);
@@ -901,6 +1146,16 @@ export function LabProvider({ children, initialSoundEnabled }) {
     setDefaultCursorEnabled,
     setDefaultAudioEnabled,
     setReducedMotion,
+
+    // Tab 5: Display & Visuals
+    glassBlur,
+    motionSpeed,
+    accentColor,
+    layoutDensity,
+    setGlassBlur,
+    setMotionSpeed,
+    setAccentColor,
+    setLayoutDensity,
 
     // Runtime UI State & Actions
     activeTab,
@@ -985,6 +1240,14 @@ export function LabProvider({ children, initialSoundEnabled }) {
     setDefaultCursorEnabled,
     setDefaultAudioEnabled,
     setReducedMotion,
+    glassBlur,
+    motionSpeed,
+    accentColor,
+    layoutDensity,
+    setGlassBlur,
+    setMotionSpeed,
+    setAccentColor,
+    setLayoutDensity,
     activeTab,
     setActiveTab,
     isDrawerOpen,

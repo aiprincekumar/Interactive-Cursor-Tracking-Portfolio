@@ -5,6 +5,8 @@ import { soundFX } from '../utils/audio';
 export const STORAGE_KEY = 'portfolio_selected_role';
 export const DEFAULT_ROLE = 'accountant';
 
+const cleanBase = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
+
 export const OVERVIEW_ROLE = {
   id: 'overview',
   label: 'Overview',
@@ -19,6 +21,7 @@ export const OVERVIEW_ROLE = {
   icon: 'LayoutDashboard',
   heroTitle: 'Financial & Operations Executive.',
   heroSubtitle: 'Bridging Statutory Accounting, Taxation & Advanced Data Intelligence.',
+  avatar: `${cleanBase}/assets/Profile_Pic/Overview.jpg`,
   isOverview: true
 };
 
@@ -36,7 +39,8 @@ export const PRIMARY_ROLES = [
     tag: 'Finance & Compliance',
     icon: 'Briefcase',
     heroTitle: 'Accountant & Tax Consultant.',
-    heroSubtitle: 'Business Development & Office Administrator.'
+    heroSubtitle: 'Business Development & Office Administrator.',
+    avatar: `${cleanBase}/assets/Profile_Pic/Accountant.jpg`
   },
   {
     id: 'mis',
@@ -51,7 +55,8 @@ export const PRIMARY_ROLES = [
     tag: 'Data & Operations',
     icon: 'BarChart2',
     heroTitle: 'MIS & Data Analyst.',
-    heroSubtitle: 'Business Intelligence, Automation & Operations Specialist.'
+    heroSubtitle: 'Business Intelligence, Automation & Operations Specialist.',
+    avatar: `${cleanBase}/assets/Profile_Pic/MIS.jpg`
   }
 ];
 
@@ -71,6 +76,7 @@ export const OTHER_ROLE = {
   heroSubtitle: '',
   specializationTitle: 'Business Intelligence & Corporate Controller.',
   specializationSubtitle: 'Statutory Financial Strategy & Executive Data Systems.',
+  avatar: `${cleanBase}/assets/Profile_Pic/Others.jpg`,
   isOther: true,
   isAISynthesized: true
 };
@@ -111,6 +117,19 @@ export function RoleProvider({ children, soundEnabled = true }) {
         const saved = normalizeRole(localStorage.getItem(STORAGE_KEY));
         if (saved) {
           return saved;
+        }
+      } catch {
+        // Fallback to control center preferences
+      }
+
+      try {
+        const rawCC = localStorage.getItem('portfolio_control_center');
+        if (rawCC) {
+          const parsedCC = JSON.parse(rawCC);
+          const startupRole = normalizeRole(parsedCC?.preferences?.defaultStartupRole);
+          if (startupRole) {
+            return startupRole;
+          }
         }
       } catch {
         // Fallback to default

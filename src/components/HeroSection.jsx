@@ -82,6 +82,21 @@ export default function HeroSection({
   const userScaleRef = useRef(userScale);
   const characterInnerRef = useRef(null);
 
+  // Real-time mutable refs to prevent rAF closure stalling
+  const poseOverrideRef = useRef(poseOverride);
+  const gazeModeRef = useRef(gazeMode);
+  const characterZoomRef = useRef(characterZoom);
+  const flashConfettiEnabledRef = useRef(flashConfettiEnabled);
+
+  // oxlint-disable-next-line react/refs
+  poseOverrideRef.current = poseOverride;
+  // oxlint-disable-next-line react/refs
+  gazeModeRef.current = gazeMode;
+  // oxlint-disable-next-line react/refs
+  characterZoomRef.current = characterZoom;
+  // oxlint-disable-next-line react/refs
+  flashConfettiEnabledRef.current = flashConfettiEnabled;
+
   // Sync characterZoom from LabContext
   useEffect(() => {
     if (typeof characterZoom === 'number') {
@@ -102,6 +117,13 @@ export default function HeroSection({
   }, [userScale]);
 
   const effectiveScale = BASELINE_SCALE * userScale;
+
+  // Keep characterInnerRef scale in sync reactively
+  useEffect(() => {
+    if (characterInnerRef.current) {
+      characterInnerRef.current.style.transform = `scale(${effectiveScale})`;
+    }
+  }, [effectiveScale]);
 
   // Direct DOM references for 120 FPS zero-render GPU updates (10 Total: 9 Directions + 1 Idle)
   const sectionRef = useRef(null);
@@ -205,17 +227,46 @@ export default function HeroSection({
       const dt = Math.min(Math.max((currentTime - lastTime) / 1000, 0.001), 0.05);
       lastTime = currentTime;
 
-      // Gaze mode and pose override resolution
-      const isFixedGaze = gazeMode === 'fixed';
-      const effectiveOverride = poseOverride !== null
-        ? (typeof poseOverride === 'number' ? POSE_INDEX_MAP[poseOverride] : poseOverride)
+      // Read mutable refs dynamically to eliminate rAF closure stalling
+      const currentGazeMode = gazeModeRef.current;
+      const currentPoseOverride = poseOverrideRef.current;
+      const isFixedGaze = currentGazeMode === 'fixed';
+
+      const effectiveOverride = currentPoseOverride !== null
+        ? (typeof currentPoseOverride === 'number' ? POSE_INDEX_MAP[currentPoseOverride] : currentPoseOverride)
         : null;
       const activeForcedState = forcedState || effectiveOverride || (isFixedGaze ? (effectiveOverride || 'center') : null);
 
       // Check gyro state if sensor active on mobile / gyro-enabled devices
       const gState = gyro.gyroStateRef.current;
       const isGyroActive = gState && gState.isActive;
-      if (isFixedGaze) {
+
+      // Defined head rotation coordinates per pose index / name
+      const POSE_TARGET_COORDS = {
+        'idle': { x: 0, y: 0 },
+        'rear-view': { x: 0, y: 0 },
+        'center': { x: 0, y: 0 },
+        'center-front': { x: 0, y: 0 },
+        'upper-center': { x: 0, y: -0.32 },
+        'center-upper': { x: 0, y: -0.32 },
+        'lower-center': { x: 0, y: 0.32 },
+        'center-lower': { x: 0, y: 0.32 },
+        'left': { x: -0.36, y: 0 },
+        'center-left': { x: -0.36, y: 0 },
+        'right': { x: 0.36, y: 0 },
+        'center-right': { x: 0.36, y: 0 },
+        'upper-left': { x: -0.32, y: -0.32 },
+        'lower-left': { x: -0.32, y: 0.32 },
+        'upper-right': { x: 0.32, y: -0.32 },
+        'lower-right': { x: 0.32, y: 0.32 }
+      };
+
+      if (effectiveOverride && POSE_TARGET_COORDS[effectiveOverride]) {
+        // Immediate decisive head rotation clamp for designated pose override
+        state.targetNormX = POSE_TARGET_COORDS[effectiveOverride].x;
+        state.targetNormY = POSE_TARGET_COORDS[effectiveOverride].y;
+        state.isHovered = true;
+      } else if (isFixedGaze) {
         state.targetNormX = 0;
         state.targetNormY = 0;
         state.isHovered = false;
@@ -609,7 +660,7 @@ export default function HeroSection({
     if (isPinchingRef.current) return;
     soundFX.playShutter();
 
-    if (!reducedMotion && flashConfettiEnabled) {
+    if (!reducedMotion && flashConfettiEnabledRef.current) {
       setIsFlashing(true);
       confetti({
         particleCount: 32,
@@ -658,7 +709,7 @@ export default function HeroSection({
     setTimeout(() => {
       setIsFlashing(false);
     }, 280);
-  }, [reducedMotion, flashConfettiEnabled, onPhotoCaptured]);
+  }, [reducedMotion, onPhotoCaptured]);
 
   return (
     <section

@@ -1,39 +1,34 @@
-# Handoff Report — Sentinel Final Delivery
+# Sentinel Handoff Report: Universal Avatar Role Switcher & Navbar De-clutter
 
-## 1. Observation
-- **User Request**: Transform the 'Lab' section of the Interactive Cursor-Tracking Portfolio into a clean, theme-matched (Obsidian Dark / Linen Light) all-rounder Portfolio Control Center with a structured 4-tab settings layout, completely removing irrelevant toy/physics sandbox features with localStorage persistence.
-- **Routing Decision**: Routed via General execution path to `teamwork_preview_orchestrator` (`orchestrator_5`).
-- **Implementation & Review Lifecycle**:
-  - Phase 1: 3 parallel Explorers surveyed UI architecture, state persistence, and hero/audio controls.
-  - Phase 2: Worker 1 executed core deletion of `PhysicsSandbox.jsx` and built `ControlCenterPanel.jsx` (4 tabs: Audio Studio, Cursor & Dynamics, Hero & Character Control, Startup & Preferences), updated `LabContext.jsx`, `audio.js`, `DynamicCursorManager.jsx`, and `HeroSection.jsx`.
-  - Phase 3 & 4: Reviewers 1-2, Challengers 1-2, and Forensic Auditor 1 inspected implementation. Challenger 1 identified a legacy migration edge case under a 101-scenario stress test suite.
-  - Remediation Loop: Worker 2 resolved the legacy `lab_studio_state` migration in `LabContext.jsx`.
-  - Challenger 3 & Auditor 2 confirmed 101/101 stress tests passed and verified code authenticity with 0 integrity violations.
-- **Victory Claim & Independent Audit**:
-  - `orchestrator_5` claimed completion.
-  - Independent post-victory auditor `victory_auditor_6` executed a blocking 3-phase audit (Timeline, Cheating Check, Independent Test Execution).
-  - Verdict: **VICTORY CONFIRMED** (Phase A PASS, Phase B PASS, Phase C PASS).
-  - `npm run lint`: 0 warnings, 0 errors across 91 files.
-  - `npm run build`: built in 747ms with 0 errors.
-  - Test suites: 100% pass across all 9 automated verification suites (101/101 stress assertions, 49/49 deep migration checks, 44/44 portfolio assertions, 17/17 runtime assertions, 8/8 audio tests, 6/6 control center tests, 7/7 reviewer checks).
+## Observation
+The user requested a single self-contained focused enhancement:
+1. Transform the dynamic profile avatar in `Navbar.jsx` into the primary universal role-switcher toggle button that toggles `isRoleBarOpen` on click.
+2. Cleanly separate the "Atul Verma" brand text into an independent `#hero` anchor link without triggering the role bar or nesting interactive tags.
+3. Remove the redundant standalone role-switcher button (`<RoleTabsBar variant="navbar" ... />`) from the navigation bar while preserving all other menus and controls.
+4. Pass automated tests (`npm test`), static analysis (`npx oxlint src/` 0 warnings/0 errors), and production build (`npm run build`).
+5. Maintain full project audit trail in `changes_log/` following Universal Rules 6 & 8.
 
-## 2. Logic Chain
-1. **R1 Elimination of Toy Physics**: Deleting `PhysicsSandbox.jsx` and clearing all canvas-based 2D balls, gravity trampoline, cursor speedometer, particle bursts, and arcade gaming presets elevated the portfolio to an executive standard.
-2. **R2 4-Tab Control Center Architecture**: Authoring `ControlCenterPanel.jsx` in theme-matched Obsidian Plum Dark and Linen Light provides unified control over Audio Studio (volume, pitch multiplier, sound matching mode, 7 previews), Cursor & Dynamics (custom cursor toggle, scale multiplier, flight lerp, particle trail), Hero & Character Control (gaze tracking mode, 10 head poses, zoom slider, camera flash/confetti), and Startup & Preferences (default track, startup states, reduced motion, 1-click factory reset).
-3. **R3 Reactive State Persistence & Wiring**: Centralizing state in `LabContext.jsx` with atomic `portfolio_control_center` `localStorage` synchronization and multi-tier legacy fallback ensures seamless real-time reactivity across all components and persistence across browser reloads.
-4. **Independent Post-Victory Verification**: Running a dedicated auditor with isolated context verified all acceptance criteria and caught zero regressions or facades.
+## Logic Chain
+1. **Routing & Dispatch**: Evaluated under the Routing Decision Table. Both conditions for SWE Light held (single self-contained fix + explicit "keep it small and focused" request). Dispatched `teamwork_preview_swe` orchestrator (`swe_5`).
+2. **Sentinel Supervision**: Established background progress reporting and liveness crons. Monitored execution through restart recovery and three full review rounds (`implementer_swe5_1` -> `reviewer_swe5_1` -> `reviewer_swe5_2b` -> `reviewer_swe5_3`).
+3. **Hardening Delivered**:
+   - Universal Avatar Toggle: standalone `<button type="button">` with `aria-expanded`, dynamic accent glow ring, hover zoom, active ring highlight, and functional state toggling.
+   - Brand Link Separation: sibling `<a href="#hero">` anchor, auto-dismissing open menus without focus trapping.
+   - De-cluttering: removed old standalone `<RoleTabsBar variant="navbar" />` while preserving floating bar, drawer, search, explore, audio, and resume dropdown.
+   - WAI-ARIA & Keyboard APG: `aria-controls` pairing, `ArrowDown` focus transfer to active tab, `ArrowUp` dismissal & focus return to avatar, orientation/resize auto-scroll centering, and mobile drawer cleanup.
+4. **Mandatory Post-Victory Audit**: Spawned independent `teamwork_preview_victory_auditor` (`victory_auditor_7`). All 3 audit phases passed with zero anomalies, confirming 100% genuine code, zero mocking of core features, and exact match of claimed results. Final verdict: `VICTORY CONFIRMED`.
+5. **Cleanup Protocol**: Cancelled monitoring crons (`task-125`, `task-127`) and terminated all subagents via `kill_all`.
 
-## 3. Caveats
-- None. All requirements and acceptance criteria have been verified with 100% test pass and zero lint/build errors.
+## Caveats
+- While full automated DOM event emulation and headless tests validated keyboard focus traps, orientation shifts, and WAI-ARIA compliance, actual physical screen reader hardware audio (NVDA / VoiceOver voice output) was verified via automated attributes and DOM assertions rather than physical listening.
+- Ultra-narrow screen resilience is verified down to 250px-260px viewports; screens narrower than 220px (e.g. smartwatches) may require horizontal scrolling if further navigation icons are added in future iterations.
 
-## 4. Conclusion
-- The Portfolio Control Center Modernization is 100% complete, verified, and confirmed.
-- Crons cancelled and subagents cleaned up per protocol.
+## Conclusion
+All requirements (R1, R2, R3) and acceptance criteria are completely satisfied, verified, and independently audited. The codebase is clean, well-tested, compliant with project rules, and production-ready.
 
-## 5. Verification Method
-- Static analysis: `npm run lint` (`oxlint`) -> 0 errors.
-- Production build: `npm run build` (`vite build`) -> builds clean in <1s.
-- Milestone test suite: `node scripts/test_milestone2_control_center.mjs` -> 6/6 passed.
-- Challenger stress suite: `node scripts/test_challenger_control_center_stress.mjs` -> 101/101 passed.
-- Hero & Audio runtime suite: `node scripts/test_challenger_hero_audio_runtime.mjs` -> 17/17 passed.
-- Portfolio & Marquee suite: `npm test` -> 44/44 passed.
+## Verification Method
+- Automated Regression Suite: `npm test` (7 test suites, 130+ assertions, exit code 0)
+- Static Code Analysis: `npx oxlint src/` (0 warnings, 0 errors across 49 files)
+- Production Build: `npm run build` (compiled clean with exit code 0)
+- Changes Log Audit Trail: CHG-120 through CHG-124 recorded in `changes_log/`
+- Independent Audit Verdict: `VICTORY CONFIRMED` (recorded in `.agents/teamwork/victory_auditor_7/audit_report.md`)

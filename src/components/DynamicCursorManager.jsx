@@ -90,15 +90,26 @@ export default function DynamicCursorManager({
   // Compute effective reduced motion (prop overrides system if passed)
   const effectiveReducedMotion = propReducedMotion !== undefined ? propReducedMotion : prefersReducedMotion;
 
-  // Manage .custom-cursor-disabled class on document body and html root
+  // Manage .custom-cursor-disabled class and direct style cursor overrides on document body and html root
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const isCursorActive = customCursorEnabled && isDesktopCursor && !effectiveReducedMotion;
     document.body.classList.toggle('custom-cursor-disabled', !isCursorActive);
     document.documentElement.classList.toggle('custom-cursor-disabled', !isCursorActive);
+
+    if (!isCursorActive) {
+      document.documentElement.style.cursor = 'auto';
+      document.body.style.cursor = 'auto';
+    } else {
+      document.documentElement.style.cursor = '';
+      document.body.style.cursor = '';
+    }
+
     return () => {
       document.body.classList.remove('custom-cursor-disabled');
       document.documentElement.classList.remove('custom-cursor-disabled');
+      document.documentElement.style.cursor = '';
+      document.body.style.cursor = '';
     };
   }, [customCursorEnabled, isDesktopCursor, effectiveReducedMotion]);
 

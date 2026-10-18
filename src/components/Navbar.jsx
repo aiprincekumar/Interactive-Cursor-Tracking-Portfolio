@@ -9,7 +9,7 @@ import ResumeDropdown from './ResumeDropdown';
 import ScrollProgressBar from './ScrollProgressBar';
 import RoleTabsBar from './RoleTabsBar';
 import ExploreSubBar from './ExploreSubBar';
-import { useRoleTab } from '../context/RoleContext';
+import { useRoleTab, ROLE_DATA, DEFAULT_ROLE } from '../context/RoleContext';
 import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
 import { useTheme } from '../context/ThemeContext';
 
@@ -28,8 +28,24 @@ export default function Navbar({
   } catch {
     // In case Navbar is mounted outside RoleProvider
   }
-  const activeRole = propActiveRole ?? roleContext?.activeRole ?? 'accountant';
+  const activeRole = propActiveRole ?? roleContext?.activeRole ?? DEFAULT_ROLE;
   const onSelectRole = propOnSelectRole ?? roleContext?.selectRole;
+  const activeTrack = roleContext?.activeTrack || ROLE_DATA?.[activeRole] || ROLE_DATA?.[DEFAULT_ROLE];
+  const avatarSrc = activeTrack?.avatar;
+  const accentColor = activeTrack?.accentHex || activeTrack?.color || activeTrack?.accent || '#FF4D6D';
+
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const avatarImgRef = useRef(null);
+  const avatarButtonRef = useRef(null);
+
+  useEffect(() => {
+    setImageLoaded(false);
+    setImageError(false);
+    if (avatarImgRef.current && avatarImgRef.current.complete && avatarImgRef.current.naturalWidth > 0) {
+      setImageLoaded(true);
+    }
+  }, [avatarSrc]);
 
   let themeContext = null;
   try {
@@ -75,18 +91,35 @@ export default function Navbar({
     }
   }, [isDesktopCursor, isRibbonOpen]);
 
+  // Auto-close mobile drawer on desktop resize or orientation change
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== 'undefined' && window.innerWidth >= 768 && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, [mobileMenuOpen]);
+
   const activeCursorData = CURSOR_LIST.find((c) => c.id === activeCursor) || CURSOR_LIST[0];
 
   const toggleRoleBar = () => {
-    const next = !isRoleBarOpen;
-    setIsRoleBarOpen(next);
-    if (next) {
-      setIsExploreOpen(false);
-      setIsRibbonOpen(false);
-      setMobileMenuOpen(false);
-      if (isSearchOpen) setIsSearchOpen(false);
-    }
-    if (soundEnabled) soundFX.playRibbonToggle(next);
+    setIsRoleBarOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setIsExploreOpen(false);
+        setIsRibbonOpen(false);
+        setMobileMenuOpen(false);
+        setIsSearchOpen(false);
+      }
+      if (soundEnabled) soundFX.playRibbonToggle(next);
+      return next;
+    });
   };
 
   const toggleExploreBar = () => {
@@ -164,6 +197,7 @@ export default function Navbar({
         if (isRoleBarOpen) {
           setIsRoleBarOpen(false);
           if (soundEnabled) soundFX.playRibbonToggle(false);
+          avatarButtonRef.current?.focus();
         }
         if (isExploreOpen) {
           setIsExploreOpen(false);
@@ -223,19 +257,92 @@ export default function Navbar({
 
   return (
     <>
-      <header ref={navContainerRef} className="fixed top-0 left-0 right-0 z-40 px-3 md:px-8 py-3.5">
-        <div className="relative max-w-7xl mx-auto bg-[#FAF8F5]/90 dark:bg-[#161122]/90 backdrop-blur-md rounded-full border border-[#E7E2D8] dark:border-[#2D2340] px-3 sm:px-4 md:px-5 py-2 shadow-xs flex items-center justify-between transition-colors">
-          {/* Brand Logo - Atul Verma (AV) */}
-          <a href="#hero" className="flex items-center gap-2 group shrink-0">
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-[#E7E2D8] dark:border-[#2D2340] bg-[#18181B] dark:bg-[#201830] flex items-center justify-center text-white text-xs font-bold shadow-xs group-hover:scale-105 transition-transform">
-              <span className="font-mono text-[11px] text-[#FAF8F5] dark:text-[#F5F2F8]">AV</span>
-            </div>
-            <div className="hidden sm:block">
-              <span className="font-extrabold text-[#18181B] dark:text-white text-xs lg:text-sm tracking-tight font-['Outfit',sans-serif] whitespace-nowrap">
+      <header ref={navContainerRef} className="fixed top-0 left-0 right-0 z-40 px-2 sm:px-3 md:px-8 py-3.5">
+        <div className="relative max-w-7xl mx-auto bg-[#FAF8F5]/90 dark:bg-[#161122]/90 backdrop-blur-md rounded-full border border-[#E7E2D8] dark:border-[#2D2340] px-2.5 sm:px-4 md:px-5 py-2 shadow-xs flex items-center justify-between transition-colors">
+          {/* Brand Group: Universal Role Switcher Avatar Button + Atul Verma Home Link */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Universal Avatar Role-Switcher Trigger */}
+            <button
+              ref={avatarButtonRef}
+              type="button"
+              onClick={toggleRoleBar}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  if (!isRoleBarOpen) {
+                    toggleRoleBar();
+                  }
+                  requestAnimationFrame(() => {
+                    const activeTabEl = document.getElementById(`floating-role-tab-${activeRole}`) || document.querySelector('[id^="floating-role-tab-"]');
+                    activeTabEl?.focus();
+                  });
+                }
+              }}
+              onMouseEnter={() => {
+                if (soundEnabled) soundFX.playChipHover();
+              }}
+              aria-label={isRoleBarOpen ? 'Close career track switcher' : `Switch career track (current: ${activeTrack?.label || activeRole}) Profile • Atul Verma`}
+              aria-expanded={isRoleBarOpen}
+              aria-haspopup="dialog"
+              aria-controls="floating-career-track-bar"
+              title={`${activeTrack?.label || activeRole} Profile • Atul Verma - Click to switch career track`}
+              className={`relative w-8 h-8 rounded-full overflow-hidden border-2 bg-[#18181B] dark:bg-[#201830] flex items-center justify-center shrink-0 shadow-xs hover:scale-105 active:scale-95 transition-all duration-300 ease-out cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                isRoleBarOpen ? 'scale-105 ring-2 ring-[#FF4D6D]/40' : ''
+              }`}
+              style={{
+                borderColor: accentColor,
+                boxShadow: isRoleBarOpen
+                  ? `0 0 14px ${accentColor}80`
+                  : `0 0 10px ${accentColor}40`
+              }}
+            >
+              {/* Fallback AV Monogram (active during initial load or on image error) */}
+              <div
+                className={`absolute inset-0 flex items-center justify-center text-white text-xs font-bold transition-opacity duration-300 ease-in-out ${
+                  imageLoaded && !imageError ? 'opacity-0 pointer-events-none' : 'opacity-100'
+                }`}
+                aria-hidden="true"
+              >
+                <span className="font-mono text-[11px] text-[#FAF8F5] dark:text-[#F5F2F8]">AV</span>
+              </div>
+
+              {/* Dynamic Role Profile Picture with cross-dissolve & scale transition */}
+              {avatarSrc && !imageError && (
+                <img
+                  ref={avatarImgRef}
+                  key={avatarSrc}
+                  src={avatarSrc}
+                  alt={`${activeTrack?.label || activeRole} Profile • Atul Verma`}
+                  className={`w-full h-full object-cover rounded-full transition-all duration-300 ease-out ${
+                    imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                  }`}
+                  onLoad={() => setImageLoaded(true)}
+                  onError={() => setImageError(true)}
+                  loading="eager"
+                  decoding="async"
+                />
+              )}
+            </button>
+
+            {/* Brand Name Link navigating to #hero */}
+            <a
+              href="#hero"
+              onClick={() => {
+                setActiveSection('hero');
+                if (isRoleBarOpen) setIsRoleBarOpen(false);
+                if (isExploreOpen) setIsExploreOpen(false);
+                if (isRibbonOpen) setIsRibbonOpen(false);
+                if (soundEnabled) soundFX.playFocusBeep();
+              }}
+              className="hidden sm:block group"
+              title="Atul Verma • Home"
+              aria-label="Atul Verma • Home"
+            >
+              <span className="font-extrabold text-[#18181B] dark:text-white text-xs lg:text-sm tracking-tight font-['Outfit',sans-serif] whitespace-nowrap group-hover:text-[#FF4D6D] dark:group-hover:text-[#FF4D6D] transition-colors">
                 Atul Verma
               </span>
-            </div>
-          </a>
+            </a>
+          </div>
 
           {/* Desktop Nav Links with ScrollSpy */}
           <nav className="hidden md:flex items-center gap-0.5 lg:gap-1 bg-[#F0EBE1]/70 dark:bg-[#0B0813]/85 px-2 lg:px-3 py-1 rounded-full border border-[#E5DFD5] dark:border-[#2D2340]/80 shadow-xs" aria-label="Main Navigation">
@@ -247,6 +354,9 @@ export default function Navbar({
                   href={link.href}
                   onClick={() => {
                     setActiveSection(link.id);
+                    if (isRoleBarOpen) setIsRoleBarOpen(false);
+                    if (isExploreOpen) setIsExploreOpen(false);
+                    if (isRibbonOpen) setIsRibbonOpen(false);
                     if (soundEnabled) soundFX.playFocusBeep();
                   }}
                   className={`text-[11px] lg:text-xs font-semibold rounded-full px-2 lg:px-2.5 py-1 transition-all duration-200 select-none whitespace-nowrap ${
@@ -261,8 +371,8 @@ export default function Navbar({
             })}
           </nav>
 
-          {/* Right Action Group - Strict Order: [🔍 Search] -> [✨ Explore] -> [Role Switcher] -> [🦋 Cursor] -> [🌓 Theme] -> [🔊 Sound] -> [📄 Resume] -> [☰ Menu] */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Right Action Group - Order: [🔍 Search] -> [✨ Explore] -> [🦋 Cursor] -> [🌓 Theme] -> [🔊 Sound] -> [📄 Resume] -> [☰ Menu] */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* 1. Global Search Trigger Button */}
             <button
               type="button"
@@ -313,17 +423,9 @@ export default function Navbar({
               </span>
             </button>
 
-            {/* 3. Career Role Switcher Single-Icon Trigger (immediately after Search & Explore) */}
-            <RoleTabsBar
-              variant="navbar"
-              activeRole={activeRole}
-              onSelectRole={onSelectRole}
-              isOpen={isRoleBarOpen}
-              onToggle={toggleRoleBar}
-              soundEnabled={soundEnabled}
-            />
+            {/* Standalone role-switcher button (formerly RoleTabsBar with variant="navbar") removed in favor of universal avatar trigger */}
 
-            {/* 4. Dynamic Cursor Variant Selector (Desktop & Fine Pointer Only) */}
+            {/* 3. Dynamic Cursor Variant Selector (Desktop & Fine Pointer Only) */}
             {isDesktopCursor && (
               <button
                 type="button"
@@ -431,10 +533,12 @@ export default function Navbar({
             onSelectRole={(role) => {
               if (onSelectRole) onSelectRole(role);
               setIsRoleBarOpen(false);
+              avatarButtonRef.current?.focus();
             }}
             onClose={() => {
               setIsRoleBarOpen(false);
               if (soundEnabled) soundFX.playRibbonToggle(false);
+              avatarButtonRef.current?.focus();
             }}
             soundEnabled={soundEnabled}
             className="max-w-7xl"

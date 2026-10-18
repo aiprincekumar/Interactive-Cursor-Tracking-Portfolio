@@ -395,3 +395,89 @@ Both the in-page `#playground` / `#lab` section and the slide-out `LabStudioDraw
 ### Code Quality & Build
 - [ ] `npm run lint` (`oxlint`) passes with 0 errors.
 - [ ] `npm run build` succeeds cleanly with 0 errors.
+
+
+## 2026-10-18T02:52:47Z
+
+This is a single self-contained feature; keep it small and focused. Implement the 'Quick Layout Density Tuner' inside Tab 5 ('Display & Visuals') of the Portfolio Control Center, allowing real-time switching between Compact (0.8x spacing), Comfortable (1.0x spacing, default), and Spacious (1.25x spacing) layouts with atomic localStorage persistence and CSS custom properties injection.
+
+Working directory: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio
+Integrity mode: development
+
+## Requirements
+
+### R1. State Management & Runtime CSS Injection
+- Extend `portfolio_control_center.visuals` schema in `LabContext.jsx` with `layoutDensity: 'comfortable'`.
+- Provide state and setters: `layoutDensity`, `setLayoutDensity`.
+- Inject root CSS custom properties dynamically on `document.documentElement.style`:
+  - `--density-spacing-mult`: `0.82` (compact), `1.0` (comfortable), `1.25` (spacious).
+  - `--density-card-padding`: `0.88` (compact), `1.0` (comfortable), `1.15` (spacious).
+  - `--density-gap-mult`: `0.85` (compact), `1.0` (comfortable), `1.2` (spacious).
+- Toggle density root class on `document.documentElement`: `density-compact` / `density-comfortable` / `density-spacious`.
+- Guarantee atomic localStorage persistence under `portfolio_control_center` and include in `resetDefaults()`.
+
+### R2. Tab 5 Control Card in ControlCenterPanel.jsx
+- Add a new "Layout Density" card inside Tab 5 ("Display & Visuals") in `ControlCenterPanel.jsx`.
+- Present 3 selectable option tiles:
+  - **Compact** (0.8x spacing, higher information density)
+  - **Comfortable** (1.0x spacing, balanced signature luxury)
+  - **Spacious** (1.25x spacing, airy editorial showcase)
+- Provide tactile sound feedback on selection via `soundFX.playLaserFocus()` with `soundFX.init()`.
+- Ensure clean visual integration matching the Obsidian Dark / Linen Light design system across both the in-page workbench and floating drawer surfaces.
+
+### R3. Quality Gates & Verification
+- Verify that `npx oxlint src/` passes with 0 warnings and 0 errors.
+- Verify that `npm run build` succeeds cleanly with exit code 0.
+- Update project changes log following Universal Rule 6 (`changes_log/`).
+
+## Acceptance Criteria
+
+### Functionality & Experience
+- [ ] Switching between Compact, Comfortable, and Spacious immediately changes layout density variables.
+- [ ] Active density selection is visually highlighted with border, glow, and badge indicator.
+- [ ] Refreshing the browser preserves the chosen density setting.
+- [ ] Clicking "Reset Visuals to Default" restores Comfortable mode.
+- [ ] Works identically in both in-page workbench and floating quick drawer.
+
+### Code Quality & Build
+- [ ] `npx oxlint src/` passes with 0 warnings and 0 errors.
+- [ ] `npm run build` succeeds cleanly with 0 errors.
+
+
+## 2026-10-18T03:20:45Z
+
+This is a single self-contained fix; keep it small and focused.
+
+Convert the dynamic profile avatar in the Navbar into the primary universal role-switcher trigger that toggles the floating horizontal role bar on click, while separating the brand name link and removing the old redundant standalone role-switcher button.
+
+Working directory: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio
+Integrity mode: development
+
+## Requirements
+
+### R1. Universal Avatar Role Switcher Trigger
+Transform the Navbar profile avatar into an interactive toggle button. Clicking the avatar must toggle open/closed the horizontal floating role-switcher sub-bar (isRoleBarOpen), maintaining active track accent glow ring, hover zoom (scale-105), active role tooltip, and smooth visual feedback.
+
+### R2. Clean Brand Link Separation
+Ensure the "Atul Verma" text remains an accessible navigation link navigating to #hero (home), while the avatar independently acts as the role switcher toggle, preventing nested interactive tags and ensuring clean accessibility (aria-expanded, aria-label).
+
+### R3. De-clutter Navigation Bar
+Remove the old standalone career track single-icon trigger (<RoleTabsBar variant="navbar" ... />) from the navigation bar, streamlining the header while preserving all existing menus (Search, Explore, Sound, Mobile Menu).
+
+## Acceptance Criteria
+
+### Functionality & Interactivity
+- [ ] Clicking the Navbar profile avatar toggles the horizontal floating role-switcher bar open and closed.
+- [ ] Clicking any role tab inside the opened horizontal bar updates the active role and dynamically changes the avatar image, theme glow, and portfolio content.
+- [ ] Clicking the "Atul Verma" brand text navigates to #hero without toggling the role bar.
+- [ ] The old standalone <RoleTabsBar variant="navbar" /> button is completely removed from the Navbar.
+
+### Accessibility & State Integrity
+- [ ] The avatar button has appropriate accessibility attributes (aria-expanded, aria-label, type="button").
+- [ ] Outside click and Escape key still dismiss the floating role-switcher bar.
+
+### Verification & Build Guardrails
+- [ ] All automated tests pass: npm test runs cleanly.
+- [ ] npx oxlint src/ reports 0 errors and 0 warnings.
+- [ ] npm run build succeeds cleanly with exit code 0.
+- [ ] Project audit trail is updated in changes_log/ adhering to Rule 6 and Rule 8.
