@@ -1,0 +1,29 @@
+/* Simple Mode – hide advanced UI elements */
+body.simple-mode .zoom-button,
+body.simple-mode .scroll-button,
+body.simple-mode .auto-scroll,
+body.simple-mode .gyro-control,
+body.simple-mode .drag-drop,
+body.simple-mode .cursor-tracking,
+body.simple-mode .search-section,
+body.simple-mode .explore-subbar,
+body.simple-mode .role-tabs-bar,
+body.simple-mode .lab-studio-drawer,
+body.simple-mode .back-to-top-button,
+body.simple-mode .tech-marquee-banner,
+body.simple-mode .coding-achievements-section,
+body.simple-mode .camera-roll-gallery,
+body.simple-mode .interactive-playground {
+  display: none !important;
+}
+/* Hero section – only show first image */
+body.simple-mode .hero-section .hero-image:not(:first-child) {
+  display: none !important;
+}
+/* Adjust hero container height when simplified */
+body.simple-mode .hero-section {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
