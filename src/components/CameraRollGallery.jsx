@@ -104,18 +104,21 @@ export default function CameraRollGallery({ capturedPhotos }) {
   };
 
   return (
-    <section id="gallery" className="py-20 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
-      {/* Section Header with Export All (ZIP) Action */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
+    <section id="gallery" className="relative w-full py-20 px-4 sm:px-6 lg:px-8 scroll-mt-28">
+      <div className="max-w-7xl mx-auto">
+        {/* Section Header with Export All (ZIP) Action */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
         <div className="text-left max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-stone-900 border border-[#E7E2D8] dark:border-stone-800 text-[#18181B] dark:text-stone-200 text-xs font-bold uppercase tracking-wider mb-3 shadow-xs">
-            <Camera className="w-3.5 h-3.5 text-[#FF4D6D]" />
-            Camera Roll & Moments
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs whitespace-nowrap max-w-full overflow-x-auto">
+            <span className="w-2 h-2 rounded-full bg-[#FF4D6D] shrink-0" />
+            <Camera className="w-3.5 h-3.5 text-[#FF4D6D] shrink-0" />
+            <span className="truncate sm:overflow-visible">Camera Roll &amp; Moments</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif]">
-            Captured Polaroid Studio
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap">
+            Captured <span className="text-[#FF4D6D]">Polaroid Studio</span>.
           </h2>
-          <p className="mt-3 text-stone-600 dark:text-stone-400 text-sm md:text-base font-normal leading-relaxed">
+          <div className="w-12 h-1 rounded-full bg-[#FF4D6D] mb-4" />
+          <p className="text-stone-600 dark:text-stone-400 text-sm md:text-base font-normal leading-relaxed">
             Every shutter click in the interactive hero records a frame directly to this physical reel. Tap any photo to inspect details.
           </p>
         </div>
@@ -345,6 +348,7 @@ export default function CameraRollGallery({ capturedPhotos }) {
           </div>
         </div>
       )}
+      </div>
     </section>
   );
 }

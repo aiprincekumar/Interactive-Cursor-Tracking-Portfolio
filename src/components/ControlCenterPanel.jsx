@@ -23,7 +23,11 @@ import {
   Sun,
   Moon,
   Gauge,
-  LayoutGrid
+  LayoutGrid,
+  Move,
+  Footprints,
+  Target,
+  Compass
 } from 'lucide-react';
 import { useLab, POSE_INDEX_MAP } from '../context/LabContext';
 import { useTheme } from '../context/ThemeContext';
@@ -146,11 +150,22 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
     gazeMode,
     poseOverride,
     characterZoom,
+    zoomFocus,
     flashConfettiEnabled,
+    dragEnabled,
+    dragBoundaryConstrained,
+    dragAutoSnapBack,
+    parallaxTiltEnabled,
     setGazeMode,
     setPoseOverride,
     setCharacterZoom,
+    setZoomFocus,
     setFlashConfettiEnabled,
+    setDragEnabled,
+    setDragBoundaryConstrained,
+    setDragAutoSnapBack,
+    setParallaxTiltEnabled,
+    recenterCharacter,
 
     // Preferences
     defaultStartupRole,
@@ -710,7 +725,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
           tabIndex={0}
           className="flex flex-col gap-6 focus:outline-none animate-fadeIn"
         >
-          {/* Gaze Tracking Mode & Confetti Toggle */}
+          {/* Row 1: Gaze Tracking Mode & Parallax Tilt Dynamics */}
           <div className={`grid ${isDrawer ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
             {/* Gaze Tracking Mode */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-3">
@@ -734,7 +749,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                   className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
                     gazeMode === 'auto'
                       ? 'bg-[#FF4D6D]/10 border-[#FF4D6D] text-[#FF4D6D] font-bold shadow-xs'
-                      : 'border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400'
+                      : 'border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-stone-300 dark:hover:border-stone-700'
                   }`}
                 >
                   <Eye className="w-4 h-4 mb-0.5" />
@@ -751,7 +766,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                   className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
                     gazeMode === 'fixed'
                       ? 'bg-[#FF4D6D]/10 border-[#FF4D6D] text-[#FF4D6D] font-bold shadow-xs'
-                      : 'border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400'
+                      : 'border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-stone-300 dark:hover:border-stone-700'
                   }`}
                 >
                   <Crosshair className="w-4 h-4 mb-0.5" />
@@ -761,69 +776,285 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
               </div>
             </div>
 
-            {/* Polaroid Camera Flash & Confetti */}
+            {/* Parallax Tilt Dynamics Toggle */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2.5 rounded-xl ${flashConfettiEnabled ? 'bg-[#FF4D6D]/10 text-[#FF4D6D]' : 'bg-stone-100 dark:bg-stone-800 text-stone-400'}`}>
-                    <Camera className="w-5 h-5" />
+                  <div className={`p-2.5 rounded-xl ${parallaxTiltEnabled ? 'bg-[#FF4D6D]/10 text-[#FF4D6D]' : 'bg-stone-100 dark:bg-stone-800 text-stone-400'}`}>
+                    <Compass className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-[#18181B] dark:text-white">Flash & Confetti</h4>
-                    <p className="text-xs text-stone-500 dark:text-stone-400">On Polaroid "Shoot a look 📸"</p>
+                    <h4 className="text-sm font-bold text-[#18181B] dark:text-white">Cursor Parallax & Tilt</h4>
+                    <p className="text-xs text-stone-500 dark:text-stone-400">Physical stage shift & depth perspective</p>
                   </div>
                 </div>
                 <button
                   role="switch"
-                  aria-checked={flashConfettiEnabled}
-                  onClick={() => setFlashConfettiEnabled(!flashConfettiEnabled)}
+                  aria-checked={parallaxTiltEnabled}
+                  onClick={() => {
+                    setParallaxTiltEnabled(!parallaxTiltEnabled);
+                    if (soundEnabled) soundFX.playHapticClick();
+                  }}
                   className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/40 ${
-                    flashConfettiEnabled ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
+                    parallaxTiltEnabled ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
                   }`}
+                  aria-label="Toggle Cursor Parallax and Tilt"
                 >
                   <span
                     className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                      flashConfettiEnabled ? 'translate-x-6' : 'translate-x-1'
+                      parallaxTiltEnabled ? 'translate-x-6' : 'translate-x-1'
                     }`}
                   />
                 </button>
               </div>
               <p className="text-xs text-stone-500 dark:text-stone-400 pt-2 border-t border-stone-100 dark:border-stone-800/80">
-                {flashConfettiEnabled
-                  ? 'Captures snapshot with authentic Polaroid white flash burst and celebratory particle confetti.'
-                  : 'Captures snapshot quietly with audio shutter click only; suppresses bright screen flash and confetti.'}
+                {parallaxTiltEnabled
+                  ? 'Active: Stage translates smoothly with cursor movement and mobile gyroscope for cinematic depth.'
+                  : 'Locked: Stage and backdrop remain static at baseline position without directional displacement.'}
               </p>
             </div>
           </div>
 
-          {/* Character Zoom / Scale Slider */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-3">
-            <div className="flex items-center justify-between">
+          {/* Row 2: Character Zoom & Zoom Focus Anchor */}
+          <div className={`grid ${isDrawer ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
+            {/* Character Stage Zoom Slider */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-[#FF4D6D]" />
+                    <span>Character Stage Zoom</span>
+                  </h4>
+                  <p className="text-xs text-stone-500 dark:text-stone-400">
+                    Scale multiplier applied directly to the 2.5D character container
+                  </p>
+                </div>
+                <span className="text-xs font-mono font-bold text-[#FF4D6D] bg-[#FF4D6D]/10 px-2 py-0.5 rounded-full">
+                  {(characterZoom * 100).toFixed(0)}% ({characterZoom.toFixed(2)}x)
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="2.0"
+                step="0.05"
+                value={characterZoom}
+                onChange={(e) => setCharacterZoom(parseFloat(e.target.value))}
+                className="w-full accent-[#FF4D6D] cursor-pointer"
+                aria-label="Character Stage Zoom"
+              />
+              <div className="flex justify-between text-[11px] text-stone-400 dark:text-stone-500">
+                <span>50% (Wide View)</span>
+                <span>100% (Default)</span>
+                <span>200% (Close Portrait)</span>
+              </div>
+            </div>
+
+            {/* Zoom Focus Anchor (Head / Center / Feet) */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                    <Target className="w-4 h-4 text-[#FF4D6D]" />
+                    <span>Zoom Focus Anchor</span>
+                  </h4>
+                  <p className="text-xs text-stone-500 dark:text-stone-400">
+                    Pivot origin when scaling character in and out
+                  </p>
+                </div>
+                <span className="text-xs font-mono font-bold text-[#FF4D6D] bg-[#FF4D6D]/10 px-2 py-0.5 rounded-full capitalize">
+                  {zoomFocus === 'head' ? '50% 18%' : zoomFocus === 'feet' ? '50% 90%' : '50% 50%'}
+                </span>
+              </div>
+
+              {/* 3-Button Segmented Control */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 'head', label: 'Head', sub: 'Upper (50% 18%)', icon: User },
+                  { id: 'center', label: 'Center', sub: 'Default (50% 50%)', icon: Crosshair },
+                  { id: 'feet', label: 'Feet', sub: 'Ground (50% 90%)', icon: Footprints }
+                ].map((item) => {
+                  const isSelected = zoomFocus === item.id;
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setZoomFocus(item.id);
+                        if (soundEnabled) soundFX.playLaserFocus();
+                      }}
+                      className={`p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#FF4D6D]/10 border-[#FF4D6D] text-[#FF4D6D] font-bold shadow-xs'
+                          : 'border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-stone-300 dark:hover:border-stone-700'
+                      }`}
+                      title={`Scale anchor: ${item.sub}`}
+                    >
+                      <Icon className="w-4 h-4 mb-0.5" />
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs">{item.label}</span>
+                        {isSelected && <Check className="w-3 h-3 text-[#FF4D6D]" />}
+                      </div>
+                      <span className="text-[9px] opacity-70 leading-none">{item.sub.split(' ')[0]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Row 3: Drag & Drop Physics Controls */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <h4 className="text-sm font-bold text-[#18181B] dark:text-white">Character Stage Zoom</h4>
+                <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                  <Move className="w-4 h-4 text-[#FF4D6D]" />
+                  <span>Character Drag & Drop Controls</span>
+                </h4>
                 <p className="text-xs text-stone-500 dark:text-stone-400">
-                  Scale multiplier applied directly to the 2.5D character container
+                  Interactive physics, coordinate boundaries, and position manipulation
                 </p>
               </div>
-              <span className="text-xs font-mono font-bold text-[#FF4D6D] bg-[#FF4D6D]/10 px-2 py-0.5 rounded-full">
-                {(characterZoom * 100).toFixed(0)}% ({characterZoom.toFixed(2)}x)
-              </span>
+
+              {/* Recenter Action Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  recenterCharacter();
+                  if (soundEnabled) soundFX.playSnap();
+                }}
+                className="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-[#FF4D6D]/10 dark:bg-stone-800/80 dark:hover:bg-[#FF4D6D]/20 text-[#18181B] dark:text-stone-200 hover:text-[#FF4D6D] border border-stone-200 dark:border-stone-700 hover:border-[#FF4D6D]/40 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                title="Reset character coordinates back to center (0, 0)"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-[#FF4D6D]" />
+                <span>Recenter to (0, 0)</span>
+              </button>
             </div>
-            <input
-              type="range"
-              min="0.5"
-              max="2.0"
-              step="0.05"
-              value={characterZoom}
-              onChange={(e) => setCharacterZoom(parseFloat(e.target.value))}
-              className="w-full accent-[#FF4D6D] cursor-pointer"
-              aria-label="Character Stage Zoom"
-            />
-            <div className="flex justify-between text-[11px] text-stone-400 dark:text-stone-500">
-              <span>50% (Wide View)</span>
-              <span>100% (Default)</span>
-              <span>200% (Close Portrait)</span>
+
+            <div className={`grid ${isDrawer ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'} gap-3 pt-2 border-t border-stone-100 dark:border-stone-800/80`}>
+              {/* 1. Drag Enabled Toggle */}
+              <div className="p-3 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/30 flex items-center justify-between gap-3">
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-[#18181B] dark:text-white">Enable Dragging</span>
+                  <span className="text-[11px] text-stone-500 dark:text-stone-400">Hold 250ms to lift & reposition</span>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={dragEnabled}
+                  onClick={() => {
+                    setDragEnabled(!dragEnabled);
+                    if (soundEnabled) soundFX.playHapticClick();
+                  }}
+                  className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer focus:outline-none shrink-0 ${
+                    dragEnabled ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                  aria-label="Toggle Character Dragging"
+                >
+                  <span
+                    className={`block w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${
+                      dragEnabled ? 'translate-x-5' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* 2. Boundary Constrained Toggle */}
+              <div className={`p-3 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/30 flex items-center justify-between gap-3 transition-opacity ${!dragEnabled ? 'opacity-40 pointer-events-none' : ''}`}>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-[#18181B] dark:text-white">Clamp to Viewport</span>
+                  <span className="text-[11px] text-stone-500 dark:text-stone-400">
+                    {dragBoundaryConstrained ? 'Constrained to stage' : 'Free unconstrained drag'}
+                  </span>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={dragBoundaryConstrained}
+                  disabled={!dragEnabled}
+                  onClick={() => {
+                    setDragBoundaryConstrained(!dragBoundaryConstrained);
+                    if (soundEnabled) soundFX.playHapticClick();
+                  }}
+                  className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer focus:outline-none shrink-0 ${
+                    dragBoundaryConstrained ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                  aria-label="Toggle Viewport Boundary Clamping"
+                >
+                  <span
+                    className={`block w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${
+                      dragBoundaryConstrained ? 'translate-x-5' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* 3. Auto Snap Back on Drop Toggle */}
+              <div className={`p-3 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/30 flex items-center justify-between gap-3 transition-opacity ${!dragEnabled ? 'opacity-40 pointer-events-none' : ''}`}>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-[#18181B] dark:text-white">Auto Snap Back</span>
+                  <span className="text-[11px] text-stone-500 dark:text-stone-400">
+                    {dragAutoSnapBack ? 'Springs to center on drop' : 'Stays where dropped'}
+                  </span>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={dragAutoSnapBack}
+                  disabled={!dragEnabled}
+                  onClick={() => {
+                    setDragAutoSnapBack(!dragAutoSnapBack);
+                    if (soundEnabled) soundFX.playHapticClick();
+                  }}
+                  className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer focus:outline-none shrink-0 ${
+                    dragAutoSnapBack ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                  aria-label="Toggle Auto Snap Back on Drop"
+                >
+                  <span
+                    className={`block w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${
+                      dragAutoSnapBack ? 'translate-x-5' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
+          </div>
+
+          {/* Row 4: Polaroid Camera Flash & Confetti */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`p-2.5 rounded-xl ${flashConfettiEnabled ? 'bg-[#FF4D6D]/10 text-[#FF4D6D]' : 'bg-stone-100 dark:bg-stone-800 text-stone-400'}`}>
+                  <Camera className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-[#18181B] dark:text-white">Polaroid Flash & Particle Confetti</h4>
+                  <p className="text-xs text-stone-500 dark:text-stone-400">On Polaroid "Shoot a look 📸" button click</p>
+                </div>
+              </div>
+              <button
+                role="switch"
+                aria-checked={flashConfettiEnabled}
+                onClick={() => {
+                  setFlashConfettiEnabled(!flashConfettiEnabled);
+                  if (soundEnabled) soundFX.playHapticClick();
+                }}
+                className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/40 ${
+                  flashConfettiEnabled ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
+                }`}
+                aria-label="Toggle Camera Flash and Confetti"
+              >
+                <span
+                  className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                    flashConfettiEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            <p className="text-xs text-stone-500 dark:text-stone-400 pt-2 border-t border-stone-100 dark:border-stone-800/80">
+              {flashConfettiEnabled
+                ? 'Captures snapshot with authentic Polaroid white flash burst and celebratory particle confetti.'
+                : 'Captures snapshot quietly with audio shutter click only; suppresses bright screen flash and confetti.'}
+            </p>
           </div>
 
           {/* 10 3D Head Pose Overrides */}

@@ -1,11 +1,28 @@
-import React from 'react';
-import { Sliders, RotateCcw, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Sliders, RotateCcw, ExternalLink, ChevronDown } from 'lucide-react';
 import { useLab } from '../context/LabContext';
 import { soundFX } from '../utils/audio';
 import ControlCenterPanel from './ControlCenterPanel';
 
 export default function InteractivePlayground() {
   const { soundEnabled, resetDefaults, openDrawer } = useLab();
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    const handleHash = () => {
+      if (typeof window !== 'undefined' && (window.location.hash === '#playground' || window.location.hash === '#lab')) {
+        setIsExpanded(true);
+      }
+    };
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  const toggleAccordion = () => {
+    setIsExpanded((prev) => !prev);
+    if (soundEnabled) soundFX.playHapticClick();
+  };
 
   return (
     <section
@@ -15,48 +32,97 @@ export default function InteractivePlayground() {
       {/* Anchor target for #lab */}
       <div id="lab" className="absolute -top-16 left-0 opacity-0 pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto flex flex-col gap-8">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-[#ECE7DF] dark:border-[#201830]">
+      <div className={`max-w-7xl mx-auto flex flex-col transition-all duration-300 ${isExpanded ? 'gap-8' : 'gap-0'}`}>
+        {/* Section Header (100% Authentic Original Production Theme with Collapsible Trigger) */}
+        <div
+          id="system-control-panel-trigger"
+          role="button"
+          tabIndex={0}
+          aria-expanded={isExpanded}
+          aria-controls="system-control-panel-content"
+          onClick={toggleAccordion}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleAccordion();
+            }
+          }}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-[#ECE7DF] dark:border-[#201830] cursor-pointer group select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D]/60 rounded-xl"
+        >
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF4D6D]/10 text-[#FF4D6D] dark:bg-[#FF4D6D]/20 text-xs font-bold uppercase tracking-wider mb-3">
-              <Sliders className="w-3.5 h-3.5" />
-              <span>PORTFOLIO CONTROL CENTER</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs whitespace-nowrap max-w-full overflow-x-auto">
+              <span className="w-2 h-2 rounded-full bg-[#FF4D6D] shrink-0" />
+              <Sliders className="w-3.5 h-3.5 text-[#FF4D6D] shrink-0" />
+              <span className="truncate sm:overflow-visible">PORTFOLIO CONTROL CENTER</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#18181B] dark:text-[#F5F2F8] tracking-tight">
-              System Control & Live Calibration
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 group-hover:text-[#FF4D6D] transition-colors whitespace-normal sm:whitespace-nowrap">
+              System Control &amp; <span className="text-[#FF4D6D]">Live Calibration</span>.
             </h2>
-            <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400 mt-2 max-w-2xl">
-              Fine-tune Web Audio synthesizer acoustics, cursor kinematics, 2.5D hero tracking, career preferences, and luxury display & visual optics with real-time reactive persistence.
+            <div className="w-12 h-1 rounded-full bg-[#FF4D6D] mb-4" />
+            <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400 max-w-2xl leading-relaxed">
+              Fine-tune Web Audio synthesizer acoustics, cursor kinematics, 2.5D hero tracking, career preferences, and luxury display &amp; visual optics with real-time reactive persistence.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Reset Defaults Icon Button */}
             <button
               type="button"
-              onClick={() => {
+              title="Reset Defaults"
+              aria-label="Reset Defaults"
+              onClick={(e) => {
+                e.stopPropagation();
                 resetDefaults();
                 if (soundEnabled) soundFX.playCrystalChime();
               }}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-[#181226]/80 text-xs font-bold text-stone-700 dark:text-stone-300 hover:border-[#FF4D6D]/50 hover:text-[#FF4D6D] transition-all cursor-pointer shadow-2xs active:scale-97"
+              onKeyDown={(e) => {
+                e.stopPropagation();
+              }}
+              className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-[#181226]/80 text-stone-700 dark:text-stone-300 hover:border-[#FF4D6D]/50 hover:text-[#FF4D6D] transition-all cursor-pointer shadow-2xs active:scale-95 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Defaults</span>
+              <RotateCcw className="w-4 h-4" />
             </button>
 
+            {/* Quick Drawer Icon Button */}
             <button
               type="button"
-              onClick={() => openDrawer()}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF4D6D] hover:bg-[#E03554] text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-97"
+              title="Open Quick Drawer"
+              aria-label="Open Quick Drawer"
+              onClick={(e) => {
+                e.stopPropagation();
+                openDrawer();
+              }}
+              onKeyDown={(e) => {
+                e.stopPropagation();
+              }}
+              className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl bg-[#FF4D6D] hover:bg-[#E03554] text-white transition-all cursor-pointer shadow-xs active:scale-95 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>Quick Drawer</span>
+              <ExternalLink className="w-4 h-4" />
             </button>
+
+            {/* Chevron Toggle Button */}
+            <div className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-[#181226]/80 text-stone-600 dark:text-stone-300 group-hover:text-[#FF4D6D] group-hover:border-[#FF4D6D]/40 transition-all flex items-center justify-center shadow-2xs">
+              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : 'rotate-0'}`} />
+            </div>
           </div>
         </div>
 
-        {/* 5-Tab Control Center Panel */}
-        <ControlCenterPanel variant="workbench" />
+        {/* Collapsible Content */}
+        <div
+          id="system-control-panel-content"
+          role="region"
+          aria-labelledby="system-control-panel-trigger"
+          aria-hidden={!isExpanded}
+          className={`grid transition-all duration-300 ease-in-out ${
+            isExpanded
+              ? 'grid-rows-[1fr] opacity-100 visible'
+              : 'grid-rows-[0fr] opacity-0 pointer-events-none invisible'
+          }`}
+        >
+          <div className="overflow-hidden min-h-0">
+            <ControlCenterPanel variant="workbench" />
+          </div>
+        </div>
       </div>
     </section>
   );

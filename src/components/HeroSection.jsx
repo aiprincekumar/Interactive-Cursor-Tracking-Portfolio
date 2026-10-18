@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Camera, Minus, Plus, Images, Compass } from 'lucide-react';
+import { Camera, Minus, Plus, Images, Compass, Target } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { NotionIcon, GithubIcon, LinkedinIcon, YoutubeIcon, FacebookIcon, InstagramIcon, TwitterIcon } from './Icons';
 import confetti from 'canvas-confetti';
 import { useRoleTab } from '../context/RoleContext';
 import { useGyroscopeTracking } from '../hooks/useGyroscopeTracking';
+import { useDraggableCharacter } from '../hooks/useDraggableCharacter';
 import { formatVintageTimestamp } from '../utils/polaroidExport';
-import { useLab, POSE_INDEX_MAP } from '../context/LabContext';
+import { useLab, POSE_INDEX_MAP, ZOOM_FOCUS_MAP } from '../context/LabContext';
 
 /**
  * Full-Screen Reel-Accurate Character Hero Section
@@ -55,7 +56,12 @@ export default function HeroSection({
   const gazeMode = lab?.gazeMode ?? 'auto';
   const poseOverride = lab?.poseOverride ?? null;
   const characterZoom = lab?.characterZoom ?? 1.0;
+  const zoomFocus = lab?.zoomFocus ?? 'center';
   const flashConfettiEnabled = lab?.flashConfettiEnabled ?? true;
+  const dragEnabled = lab?.dragEnabled ?? true;
+  const dragBoundaryConstrained = lab?.dragBoundaryConstrained ?? true;
+  const dragAutoSnapBack = lab?.dragAutoSnapBack ?? false;
+  const parallaxTiltEnabled = lab?.parallaxTiltEnabled ?? true;
   const setCharacterZoom = lab?.setCharacterZoom;
 
   const [isFlashing, setIsFlashing] = useState(false);
@@ -87,6 +93,7 @@ export default function HeroSection({
   const gazeModeRef = useRef(gazeMode);
   const characterZoomRef = useRef(characterZoom);
   const flashConfettiEnabledRef = useRef(flashConfettiEnabled);
+  const parallaxTiltEnabledRef = useRef(parallaxTiltEnabled);
 
   // oxlint-disable-next-line react/refs
   poseOverrideRef.current = poseOverride;
@@ -96,6 +103,10 @@ export default function HeroSection({
   characterZoomRef.current = characterZoom;
   // oxlint-disable-next-line react/refs
   flashConfettiEnabledRef.current = flashConfettiEnabled;
+  // oxlint-disable-next-line react/refs
+  parallaxTiltEnabledRef.current = parallaxTiltEnabled;
+
+  const activeTransformOrigin = (ZOOM_FOCUS_MAP && ZOOM_FOCUS_MAP[zoomFocus]) || '50% 50%';
 
   // Sync characterZoom from LabContext
   useEffect(() => {
@@ -118,13 +129,6 @@ export default function HeroSection({
 
   const effectiveScale = BASELINE_SCALE * userScale;
 
-  // Keep characterInnerRef scale in sync reactively
-  useEffect(() => {
-    if (characterInnerRef.current) {
-      characterInnerRef.current.style.transform = `scale(${effectiveScale})`;
-    }
-  }, [effectiveScale]);
-
   // Direct DOM references for 120 FPS zero-render GPU updates (10 Total: 9 Directions + 1 Idle)
   const sectionRef = useRef(null);
   const stageRef = useRef(null);
@@ -140,6 +144,39 @@ export default function HeroSection({
   const imgUpperRightRef = useRef(null);
   const imgLowerRightRef = useRef(null);
   const reticleRef = useRef(null);
+
+  // Character Drag-and-Drop system (physics-ready, frictionless, 60/120fps)
+  const {
+    posRef,
+    isHolding,
+    isDragging,
+    liftProgress,
+    isDisplaced,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    resetPosition,
+    position
+  } = useDraggableCharacter({
+    heroRef: sectionRef,
+    characterRef: characterInnerRef,
+    userScale,
+    enabled: dragEnabled,
+    dragEnabled,
+    dragBoundaryConstrained,
+    dragAutoSnapBack
+  });
+
+  // Keep characterInnerRef scale and transformOrigin in sync reactively
+  useEffect(() => {
+    if (characterInnerRef.current) {
+      characterInnerRef.current.style.transform = `scale(${effectiveScale})`;
+      characterInnerRef.current.style.transformOrigin = activeTransformOrigin;
+    }
+  }, [effectiveScale, activeTransformOrigin]);
+
+  const liftProgressRef = useRef(liftProgress);
+  liftProgressRef.current = liftProgress;
 
   // Tracking state store
   const animStateRef = useRef({
@@ -232,6 +269,11 @@ export default function HeroSection({
       const currentPoseOverride = poseOverrideRef.current;
       const isFixedGaze = currentGazeMode === 'fixed';
 
+      // Current drag displacement & liftProgress from draggable character hook
+      const dragX = posRef.current?.x || 0;
+      const dragY = posRef.current?.y || 0;
+      const curLift = typeof liftProgressRef.current === 'number' ? liftProgressRef.current : 0;
+
       const effectiveOverride = currentPoseOverride !== null
         ? (typeof currentPoseOverride === 'number' ? POSE_INDEX_MAP[currentPoseOverride] : currentPoseOverride)
         : null;
@@ -277,6 +319,17 @@ export default function HeroSection({
           state.targetNormY = gState.normY;
           state.isHovered = true;
         }
+      } else if (state.isPointerInteracting && isInsideHeroRef.current) {
+        // Dynamic relative gaze calculation factoring in displaced character center
+        const section = sectionRef.current;
+        const sW = section?.clientWidth || window.innerWidth || 1920;
+        const sH = section?.clientHeight || window.innerHeight || 1080;
+        const charCenterX = (sW * 0.5) + dragX;
+        const charCenterY = (sH * 0.5) + dragY;
+        const relNormX = (state.pointerX - charCenterX) / (sW * 0.5);
+        const relNormY = (state.pointerY - charCenterY) / (sH * 0.5);
+        state.targetNormX = Math.max(-0.5, Math.min(0.5, relNormX));
+        state.targetNormY = Math.max(-0.5, Math.min(0.5, relNormY));
       } else if (!state.isPointerInteracting) {
         // When Gyro is OFF and no pointer interaction is ongoing:
         // Follow pointer if hovered inside hero, otherwise return to idle center (0, 0)
@@ -301,8 +354,9 @@ export default function HeroSection({
       const curY = state.currentNormY;
 
       // Directional physical character translation & backdrop parallax shift in gyro / pointer direction
-      const charShiftX = isFixedGaze ? 0 : curX * 56;
-      const charShiftY = isFixedGaze ? 0 : curY * 42;
+      const isParallaxActive = parallaxTiltEnabledRef.current && !isFixedGaze;
+      const charShiftX = isParallaxActive ? curX * 56 : 0;
+      const charShiftY = isParallaxActive ? curY * 42 : 0;
 
       // 1. Organic Idle Breathing Animation (human resting rhythm ~3.8s cycle, ~15 breaths/min)
       let idleOp = Math.max(0, 1 - state.hoverWeight);
@@ -326,12 +380,12 @@ export default function HeroSection({
       const currentBreathScale = reducedMotion ? 1.0 : Number((1.0 + (breathScale - 1.0) * state.breathingWeight).toFixed(5));
 
       if (stageRef.current) {
-        stageRef.current.style.transform = `translate3d(${charShiftX.toFixed(2)}px, ${(charShiftY + currentBreathY).toFixed(2)}px, 0) scale(${currentBreathScale})`;
+        stageRef.current.style.transform = `translate3d(${(charShiftX + dragX).toFixed(2)}px, ${(charShiftY + currentBreathY + dragY).toFixed(2)}px, 0) scale(${currentBreathScale * (1 + curLift * 0.035)})`;
       }
 
       if (bgBackdropRef.current) {
-        const bgShiftX = isFixedGaze ? 0 : -curX * 32;
-        const bgShiftY = isFixedGaze ? 0 : -curY * 24;
+        const bgShiftX = isParallaxActive ? -curX * 32 : 0;
+        const bgShiftY = isParallaxActive ? -curY * 24 : 0;
         bgBackdropRef.current.style.transform = `translate3d(${bgShiftX.toFixed(2)}px, ${bgShiftY.toFixed(2)}px, 0) scale(1.06)`;
       }
 
@@ -485,8 +539,16 @@ export default function HeroSection({
       if (isInside) {
         const w = rect.width || window.innerWidth || 1920;
         const h = rect.height || window.innerHeight || 1080;
-        state.targetNormX = Math.max(-0.5, Math.min(0.5, (clientX - rect.left) / w - 0.5));
-        state.targetNormY = Math.max(-0.5, Math.min(0.5, (clientY - rect.top) / h - 0.5));
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
+        const dragX = posRef.current?.x || 0;
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
+        const dragY = posRef.current?.y || 0;
+        const charCenterX = (w * 0.5) + dragX;
+        const charCenterY = (h * 0.5) + dragY;
+        const relNormX = (clientX - (rect.left + charCenterX)) / (w * 0.5);
+        const relNormY = (clientY - (rect.top + charCenterY)) / (h * 0.5);
+        state.targetNormX = Math.max(-0.5, Math.min(0.5, relNormX));
+        state.targetNormY = Math.max(-0.5, Math.min(0.5, relNormY));
       } else if (isGyroActive) {
         state.targetNormX = gState.normX;
         state.targetNormY = gState.normY;
@@ -779,11 +841,32 @@ export default function HeroSection({
       >
         <div
           ref={characterInnerRef}
-          className="relative h-[74vh] sm:h-[82vh] md:h-full aspect-[16/9] w-auto max-w-none flex items-center justify-center filter contrast-[1.04] brightness-[1.02] origin-[50%_90%] will-change-transform"
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            handlePointerDown(e);
+          }}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            resetPosition();
+            triggerHud('Position Centered 🎯');
+          }}
+          className={`relative h-[74vh] sm:h-[82vh] md:h-full aspect-[16/9] w-auto max-w-none flex items-center justify-center will-change-transform pointer-events-auto select-none touch-none ${
+            isDragging || isHolding
+              ? 'cursor-grabbing'
+              : 'cursor-grab hover:cursor-grab'
+          }`}
           style={{
             transform: `scale(${effectiveScale})`,
-            transformOrigin: '50% 90%',
-            transition: (isTransitioning && !reducedMotion) ? 'transform 350ms cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
+            transformOrigin: activeTransformOrigin,
+            transition: reducedMotion
+              ? 'none'
+              : (isTransitioning
+                  ? 'transform 350ms cubic-bezier(0.16, 1, 0.3, 1), transform-origin 400ms cubic-bezier(0.16, 1, 0.3, 1)'
+                  : 'transform-origin 400ms cubic-bezier(0.16, 1, 0.3, 1)'),
+            filter: `contrast(1.04) brightness(1.02) drop-shadow(0 ${Math.round(liftProgress * 28)}px ${Math.round(liftProgress * 32)}px rgba(0,0,0,${(liftProgress * 0.32).toFixed(2)}))`
           }}
           onTransitionEnd={() => setIsTransitioning(false)}
         >
@@ -1241,6 +1324,27 @@ export default function HeroSection({
             >
               100%
             </button>
+
+            {/* Re-center Character Button (🎯) - Visible when character is displaced */}
+            {isDisplaced && (
+              <>
+                <div className="w-[1px] h-3 bg-stone-200 dark:bg-stone-700 shrink-0" />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    resetPosition();
+                    triggerHud('Position Centered 🎯');
+                  }}
+                  aria-label="Reset Character Position (🎯)"
+                  title="Reset Character Position (🎯)"
+                  className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono font-bold bg-[#FF4D6D]/15 dark:bg-[#FF4D6D]/25 hover:bg-[#FF4D6D]/25 text-[#FF3F6C] dark:text-[#FF4D6D] border border-[#FF4D6D]/30 active:scale-95 transition-all cursor-pointer shrink-0 animate-in fade-in zoom-in-95 duration-200"
+                >
+                  <Target className="w-3 h-3 text-[#FF4D6D] animate-spin-slow" />
+                  <span>Center</span>
+                </button>
+              </>
+            )}
           </div>
 
           {/* 'Shoot a look' Icon-Only Button */}

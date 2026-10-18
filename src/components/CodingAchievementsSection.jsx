@@ -264,18 +264,19 @@ export default function CodingAchievementsSection() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 md:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#FFA4B6] text-xs font-bold uppercase tracking-wider mb-3 shadow-xs">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
-              05 ✦ Professional Milestones &bull; {isOverview ? 'Executive Overview' : isVibe ? 'AI & Vibe Coding' : isOther ? 'Corporate Controller & BI' : isMIS ? 'Data & MIS' : 'Accounting & Tax'}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs whitespace-nowrap max-w-full overflow-x-auto">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
+              <span className="truncate sm:overflow-visible">05 ✦ Professional Milestones &bull; {isOverview ? 'Executive Overview' : isVibe ? 'AI & Vibe Coding' : isOther ? 'Corporate Controller & BI' : isMIS ? 'Data & MIS' : 'Accounting & Tax'}</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#18181B] dark:text-[#F5F2F8] tracking-tight font-['Outfit',sans-serif]">
-              Professional Milestones &amp; Certifications
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem] xl:text-5xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap">
+              Professional <span className="text-[#FF4D6D]" style={{ color: accentColor }}>Milestones</span> &amp; Certifications.
             </h2>
-            <p className="mt-2 text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
+            <div className="w-12 h-1 rounded-full mb-4" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
+            <p className="text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
               {isOverview && "Synthesized career milestones bridging statutory tax practice, audited ledger reconciliation, and autonomous AI vibe coding."}
               {!isOverview && isVibe && "Proven speed and engineering precision in AI prompt-to-app synthesis, autonomous multi-agent coding loops, and modern full-stack SaaS architecture."}
               {!isOverview && isAccountant && "Proven domain excellence in corporate bookkeeping, GST & Income Tax statutory compliance, and BRS audit precision."}

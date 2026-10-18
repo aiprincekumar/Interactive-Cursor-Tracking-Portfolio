@@ -17,7 +17,7 @@ export default function Footer() {
         </span>
       </div>
 
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
         {/* Brand & Attribution */}
         <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
           <div className="w-9 h-9 rounded-full bg-[#FF4D6D] flex items-center justify-center text-white shadow-md shadow-pink-600/30">

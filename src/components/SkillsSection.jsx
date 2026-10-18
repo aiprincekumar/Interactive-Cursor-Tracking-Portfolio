@@ -522,19 +522,21 @@ export default function SkillsSection() {
 
 
   return (
-    <section id="skills" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
-      {/* Section Pill Badge - Reel style */}
-      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs">
-        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
-        02 ✦ Skills &bull; {isOverviewRole ? 'Executive Overview Stack' : (isVibe ? 'AI & Vibe Coding Stack' : (isOther ? 'Corporate Controller & BI Stack' : (isMIS ? 'Data & MIS Stack' : 'Accounting & Tax Stack')))}
+    <section id="skills" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
+      <div className="max-w-7xl mx-auto">
+        {/* Section Pill Badge - Reel style */}
+      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs whitespace-nowrap max-w-full overflow-x-auto">
+        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
+        <span className="truncate sm:overflow-visible">02 ✦ Skills &bull; {isOverviewRole ? 'Executive Overview Stack' : (isVibe ? 'AI & Vibe Coding Stack' : (isOther ? 'Corporate Controller & BI Stack' : (isMIS ? 'Data & MIS Stack' : 'Accounting & Tax Stack')))}</span>
       </div>
 
       {/* Heading matching Reel t=9.5s: "What I work with" */}
       <div className="mb-8">
-        <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#18181B] dark:text-[#F5F2F8] tracking-tight font-['Outfit',sans-serif]">
-          What I work with
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap">
+          What I <span className="text-[#FF4D6D]" style={{ color: accentColor }}>work with</span>.
         </h2>
-        <p className="mt-3 text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
+        <div className="w-12 h-1 rounded-full mb-4" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
+        <p className="text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
           {isOverviewRole
             ? 'Hover or tap any skill to inspect the curated multi-domain technical matrix synthesizing certified statutory accounting, audited financial ledgers, large-scale government MIS systems, and autonomous AI vibe coding.'
             : isVibe
@@ -676,6 +678,7 @@ export default function SkillsSection() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );

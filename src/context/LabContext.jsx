@@ -25,7 +25,12 @@ export const FACTORY_DEFAULTS = {
     gazeMode: 'auto', // 'auto' | 'fixed'
     poseOverride: null, // null or number 0-9
     characterZoom: 1.0, // 0.5x - 2.0x
-    flashConfettiEnabled: true
+    zoomFocus: 'center', // 'head' | 'center' | 'feet'
+    flashConfettiEnabled: true,
+    dragEnabled: true,
+    dragBoundaryConstrained: true,
+    dragAutoSnapBack: false,
+    parallaxTiltEnabled: true
   },
   preferences: {
     defaultStartupRole: 'accountant', // 'accountant' | 'mis' | 'controller'
@@ -39,6 +44,12 @@ export const FACTORY_DEFAULTS = {
     accentColor: '#FF4D6D', // '#FF4D6D' (Electric Rose), '#F59E0B' (Amber Gold), '#06B6D4' (Neon Cyan), '#10B981' (Emerald)
     layoutDensity: 'comfortable' // 'compact' | 'comfortable' | 'spacious'
   }
+};
+
+export const ZOOM_FOCUS_MAP = {
+  head: '50% 18%',
+  center: '50% 50%',
+  feet: '50% 90%'
 };
 
 export const FLIGHT_SPEED_MAP = {
@@ -117,6 +128,14 @@ function normalizePoseOverride(val) {
     if (!isNaN(num) && num >= 0 && num <= 9) return num;
   }
   return null;
+}
+
+export function normalizeZoomFocus(val) {
+  if (typeof val === 'string') {
+    const s = val.trim().toLowerCase();
+    if (s === 'head' || s === 'center' || s === 'feet') return s;
+  }
+  return 'center';
 }
 
 export function hexToRgb(hex) {
@@ -206,11 +225,24 @@ export function loadSavedControlCenterConfig() {
             gazeMode: (hero.gazeMode === 'fixed' || parsed.gazeMode === 'fixed' || parsed.heroGazeMode === 'fixed') ? 'fixed' : 'auto',
             poseOverride: normalizePoseOverride(hero.poseOverride ?? parsed.poseOverride ?? parsed.heroPoseOverride),
             characterZoom: clampScale(hero.characterZoom ?? parsed.characterZoom ?? parsed.characterScale ?? parsed.heroScale ?? FACTORY_DEFAULTS.hero.characterZoom),
+            zoomFocus: normalizeZoomFocus(hero.zoomFocus ?? parsed.zoomFocus ?? FACTORY_DEFAULTS.hero.zoomFocus),
             flashConfettiEnabled: typeof hero.flashConfettiEnabled === 'boolean'
               ? hero.flashConfettiEnabled
               : (typeof parsed.flashConfettiEnabled === 'boolean'
                   ? parsed.flashConfettiEnabled
-                  : (typeof parsed.cameraEffectsEnabled === 'boolean' ? parsed.cameraEffectsEnabled : FACTORY_DEFAULTS.hero.flashConfettiEnabled))
+                  : (typeof parsed.cameraEffectsEnabled === 'boolean' ? parsed.cameraEffectsEnabled : FACTORY_DEFAULTS.hero.flashConfettiEnabled)),
+            dragEnabled: typeof hero.dragEnabled === 'boolean'
+              ? hero.dragEnabled
+              : (typeof parsed.dragEnabled === 'boolean' ? parsed.dragEnabled : FACTORY_DEFAULTS.hero.dragEnabled),
+            dragBoundaryConstrained: typeof hero.dragBoundaryConstrained === 'boolean'
+              ? hero.dragBoundaryConstrained
+              : (typeof parsed.dragBoundaryConstrained === 'boolean' ? parsed.dragBoundaryConstrained : FACTORY_DEFAULTS.hero.dragBoundaryConstrained),
+            dragAutoSnapBack: typeof hero.dragAutoSnapBack === 'boolean'
+              ? hero.dragAutoSnapBack
+              : (typeof parsed.dragAutoSnapBack === 'boolean' ? parsed.dragAutoSnapBack : FACTORY_DEFAULTS.hero.dragAutoSnapBack),
+            parallaxTiltEnabled: typeof hero.parallaxTiltEnabled === 'boolean'
+              ? hero.parallaxTiltEnabled
+              : (typeof parsed.parallaxTiltEnabled === 'boolean' ? parsed.parallaxTiltEnabled : FACTORY_DEFAULTS.hero.parallaxTiltEnabled)
           },
           preferences: {
             defaultStartupRole: (preferences.defaultStartupRole || parsed.defaultStartupRole || parsed.defaultRole || 'accountant'),
@@ -465,7 +497,12 @@ export function loadSavedControlCenterConfig() {
         gazeMode,
         poseOverride,
         characterZoom,
-        flashConfettiEnabled
+        zoomFocus: FACTORY_DEFAULTS.hero.zoomFocus,
+        flashConfettiEnabled,
+        dragEnabled: FACTORY_DEFAULTS.hero.dragEnabled,
+        dragBoundaryConstrained: FACTORY_DEFAULTS.hero.dragBoundaryConstrained,
+        dragAutoSnapBack: FACTORY_DEFAULTS.hero.dragAutoSnapBack,
+        parallaxTiltEnabled: FACTORY_DEFAULTS.hero.parallaxTiltEnabled
       },
       preferences: {
         defaultStartupRole,
@@ -550,7 +587,12 @@ export function LabProvider({ children, initialSoundEnabled }) {
   const [gazeMode, setGazeModeState] = useState(initialConfig.hero.gazeMode);
   const [poseOverride, setPoseOverrideState] = useState(initialConfig.hero.poseOverride);
   const [characterZoom, setCharacterZoomState] = useState(initialConfig.hero.characterZoom);
+  const [zoomFocus, setZoomFocusState] = useState(initialConfig.hero.zoomFocus);
   const [flashConfettiEnabled, setFlashConfettiEnabledState] = useState(initialConfig.hero.flashConfettiEnabled);
+  const [dragEnabled, setDragEnabledState] = useState(initialConfig.hero.dragEnabled);
+  const [dragBoundaryConstrained, setDragBoundaryConstrainedState] = useState(initialConfig.hero.dragBoundaryConstrained);
+  const [dragAutoSnapBack, setDragAutoSnapBackState] = useState(initialConfig.hero.dragAutoSnapBack);
+  const [parallaxTiltEnabled, setParallaxTiltEnabledState] = useState(initialConfig.hero.parallaxTiltEnabled);
 
   // Preferences Tab State
   const [defaultStartupRole, setDefaultStartupRoleState] = useState(initialConfig.preferences.defaultStartupRole);
@@ -713,7 +755,12 @@ export function LabProvider({ children, initialSoundEnabled }) {
         gazeMode,
         poseOverride,
         characterZoom,
-        flashConfettiEnabled
+        zoomFocus,
+        flashConfettiEnabled,
+        dragEnabled,
+        dragBoundaryConstrained,
+        dragAutoSnapBack,
+        parallaxTiltEnabled
       },
       preferences: {
         defaultStartupRole,
@@ -779,7 +826,12 @@ export function LabProvider({ children, initialSoundEnabled }) {
     gazeMode,
     poseOverride,
     characterZoom,
+    zoomFocus,
     flashConfettiEnabled,
+    dragEnabled,
+    dragBoundaryConstrained,
+    dragAutoSnapBack,
+    parallaxTiltEnabled,
     defaultStartupRole,
     defaultCursorEnabled,
     defaultAudioEnabled,
@@ -857,8 +909,41 @@ export function LabProvider({ children, initialSoundEnabled }) {
     setCharacterZoomState(clampScale(zoom));
   }, []);
 
+  const setZoomFocus = useCallback((focus) => {
+    setZoomFocusState(normalizeZoomFocus(focus));
+  }, []);
+
   const setFlashConfettiEnabled = useCallback((val) => {
     setFlashConfettiEnabledState(Boolean(val));
+  }, []);
+
+  const setDragEnabled = useCallback((val) => {
+    setDragEnabledState(Boolean(val));
+  }, []);
+
+  const setDragBoundaryConstrained = useCallback((val) => {
+    setDragBoundaryConstrainedState(Boolean(val));
+  }, []);
+
+  const setDragAutoSnapBack = useCallback((val) => {
+    setDragAutoSnapBackState(Boolean(val));
+  }, []);
+
+  const setParallaxTiltEnabled = useCallback((val) => {
+    setParallaxTiltEnabledState(Boolean(val));
+  }, []);
+
+  const recenterCharacter = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        window.dispatchEvent(new CustomEvent('portfolio:recenter-character'));
+        if (soundFX && typeof soundFX.playSnap === 'function') {
+          soundFX.playSnap();
+        }
+      } catch {
+        // Handled safely
+      }
+    }
   }, []);
 
   // --- Preferences Setters ---
@@ -929,7 +1014,13 @@ export function LabProvider({ children, initialSoundEnabled }) {
     setGazeModeState(f.hero.gazeMode);
     setPoseOverrideState(f.hero.poseOverride);
     setCharacterZoomState(f.hero.characterZoom);
+    setZoomFocusState(f.hero.zoomFocus);
     setFlashConfettiEnabledState(f.hero.flashConfettiEnabled);
+    setDragEnabledState(f.hero.dragEnabled);
+    setDragBoundaryConstrainedState(f.hero.dragBoundaryConstrained);
+    setDragAutoSnapBackState(f.hero.dragAutoSnapBack);
+    setParallaxTiltEnabledState(f.hero.parallaxTiltEnabled);
+    recenterCharacter();
 
     // Preferences
     setDefaultStartupRoleState(f.preferences.defaultStartupRole);
@@ -963,7 +1054,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
     } catch {
       // Ignore
     }
-  }, []);
+  }, [recenterCharacter]);
 
   // --- Drawer Actions ---
   const openDrawer = useCallback(() => {
@@ -1050,7 +1141,12 @@ export function LabProvider({ children, initialSoundEnabled }) {
               if (inc.hero.gazeMode !== undefined) setGazeModeState(inc.hero.gazeMode);
               if (inc.hero.poseOverride !== undefined) setPoseOverrideState(normalizePoseOverride(inc.hero.poseOverride));
               if (inc.hero.characterZoom !== undefined) setCharacterZoomState(clampScale(inc.hero.characterZoom));
+              if (inc.hero.zoomFocus !== undefined) setZoomFocusState(normalizeZoomFocus(inc.hero.zoomFocus));
               if (inc.hero.flashConfettiEnabled !== undefined) setFlashConfettiEnabledState(Boolean(inc.hero.flashConfettiEnabled));
+              if (inc.hero.dragEnabled !== undefined) setDragEnabledState(Boolean(inc.hero.dragEnabled));
+              if (inc.hero.dragBoundaryConstrained !== undefined) setDragBoundaryConstrainedState(Boolean(inc.hero.dragBoundaryConstrained));
+              if (inc.hero.dragAutoSnapBack !== undefined) setDragAutoSnapBackState(Boolean(inc.hero.dragAutoSnapBack));
+              if (inc.hero.parallaxTiltEnabled !== undefined) setParallaxTiltEnabledState(Boolean(inc.hero.parallaxTiltEnabled));
             }
             if (inc.preferences) {
               if (inc.preferences.defaultStartupRole !== undefined) setDefaultStartupRoleState(inc.preferences.defaultStartupRole);
@@ -1131,11 +1227,22 @@ export function LabProvider({ children, initialSoundEnabled }) {
     gazeMode,
     poseOverride,
     characterZoom,
+    zoomFocus,
     flashConfettiEnabled,
+    dragEnabled,
+    dragBoundaryConstrained,
+    dragAutoSnapBack,
+    parallaxTiltEnabled,
     setGazeMode,
     setPoseOverride,
     setCharacterZoom,
+    setZoomFocus,
     setFlashConfettiEnabled,
+    setDragEnabled,
+    setDragBoundaryConstrained,
+    setDragAutoSnapBack,
+    setParallaxTiltEnabled,
+    recenterCharacter,
 
     // Tab 4: Startup & Preferences
     defaultStartupRole,
@@ -1227,11 +1334,22 @@ export function LabProvider({ children, initialSoundEnabled }) {
     gazeMode,
     poseOverride,
     characterZoom,
+    zoomFocus,
     flashConfettiEnabled,
+    dragEnabled,
+    dragBoundaryConstrained,
+    dragAutoSnapBack,
+    parallaxTiltEnabled,
     setGazeMode,
     setPoseOverride,
     setCharacterZoom,
+    setZoomFocus,
     setFlashConfettiEnabled,
+    setDragEnabled,
+    setDragBoundaryConstrained,
+    setDragAutoSnapBack,
+    setParallaxTiltEnabled,
+    recenterCharacter,
     defaultStartupRole,
     defaultCursorEnabled,
     defaultAudioEnabled,

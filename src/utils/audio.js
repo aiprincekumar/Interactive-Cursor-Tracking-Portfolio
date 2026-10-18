@@ -398,6 +398,131 @@ class SoundFX {
     body.stop(t + 0.022);
   }
 
+  // 8. Drag Lift (Crisp rising whoosh / soft pick-up pop sound)
+  playLiftSound() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+
+    this.triggerHaptic([10]);
+    const t = this.ctx.currentTime;
+
+    // Upward pitch swoop
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(Math.max(20, 220 * this.pitchMultiplier), t);
+    osc.frequency.exponentialRampToValueAtTime(Math.min(20000, Math.max(20, 680 * this.pitchMultiplier)), t + 0.08);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.08, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.085);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.085);
+
+    // Micro pick-up pop transient
+    const pop = this.ctx.createOscillator();
+    const popGain = this.ctx.createGain();
+    pop.type = 'triangle';
+    pop.frequency.setValueAtTime(Math.min(20000, Math.max(20, 850 * this.pitchMultiplier)), t);
+    pop.frequency.exponentialRampToValueAtTime(Math.max(20, 320 * this.pitchMultiplier), t + 0.015);
+    popGain.gain.setValueAtTime(0.05, t);
+    popGain.gain.exponentialRampToValueAtTime(0.001, t + 0.018);
+
+    pop.connect(popGain);
+    popGain.connect(this.masterGain);
+    pop.start(t);
+    pop.stop(t + 0.018);
+  }
+
+  // 9. Drag Drop (Subtle cushioned thud / settle sound when dropped)
+  playDropSound() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+
+    this.triggerHaptic([8, 12, 6]);
+    const t = this.ctx.currentTime;
+
+    // Soft cushioned bass thud
+    const bass = this.ctx.createOscillator();
+    const bassGain = this.ctx.createGain();
+    bass.type = 'sine';
+    bass.frequency.setValueAtTime(Math.max(20, 180 * this.pitchMultiplier), t);
+    bass.frequency.exponentialRampToValueAtTime(Math.max(20, 55 * this.pitchMultiplier), t + 0.09);
+
+    bassGain.gain.setValueAtTime(0.11, t);
+    bassGain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+
+    bass.connect(bassGain);
+    bassGain.connect(this.masterGain);
+    bass.start(t);
+    bass.stop(t + 0.1);
+
+    // Settle cushion noise puff
+    const bufferSize = Math.floor(this.ctx.sampleRate * 0.04);
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+    }
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(Math.min(20000, 600 * this.pitchMultiplier), t);
+    const noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.06, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(this.masterGain);
+    noise.start(t);
+  }
+
+  // 10. Spring Snap (Cheerful elastic snap sound when re-centered with spring)
+  playSnapSound() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+
+    this.triggerHaptic([12, 18, 15]);
+    const t = this.ctx.currentTime;
+
+    // Elastic twang oscillation
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(Math.max(20, 320 * this.pitchMultiplier), t);
+    osc.frequency.exponentialRampToValueAtTime(Math.min(20000, Math.max(20, 1100 * this.pitchMultiplier)), t + 0.035);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(20, 520 * this.pitchMultiplier), t + 0.09);
+
+    gain.gain.setValueAtTime(0.09, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.11);
+
+    // Harmonic sparkle chime ring
+    const ring = this.ctx.createOscillator();
+    const ringGain = this.ctx.createGain();
+    ring.type = 'sine';
+    ring.frequency.setValueAtTime(Math.min(20000, Math.max(20, 1480 * this.pitchMultiplier)), t + 0.02);
+    ringGain.gain.setValueAtTime(0.04, t + 0.02);
+    ringGain.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
+
+    ring.connect(ringGain);
+    ringGain.connect(this.masterGain);
+    ring.start(t + 0.02);
+    ring.stop(t + 0.13);
+  }
+
   // --- Sound Dispatcher Helper ---
   playSound(soundId) {
     switch (soundId) {
@@ -421,6 +546,15 @@ class SoundFX {
         break;
       case 'haptic':
         this.playHapticClick();
+        break;
+      case 'lift':
+        this.playLiftSound();
+        break;
+      case 'drop':
+        this.playDropSound();
+        break;
+      case 'snap':
+        this.playSnapSound();
         break;
       default:
         this.playLaserFocus();
@@ -512,6 +646,18 @@ class SoundFX {
 
   playChipHover() {
     this.playHapticClick();
+  }
+
+  playLift() {
+    this.playLiftSound();
+  }
+
+  playDrop() {
+    this.playDropSound();
+  }
+
+  playSnap() {
+    this.playSnapSound();
   }
 }
 

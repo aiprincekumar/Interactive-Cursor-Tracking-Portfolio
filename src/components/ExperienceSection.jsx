@@ -240,38 +240,22 @@ export default function ExperienceSection() {
   };
 
   return (
-    <section id="experience" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
-      <div className="bg-white dark:bg-[#161122] rounded-3xl border border-[#E7E2D8] dark:border-[#2D2340] p-8 md:p-12 shadow-xl shadow-stone-900/5 dark:shadow-black/50 relative overflow-hidden transition-colors duration-300">
-        {/* Soft subtle background glow */}
-        <div
-          className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none"
-          style={{
-            background: isOverview
-              ? 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)'
-              : isVibe
-              ? 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%)'
-              : isOther
-              ? 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)'
-              : activeRole === 'mis'
-              ? 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)'
-              : 'radial-gradient(circle, rgba(255,77,109,0.15) 0%, transparent 70%)'
-          }}
-        />
-
+    <section id="experience" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
+      <div className="max-w-7xl mx-auto">
         {/* Section Pill Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-6 shadow-xs transition-colors">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
-          03 ✦ Experience &bull; {activeRole === 'overview' ? 'Executive Overview' : isVibe ? 'AI & Vibe Coding' : (isOther || activeRole === 'other') ? 'Corporate Controller & BI' : activeRole === 'mis' ? 'Data & MIS' : 'Accounting & Tax'}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs transition-colors whitespace-nowrap max-w-full overflow-x-auto">
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
+          <span className="truncate sm:overflow-visible">03 ✦ Experience &bull; {activeRole === 'overview' ? 'Executive Overview' : isVibe ? 'AI & Vibe Coding' : (isOther || activeRole === 'other') ? 'Corporate Controller & BI' : activeRole === 'mis' ? 'Data & MIS' : 'Accounting & Tax'}</span>
         </div>
 
         {/* Header with Title, Period Pill, and Coral Accent Line */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
           <div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#18181B] dark:text-[#F5F2F8] tracking-tight font-['Outfit',sans-serif] transition-colors">
-              Journey &amp; Experience
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 transition-colors whitespace-normal sm:whitespace-nowrap">
+              Journey &amp; <span className="text-[#FF4D6D]" style={{ color: accentColor }}>Experience</span>.
             </h2>
-            <div className="w-12 h-1 rounded-full mt-4" style={{ backgroundColor: accentColor }} />
-            <p className="mt-3 text-stone-600 dark:text-stone-300 text-sm md:text-base max-w-xl font-normal leading-relaxed transition-colors">
+            <div className="w-12 h-1 rounded-full mb-4" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
+            <p className="text-stone-600 dark:text-stone-300 text-sm md:text-base max-w-xl font-normal leading-relaxed transition-colors">
               {activeRole === 'overview'
                 ? 'Curated flagship highlights synthesized from Financial, Data & Operations, and AI Vibe Coding tracks, showcasing multi-domain mastery.'
                 : isVibe
@@ -285,7 +269,7 @@ export default function ExperienceSection() {
           </div>
 
           {/* Subtitle / Period Pill Badge */}
-          <div className="flex items-center gap-3 bg-[#FAF8F5] dark:bg-[#100C1A] px-4 py-2.5 rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] shadow-2xs self-start md:self-end transition-colors">
+          <div className="flex items-center gap-3 bg-white dark:bg-[#161122] px-4 py-2.5 rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] shadow-2xs self-start md:self-end transition-colors">
             <Calendar className="w-4 h-4" style={{ color: accentColor }} />
             <span className="text-xs sm:text-sm font-mono font-bold text-[#18181B] dark:text-stone-200">
               {activeRole === 'overview'
@@ -313,6 +297,24 @@ export default function ExperienceSection() {
             </div>
           </div>
         )}
+
+        {/* Main Content Card Container */}
+        <div className="bg-white dark:bg-[#161122] rounded-3xl border border-[#E7E2D8] dark:border-[#2D2340] p-6 sm:p-10 md:p-12 shadow-xl shadow-stone-900/5 dark:shadow-black/50 relative overflow-hidden transition-colors duration-300">
+        {/* Soft subtle background glow */}
+        <div
+          className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+          style={{
+            background: isOverview
+              ? 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)'
+              : isVibe
+              ? 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%)'
+              : isOther
+              ? 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)'
+              : activeRole === 'mis'
+              ? 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)'
+              : 'radial-gradient(circle, rgba(255,77,109,0.15) 0%, transparent 70%)'
+          }}
+        />
 
         {/* Interactive Milestone Cards Grid wrapped in tabpanel */}
         <div
@@ -416,6 +418,7 @@ export default function ExperienceSection() {
             );
           })}
         </div>
+      </div>
       </div>
     </section>
   );

@@ -58,6 +58,36 @@ export default function App() {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
+  // Preload hybrid offline map vector assets non-blockingly during idle time
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const preloadMapAssets = () => {
+      const mapAssets = [
+        '/assets/maps/medininagar-dark.svg',
+        '/assets/maps/medininagar-light.svg',
+        '/assets/maps/medininagar-real-dark.png',
+        '/assets/maps/medininagar-real-light.png'
+      ];
+      mapAssets.forEach((src) => {
+        const img = new Image();
+        img.src = src;
+      });
+    };
+
+    if ('requestIdleCallback' in window) {
+      const idleId = window.requestIdleCallback(preloadMapAssets, { timeout: 3000 });
+      return () => {
+        if ('cancelIdleCallback' in window) {
+          window.cancelIdleCallback(idleId);
+        }
+      };
+    } else {
+      const timerId = setTimeout(preloadMapAssets, 1000);
+      return () => clearTimeout(timerId);
+    }
+  }, []);
+
   // Sync activeCursor to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined' && window.localStorage) {

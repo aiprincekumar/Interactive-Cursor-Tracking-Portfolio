@@ -445,6 +445,20 @@ const BIO_DATA_FIELDS = [
   }
 ];
 
+// Role-Specific Section Heading Descriptions
+const ROLE_ABOUT_DESCRIPTIONS = {
+  overview:
+    'A multidisciplinary professional bridging statutory financial compliance, high-volume government MIS systems, and modern autonomous AI vibe coding into unified operational excellence.',
+  accountant:
+    'A seasoned accounting and tax specialist with deep expertise in Tally Prime ERP, GST & ITR compliance, audit-ready balance sheet finalization, and corporate fiscal governance.',
+  mis:
+    'A data operations and MIS executive experienced in large-scale government portals (DAY-NULM Skill India), multi-district biometric systems, and executive dashboard analytics.',
+  vibe_coding:
+    'An AI-native software engineer and rapid full-stack prototyper leveraging autonomous agent workflows, Cursor, LLM APIs, and prompt-driven architecture to build modern digital products.',
+  other:
+    'An executive corporate controller and BI strategist synthesizing rigorous statutory financial controls with automated ERP pipelines and dynamic Power BI telemetry.'
+};
+
 export default function AboutSection({ soundEnabled = true }) {
   const { activeRole, isOverview, isMIS, isOther, isVibeCoding } = useRoleTab();
   const isVibe = Boolean(isVibeCoding || activeRole === 'vibe_coding');
@@ -457,6 +471,7 @@ export default function AboutSection({ soundEnabled = true }) {
   const accentColor = isOverview ? '#6366F1' : isOther ? '#8B5CF6' : isVibe ? '#10B981' : (isMIS ? '#3B82F6' : '#FF4D6D');
   const competencies = isOverview ? OVERVIEW_COMPETENCIES : isOther ? OTHER_COMPETENCIES : isVibe ? VIBE_CODING_COMPETENCIES : (isMIS ? MIS_COMPETENCIES : ACCOUNTANT_COMPETENCIES);
   const story = isOverview ? OVERVIEW_STORY : isOther ? OTHER_STORY : isVibe ? VIBE_CODING_STORY : (isMIS ? MIS_STORY : ACCOUNTANT_STORY);
+  const aboutDescription = ROLE_ABOUT_DESCRIPTIONS[activeRole] || ROLE_ABOUT_DESCRIPTIONS.overview;
 
   const bioDataFields = BIO_DATA_FIELDS.map((f) => (
     f.label === 'Professional Role'
@@ -591,44 +606,38 @@ export default function AboutSection({ soundEnabled = true }) {
   };
 
   return (
-    <section id="about" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
-      <div className="bg-white dark:bg-[#121216] rounded-3xl p-6 sm:p-10 md:p-14 border border-[#E7E2D8] dark:border-stone-800 shadow-xl shadow-stone-900/5 dark:shadow-black/40 relative overflow-hidden transition-colors duration-300">
-        {/* Soft subtle background glow */}
-        <div
-          className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none transition-colors duration-500 dark:opacity-40"
-          style={{
-            background: isVibe
-              ? 'radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%)'
-              : isMIS
-              ? 'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%)'
-              : 'radial-gradient(circle, rgba(255, 77, 109, 0.08) 0%, transparent 70%)'
-          }}
-        />
-
+    <section id="about" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
+      <div className="max-w-7xl mx-auto">
         {/* Top Header Row with Section Badge and Subtitle Indicator */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] dark:bg-[#18181B] border border-[#E7E2D8] dark:border-stone-800 text-[#18181B] dark:text-stone-200 text-xs font-bold uppercase tracking-wider shadow-xs w-fit transition-colors">
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
-            01 ✦ About &bull; {isOverview ? 'Executive Overview' : isOther ? 'Business Intelligence & Controller' : isVibe ? 'Vibe Coding & AI Software' : (isMIS ? 'Data & MIS Profile' : 'Accounting & Tax Profile')}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs w-fit transition-colors whitespace-nowrap max-w-full overflow-x-auto">
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
+            <span className="truncate sm:overflow-visible">01 ✦ About &bull; {isOverview ? 'Executive Overview' : isOther ? 'Business Intelligence & Controller' : isVibe ? 'Vibe Coding & AI Software' : (isMIS ? 'Data & MIS Profile' : 'Accounting & Tax Profile')}</span>
           </div>
 
-          <div className="flex items-center gap-2 text-stone-500 dark:text-stone-400 font-mono text-xs">
-            <BadgeCheck className="w-4 h-4" style={{ color: accentColor }} />
+          <div className="flex items-center gap-2 text-stone-500 dark:text-stone-400 font-mono text-xs shrink-0 whitespace-nowrap">
+            <BadgeCheck className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
             <span>Verified Professional Dossier</span>
           </div>
         </div>
 
         {/* Section Heading */}
         <div className="mb-6">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#18181B] dark:text-[#F4F4F5] tracking-tight font-['Outfit',sans-serif] leading-none transition-colors duration-300">
-            Who I am
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 transition-colors duration-300 whitespace-normal sm:whitespace-nowrap">
+            Who I <span className="text-[#FF4D6D]" style={{ color: accentColor }}>am</span>.
           </h2>
-          <div className="w-12 h-1 rounded-full mt-5 transition-all duration-300" style={{ backgroundColor: accentColor }} />
+          <div className="w-12 h-1 rounded-full mb-4 transition-all duration-300" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
+          <p
+            key={activeRole}
+            className="animate-tab-fade text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-2xl font-normal leading-relaxed"
+          >
+            {aboutDescription}
+          </p>
         </div>
 
         {/* AI-Synthesized Role Banner */}
         {Boolean(isOther || activeRole === 'other') && (
-          <div className="mb-8 p-4 rounded-2xl bg-purple-50/90 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 shadow-xs flex items-center gap-3.5 text-purple-900 dark:text-purple-200">
+          <div className="mb-6 p-4 rounded-2xl bg-purple-50/90 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 shadow-xs flex items-center gap-3.5 text-purple-900 dark:text-purple-200">
             <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 text-lg">
               🤖
             </div>
@@ -645,7 +654,7 @@ export default function AboutSection({ soundEnabled = true }) {
           aria-label="About section tabs"
           aria-orientation="horizontal"
           onKeyDown={handleKeyDown}
-          className="flex p-1.5 bg-[#FAF8F5] dark:bg-[#18181B] rounded-2xl border border-[#ECE7DF] dark:border-stone-800 gap-1.5 mb-10 overflow-x-auto no-scrollbar transition-colors"
+          className="flex p-1.5 bg-[#FAF8F5] dark:bg-[#18181B] rounded-2xl border border-[#ECE7DF] dark:border-stone-800 gap-1.5 mb-8 overflow-x-auto no-scrollbar transition-colors"
         >
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -697,6 +706,20 @@ export default function AboutSection({ soundEnabled = true }) {
             );
           })}
         </div>
+
+        {/* Main Content Card Container enclosing tabpanels */}
+        <div className="bg-white dark:bg-[#121216] rounded-3xl p-6 sm:p-10 md:p-14 border border-[#E7E2D8] dark:border-stone-800 shadow-xl shadow-stone-900/5 dark:shadow-black/40 relative overflow-hidden transition-colors duration-300">
+        {/* Soft subtle background glow */}
+        <div
+          className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none transition-colors duration-500 dark:opacity-40"
+          style={{
+            background: isVibe
+              ? 'radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%)'
+              : isMIS
+              ? 'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%)'
+              : 'radial-gradient(circle, rgba(255, 77, 109, 0.08) 0%, transparent 70%)'
+          }}
+        />
 
         {/* Tab Panels Container with baseline min-height to eliminate layout shifts */}
         <div className="min-h-[560px] md:min-h-[600px] relative">
@@ -1073,6 +1096,7 @@ export default function AboutSection({ soundEnabled = true }) {
           </div>
         )}
         </div>
+      </div>
       </div>
     </section>
   );
