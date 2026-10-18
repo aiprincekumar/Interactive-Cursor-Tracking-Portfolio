@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, VolumeX, Menu, X, Search, LayoutGrid, Sun, Moon } from 'lucide-react';
+import { Volume2, VolumeX, Menu, X, Search, LayoutGrid, Sun, Moon, Eye } from 'lucide-react';
+import { useSimpleMode } from '../context/SimpleModeContext.jsx';
 import { soundFX } from '../utils/audio';
 import { CURSOR_LIST } from '../utils/cursorConstants';
 import CursorSelectorRibbon from './CursorSelectorRibbon';
@@ -58,6 +59,15 @@ export default function Navbar({
   const toggleTheme = themeContext?.toggleTheme ?? (() => {});
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  let simpleContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    simpleContext = useSimpleMode();
+  } catch {
+    // In case Navbar is mounted outside SimpleModeProvider
+  }
+  const isSimpleMode = simpleContext?.isSimpleMode ?? false;
+  const toggleSimpleMode = simpleContext?.toggleSimpleMode ?? (() => {});
   const [isRibbonOpen, setIsRibbonOpen] = useState(false);
   const [isRoleBarOpen, setIsRoleBarOpen] = useState(false);
   const [isExploreOpen, setIsExploreOpen] = useState(false);
@@ -459,6 +469,17 @@ export default function Navbar({
                 </span>
               </button>
             )}
+
+            {/* Simple Mode Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleSimpleMode}
+              aria-label="Simple view"
+              title="Simple view"
+              className="p-2 rounded-full text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-all cursor-pointer relative group"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
 
             {/* Theme Toggle Button (Light / Dark) */}
             <button

@@ -3,6 +3,7 @@ import { FileText, Eye, Download, Copy, Check, ChevronDown, Printer } from 'luci
 import confetti from 'canvas-confetti';
 import { soundFX } from '../utils/audio';
 import { useRoleTab } from '../context/RoleContext.jsx';
+import { useSimpleMode } from '../context/SimpleModeContext.jsx';
 import { getResumeConfig } from '../utils/resumeConfig.js';
 
 export default function ResumeDropdown({
@@ -16,6 +17,15 @@ export default function ResumeDropdown({
   const dropdownRef = useRef(null);
   const primaryButtonRef = useRef(null);
   const toggleButtonRef = useRef(null);
+
+  let simpleContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    simpleContext = useSimpleMode();
+  } catch {
+    // In case ResumeDropdown is mounted outside SimpleModeProvider
+  }
+  const toggleSimpleMode = simpleContext?.toggleSimpleMode ?? (() => {});
 
   // Connect active role unconditionally from RoleContext
   const roleCtx = useRoleTab();
@@ -457,25 +467,26 @@ export default function ResumeDropdown({
             </span>
           </button>
 
-          {/* Option 4: Print Resume */}
+          {/* Option 5: Basic Overview (Simple Mode Toggle) */}
           <button
             type="button"
             role="menuitem"
-            onClick={handlePrintResume}
+            onClick={() => {
+              toggleSimpleMode();
+              setIsOpen(false);
+              if (soundEnabled) soundFX.playFocusBeep();
+            }}
             className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-white dark:hover:bg-stone-800/80 transition-colors cursor-pointer group"
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <span className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 group-hover:bg-stone-200 dark:group-hover:bg-stone-700 transition-colors shrink-0">
-                <Printer className="w-3.5 h-3.5" />
+              <span className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 shrink-0">
+                <Eye className="w-3.5 h-3.5" />
               </span>
               <div className="truncate">
-                <p className="font-bold text-[#18181B] dark:text-white leading-tight">Print Resume</p>
-                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">Print active role PDF</p>
+                <p className="font-bold text-[#18181B] dark:text-white leading-tight">Basic Overview</p>
+                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">Toggle simple view</p>
               </div>
             </div>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold shrink-0 ml-2">
-              PRINT
-            </span>
           </button>
         </div>
       )}
