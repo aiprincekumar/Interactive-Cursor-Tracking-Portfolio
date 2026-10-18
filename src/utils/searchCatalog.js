@@ -271,11 +271,24 @@ export const SEARCH_ITEMS = [
     title: 'Contact / Office Inquiry',
     category: 'Sections',
     targetId: 'contact',
+    tab: 'touch',
     badge: 'Section',
     matchType: 'Portfolio Section',
     role: 'both',
     description: 'Direct consultation inquiry form, email (atulravi2015@gmail.com) & Daltonganj office location',
     keywords: 'contact get in touch email atulravi2015@gmail.com location message hire form inquiry address medininagar daltonganj phone'
+  },
+  {
+    id: 'sec-direct',
+    title: 'Direct Channel / WhatsApp & Email',
+    category: 'Sections',
+    targetId: 'contact',
+    tab: 'direct',
+    badge: 'Direct Channel',
+    matchType: 'Contact Channel',
+    role: 'both',
+    description: 'Direct priority WhatsApp (+91 7992383804), email, and professional social profiles.',
+    keywords: 'direct channel whatsapp chat email phone call priority atulravi2015@gmail.com 7992383804 instant connect'
   },
   {
     id: 'sec-location',

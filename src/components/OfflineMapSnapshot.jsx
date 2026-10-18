@@ -6,7 +6,6 @@ import {
   Compass, 
   MapPin, 
   Navigation, 
-  Layers, 
   Copy, 
   Check, 
   Sparkles, 
@@ -14,7 +13,7 @@ import {
   Building2 
 } from 'lucide-react';
 
-const LANDMARKS = [
+export const LANDMARKS = [
   {
     id: 'center',
     name: 'Medininagar Center',
@@ -83,16 +82,12 @@ export default function OfflineMapSnapshot({
   zoom: externalZoom,
   className = '',
   showControls = true,
-  showLandmarks = true,
   showHeader = true,
   showFooter = true,
-  interactive = true,
-  onLandmarkSelect
+  interactive = true
 }) {
   const [internalZoom, setInternalZoom] = useState(1);
-  const [activeLandmark, setActiveLandmark] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [showTags, setShowTags] = useState(showLandmarks);
   const [headingDegrees, setHeadingDegrees] = useState(0);
   const containerRef = useRef(null);
 
@@ -141,7 +136,6 @@ export default function OfflineMapSnapshot({
   const handleReset = () => {
     setInternalZoom(1);
     setHeadingDegrees(0);
-    setActiveLandmark(null);
   };
 
   const handleRotateCompass = () => {
@@ -197,7 +191,7 @@ export default function OfflineMapSnapshot({
         {/* Geographic Title & Offline Indicator */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#FF4D6D]/15 text-[#FF4D6D] shrink-0 border border-[#FF4D6D]/30">
-            <MapPin className="w-4 h-4 animate-pulse" />
+            <MapPin className="w-4 h-4" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -209,7 +203,7 @@ export default function OfflineMapSnapshot({
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                   : 'bg-emerald-950/60 text-emerald-400 border-emerald-800/60'
               }`}>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 Offline Vector
               </span>
             </div>
@@ -219,7 +213,7 @@ export default function OfflineMapSnapshot({
           </div>
         </div>
 
-        {/* Top-Right Quick Controls: Copy Coords & Landmark Filter */}
+        {/* Top-Right Quick Controls: Copy Coords */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Copy Coordinates Button */}
           <button
@@ -248,23 +242,6 @@ export default function OfflineMapSnapshot({
               </>
             )}
           </button>
-
-          {/* Toggle Landmark Badges */}
-          <button
-            type="button"
-            onClick={() => setShowTags((prev) => !prev)}
-            aria-label={showTags ? 'Hide Landmark Tags' : 'Show Landmark Tags'}
-            title={showTags ? 'Hide Landmark Tags' : 'Show Landmark Tags'}
-            className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
-              showTags
-                ? 'bg-[#FF4D6D]/15 text-[#FF4D6D] border-[#FF4D6D]/40'
-                : resolvedTheme === 'light'
-                  ? 'bg-white border-stone-200 text-stone-600 hover:text-stone-900'
-                  : 'bg-[#181226] border-[#2D2340] text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-          </button>
         </div>
       </div>
       )}
@@ -292,74 +269,6 @@ export default function OfflineMapSnapshot({
             loading="eager"
             decoding="async"
           />
-
-          {/* Dynamic Interactive Landmark Overlays */}
-          {showTags && LANDMARKS.map((landmark) => {
-            const isSelected = activeLandmark?.id === landmark.id;
-            const Icon = landmark.icon;
-
-            return (
-              <div
-                key={landmark.id}
-                style={{
-                  left: `${landmark.x}%`,
-                  top: `${landmark.y}%`
-                }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 z-10 group"
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveLandmark(isSelected ? null : landmark);
-                    if (onLandmarkSelect) onLandmarkSelect(landmark);
-                  }}
-                  aria-label={`Inspect landmark: ${landmark.name}`}
-                  className={`relative flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-semibold border transition-all cursor-pointer backdrop-blur-md shadow-md ${
-                    landmark.highlight
-                      ? 'bg-[#FF4D6D] text-white border-white/40 ring-2 ring-[#FF4D6D]/40 scale-105'
-                      : isSelected
-                        ? 'bg-stone-900 text-white border-stone-700 dark:bg-white dark:text-stone-900 scale-110'
-                        : resolvedTheme === 'light'
-                          ? 'bg-white/95 text-stone-800 border-stone-200/90 hover:scale-105 hover:border-stone-400'
-                          : 'bg-[#181226]/90 text-stone-200 border-[#2D2340] hover:scale-105 hover:border-[#FF4D6D]/50'
-                  }`}
-                >
-                  <Icon 
-                    className="w-3 h-3 shrink-0" 
-                    style={{ color: landmark.highlight ? '#FFFFFF' : landmark.color }} 
-                  />
-                  <span className="hidden sm:inline-block font-sans whitespace-nowrap">
-                    {landmark.name}
-                  </span>
-                </button>
-
-                {/* Popover Card for Selected Landmark */}
-                {isSelected && (
-                  <div className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 w-52 sm:w-60 p-3 rounded-xl border z-30 shadow-2xl backdrop-blur-lg animate-in fade-in zoom-in-95 duration-200 ${
-                    resolvedTheme === 'light'
-                      ? 'bg-white/95 border-stone-200 text-stone-800'
-                      : 'bg-[#181226]/95 border-[#2D2340] text-stone-100'
-                  }`}>
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-[#FF4D6D] font-bold">
-                        {landmark.category}
-                      </span>
-                      <span className="text-[10px] font-mono text-stone-500 dark:text-stone-400">
-                        {landmark.tag}
-                      </span>
-                    </div>
-                    <h4 className="text-xs font-bold leading-snug">{landmark.name}</h4>
-                    <p className="text-[11px] text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">
-                      {landmark.desc}
-                    </p>
-                    <div className="mt-2 pt-2 border-t border-stone-200/60 dark:border-stone-700/60 flex items-center justify-between text-[9.5px] font-mono text-stone-500">
-                      <span>{landmark.coords}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
         </div>
       </div>
 

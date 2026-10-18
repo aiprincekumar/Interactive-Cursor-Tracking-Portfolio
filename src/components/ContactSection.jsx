@@ -5,6 +5,7 @@ import {
   Check, 
   Send, 
   ArrowUpRight, 
+  ArrowRight,
   Copy, 
   ZoomIn, 
   ZoomOut, 
@@ -12,7 +13,6 @@ import {
   Navigation,
   Sparkles,
   Lock,
-  Unlock,
   MessageCircle,
   Building2,
   Clock,
@@ -21,7 +21,9 @@ import {
   AlertCircle,
   Loader2,
   Phone,
-  Layers
+  Layers,
+  ShieldCheck,
+  Zap
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -35,21 +37,6 @@ import {
 } from './Icons';
 import { soundFX } from '../utils/audio';
 import LeafletOfflineMap from './LeafletOfflineMap';
-
-const CONTACT_TABS = [
-  {
-    id: 'touch',
-    label: 'Get in Touch',
-    badge: 'Direct Note',
-    icon: Mail
-  },
-  {
-    id: 'location',
-    label: 'Location & Office Map',
-    badge: 'Medininagar HQ',
-    icon: MapPin
-  }
-];
 
 const SOCIAL_LINKS = [
   {
@@ -159,6 +146,27 @@ export default function ContactSection() {
     return null;
   });
 
+  const CONTACT_TABS = [
+    {
+      id: 'touch',
+      label: 'Get in Touch',
+      badge: 'Inquiry Form',
+      icon: Mail
+    },
+    {
+      id: 'direct',
+      label: 'Direct Channel',
+      badge: isUnlocked ? '✓ Unlocked' : '🔒 Gated',
+      icon: MessageCircle
+    },
+    {
+      id: 'location',
+      label: 'Location & Office Map',
+      badge: 'Medininagar HQ',
+      icon: MapPin
+    }
+  ];
+
   // Map state
   const [zoom, setZoom] = useState(13);
   const [mapMode, setMapMode] = useState('osm'); // 'osm' | 'google'
@@ -212,9 +220,10 @@ export default function ContactSection() {
 
   // Listen for external tab switch events (e.g. from CommandPalette)
   useEffect(() => {
+    const validTabs = ['touch', 'direct', 'location'];
     const handleSwitchTab = (e) => {
       const targetTab = e.detail?.tab;
-      if (targetTab && CONTACT_TABS.some((t) => t.id === targetTab)) {
+      if (targetTab && validTabs.includes(targetTab)) {
         setActiveTab(targetTab);
       }
     };
@@ -460,10 +469,10 @@ export default function ContactSection() {
     soundFX.playSparkle();
     try {
       confetti({
-        particleCount: 90,
-        spread: 70,
+        particleCount: 110,
+        spread: 80,
         origin: { y: 0.6 },
-        colors: ['#FF4D6D', '#25D366', '#0A66C2', '#FFD166', '#06D6A0']
+        colors: ['#FF4D6D', '#25D366', '#0A66C2', '#FFD166', '#06D6A0', '#9333EA']
       });
     } catch {
       // Confetti fallback if script blocked
@@ -533,6 +542,15 @@ export default function ContactSection() {
       }
 
       triggerCelebration();
+
+      // Automatically switch active tab to 'direct'
+      setActiveTab('direct');
+      requestAnimationFrame(() => {
+        const directTabBtn = tabButtonRefs.current['direct'];
+        if (directTabBtn) {
+          directTabBtn.focus();
+        }
+      });
     }
   };
 
@@ -552,7 +570,7 @@ export default function ContactSection() {
   // WhatsApp personalized greeting link
   const whatsAppInquiryText = lastSubmittedData 
     ? `Hello Atul ji, I just submitted an inquiry for "${lastSubmittedData.role}".\nName: ${lastSubmittedData.name}\nWhatsApp: ${lastSubmittedData.whatsapp}\nInquiry: ${lastSubmittedData.message}`
-    : `Hello Atul ji, I visited your portfolio and would like to discuss a project.`;
+    : `Hello Atul ji, I visited your portfolio and would like to connect directly regarding consultation/projects.`;
   const whatsAppLink = `https://wa.me/917992383804?text=${encodeURIComponent(whatsAppInquiryText)}`;
 
   return (
@@ -575,7 +593,7 @@ export default function ContactSection() {
           </p>
         </div>
 
-        {/* Horizontal 2-Tab Switcher Ribbon */}
+        {/* Horizontal 3-Tab Switcher Ribbon */}
         <div 
           role="tablist" 
           aria-label="Contact and location tabs"
@@ -598,7 +616,7 @@ export default function ContactSection() {
                 type="button"
                 onClick={() => handleTabChange(tab.id, false)}
                 onMouseEnter={() => soundFX.playChipHover()}
-                className={`flex-1 min-w-[150px] sm:min-w-0 min-h-[44px] flex items-center justify-center gap-2.5 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold font-mono transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] whitespace-nowrap ${
+                className={`flex-1 min-w-[140px] sm:min-w-0 min-h-[44px] flex items-center justify-center gap-2 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold font-mono transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] whitespace-nowrap ${
                   isActive
                     ? 'bg-white dark:bg-[#201830] text-[#18181B] dark:text-[#F5F2F8] shadow-sm border border-[#E7E2D8] dark:border-[#2D2340]'
                     : 'text-stone-600 dark:text-[#A99EBA] hover:text-[#18181B] dark:hover:text-[#F5F2F8] hover:bg-white/60 dark:hover:bg-[#201830]/60'
@@ -607,7 +625,11 @@ export default function ContactSection() {
                 <Icon className={`w-4 h-4 transition-colors shrink-0 ${isActive ? 'text-[#FF4D6D]' : 'text-stone-400'}`} />
                 <span className="truncate whitespace-nowrap">{tab.label}</span>
                 {isActive && (
-                  <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 border border-[#FFD1DC] dark:border-[#FF4D6D]/30 text-[#FF4D6D]">
+                  <span className={`hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
+                    tab.id === 'direct' && isUnlocked
+                      ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                      : 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 border border-[#FFD1DC] dark:border-[#FF4D6D]/30 text-[#FF4D6D]'
+                  }`}>
                     {tab.badge}
                   </span>
                 )}
@@ -622,7 +644,7 @@ export default function ContactSection() {
           <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-[#FF4D6D]/8 to-transparent rounded-full blur-3xl pointer-events-none" />
 
           {/* ======================================================== */}
-          {/* TAB 1: GET IN TOUCH (Gated Channels & 8-Field Form)      */}
+          {/* TAB 1: GET IN TOUCH (Full-Width Responsive Contact Form)  */}
           {/* ======================================================== */}
           {activeTab === 'touch' && (
             <div
@@ -631,166 +653,359 @@ export default function ContactSection() {
               aria-labelledby="contact-tab-touch"
               tabIndex={0}
               onKeyDown={handlePanelKeyDown}
-              className="animate-tab-fade focus:outline-none"
+              className="animate-tab-fade focus:outline-none w-full"
             >
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-                
-                {/* Left Column: Direct Connect & Gated Channels */}
-                <div className="lg:col-span-5 space-y-6">
-                  <div>
-                    <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] mb-2 flex items-center gap-2.5">
-                      <span>Direct Channels</span>
-                      {isUnlocked ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                          <Unlock className="w-3 h-3" /> Unlocked
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
-                          <Lock className="w-3 h-3" /> Gated
-                        </span>
-                      )}
+              <div className="w-full">
+                {/* Form Header */}
+                <div className="mb-8">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="w-8 h-8 rounded-xl bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] border border-[#FFD1DC] dark:border-[#FF4D6D]/30 flex items-center justify-center shrink-0">
+                      <Send className="w-4 h-4" />
+                    </div>
+                    <h3 className="font-['Outfit',sans-serif] text-xl sm:text-2xl font-bold text-[#18181B] dark:text-[#F5F2F8]">
+                      Send a Note / Project Inquiry
                     </h3>
-                    <p className="text-stone-600 dark:text-stone-400 text-xs sm:text-sm font-normal leading-relaxed">
-                      {isUnlocked 
-                        ? 'Direct contact channels are unlocked. Feel free to initiate an immediate WhatsApp chat or dispatch an email.'
-                        : 'Direct contact info is gated to protect against spam & automated scrapers. Complete the inquiry form on the right to unlock direct WhatsApp & email instantly.'
-                      }
-                    </p>
                   </div>
+                  <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 leading-relaxed max-w-2xl">
+                    Fill in the details below to submit your project or consultation inquiry. Completing this form instantly unlocks direct WhatsApp priority access and personal email.
+                  </p>
+                </div>
 
-                  {/* Channel Cards (Email & WhatsApp) */}
-                  <div className="space-y-3.5">
-                    
-                    {/* WhatsApp Channel Card */}
-                    {isUnlocked ? (
-                      <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/80 transition-all shadow-xs">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
-                            <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                            <span>WhatsApp (Priority)</span>
-                          </div>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-bold">
-                            Active
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
-                          <a
-                            href={whatsAppLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={() => soundFX.playSparkle()}
-                            className="inline-flex items-center gap-2 text-sm sm:text-base font-bold text-[#18181B] dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 font-mono transition-colors group"
-                          >
-                            <span>{formattedWhatsApp}</span>
-                            <ArrowUpRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                          </a>
-                          <button
-                            type="button"
-                            onClick={copyWhatsApp}
-                            aria-label="Copy WhatsApp Number"
-                            className="p-2.5 rounded-xl bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border border-emerald-200 dark:border-emerald-800 transition-colors cursor-pointer"
-                            title="Copy WhatsApp"
-                          >
-                            {whatsappCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-4 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] relative overflow-hidden group">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2 text-xs font-mono font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
-                            <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                            <span>WhatsApp Channel</span>
-                          </div>
-                          <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 font-bold">
-                            <Lock className="w-2.5 h-2.5" /> Gated
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2 select-none filter blur-xs text-sm sm:text-base font-mono font-bold text-stone-700 dark:text-stone-300">
-                            <span>+91 79923 ••••••</span>
-                          </div>
-                          <span className="text-[11px] font-mono text-stone-400 dark:text-stone-500 italic">
-                            Inquiry required
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Email Channel Card */}
-                    {isUnlocked ? (
-                      <div className="p-4 rounded-2xl bg-pink-50/60 dark:bg-[#FF4D6D]/10 border border-[#FFD1DC] dark:border-[#FF4D6D]/30 transition-all shadow-xs">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#FF4D6D] uppercase tracking-wider">
-                            <Mail className="w-4 h-4" />
-                            <span>Direct Email</span>
-                          </div>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-pink-100 dark:bg-[#FF4D6D]/20 text-[#FF4D6D] font-bold">
-                            Unlocked
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
-                          <a
-                            href={`mailto:${directEmail}`}
-                            onClick={() => soundFX.playSparkle()}
-                            className="inline-flex items-center gap-2 text-sm sm:text-base font-bold text-[#18181B] dark:text-white hover:text-[#FF4D6D] dark:hover:text-[#FF4D6D] font-mono transition-colors group"
-                          >
-                            <span>{directEmail}</span>
-                            <ArrowUpRight className="w-4 h-4 text-[#FF4D6D] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                          </a>
-                          <button
-                            type="button"
-                            onClick={copyEmail}
-                            aria-label="Copy Email address"
-                            className="p-2.5 rounded-xl bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border border-[#FFD1DC] dark:border-[#FF4D6D]/30 transition-colors cursor-pointer"
-                            title="Copy Email"
-                          >
-                            {emailCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-4 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] relative overflow-hidden group">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2 text-xs font-mono font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
-                            <Mail className="w-4 h-4 text-[#FF4D6D]" />
-                            <span>Official Email</span>
-                          </div>
-                          <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 font-bold">
-                            <Lock className="w-2.5 h-2.5" /> Gated
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2 select-none filter blur-xs text-sm sm:text-base font-mono font-bold text-stone-700 dark:text-stone-300">
-                            <span>Atulravi••••@gmail.com</span>
-                          </div>
-                          <span className="text-[11px] font-mono text-stone-400 dark:text-stone-500 italic">
-                            Inquiry required
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                {submitError && (
+                  <div className="mb-6 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2.5 shadow-2xs">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
+                    <span className="font-medium">{submitError}</span>
                   </div>
+                )}
 
-                  {/* Anti-spam Gating Notice */}
-                  {!isUnlocked && (
-                    <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-2.5">
-                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-                      <div className="leading-relaxed">
-                        <strong className="font-semibold">Privacy &amp; Anti-Spam Gate:</strong> Submit the project inquiry form with valid details to unlock 1-click WhatsApp messaging and direct email access for 24 hours.
+                <form onSubmit={handleSubmit} className="w-full">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                    {/* Row 1 - Col 1: Your Name */}
+                    <div>
+                      <label htmlFor="field-name" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1.5 uppercase tracking-wider">
+                        YOUR NAME <span className="text-[#FF4D6D]">*</span>
+                      </label>
+                      <input
+                        id="field-name"
+                        type="text"
+                        required
+                        placeholder="e.g. Rahul Sharma"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 shadow-2xs"
+                      />
+                    </div>
+
+                    {/* Row 1 - Col 2: Email Address */}
+                    <div>
+                      <label htmlFor="field-email" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1.5 uppercase tracking-wider">
+                        EMAIL ADDRESS <span className="text-[#FF4D6D]">*</span>
+                      </label>
+                      <input
+                        id="field-email"
+                        type="email"
+                        required
+                        placeholder="rahul@enterprise.com"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 shadow-2xs"
+                      />
+                    </div>
+
+                    {/* Row 1 - Col 3: WhatsApp Number */}
+                    <div>
+                      <label htmlFor="field-whatsapp" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1.5 flex items-center justify-between uppercase tracking-wider">
+                        <span>WHATSAPP NUMBER <span className="text-[#FF4D6D]">*</span></span>
+                        <span className="text-[10px] text-stone-400 font-normal lowercase">incl. country code</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="field-whatsapp"
+                          type="tel"
+                          required
+                          placeholder="+91 98765 43210"
+                          value={formData.whatsapp}
+                          onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 font-mono shadow-2xs"
+                        />
+                        <Phone className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5 pointer-events-none" />
                       </div>
                     </div>
-                  )}
 
-                  {/* Social Channels */}
-                  <div className="space-y-3 pt-6 border-t border-[#ECE7DF] dark:border-[#2D2340]">
+                    {/* Row 2 - Col 1: Company / Organization */}
+                    <div>
+                      <label htmlFor="field-company" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1.5 uppercase tracking-wider">
+                        COMPANY / ORGANIZATION <span className="text-stone-400 font-normal lowercase">(Optional)</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="field-company"
+                          type="text"
+                          placeholder="FinCorp Pvt Ltd / Self"
+                          value={formData.company}
+                          onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 shadow-2xs"
+                        />
+                        <Building2 className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Row 2 - Col 2: Inquiry Category / Role */}
+                    <div>
+                      <label htmlFor="field-role" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1.5 flex items-center gap-1.5 uppercase tracking-wider">
+                        <Briefcase className="w-3.5 h-3.5 text-[#FF4D6D]" />
+                        <span>ROLE / INQUIRY CATEGORY <span className="text-[#FF4D6D]">*</span></span>
+                      </label>
+                      <select
+                        id="field-role"
+                        required
+                        value={formData.role}
+                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                        className="w-full px-3.5 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 text-xs outline-none focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-[#18181B] dark:text-white cursor-pointer shadow-2xs"
+                      >
+                        <option value="Taxation & Accounting">Taxation &amp; Accounting</option>
+                        <option value="MIS & Data Analytics">MIS &amp; Data Analytics</option>
+                        <option value="AI Software / Vibe Coding">AI Software / Vibe Coding</option>
+                        <option value="Office Admin & Management">Office Admin &amp; Management</option>
+                        <option value="Other / Custom">Other / Custom</option>
+                      </select>
+                    </div>
+
+                    {/* Row 2 - Col 3: Estimated Budget */}
+                    <div>
+                      <label htmlFor="field-budget" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1.5 flex items-center gap-1.5 uppercase tracking-wider">
+                        <DollarSign className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>ESTIMATED BUDGET <span className="text-stone-400 font-normal lowercase">(Optional)</span></span>
+                      </label>
+                      <select
+                        id="field-budget"
+                        value={formData.budget}
+                        onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                        className="w-full px-3.5 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 text-xs outline-none focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-[#18181B] dark:text-white cursor-pointer shadow-2xs"
+                      >
+                        <option value="Flexible / Open to Discuss">Flexible / Open to Discuss</option>
+                        <option value="Under ₹25,000">Under ₹25,000</option>
+                        <option value="₹25,000 - ₹50,000">₹25,000 - ₹50,000</option>
+                        <option value="₹50,000 - ₹1,00,000">₹50,000 - ₹1,00,000</option>
+                        <option value="₹1,00,000+ / Enterprise">₹1,00,000+ / Enterprise</option>
+                        <option value="Hourly / Retainer">Hourly / Retainer</option>
+                      </select>
+                    </div>
+
+                    {/* Row 3 - Col 1: Project Urgency / Timeline */}
+                    <div className="lg:col-span-1">
+                      <label htmlFor="field-urgency" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1.5 flex items-center gap-1.5 uppercase tracking-wider">
+                        <Clock className="w-3.5 h-3.5 text-amber-500" />
+                        <span>PROJECT TIMELINE / URGENCY <span className="text-stone-400 font-normal lowercase">(Optional)</span></span>
+                      </label>
+                      <select
+                        id="field-urgency"
+                        value={formData.urgency}
+                        onChange={(e) => setFormData({ ...formData, urgency: e.target.value })}
+                        className="w-full px-3.5 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 text-xs outline-none focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-[#18181B] dark:text-white cursor-pointer shadow-2xs"
+                      >
+                        <option value="Normal (Within 1-2 weeks)">Normal (Within 1-2 weeks)</option>
+                        <option value="Urgent / Immediate (1-3 days)">Urgent / Immediate (1-3 days)</option>
+                        <option value="Flexible / Exploratory">Flexible / Exploratory</option>
+                      </select>
+                    </div>
+
+                    {/* Row 4 - Full 100% Width: Message / Inquiry Details */}
+                    <div className="col-span-full">
+                      <label htmlFor="field-message" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1.5 uppercase tracking-wider">
+                        INQUIRY DETAILS / MESSAGE <span className="text-[#FF4D6D]">*</span>
+                      </label>
+                      <textarea
+                        id="field-message"
+                        required
+                        rows={4}
+                        placeholder="Please outline the deliverables, current bottleneck, tools used, or specific goals..."
+                        value={formData.message}
+                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 resize-none shadow-2xs"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bottom Row: Privacy / Guarantee and Submit Action */}
+                  <div className="mt-6 pt-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-start sm:items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center shrink-0">
+                        <ShieldCheck className="w-4 h-4" />
+                      </div>
+                      <div className="text-xs text-stone-600 dark:text-stone-400">
+                        <span className="font-bold text-[#18181B] dark:text-[#F5F2F8]">100% Privacy Guarantee:</span> Submitting immediately activates a 24-hr unlock token for WhatsApp &amp; Email.
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full md:w-auto px-8 py-3.5 rounded-xl bg-[#18181B] hover:bg-black dark:bg-white dark:text-[#18181B] dark:hover:bg-stone-200 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer disabled:opacity-70 disabled:pointer-events-none shrink-0"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-[#FF4D6D]" />
+                          <span>Submitting Inquiry &amp; Unlocking Direct Channel...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 text-[#FF4D6D]" />
+                          <span>Submit Inquiry &amp; Unlock Direct Channel</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* ======================================================== */}
+          {/* TAB 2: DIRECT CHANNEL (Dedicated Panel: Unlocked / Locked)*/}
+          {/* ======================================================== */}
+          {activeTab === 'direct' && (
+            <div
+              role="tabpanel"
+              id="contact-panel-direct"
+              aria-labelledby="contact-tab-direct"
+              tabIndex={0}
+              onKeyDown={handlePanelKeyDown}
+              className="animate-tab-fade space-y-6 focus:outline-none"
+            >
+              {isUnlocked ? (
+                /* UNLOCKED STANDALONE PANEL */
+                <div className="space-y-6 animate-in zoom-in-95 duration-300">
+                  {/* Top 24-Hour Celebration Banner */}
+                  <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-teal-500/15 border border-emerald-300/80 dark:border-emerald-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-11 h-11 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <Sparkles className="w-6 h-6 animate-pulse" />
+                      </div>
+                      <div>
+                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 text-[11px] font-mono font-bold mb-1 border border-emerald-200 dark:border-emerald-800">
+                          <Check className="w-3 h-3 text-emerald-600" /> Verified Access Active
+                        </div>
+                        <h4 className="text-lg sm:text-xl font-black font-['Outfit',sans-serif] text-[#18181B] dark:text-white">
+                          🎉 Direct Channels Unlocked for 24 Hours!
+                        </h4>
+                        <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+                          Direct Contact Unlocked! Priority WhatsApp direct messaging and personal email are active for fast turnaround{lastSubmittedData?.name ? ` for ${lastSubmittedData.name}` : ''}.
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleResetInquiry}
+                      className="px-3.5 py-2 rounded-xl text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-white/80 dark:hover:bg-stone-800 transition-colors font-mono text-xs font-bold border border-stone-200 dark:border-stone-700 shrink-0 cursor-pointer"
+                    >
+                      Reset / Re-lock
+                    </button>
+                  </div>
+
+                  {/* Priority Channel Cards (WhatsApp & Direct Email) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Priority WhatsApp Card */}
+                    <div className="p-6 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/80 flex flex-col justify-between space-y-4 shadow-xs">
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+                            <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                            <span>WhatsApp (Priority Channel)</span>
+                          </div>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-700">
+                            Instant Turnaround
+                          </span>
+                        </div>
+                        <div className="text-2xl font-bold text-[#18181B] dark:text-white font-mono">
+                          {formattedWhatsApp}
+                        </div>
+                        <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">
+                          Direct chat with Atul Verma for project briefing, quotations &amp; timeline alignment.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2">
+                        <a
+                          href={whatsAppLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => soundFX.playSparkle()}
+                          className="flex-1 py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-transform active:scale-95"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span>Chat on WhatsApp</span>
+                          <ArrowUpRight className="w-4 h-4" />
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={copyWhatsApp}
+                          aria-label="Copy WhatsApp Number"
+                          className="py-3 px-4 rounded-xl bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border border-emerald-300 dark:border-emerald-800 text-xs font-bold font-mono transition-colors cursor-pointer flex items-center justify-center gap-2"
+                          title="Copy WhatsApp"
+                        >
+                          {whatsappCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                          <span>{whatsappCopied ? 'Copied' : 'Copy'}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Direct Email Card */}
+                    <div className="p-6 rounded-2xl bg-pink-50/60 dark:bg-[#FF4D6D]/10 border border-[#FFD1DC] dark:border-[#FF4D6D]/30 flex flex-col justify-between space-y-4 shadow-xs">
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#FF4D6D] uppercase tracking-wider">
+                            <Mail className="w-4 h-4" />
+                            <span>Direct Email Inbox</span>
+                          </div>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-pink-100 dark:bg-[#FF4D6D]/20 text-[#FF4D6D] font-bold border border-[#FFD1DC] dark:border-[#FF4D6D]/30">
+                            Personal Inbox
+                          </span>
+                        </div>
+                        <div className="text-xl sm:text-2xl font-bold text-[#18181B] dark:text-white font-mono truncate" title={directEmail}>
+                          {directEmail}
+                        </div>
+                        <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">
+                          Direct personal email for formal proposals, contract reviews, and enterprise paperwork.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2">
+                        <a
+                          href={`mailto:${directEmail}`}
+                          onClick={() => soundFX.playSparkle()}
+                          className="flex-1 py-3 px-4 rounded-xl bg-[#18181B] hover:bg-black dark:bg-white dark:text-[#18181B] dark:hover:bg-stone-200 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-transform active:scale-95"
+                        >
+                          <Mail className="w-4 h-4" />
+                          <span>Compose Email</span>
+                          <ArrowUpRight className="w-4 h-4" />
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={copyEmail}
+                          aria-label="Copy Email address"
+                          className="py-3 px-4 rounded-xl bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border border-[#FFD1DC] dark:border-[#FF4D6D]/30 text-xs font-bold font-mono transition-colors cursor-pointer flex items-center justify-center gap-2"
+                          title="Copy Email"
+                        >
+                          {emailCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                          <span>{emailCopied ? 'Copied' : 'Copy'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Professional Social Profiles */}
+                  <div className="p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#ECE7DF] dark:border-[#2D2340] space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="text-xs font-mono text-stone-500 dark:text-stone-400 uppercase tracking-wider font-bold flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#FF4D6D]" />
-                        Professional Profiles
+                        Professional Profiles &amp; Networks
                       </div>
                       <span className="text-[11px] font-mono text-stone-400 dark:text-stone-500">
-                        7 Networks
+                        7 Networks Active
                       </span>
                     </div>
 
@@ -806,7 +1021,241 @@ export default function ContactSection() {
                             aria-label={item.ariaLabel}
                             title={item.name}
                             onClick={() => soundFX.playSparkle()}
-                            className={`group flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#FAF8F5] dark:bg-stone-900/80 text-stone-700 dark:text-stone-300 border border-[#E7E2D8] dark:border-stone-800 text-xs font-bold transition-all duration-200 shadow-2xs hover:shadow-md hover:-translate-y-0.5 active:scale-95 ${item.hoverClass}`}
+                            className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-stone-900/80 text-stone-700 dark:text-stone-300 border border-[#E7E2D8] dark:border-stone-800 text-xs font-bold transition-all duration-200 shadow-2xs hover:shadow-md hover:-translate-y-0.5 active:scale-95 ${item.hoverClass}`}
+                          >
+                            <Icon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
+                            <span className="text-[11px]">{item.name}</span>
+                            <ArrowUpRight className="w-3 h-3 opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-200" />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Reset and Switch Options */}
+                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                    <span className="text-stone-500 dark:text-stone-400 font-mono text-[11px]">
+                      Access token expires in 24 hours. Submit another inquiry at any time.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleTabChange('touch')}
+                      className="px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-900 text-stone-700 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white transition-colors font-mono text-xs font-bold cursor-pointer border border-stone-200 dark:border-stone-800"
+                    >
+                      Submit Another Inquiry &rarr;
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* LOCKED/GATED STANDALONE PANEL */
+                <div className="space-y-6">
+                  {/* Gated Header Card */}
+                  <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start sm:items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+                        <Lock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 text-[11px] font-mono font-bold mb-1 border border-amber-300 dark:border-amber-800">
+                          <Lock className="w-3 h-3 text-amber-600" /> Gated Channel
+                        </div>
+                        <h4 className="text-xl sm:text-2xl font-black font-['Outfit',sans-serif] text-[#18181B] dark:text-white">
+                          Direct Channels
+                        </h4>
+                        <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 max-w-xl">
+                          Direct contact info is gated to protect against automated spam &amp; scrapers. Complete the inquiry form in the first tab to instantly unlock 1-click WhatsApp messaging and direct personal email.
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleTabChange('touch')}
+                      className="px-5 py-3 rounded-xl bg-[#18181B] hover:bg-black dark:bg-white dark:text-[#18181B] dark:hover:bg-stone-200 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-transform active:scale-95 shrink-0 cursor-pointer"
+                    >
+                      <span>Fill Inquiry Form to Unlock Direct Access</span>
+                      <ArrowRight className="w-4 h-4 text-[#FF4D6D]" />
+                    </button>
+                  </div>
+
+                  {/* "How Access Works" & Consultation Highlights Section */}
+                  <div className="p-6 sm:p-7 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#ECE7DF] dark:border-[#2D2340] space-y-5">
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#FF4D6D]/10 text-[#FF4D6D] text-[11px] font-mono font-bold uppercase tracking-wider mb-2 border border-[#FF4D6D]/20">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>How Access Works</span>
+                      </div>
+                      <h4 className="text-lg sm:text-xl font-bold font-['Outfit',sans-serif] text-[#18181B] dark:text-white">
+                        3-Step Consultation &amp; Direct Connection
+                      </h4>
+                      <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1">
+                        We respect your time. Follow our straightforward process to get in touch:
+                      </p>
+                    </div>
+
+                    {/* 3-Step Process Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                      {/* Step 1 */}
+                      <div className="p-4 rounded-xl bg-white dark:bg-stone-900/70 border border-[#E7E2D8] dark:border-[#2D2340] flex items-start gap-3 transition-all hover:border-[#FF4D6D]/40">
+                        <div className="w-8 h-8 rounded-xl bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] border border-[#FFD1DC] dark:border-[#FF4D6D]/30 flex items-center justify-center font-mono font-bold text-xs shrink-0">
+                          01
+                        </div>
+                        <div>
+                          <h5 className="text-xs sm:text-sm font-bold text-[#18181B] dark:text-white font-['Outfit',sans-serif]">
+                            Submit Inquiry
+                          </h5>
+                          <p className="text-[11px] text-stone-600 dark:text-stone-400 mt-0.5 leading-relaxed">
+                            Fill the simple contact form in the first tab with your requirements.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Step 2 */}
+                      <div className="p-4 rounded-xl bg-white dark:bg-stone-900/70 border border-[#E7E2D8] dark:border-[#2D2340] flex items-start gap-3 transition-all hover:border-[#FF4D6D]/40">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center font-mono font-bold text-xs shrink-0">
+                          02
+                        </div>
+                        <div>
+                          <h5 className="text-xs sm:text-sm font-bold text-[#18181B] dark:text-white font-['Outfit',sans-serif]">
+                            Instant Unlock
+                          </h5>
+                          <p className="text-[11px] text-stone-600 dark:text-stone-400 mt-0.5 leading-relaxed">
+                            Automatically unlock direct WhatsApp priority channel and personal email for 24 hours.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Step 3 */}
+                      <div className="p-4 rounded-xl bg-white dark:bg-stone-900/70 border border-[#E7E2D8] dark:border-[#2D2340] flex items-start gap-3 transition-all hover:border-[#FF4D6D]/40">
+                        <div className="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 flex items-center justify-center font-mono font-bold text-xs shrink-0">
+                          03
+                        </div>
+                        <div>
+                          <h5 className="text-xs sm:text-sm font-bold text-[#18181B] dark:text-white font-['Outfit',sans-serif]">
+                            Direct Collaboration
+                          </h5>
+                          <p className="text-[11px] text-stone-600 dark:text-stone-400 mt-0.5 leading-relaxed">
+                            Connect via WhatsApp for immediate turnaround.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Guarantees Row: Response Time & Privacy */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                      {/* Rapid Response Badge Card */}
+                      <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+                          <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-mono font-bold text-amber-800 dark:text-amber-300">
+                            &lt; 2 Hours Guaranteed Response Time
+                          </div>
+                          <div className="text-[11px] text-amber-700/80 dark:text-amber-400/80">
+                            Active during business hours (9 AM – 8 PM IST)
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Privacy & Confidentiality Guarantee Card */}
+                      <div className="p-3.5 rounded-xl bg-white dark:bg-stone-900/70 border border-[#E7E2D8] dark:border-stone-800 flex items-start gap-3">
+                        <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                        <div className="text-[11px] text-stone-600 dark:text-stone-400 leading-relaxed">
+                          <strong className="text-stone-800 dark:text-stone-200 font-semibold">Privacy Guaranteed:</strong> Your contact information and project requirements remain strictly confidential and are never shared.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Masked / Blurred Channel Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* WhatsApp Card (Masked) */}
+                    <div className="p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] relative overflow-hidden flex flex-col justify-between space-y-4">
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2 text-xs font-mono font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
+                            <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                            <span>WhatsApp Priority</span>
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 font-bold">
+                            <Lock className="w-2.5 h-2.5" /> Gated
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 select-none filter blur-xs text-2xl font-mono font-bold text-stone-700 dark:text-stone-300">
+                          <span>+91 79923 ••••••</span>
+                        </div>
+                        <p className="text-xs text-stone-500 dark:text-stone-400 mt-2">
+                          Direct WhatsApp number unlocks immediately upon submitting your project requirements.
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange('touch')}
+                        className="w-full py-2.5 px-4 rounded-xl bg-stone-200/70 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 font-bold text-xs font-mono flex items-center justify-center gap-2 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors cursor-pointer"
+                      >
+                        <Lock className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Unlock WhatsApp via Inquiry Form</span>
+                      </button>
+                    </div>
+
+                    {/* Email Card (Masked) */}
+                    <div className="p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] relative overflow-hidden flex flex-col justify-between space-y-4">
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2 text-xs font-mono font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
+                            <Mail className="w-4 h-4 text-[#FF4D6D]" />
+                            <span>Official Email</span>
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 font-bold">
+                            <Lock className="w-2.5 h-2.5" /> Gated
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 select-none filter blur-xs text-2xl font-mono font-bold text-stone-700 dark:text-stone-300">
+                          <span>Atulravi••••@gmail.com</span>
+                        </div>
+                        <p className="text-xs text-stone-500 dark:text-stone-400 mt-2">
+                          Personal inbox address unlocks immediately upon submitting your project requirements.
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange('touch')}
+                        className="w-full py-2.5 px-4 rounded-xl bg-stone-200/70 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 font-bold text-xs font-mono flex items-center justify-center gap-2 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors cursor-pointer"
+                      >
+                        <Lock className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Unlock Email via Inquiry Form</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Professional Profiles (Clickable and active even when locked) */}
+                  <div className="p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#ECE7DF] dark:border-[#2D2340] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-mono text-stone-500 dark:text-stone-400 uppercase tracking-wider font-bold flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF4D6D]" />
+                        Professional Profiles &amp; Social Links
+                      </div>
+                      <span className="text-[11px] font-mono text-stone-400 dark:text-stone-500">
+                        7 Networks &bull; Always Accessible
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      {SOCIAL_LINKS.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <a
+                            key={item.name}
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={item.ariaLabel}
+                            title={item.name}
+                            onClick={() => soundFX.playSparkle()}
+                            className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-stone-900/80 text-stone-700 dark:text-stone-300 border border-[#E7E2D8] dark:border-stone-800 text-xs font-bold transition-all duration-200 shadow-2xs hover:shadow-md hover:-translate-y-0.5 active:scale-95 ${item.hoverClass}`}
                           >
                             <Icon className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
                             <span className="text-[11px]">{item.name}</span>
@@ -817,292 +1266,13 @@ export default function ContactSection() {
                     </div>
                   </div>
                 </div>
-
-                {/* Right Column: 8-Field Inquiry Form OR Unlocked Celebration View */}
-                <div className="lg:col-span-7 bg-[#FAF8F5] dark:bg-[#100C1A] p-6 sm:p-8 rounded-3xl border border-[#E4DFD5] dark:border-[#2D2340] relative">
-                  
-                  {isUnlocked ? (
-                    /* UNLOCKED CELEBRATION VIEW */
-                    <div className="space-y-6 text-center sm:text-left animate-in zoom-in-95 duration-300">
-                      <div className="p-6 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto sm:mx-0 mb-3 shadow-xs">
-                          <Sparkles className="w-6 h-6 animate-pulse" />
-                        </div>
-                        <h4 className="text-xl sm:text-2xl font-black font-['Outfit',sans-serif] text-emerald-900 dark:text-emerald-100 mb-1">
-                          Direct Contact Unlocked! 🎉
-                        </h4>
-                        <p className="text-xs sm:text-sm text-emerald-700 dark:text-emerald-300 leading-relaxed">
-                          Thank you for submitting your project details{lastSubmittedData?.name ? `, ${lastSubmittedData.name}` : ''}. You now have full access to reach Atul directly on WhatsApp and personal email.
-                        </p>
-                      </div>
-
-                      {/* Prominent Action Cards */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {/* WhatsApp Action Card */}
-                        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-emerald-300 dark:border-emerald-800 flex flex-col justify-between space-y-3 shadow-xs">
-                          <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 uppercase">
-                            <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                            <span>WhatsApp Priority</span>
-                          </div>
-                          <div>
-                            <div className="text-base font-bold text-[#18181B] dark:text-white font-mono">
-                              {formattedWhatsApp}
-                            </div>
-                            <div className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                              Pre-filled with your inquiry
-                            </div>
-                          </div>
-                          <a
-                            href={whatsAppLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={() => soundFX.playSparkle()}
-                            className="w-full py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-transform active:scale-95"
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                            <span>Chat on WhatsApp</span>
-                          </a>
-                        </div>
-
-                        {/* Email Action Card */}
-                        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-pink-200 dark:border-[#FF4D6D]/30 flex flex-col justify-between space-y-3 shadow-xs">
-                          <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#FF4D6D] uppercase">
-                            <Mail className="w-4 h-4" />
-                            <span>Direct Email</span>
-                          </div>
-                          <div>
-                            <div className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white font-mono truncate" title={directEmail}>
-                              {directEmail}
-                            </div>
-                            <div className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                              Replies within 24 hours
-                            </div>
-                          </div>
-                          <a
-                            href={`mailto:${directEmail}`}
-                            onClick={() => soundFX.playSparkle()}
-                            className="w-full py-2.5 px-4 rounded-xl bg-[#18181B] hover:bg-black dark:bg-white dark:text-[#18181B] dark:hover:bg-stone-200 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-transform active:scale-95"
-                          >
-                            <Mail className="w-4 h-4" />
-                            <span>Send Email</span>
-                          </a>
-                        </div>
-                      </div>
-
-                      {/* Reset / Submit Another Inquiry */}
-                      <div className="pt-4 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                        <span className="text-stone-500 dark:text-stone-400 font-mono text-[11px]">
-                          Direct access valid for 24 hours on this browser.
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleResetInquiry}
-                          className="px-4 py-2 rounded-xl text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-stone-800 transition-colors font-mono text-xs font-bold cursor-pointer"
-                        >
-                          Submit Another Inquiry
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    /* 8-FIELD COMPREHENSIVE INQUIRY FORM */
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-['Outfit',sans-serif] text-xl font-bold text-[#18181B] dark:text-[#F5F2F8]">
-                          Project Inquiry Form
-                        </h3>
-                        <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-[#FF4D6D]/10 text-[#FF4D6D] font-bold border border-[#FF4D6D]/20">
-                          8 Fields &bull; Unlocks Direct Contact
-                        </span>
-                      </div>
-                      <p className="text-xs text-stone-500 dark:text-stone-400 mb-5 leading-relaxed">
-                        Fill out your project requirements. Upon submitting, direct WhatsApp &amp; email will unlock instantly.
-                      </p>
-
-                      {submitError && (
-                        <div className="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4 shrink-0" />
-                          <span>{submitError}</span>
-                        </div>
-                      )}
-
-                      <form onSubmit={handleSubmit} className="space-y-3.5">
-                        {/* Row 1: Name & Email */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                          <div>
-                            <label htmlFor="field-name" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1">
-                              YOUR NAME <span className="text-[#FF4D6D]">*</span>
-                            </label>
-                            <input
-                              id="field-name"
-                              type="text"
-                              required
-                              placeholder="e.g. Rahul Sharma"
-                              value={formData.name}
-                              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                              className="w-full px-3.5 py-2.5 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-white dark:bg-stone-900/80 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500"
-                            />
-                          </div>
-
-                          <div>
-                            <label htmlFor="field-email" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1">
-                              EMAIL ADDRESS <span className="text-[#FF4D6D]">*</span>
-                            </label>
-                            <input
-                              id="field-email"
-                              type="email"
-                              required
-                              placeholder="rahul@enterprise.com"
-                              value={formData.email}
-                              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                              className="w-full px-3.5 py-2.5 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-white dark:bg-stone-900/80 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Row 2: WhatsApp Number & Company */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                          <div>
-                            <label htmlFor="field-whatsapp" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1 flex items-center justify-between">
-                              <span>WHATSAPP NUMBER <span className="text-[#FF4D6D]">*</span></span>
-                              <span className="text-[10px] text-stone-400 font-normal">incl. country code</span>
-                            </label>
-                            <div className="relative">
-                              <input
-                                id="field-whatsapp"
-                                type="tel"
-                                required
-                                placeholder="+91 98765 43210"
-                                value={formData.whatsapp}
-                                onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-white dark:bg-stone-900/80 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 font-mono"
-                              />
-                              <Phone className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-3 pointer-events-none" />
-                            </div>
-                          </div>
-
-                          <div>
-                            <label htmlFor="field-company" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1">
-                              COMPANY / ORGANIZATION <span className="text-stone-400 font-normal">(Optional)</span>
-                            </label>
-                            <div className="relative">
-                              <input
-                                id="field-company"
-                                type="text"
-                                placeholder="FinCorp Pvt Ltd / Self"
-                                value={formData.company}
-                                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-white dark:bg-stone-900/80 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500"
-                              />
-                              <Building2 className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-3 pointer-events-none" />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Row 3: Role / Category & Budget */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                          <div>
-                            <label htmlFor="field-role" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1 flex items-center gap-1.5">
-                              <Briefcase className="w-3 h-3 text-[#FF4D6D]" />
-                              <span>INQUIRY CATEGORY <span className="text-[#FF4D6D]">*</span></span>
-                            </label>
-                            <select
-                              id="field-role"
-                              required
-                              value={formData.role}
-                              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                              className="w-full px-3 py-2.5 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-white dark:bg-stone-900 text-xs outline-none focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-[#18181B] dark:text-white cursor-pointer"
-                            >
-                              <option value="Taxation & Accounting">Taxation &amp; Accounting</option>
-                              <option value="MIS & Data Analytics">MIS &amp; Data Analytics</option>
-                              <option value="AI Software / Vibe Coding">AI Software / Vibe Coding</option>
-                              <option value="Office Admin & Management">Office Admin &amp; Management</option>
-                              <option value="Other / Custom">Other / Custom</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label htmlFor="field-budget" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1 flex items-center gap-1.5">
-                              <DollarSign className="w-3 h-3 text-emerald-500" />
-                              <span>ESTIMATED BUDGET <span className="text-stone-400 font-normal">(Optional)</span></span>
-                            </label>
-                            <select
-                              id="field-budget"
-                              value={formData.budget}
-                              onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                              className="w-full px-3 py-2.5 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-white dark:bg-stone-900 text-xs outline-none focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-[#18181B] dark:text-white cursor-pointer"
-                            >
-                              <option value="Flexible / Open to Discuss">Flexible / Open to Discuss</option>
-                              <option value="Under ₹25,000">Under ₹25,000</option>
-                              <option value="₹25,000 - ₹50,000">₹25,000 - ₹50,000</option>
-                              <option value="₹50,000 - ₹1,00,000">₹50,000 - ₹1,00,000</option>
-                              <option value="₹1,00,000+ / Enterprise">₹1,00,000+ / Enterprise</option>
-                              <option value="Hourly / Retainer">Hourly / Retainer</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Row 4: Project Urgency */}
-                        <div>
-                          <label htmlFor="field-urgency" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1 flex items-center gap-1.5">
-                            <Clock className="w-3 h-3 text-amber-500" />
-                            <span>PROJECT TIMELINE / URGENCY <span className="text-stone-400 font-normal">(Optional)</span></span>
-                          </label>
-                          <select
-                            id="field-urgency"
-                            value={formData.urgency}
-                            onChange={(e) => setFormData({ ...formData, urgency: e.target.value })}
-                            className="w-full px-3 py-2.5 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-white dark:bg-stone-900 text-xs outline-none focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-[#18181B] dark:text-white cursor-pointer"
-                          >
-                            <option value="Normal (Within 1-2 weeks)">Normal (Within 1-2 weeks)</option>
-                            <option value="Urgent / Immediate (1-3 days)">Urgent / Immediate (1-3 days)</option>
-                            <option value="Flexible / Exploratory">Flexible / Exploratory</option>
-                          </select>
-                        </div>
-
-                        {/* Row 5: Detailed Project Description */}
-                        <div>
-                          <label htmlFor="field-message" className="block text-[11px] font-mono font-bold text-stone-600 dark:text-stone-300 mb-1">
-                            PROJECT / WORK DETAILS <span className="text-[#FF4D6D]">*</span>
-                          </label>
-                          <textarea
-                            id="field-message"
-                            required
-                            rows={3}
-                            placeholder="Please outline the deliverables, current bottleneck, tools used, or specific goals..."
-                            value={formData.message}
-                            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-white dark:bg-stone-900/80 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 resize-none"
-                          />
-                        </div>
-
-                        {/* Submit Button */}
-                        <button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="w-full py-3.5 rounded-xl bg-[#18181B] hover:bg-black dark:bg-white dark:text-[#18181B] dark:hover:bg-stone-200 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all active:scale-98 cursor-pointer disabled:opacity-70 disabled:pointer-events-none"
-                        >
-                          {isSubmitting ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin text-[#FF4D6D]" />
-                              <span>Submitting Inquiry &amp; Unlocking...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Send className="w-4 h-4 text-[#FF4D6D]" />
-                              <span>Submit Inquiry &amp; Unlock Direct WhatsApp</span>
-                            </>
-                          )}
-                        </button>
-                      </form>
-                    </div>
-                  )}
-                </div>
-              </div>
+              )}
             </div>
           )}
 
+
           {/* ======================================================== */}
-          {/* TAB 2: LOCATION & OFFICE MAP (Full-width Interactive)    */}
+          {/* TAB 3: LOCATION & OFFICE MAP (Full-width Interactive)    */}
           {/* ======================================================== */}
           {activeTab === 'location' && (
             <div

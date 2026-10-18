@@ -21,11 +21,13 @@ assert.ok(contactSource.includes('aria-selected={isActive}'), 'Must track aria-s
 assert.ok(contactSource.includes('aria-controls={`contact-panel-${tab.id}`}'), 'Must have aria-controls matching panel id');
 assert.ok(contactSource.includes('id={`contact-tab-${tab.id}`}'), 'Must set tab id');
 assert.ok(contactSource.includes('id="contact-panel-touch"'), 'Must have touch tabpanel id');
+assert.ok(contactSource.includes('id="contact-panel-direct"'), 'Must have direct tabpanel id');
 assert.ok(contactSource.includes('id="contact-panel-location"'), 'Must have location tabpanel id');
 
 // 2. Tab IDs & Badges
 assert.ok(contactSource.includes("label: 'Get in Touch'"), 'Must have Get in Touch tab');
-assert.ok(contactSource.includes("badge: 'Direct Note'"), 'Must have Direct Note badge');
+assert.ok(contactSource.includes("badge: 'Inquiry Form'"), 'Must have Inquiry Form badge');
+assert.ok(contactSource.includes("label: 'Direct Channel'"), 'Must have Direct Channel tab');
 assert.ok(contactSource.includes("label: 'Location & Office Map'"), 'Must have Location & Office Map tab');
 assert.ok(contactSource.includes("badge: 'Medininagar HQ'"), 'Must have Medininagar HQ badge');
 
@@ -46,7 +48,7 @@ assert.ok(contactSource.includes("e.key === 'ArrowUp'"), 'Must handle ArrowUp pa
 // 5. Interactive Map Controls
 assert.ok(contactSource.includes('zoom >= 18'), 'Must enforce max zoom of 18');
 assert.ok(contactSource.includes('zoom <= 11'), 'Must enforce min zoom of 11');
-assert.ok(contactSource.includes('setZoom(14)'), 'Must reset zoom to default 14');
+assert.ok(contactSource.includes('setZoom(13)'), 'Must reset zoom to default 13');
 assert.ok(contactSource.includes('ZoomIn'), 'Must render ZoomIn icon');
 assert.ok(contactSource.includes('ZoomOut'), 'Must render ZoomOut icon');
 assert.ok(contactSource.includes('RotateCcw'), 'Must render RotateCcw icon');
@@ -54,7 +56,7 @@ assert.ok(contactSource.includes('{zoom}x'), 'Must display zoom indicator badge'
 
 // 6. Map Embed URL & Dimensions
 assert.ok(contactSource.includes('https://maps.google.com/maps?q=Daltonganj%2C%20Medininagar%2C%20Palamau%2C%20Jharkhand%20822101&t=&z='), 'Must construct dynamic zoom Google Maps embed URL');
-assert.ok(contactSource.includes('h-80 sm:h-96 md:h-[450px]'), 'Must have responsive map height styling');
+assert.ok(contactSource.includes('min-h-[460px]'), 'Must have responsive map height styling');
 
 // 7. 1-Click Copy Address & Google Maps link
 assert.ok(contactSource.includes('copyAddress'), 'Must have copyAddress function');

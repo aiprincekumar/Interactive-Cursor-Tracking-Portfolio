@@ -35,8 +35,8 @@ for (const z of zoomLevels) {
   }
 }
 
-assert.strictEqual(totalTiles, 36, `Expected exactly 36 pre-cached tiles across zoom levels 12, 13, 14, 15, but found ${totalTiles}`);
-console.log(`✅ PASS: Found all ${totalTiles} valid PNG tiles across zoom levels 12, 13, 14, 15.`);
+assert.strictEqual(totalTiles, 88, `Expected exactly 88 pre-cached tiles across zoom levels 12, 13, 14, 15, but found ${totalTiles}`);
+console.log(`✅ PASS: Found all ${totalTiles} valid PNG tiles across zoom levels 12 (35), 13 (35), 14 (9), 15 (9).`);
 
 // 2. Check LeafletOfflineMap.jsx
 const leafletMapPath = path.join(rootDir, 'src/components/LeafletOfflineMap.jsx');
@@ -56,8 +56,28 @@ assert.ok(
   'LeafletOfflineMap.jsx must use local tile URL template'
 );
 assert.ok(
-  leafletContent.includes('animate-ping') && leafletContent.includes('leaflet-pulsing-marker-wrapper'),
-  'LeafletOfflineMap.jsx must implement the pulsing marker pin'
+  !leafletContent.includes('L.marker'),
+  'LeafletOfflineMap.jsx must NOT include any marker pin indicators'
+);
+assert.ok(
+  !leafletContent.includes('bindPopup'),
+  'LeafletOfflineMap.jsx must NOT bind any popups'
+);
+assert.ok(
+  !leafletContent.includes('leaflet-pulsing-marker-wrapper'),
+  'LeafletOfflineMap.jsx must NOT contain pulsing marker wrapper'
+);
+assert.ok(
+  !leafletContent.includes('animate-ping'),
+  'LeafletOfflineMap.jsx must NOT contain animate-ping radar dot'
+);
+assert.ok(
+  leafletContent.includes('maxBounds') && leafletContent.includes('maxBoundsViscosity'),
+  'LeafletOfflineMap.jsx must configure strict maxBounds locking'
+);
+assert.ok(
+  leafletContent.includes('maxBoundsViscosity: 1.0') || leafletContent.includes('maxBoundsViscosity: 1'),
+  'LeafletOfflineMap.jsx must configure maxBoundsViscosity: 1.0'
 );
 assert.ok(
   leafletContent.includes('minZoom: 12') && leafletContent.includes('maxZoom: 15'),
@@ -73,7 +93,7 @@ assert.ok(
 );
 assert.ok(
   leafletContent.includes('Medininagar (Daltonganj), Jharkhand'),
-  'LeafletOfflineMap.jsx must feature clean city-level marker title'
+  'LeafletOfflineMap.jsx must feature clean city-level label in aria-label'
 );
 assert.ok(
   !leafletContent.includes('Atul Verma HQ'),
@@ -83,7 +103,7 @@ assert.ok(
   leafletContent.includes('animate: false'),
   'LeafletOfflineMap.jsx must set animate: false on programmatic zoom sync'
 );
-console.log('✅ PASS: LeafletOfflineMap.jsx component export, base URL resolution, pulsing marker pin, city-level label, and bounds verified.');
+console.log('✅ PASS: LeafletOfflineMap.jsx component export, base URL resolution, absence of markers/popups, maxBounds locking, and bounds verified.');
 
 // 3. Check ContactSection.jsx integration
 const contactSectionPath = path.join(rootDir, 'src/components/ContactSection.jsx');

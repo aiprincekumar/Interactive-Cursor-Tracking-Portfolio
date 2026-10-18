@@ -11,10 +11,30 @@ const tilesBaseDir = path.join(rootDir, 'public', 'assets', 'tiles');
 const PNG_HEADER = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
 
 const expectedGrids = {
-  12: { cx: 3004, cy: 1766, xRange: [3003, 3004, 3005], yRange: [1765, 1766, 1767] },
-  13: { cx: 6009, cy: 3532, xRange: [6008, 6009, 6010], yRange: [3531, 3532, 3533] },
-  14: { cx: 12018, cy: 7064, xRange: [12017, 12018, 12019], yRange: [7063, 7064, 7065] },
-  15: { cx: 24036, cy: 14128, xRange: [24035, 24036, 24037], yRange: [14127, 14128, 14129] }
+  12: {
+    cx: 3004,
+    cy: 1766,
+    xRange: [3001, 3002, 3003, 3004, 3005, 3006, 3007],
+    yRange: [1764, 1765, 1766, 1767, 1768]
+  },
+  13: {
+    cx: 6009,
+    cy: 3532,
+    xRange: [6006, 6007, 6008, 6009, 6010, 6011, 6012],
+    yRange: [3530, 3531, 3532, 3533, 3534]
+  },
+  14: {
+    cx: 12018,
+    cy: 7064,
+    xRange: [12017, 12018, 12019],
+    yRange: [7063, 7064, 7065]
+  },
+  15: {
+    cx: 24036,
+    cy: 14128,
+    xRange: [24035, 24036, 24037],
+    yRange: [14127, 14128, 14129]
+  }
 };
 
 let passCount = 0;
@@ -54,8 +74,8 @@ for (const [z, conf] of Object.entries(expectedGrids)) {
 }
 
 console.log(`\nResult: ${passCount}/${totalCount} tiles passed verification.`);
-if (passCount === 36) {
-  console.log('ALL 36 TILES READY FOR OFFLINE SERVING.');
+if (passCount === 88) {
+  console.log('ALL 88 TILES READY FOR OFFLINE SERVING.');
   process.exit(0);
 } else {
   console.error('VERIFICATION FAILED.');

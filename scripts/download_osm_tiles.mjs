@@ -155,12 +155,20 @@ async function main() {
 
     const tilesInZoom = [];
 
-    for (let dx = -1; dx <= 1; dx++) {
+    // 7x5 wide grid for z=12 and z=13 (dx: -3..3, dy: -2..2)
+    // 3x3 supporting center grid for z=14 and z=15 (dx: -1..1, dy: -1..1)
+    const isWide = (z === 12 || z === 13);
+    const minDx = isWide ? -3 : -1;
+    const maxDx = isWide ? 3 : 1;
+    const minDy = isWide ? -2 : -1;
+    const maxDy = isWide ? 2 : 1;
+
+    for (let dx = minDx; dx <= maxDx; dx++) {
       const x = cx + dx;
       const xDir = path.join(zoomDir, String(x));
       fs.mkdirSync(xDir, { recursive: true });
 
-      for (let dy = -1; dy <= 1; dy++) {
+      for (let dy = minDy; dy <= maxDy; dy++) {
         const y = cy + dy;
         const filePath = path.join(xDir, `${y}.png`);
 
@@ -236,14 +244,14 @@ async function main() {
   }
 
   console.log('\n=== Summary ===');
-  console.log(`Total tiles verified: ${verifiedCount}/36`);
+  console.log(`Total tiles verified: ${verifiedCount}/88`);
   console.log(`Total data size: ${(totalBytes / 1024).toFixed(2)} KB`);
 
-  if (!allValid || verifiedCount !== 36) {
+  if (!allValid || verifiedCount !== 88) {
     console.error('ERROR: One or more tiles failed verification!');
     process.exit(1);
   } else {
-    console.log('SUCCESS: All 36 authentic OpenStreetMap raster tiles successfully downloaded, verified (>5KB + valid PNG), and stored for offline serving!');
+    console.log('SUCCESS: All 88 authentic OpenStreetMap raster tiles successfully downloaded, verified (>5KB + valid PNG), and stored for offline serving!');
   }
 }
 

@@ -385,7 +385,7 @@ export default function CommandPalette({
       window.dispatchEvent(new CustomEvent('switch-about-tab', { detail: { tab: 'qualifications' } }));
     } else if (item.tab === 'biodata') {
       window.dispatchEvent(new CustomEvent('switch-about-tab', { detail: { tab: 'biodata' } }));
-    } else if (item.tab === 'location' || item.tab === 'touch') {
+    } else if (item.tab === 'location' || item.tab === 'touch' || item.tab === 'direct') {
       window.dispatchEvent(new CustomEvent('switch-contact-tab', { detail: { tab: item.tab } }));
     }
 
