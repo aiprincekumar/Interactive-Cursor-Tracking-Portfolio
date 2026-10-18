@@ -171,24 +171,82 @@ const OTHER_TICKER_ITEMS = [
   'Cross-Sector Institutional Impact'
 ];
 
+const VIBE_CODING_STATS = [
+  {
+    platform: 'Shipping Velocity',
+    stat: '10x',
+    label: 'Rapid Development Velocity',
+    sublabel: 'Zero-to-Production SaaS Scaffolding',
+    icon: Zap,
+  },
+  {
+    platform: 'MVPs & Prototypes',
+    stat: '50+',
+    label: 'Full-Stack Apps Deployed',
+    sublabel: 'Next.js 14, Tailwind CSS & Supabase',
+    icon: Award,
+  },
+  {
+    platform: 'Autonomous Loops',
+    stat: '100%',
+    label: 'Agentic Verification Pass Rate',
+    sublabel: 'Autonomous Testing, Oxlint & Self-Healing',
+    icon: ShieldCheck,
+  },
+  {
+    platform: 'LLM Architecture',
+    stat: '98%',
+    label: 'Prompt Token Efficiency',
+    sublabel: 'Claude 3.5 Sonnet, GPT-4o & Gemini APIs',
+    icon: Server,
+  },
+];
+
+const VIBE_CODING_TICKER_ITEMS = [
+  '10x Shipping Velocity',
+  '50+ Rapid Prototypes & MVPs',
+  '100% Autonomous Code Loops',
+  'Cursor & Windsurf Flow Mastery',
+  'Claude Code Terminal Harnesses',
+  'Next.js 14 & Supabase Cloud SaaS',
+  'Zero-to-One Fullstack App Engineering',
+  'Edge Compute & LLM Streaming'
+];
+
 export default function CodingAchievementsSection() {
-  const { isAccountant, isMIS, isOther } = useRoleTab();
+  const { isAccountant, isMIS, isOther, isVibeCoding } = useRoleTab();
   const roleTabContext = useRoleTab();
-  const activeRole = roleTabContext?.activeRole || (isOther ? 'other' : isMIS ? 'mis' : 'accountant');
+  const activeRole = roleTabContext?.activeRole || (isOther ? 'other' : isMIS ? 'mis' : isVibeCoding ? 'vibe_coding' : 'accountant');
+  const isVibe = Boolean(isVibeCoding || roleTabContext?.isVibe || activeRole === 'vibe_coding');
   const isOverview = Boolean(roleTabContext?.isOverview || activeRole === 'overview');
   const currentRole = activeRole;
 
-  const activeStats = isOther ? OTHER_STATS : isMIS ? MIS_STATS : ACCOUNTANT_STATS;
-  const activeTickerItems = isOther ? OTHER_TICKER_ITEMS : isMIS ? MIS_TICKER_ITEMS : ACCOUNTANT_TICKER_ITEMS;
+  const activeStats = isVibe ? VIBE_CODING_STATS : (isOther ? OTHER_STATS : (isMIS ? MIS_STATS : ACCOUNTANT_STATS));
+  const activeTickerItems = isVibe ? VIBE_CODING_TICKER_ITEMS : (isOther ? OTHER_TICKER_ITEMS : (isMIS ? MIS_TICKER_ITEMS : ACCOUNTANT_TICKER_ITEMS));
 
   const displayStats = isOverview ? OVERVIEW_STATS : activeStats;
   const displayTickerItems = isOverview ? OVERVIEW_TICKER_ITEMS : activeTickerItems;
   const tickerSequence = Array(8).fill(displayTickerItems).flat();
 
+  const accentColor = isOverview ? '#6366F1' : isVibe ? '#10B981' : isOther ? '#8B5CF6' : (isMIS ? '#3B82F6' : '#FF4D6D');
+
   return (
     <section id="achievements" className="py-24 bg-[#FAF8F5] dark:bg-[#0B0813] text-[#18181B] dark:text-[#F5F2F8] relative overflow-hidden select-none my-12 scroll-mt-28 border-y border-[#E7E2D8] dark:border-[#2D2340]">
       {/* Ambient background glow */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#FF4D6D]/5 dark:bg-[#FF4D6D]/10 rounded-full blur-3xl pointer-events-none" />
+      <div
+        className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+        style={{
+          background: isOverview
+            ? 'radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)'
+            : isVibe
+            ? 'radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)'
+            : isOther
+            ? 'radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%)'
+            : isMIS
+            ? 'radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(255,77,109,0.1) 0%, transparent 70%)'
+        }}
+      />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Scrolling Platform Marquee */}
@@ -200,7 +258,7 @@ export default function CodingAchievementsSection() {
               className="flex items-center gap-6 px-4 shrink-0 text-[#18181B] dark:text-[#A99EBA] font-extrabold text-xs sm:text-sm tracking-wider uppercase font-['Outfit',sans-serif]"
             >
               <span>{item}</span>
-              <span className="text-[#FF4D6D] text-sm">🦋</span>
+              <span className="text-sm" style={{ color: accentColor }}>✦</span>
             </div>
           ))}
         </div>
@@ -211,14 +269,15 @@ export default function CodingAchievementsSection() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-6">
           <div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#FFA4B6] text-xs font-bold uppercase tracking-wider mb-3 shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />
-              05 ✦ Professional Milestones &bull; {isOverview ? 'Executive Overview' : isOther ? 'Corporate Controller & BI' : isMIS ? 'Data & MIS' : 'Accounting & Tax'}
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
+              05 ✦ Professional Milestones &bull; {isOverview ? 'Executive Overview' : isVibe ? 'AI & Vibe Coding' : isOther ? 'Corporate Controller & BI' : isMIS ? 'Data & MIS' : 'Accounting & Tax'}
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#18181B] dark:text-[#F5F2F8] tracking-tight font-['Outfit',sans-serif]">
               Professional Milestones &amp; Certifications
             </h2>
             <p className="mt-2 text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
-              {isOverview && "Synthesized career milestones bridging statutory tax practice, audited ledger reconciliation, and public sector MIS database operations."}
+              {isOverview && "Synthesized career milestones bridging statutory tax practice, audited ledger reconciliation, and autonomous AI vibe coding."}
+              {!isOverview && isVibe && "Proven speed and engineering precision in AI prompt-to-app synthesis, autonomous multi-agent coding loops, and modern full-stack SaaS architecture."}
               {!isOverview && isAccountant && "Proven domain excellence in corporate bookkeeping, GST & Income Tax statutory compliance, and BRS audit precision."}
               {!isOverview && isMIS && "Demonstrated leadership in executive reporting, database reconciliation, automated dashboards, and cross-district operational analytics."}
               {!isOverview && isOther && "Proven multidisciplinary leadership uniting financial management, institutional MIS systems, and strategic enterprise administration."}
@@ -227,14 +286,14 @@ export default function CodingAchievementsSection() {
 
           {/* Aggregate Badge */}
           <div className="flex items-center gap-3 bg-white dark:bg-[#161122] px-5 py-3 rounded-2xl border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none shrink-0">
-            <Trophy className="w-5 h-5 text-[#FF4D6D]" />
+            <Trophy className="w-5 h-5" style={{ color: accentColor }} />
             <div>
               <div className="text-[11px] text-stone-500 dark:text-stone-400 font-mono uppercase">
-                {isOverview ? 'Dual Track Verified' : isOther ? 'Multidisciplinary Professional' : isMIS ? 'Data & Operations Analytics' : 'Statutory Tax Practice'}
+                {isOverview ? 'Multi-Track Verified' : isVibe ? 'AI Software Engineering' : isOther ? 'Multidisciplinary Professional' : isMIS ? 'Data & Operations Analytics' : 'Statutory Tax Practice'}
               </div>
               <div className="text-lg font-black text-[#18181B] dark:text-white font-mono">
                 <AnimatedCounter
-                  value={isMIS ? '5+ Years Verified' : '7+ Years Verified'}
+                  value={isVibe ? '10x Speed' : isMIS ? '5+ Years Verified' : '7+ Years Verified'}
                   resetKey={currentRole}
                 />
               </div>
@@ -314,6 +373,31 @@ export default function CodingAchievementsSection() {
             <div className="shrink-0">
               <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 text-xs font-mono font-bold text-indigo-600 dark:text-indigo-300">
                 Dual Track Lead
+              </span>
+            </div>
+          </div>
+        ) : isVibe ? (
+          <div className="bg-gradient-to-r from-white to-[#FAF8F5] dark:from-[#161122] dark:to-[#161122] rounded-3xl p-6 sm:p-8 border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#10B981] flex items-center justify-center text-white shadow-lg shadow-emerald-600/30 shrink-0">
+                <span className="text-xl">⚡</span>
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-[#10B981] dark:text-emerald-400 font-bold">
+                  <Zap className="w-3 h-3 text-[#10B981]" /> AI-NATIVE PROTOTYPING &amp; AUTONOMOUS CODING
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#18181B] dark:text-[#F5F2F8] font-['Outfit',sans-serif] mt-0.5">
+                  10x Shipping Velocity: Prompt-Driven Full-Stack SaaS Engineering
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 max-w-2xl">
+                  Deploying resilient production web architectures using Next.js 14, Supabase, and Tailwind CSS while orchestrating autonomous Claude Code and Cursor Composer multi-agent loops that write, verify, and self-heal software.
+                </p>
+              </div>
+            </div>
+
+            <div className="shrink-0">
+              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-xs font-mono font-bold text-emerald-600 dark:text-emerald-300">
+                10x Vibe Coder
               </span>
             </div>
           </div>

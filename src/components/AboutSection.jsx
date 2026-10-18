@@ -132,6 +132,49 @@ const MIS_COMPETENCIES = [
   }
 ];
 
+const VIBE_CODING_COMPETENCIES = [
+  {
+    title: 'AI-Native Prototyping & Flow',
+    category: 'Rapid Development',
+    icon: Terminal,
+    accent: '#10B981',
+    bgLight: 'bg-emerald-50',
+    borderLight: 'border-emerald-100',
+    tag: '10x Speed',
+    description: 'Compressing product development cycles from months into hours using prompt-driven workflows, Cursor, Windsurf, and Claude Code to deliver fully functional full-stack web applications.'
+  },
+  {
+    title: 'Autonomous Multi-Agent Systems',
+    category: 'Agentic Engineering',
+    icon: Cpu,
+    accent: '#10B981',
+    bgLight: 'bg-emerald-50',
+    borderLight: 'border-emerald-100',
+    tag: 'Multi-Agent Loops',
+    description: 'Architecting autonomous agent loops, tool harnesses, and continuous verification pipelines that research, write, test, and self-heal complex codebases without manual intervention.'
+  },
+  {
+    title: 'Full-Stack SaaS Architecture',
+    category: 'Modern Web Engineering',
+    icon: ShieldCheck,
+    accent: '#10B981',
+    bgLight: 'bg-emerald-50',
+    borderLight: 'border-emerald-100',
+    tag: 'Production Ready',
+    description: 'Building reactive, scalable full-stack applications with Next.js 14 App Router, React 19, Tailwind CSS, Supabase backend, PostgreSQL relational modeling, and Edge API deployment.'
+  },
+  {
+    title: 'LLM Orchestration & Prompting',
+    category: 'Generative AI Systems',
+    icon: Sparkles,
+    accent: '#10B981',
+    bgLight: 'bg-emerald-50',
+    borderLight: 'border-emerald-100',
+    tag: 'Claude & GPT APIs',
+    description: 'Deep context window engineering, structured JSON outputs, function calling, streaming responses, and prompt chaining across frontier models (Claude 3.5 Sonnet, GPT-4o, Gemini 1.5 Pro).'
+  }
+];
+
 const OVERVIEW_COMPETENCIES = [
   {
     title: 'Statutory Compliance & GST/ITR',
@@ -152,6 +195,16 @@ const OVERVIEW_COMPETENCIES = [
     borderLight: 'border-blue-100',
     tag: 'Data & Operations Track',
     description: 'Designing high-impact management telemetry, cross-category operational trends, advanced Excel modeling, and DAY-NULM government portal administration.'
+  },
+  {
+    title: 'Autonomous AI Engineering & Vibe Coding',
+    category: 'AI & Autonomous Track',
+    icon: Terminal,
+    accent: '#10B981',
+    bgLight: 'bg-emerald-50',
+    borderLight: 'border-emerald-100',
+    tag: 'AI & Autonomous Track',
+    description: 'Prompt-driven fullstack SaaS prototyping, agentic engineering with Cursor & Windsurf, autonomous dev loops, and rapid deployment velocity.'
   },
   {
     title: 'Audit Readiness & Financial Reporting',
@@ -218,18 +271,34 @@ const OTHER_COMPETENCIES = [
   }
 ];
 
+const VIBE_CODING_STORY = {
+  p1: (
+    <>
+      I am a <strong className="text-[#10B981] font-bold">Vibe Coder &amp; AI Software Engineer</strong> specializing in prompt-driven software architecture, autonomous agent workflows, and rapid full-stack SaaS engineering.
+    </>
+  ),
+  p2: 'I leverage cutting-edge AI coding environments (Cursor, Windsurf, Claude Code, and v0.dev) to compress development timelines from months into hours—translating product ideas into production-ready software with unmatched velocity.',
+  p3: 'Rooted in hands-on modern full-stack development with Next.js, React, Tailwind CSS, and Supabase, I build resilient, reactive web architectures while orchestrating intelligent multi-agent loops and automated QA verification gates.',
+  visionTitle: 'Engineering Vision & Strategic Objective',
+  visionQuote: (
+    <>
+      "AI Software Engineer &amp; Vibe Coder seeking high-impact assignments in <strong className="text-[#10B981] font-bold">Rapid Full-Stack Prototyping, Autonomous Coding &amp; SaaS Engineering</strong> within ambitious product teams. Dedicated to architecting prompt-driven systems, accelerating feature delivery cycles by 10x, and pioneering autonomous software development loops that transform ambitious concepts into scalable products."
+    </>
+  )
+};
+
 const OVERVIEW_STORY = {
   p1: (
     <>
-      I am a <strong className="text-[#6366F1] font-bold">Financial &amp; Operations Executive</strong> with over 7+ years of unified expertise synthesizing statutory accounting, corporate taxation, and enterprise management information systems (MIS).
+      I am a <strong className="text-[#6366F1] font-bold">Financial, Operations &amp; AI Software Executive</strong> with unified expertise synthesizing statutory accounting, corporate taxation, enterprise MIS data intelligence, and rapid AI vibe coding.
     </>
   ),
-  p2: 'I bridge fiscal discipline with enterprise data intelligence—unifying double-entry ledger rigor, zero-penalty GST/ITR compliance, automated Power BI/Excel dashboards, and large-scale operational governance.',
-  p3: 'Having directed statutory tax practices, managed nationwide government portal databases (DAY-NULM Skill India), and orchestrated multi-district biometric field rollouts across 4 districts, I deliver end-to-end executive leadership that combines audit readiness with operational velocity.',
+  p2: 'I bridge fiscal discipline with enterprise data intelligence and autonomous software prototyping—unifying double-entry ledger rigor, zero-penalty GST/ITR compliance, automated Power BI/Excel dashboards, and 10x AI development velocity.',
+  p3: 'Having directed statutory tax practices, managed nationwide government portal databases (DAY-NULM Skill India), orchestrated multi-district biometric field rollouts, and engineered full-stack AI apps, I deliver end-to-end executive leadership that combines audit readiness with operational velocity.',
   visionTitle: 'Executive Vision & Strategic Objective',
   visionQuote: (
     <>
-      "Financial &amp; Operations Executive seeking senior leadership roles bridging <strong className="text-[#6366F1] font-bold">Statutory Accounting, Taxation &amp; Advanced Data Intelligence</strong> within dynamic organizations of repute. Dedicated to architecting audit-ready financial frameworks, automated operational telemetry, and resilient enterprise data pipelines that drive sustainable commercial growth."
+      "Multi-Domain Executive seeking senior leadership roles bridging <strong className="text-[#6366F1] font-bold">Statutory Accounting, Taxation, Advanced Data Intelligence &amp; Autonomous AI Engineering</strong> within dynamic organizations of repute. Dedicated to architecting audit-ready financial frameworks, automated operational telemetry, and resilient software pipelines that drive sustainable commercial growth."
     </>
   )
 };
@@ -377,20 +446,21 @@ const BIO_DATA_FIELDS = [
 ];
 
 export default function AboutSection({ soundEnabled = true }) {
-  const { activeRole, isOverview, isMIS, isOther } = useRoleTab();
+  const { activeRole, isOverview, isMIS, isOther, isVibeCoding } = useRoleTab();
+  const isVibe = Boolean(isVibeCoding || activeRole === 'vibe_coding');
   const [activeTab, setActiveTab] = useState('story');
   const [addressCopied, setAddressCopied] = useState(false);
   const tabButtonRefs = useRef({});
   const copyTimeoutRef = useRef(null);
 
   const fullAddress = 'Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India';
-  const accentColor = isOverview ? '#6366F1' : isOther ? '#8B5CF6' : (isMIS ? '#3B82F6' : '#FF4D6D');
-  const competencies = isOverview ? OVERVIEW_COMPETENCIES : isOther ? OTHER_COMPETENCIES : (isMIS ? MIS_COMPETENCIES : ACCOUNTANT_COMPETENCIES);
-  const story = isOverview ? OVERVIEW_STORY : isOther ? OTHER_STORY : (isMIS ? MIS_STORY : ACCOUNTANT_STORY);
+  const accentColor = isOverview ? '#6366F1' : isOther ? '#8B5CF6' : isVibe ? '#10B981' : (isMIS ? '#3B82F6' : '#FF4D6D');
+  const competencies = isOverview ? OVERVIEW_COMPETENCIES : isOther ? OTHER_COMPETENCIES : isVibe ? VIBE_CODING_COMPETENCIES : (isMIS ? MIS_COMPETENCIES : ACCOUNTANT_COMPETENCIES);
+  const story = isOverview ? OVERVIEW_STORY : isOther ? OTHER_STORY : isVibe ? VIBE_CODING_STORY : (isMIS ? MIS_STORY : ACCOUNTANT_STORY);
 
   const bioDataFields = BIO_DATA_FIELDS.map((f) => (
     f.label === 'Professional Role'
-      ? { ...f, value: isOverview ? 'Financial & Operations Executive' : isOther ? 'Business Intelligence & Corporate Controller' : (isMIS ? 'MIS Executive & Analytics Specialist' : 'Senior Accountant & Tax Consultant') }
+      ? { ...f, value: isOverview ? 'Financial & Operations Executive' : isOther ? 'Business Intelligence & Corporate Controller' : isVibe ? 'Vibe Coder & AI Software Engineer' : (isMIS ? 'MIS Executive & Analytics Specialist' : 'Senior Accountant & Tax Consultant') }
       : f
   ));
 
@@ -527,7 +597,9 @@ export default function AboutSection({ soundEnabled = true }) {
         <div
           className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none transition-colors duration-500 dark:opacity-40"
           style={{
-            background: isMIS
+            background: isVibe
+              ? 'radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%)'
+              : isMIS
               ? 'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%)'
               : 'radial-gradient(circle, rgba(255, 77, 109, 0.08) 0%, transparent 70%)'
           }}
@@ -537,7 +609,7 @@ export default function AboutSection({ soundEnabled = true }) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] dark:bg-[#18181B] border border-[#E7E2D8] dark:border-stone-800 text-[#18181B] dark:text-stone-200 text-xs font-bold uppercase tracking-wider shadow-xs w-fit transition-colors">
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
-            01 ✦ About &bull; {isOverview ? 'Executive Overview' : isOther ? 'Business Intelligence & Controller' : (isMIS ? 'Data & MIS Profile' : 'Accounting & Tax Profile')}
+            01 ✦ About &bull; {isOverview ? 'Executive Overview' : isOther ? 'Business Intelligence & Controller' : isVibe ? 'Vibe Coding & AI Software' : (isMIS ? 'Data & MIS Profile' : 'Accounting & Tax Profile')}
           </div>
 
           <div className="flex items-center gap-2 text-stone-500 dark:text-stone-400 font-mono text-xs">

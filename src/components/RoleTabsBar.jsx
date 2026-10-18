@@ -1,6 +1,6 @@
 /* oxlint-disable react/only-export-components */
 import React, { useRef } from 'react';
-import { Briefcase, BarChart2, Sparkles, LayoutDashboard, X } from 'lucide-react';
+import { Briefcase, BarChart2, Sparkles, LayoutDashboard, X, Terminal } from 'lucide-react';
 import { useRoleTab, ROLE_TRACKS } from '../context/RoleContext';
 import { soundFX } from '../utils/audio';
 
@@ -8,7 +8,7 @@ export { ROLE_TRACKS };
 
 /**
  * Dynamically resolves icon component for a given track or role ID.
- * Supports 'overview' (LayoutDashboard), 'accountant' (Briefcase), 'mis' (BarChart2), 'other' (Sparkles),
+ * Supports 'overview' (LayoutDashboard), 'accountant' (Briefcase), 'mis' (BarChart2), 'vibe_coding' (Terminal), 'other' (Sparkles),
  * custom track.icon, and fallback (Sparkles or Layers).
  */
 export function getRoleIcon(trackOrId) {
@@ -24,6 +24,9 @@ export function getRoleIcon(trackOrId) {
       return Briefcase;
     case 'mis':
       return BarChart2;
+    case 'vibe_coding':
+    case 'vibe':
+      return Terminal;
     case 'other':
       return Sparkles;
     default:
@@ -162,7 +165,7 @@ export default function RoleTabsBar({
           {roleList.map((track) => {
             const isActive = activeRole === track.id;
             const Icon = getRoleIcon(track);
-            const accent = track.accent || (track.id === 'overview' ? '#6366F1' : track.id === 'mis' ? '#3B82F6' : '#FF4D6D');
+            const accent = track.accent || (track.id === 'overview' ? '#6366F1' : track.id === 'mis' ? '#3B82F6' : track.id === 'vibe_coding' ? '#10B981' : track.id === 'other' ? '#8B5CF6' : '#FF4D6D');
 
             return (
               <button
@@ -288,7 +291,7 @@ export default function RoleTabsBar({
           {roleList.map((track) => {
             const isActive = activeRole === track.id;
             const Icon = getRoleIcon(track);
-            const accent = track.accent || (track.id === 'overview' ? '#6366F1' : track.id === 'mis' ? '#3B82F6' : track.id === 'other' ? '#8B5CF6' : '#FF4D6D');
+            const accent = track.accent || (track.id === 'overview' ? '#6366F1' : track.id === 'mis' ? '#3B82F6' : track.id === 'vibe_coding' ? '#10B981' : track.id === 'other' ? '#8B5CF6' : '#FF4D6D');
 
             return (
               <button
@@ -379,7 +382,7 @@ export default function RoleTabsBar({
       {roleList.map((track) => {
         const isActive = activeRole === track.id;
         const Icon = getRoleIcon(track);
-        const accent = track.accent || (track.id === 'overview' ? '#6366F1' : track.id === 'mis' ? '#3B82F6' : track.id === 'other' ? '#8B5CF6' : '#FF4D6D');
+        const accent = track.accent || (track.id === 'overview' ? '#6366F1' : track.id === 'mis' ? '#3B82F6' : track.id === 'vibe_coding' ? '#10B981' : track.id === 'other' ? '#8B5CF6' : '#FF4D6D');
 
         return (
           <button

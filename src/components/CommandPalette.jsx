@@ -326,7 +326,7 @@ export default function CommandPalette({
       return;
     }
 
-    if (item.role && ['overview', 'accountant', 'mis', 'other'].includes(item.role)) {
+    if (item.role && ['overview', 'accountant', 'mis', 'vibe_coding', 'other'].includes(item.role)) {
       if (onSelectRole) {
         onSelectRole(item.role);
       }
@@ -696,6 +696,17 @@ export default function CommandPalette({
                                     }`}
                                   >
                                     📊 MIS
+                                  </span>
+                                )}
+                                {item.role === 'vibe_coding' && (
+                                  <span
+                                    className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0 ${
+                                      isSelected
+                                        ? 'bg-emerald-600 text-white shadow-xs'
+                                        : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                                    }`}
+                                  >
+                                    ⚡ Vibe Coder
                                   </span>
                                 )}
                                 {item.role === 'other' && (

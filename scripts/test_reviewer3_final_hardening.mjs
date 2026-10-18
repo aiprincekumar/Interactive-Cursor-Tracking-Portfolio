@@ -212,14 +212,15 @@ test('CommandPalette passes role updates through onSelectRole prop & switch-role
 });
 
 // ------------------------------------------------------------------
-// Audit Gate 7: 4-Track Integrity & Asset Files Verification
+// Audit Gate 7: 5-Track Integrity & Asset Files Verification
 // ------------------------------------------------------------------
-console.log('\n--- Gate 7: 4-Track Integrity & Asset Files Verification ---');
+console.log('\n--- Gate 7: 5-Track Integrity & Asset Files Verification ---');
 
 const expectedTracks = [
   { id: 'overview', file: 'Overview.jpg', accent: '#6366F1' },
   { id: 'accountant', file: 'Accountant.jpg', accent: '#FF4D6D' },
   { id: 'mis', file: 'MIS.jpg', accent: '#3B82F6' },
+  { id: 'vibe_coding', file: 'VibeCoder.jpg', accent: '#10B981' },
   { id: 'other', file: 'Others.jpg', accent: '#8B5CF6' }
 ];
 

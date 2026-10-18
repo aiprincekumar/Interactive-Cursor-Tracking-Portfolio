@@ -139,6 +139,18 @@ export const SEARCH_ITEMS = [
     keywords: 'switch role mis data analytics excel reporting operations day-nulm biometric database'
   },
   {
+    id: 'act-role-vibe',
+    title: '⚡ Switch Track: Vibe Coding (AI-Native Prototyping)',
+    category: 'Actions',
+    targetId: 'hero',
+    badge: 'Role Track',
+    matchType: 'Track Switcher',
+    role: 'vibe_coding',
+    actionType: 'switch-role',
+    description: 'Switch portfolio view to AI Prompt-to-Code architecture, Cursor, Windsurf, Claude Code, autonomous agents & rapid MVP engineering.',
+    keywords: 'switch role vibe coding vibe coder ai rapid prototyping cursor windsurf claude code llm autonomous agents fullstack saas'
+  },
+  {
     id: 'act-role-other',
     title: '🤖 Switch Track: Other ✨ AI (Controller & BI)',
     category: 'Actions',
@@ -346,6 +358,40 @@ export const SEARCH_ITEMS = [
     role: 'other',
     description: 'Institutional internal financial control framework automating GSTR-2B vs ERP purchase matching, advance tax liability forecasting, vendor withholding tax governance, and institutional audit trails.',
     keywords: 'corporate financial controls internal audit governance statutory tax strategy working capital modeling audit trails risk governance zero notice corporate controller other ai'
+  },
+
+  {
+    id: 'proj-ai-saas-generator',
+    title: 'AI Prompt-to-Fullstack SaaS Generator',
+    category: 'Projects',
+    targetId: 'proj-ai-saas-generator',
+    badge: '07 AI Builder',
+    matchType: 'Project Deliverable',
+    role: 'vibe_coding',
+    description: 'Autonomous zero-to-one code generation pipeline turning natural language specs into production-ready fullstack web applications with authentication, DB schemas, and responsive UI.',
+    keywords: 'ai prompt fullstack saas generator vibe coding cursor windsurf claude 3.7 nextjs supabase fast prototyping mvp autonomous coding'
+  },
+  {
+    id: 'proj-agent-workflow-engine',
+    title: 'Autonomous Multi-Agent Workflow Engine',
+    category: 'Projects',
+    targetId: 'proj-agent-workflow-engine',
+    badge: '08 Agent Loops',
+    matchType: 'Project Deliverable',
+    role: 'vibe_coding',
+    description: 'Multi-agent orchestration harness running iterative feedback loops, autonomous self-debugging, code quality gates, and automated test execution.',
+    keywords: 'autonomous multi-agent workflow engine agentic loops self debugging verification quality gates devfleet langchain tool calling vibe coding'
+  },
+  {
+    id: 'proj-doc-code-synthesizer',
+    title: 'Real-Time AI Document & Code Synthesizer',
+    category: 'Projects',
+    targetId: 'proj-doc-code-synthesizer',
+    badge: '09 Synthesizer',
+    matchType: 'Project Deliverable',
+    role: 'vibe_coding',
+    description: 'Hybrid multimodal document reasoning & instant code synthesis tool parsing PDFs, spreadsheets, and bank statements into validated schemas and API endpoints.',
+    keywords: 'real-time ai document code synthesizer multimodal reasoning parsing ocr schemas api endpoints streaming vibe coder llm fast engineering'
   },
 
   // ==========================================
@@ -733,6 +779,80 @@ export const SEARCH_ITEMS = [
     keywords: 'corporate financial controls risk governance authorization workflows compliance risk matrices enterprise fiscal governance internal control framework other ai'
   },
 
+  // Category 5: Vibe Coding & AI-Native Prototyping (Vibe Coder Track)
+  {
+    id: 'skill-cursor-windsurf-ides',
+    title: 'Cursor & Windsurf IDEs (Agentic Workflows)',
+    category: 'Skills',
+    targetId: 'skill-cursor-windsurf-ides',
+    skillKey: 'Cursor & Windsurf IDEs',
+    badge: 'AI IDE (98%)',
+    matchType: 'Software Tool',
+    role: 'vibe_coding',
+    description: 'Autonomous composer mode, multi-file agentic code generation, context indexing (.cursorrules), and real-time prompt-driven iteration.',
+    keywords: 'cursor windsurf ides composer mode agentic prompt to code ai pair programming context rules vibe coding'
+  },
+  {
+    id: 'skill-claude-code-agent-loops',
+    title: 'Claude Code & Autonomous Loops (CLI Agentics)',
+    category: 'Skills',
+    targetId: 'skill-claude-code-agent-loops',
+    skillKey: 'Claude Code & Agent Loops',
+    badge: 'Autonomous (96%)',
+    matchType: 'Software Tool',
+    role: 'vibe_coding',
+    description: 'Terminal agent harnessing, autonomous self-debugging loops, subagent delegation, quality gates, and automated test-driven fixes.',
+    keywords: 'claude code autonomous loops cli agentics terminal subagents self debugging anthropic tdd vibe coding'
+  },
+  {
+    id: 'skill-next-js-14-react-ecosystem',
+    title: 'Next.js 14 & React Modern Ecosystem (App Router)',
+    category: 'Skills',
+    targetId: 'skill-next-js-14-react-ecosystem',
+    skillKey: 'Next.js 14 & Modern React',
+    badge: 'Fullstack (94%)',
+    matchType: 'Software Tool',
+    role: 'vibe_coding',
+    description: 'App Router architecture, Server Actions, modern Tailwind styling, dynamic streaming, and fullstack reactive frontend systems.',
+    keywords: 'nextjs 14 react modern app router server actions tailwind css typescript fullstack ui vibe coding'
+  },
+  {
+    id: 'skill-supabase-cloud-backend',
+    title: 'Supabase & Rapid Cloud Backends (Postgres & Auth)',
+    category: 'Skills',
+    targetId: 'skill-supabase-cloud-backend',
+    skillKey: 'Supabase & Rapid Backends',
+    badge: 'Backend (95%)',
+    matchType: 'Software Tool',
+    role: 'vibe_coding',
+    description: 'Instant Postgres schema design, Row-Level Security (RLS), edge functions, authentication pipelines, and real-time subscriptions.',
+    keywords: 'supabase rapid cloud backend postgres rls row level security auth edge functions sql database vibe coding'
+  },
+  {
+    id: 'skill-v0-dev-shadcn-ui-scaffolding',
+    title: 'v0.dev & Modern Component Scaffolding (Shadcn UI)',
+    category: 'Skills',
+    targetId: 'skill-v0-dev-shadcn-ui-scaffolding',
+    skillKey: 'v0.dev & Component Scaffolding',
+    badge: 'Generative UI (96%)',
+    matchType: 'Software Tool',
+    role: 'vibe_coding',
+    description: 'Generative AI UI prototyping, accessible Radix-based Tailwind primitives, instant wireframe-to-production JSX transformation.',
+    keywords: 'v0 dev shadcn ui component scaffolding generative ui wireframe vercel tailwind radix vibe coding'
+  },
+  {
+    id: 'skill-prompt-engineering-context-mcp',
+    title: 'Prompt Architecture, Context Pruning & MCP Tools',
+    category: 'Skills',
+    targetId: 'skill-prompt-engineering-context-mcp',
+    skillKey: 'Prompt Architecture & MCP Tools',
+    badge: 'LLM Systems (97%)',
+    matchType: 'Verified Skill',
+    role: 'vibe_coding',
+    description: 'Chain-of-thought system prompts, Model Context Protocol (MCP) tool integration, token efficiency, and deterministic output structuring.',
+    keywords: 'prompt architecture context pruning mcp tools model context protocol system prompts token budget llm vibe coding'
+  },
+
   // ==========================================
   // --- 5. PROFESSIONAL JOURNEY / EXPERIENCE (6 Items) ---
   // ==========================================
@@ -834,6 +954,18 @@ export const SEARCH_ITEMS = [
     role: 'other',
     description: 'Directing inter-departmental statutory governance, multi-district database systems, and institutional audit verification across 4 administrative districts.',
     keywords: 'executive data enterprise compliance director regional operations institutional governance citizen biometric enrollment institutional audit trails statutory verification other ai'
+  },
+
+  {
+    id: 'exp-vibe-coder',
+    title: 'Independent AI Builder / Freelance Vibe Coder',
+    category: 'Experience',
+    targetId: 'exp-vibe-01',
+    badge: '2026 (6 Mos)',
+    matchType: 'Software Tool',
+    role: 'vibe_coding',
+    description: 'Autonomous zero-to-one SaaS generation, multi-agent workflow harness engineering, Claude Code / Cursor agent loops, and AI fullstack prototyping.',
+    keywords: 'vibe coder ai builder freelance autonomous multi-agent devfleet nextjs supabase cursor windsurf claude code prompt engineering rapid mvp stealth saas studio'
   },
 
   // ==========================================

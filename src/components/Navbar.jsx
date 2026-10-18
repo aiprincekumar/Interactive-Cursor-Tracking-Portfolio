@@ -521,8 +521,10 @@ export default function Navbar({
             </button>
           </div>
 
-          {/* R3: 2.5px Micro Gradient Scroll Progress Bar along bottom edge */}
-          <ScrollProgressBar />
+          {/* Isolated clipping container: preserves ResumeDropdown while perfectly clipping progress bar inside navbar capsule curvature */}
+          <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none z-20">
+            <ScrollProgressBar />
+          </div>
         </div>
 
         {/* Floating Secondary Horizontal Sub-Bar for Detailed Role Selection */}

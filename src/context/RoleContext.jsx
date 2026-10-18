@@ -13,14 +13,14 @@ export const OVERVIEW_ROLE = {
   shortLabel: 'Overview',
   mobileLabel: 'Overview',
   badge: 'Executive Summary',
-  description: 'Curated highlights from Financial & Data tracks — a combined executive portfolio view.',
+  description: 'Curated highlights from Financial, Data & Operations, and AI Vibe Coding tracks — a combined executive portfolio view.',
   accent: '#6366F1',
   bgLight: 'bg-indigo-50',
   borderLight: 'border-indigo-200',
   tag: 'Executive Overview',
   icon: 'LayoutDashboard',
   heroTitle: 'Financial & Operations Executive.',
-  heroSubtitle: 'Bridging Statutory Accounting, Taxation & Advanced Data Intelligence.',
+  heroSubtitle: 'Bridging Statutory Accounting, Taxation, Data Intelligence & AI Software Engineering.',
   avatar: `${cleanBase}/assets/Profile_Pic/Overview.jpg`,
   isOverview: true
 };
@@ -57,6 +57,22 @@ export const PRIMARY_ROLES = [
     heroTitle: 'MIS & Data Analyst.',
     heroSubtitle: 'Business Intelligence, Automation & Operations Specialist.',
     avatar: `${cleanBase}/assets/Profile_Pic/MIS.jpg`
+  },
+  {
+    id: 'vibe_coding',
+    label: 'Vibe Coding',
+    shortLabel: 'Vibe Coder',
+    mobileLabel: 'Vibe',
+    badge: 'AI & SaaS Track',
+    description: 'Rapid full-stack prototyping, autonomous coding agents, LLM APIs, and prompt-driven software architecture.',
+    accent: '#10B981',
+    bgLight: 'bg-emerald-50',
+    borderLight: 'border-emerald-200',
+    tag: 'AI Engineering & SaaS',
+    icon: 'Terminal',
+    heroTitle: 'Vibe Coder & AI Software Engineer.',
+    heroSubtitle: 'Rapid Full-Stack Prototyping, Autonomous Coding & SaaS Engineering.',
+    avatar: `${cleanBase}/assets/Profile_Pic/VibeCoder.jpg`
   }
 ];
 
@@ -89,7 +105,10 @@ export const ROLE_TABS = ROLE_TRACKS;
 
 export function normalizeRole(role) {
   if (!role || typeof role !== 'string') return null;
-  const cleaned = role.trim().toLowerCase();
+  const cleaned = role.trim().toLowerCase().replace(/-/g, '_');
+  if (cleaned === 'vibe' || cleaned === 'vibecoding' || cleaned === 'vibecoder') {
+    return 'vibe_coding';
+  }
   return ROLE_DATA[cleaned] ? cleaned : null;
 }
 
@@ -251,7 +270,9 @@ export function RoleProvider({ children, soundEnabled = true }) {
     isAccountant: activeRole === 'accountant',
     isMIS: activeRole === 'mis',
     isMis: activeRole === 'mis',
-    isOther: activeRole === 'other'
+    isOther: activeRole === 'other',
+    isVibeCoding: activeRole === 'vibe_coding',
+    isVibe: activeRole === 'vibe_coding'
   }), [activeRole, selectRole]);
 
   return (

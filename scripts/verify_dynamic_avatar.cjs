@@ -6,7 +6,7 @@ console.log('--- RUNNING INDEPENDENT VERIFICATION OF DYNAMIC ROLE AVATAR ---');
 
 // 1. Verify Profile Picture Assets
 const assetDir = path.resolve(process.cwd(), 'public/assets/Profile_Pic');
-const requiredImages = ['Accountant.jpg', 'MIS.jpg', 'Others.jpg', 'Overview.jpg'];
+const requiredImages = ['Accountant.jpg', 'MIS.jpg', 'Others.jpg', 'Overview.jpg', 'VibeCoder.jpg'];
 
 for (const img of requiredImages) {
   const imgPath = path.join(assetDir, img);
@@ -24,6 +24,7 @@ assert(rcContent.includes('cleanBase'), 'cleanBase path helper not found in Role
 assert(rcContent.includes('Overview.jpg'), 'OVERVIEW_ROLE does not reference Overview.jpg');
 assert(rcContent.includes('Accountant.jpg'), 'Accountant role does not reference Accountant.jpg');
 assert(rcContent.includes('MIS.jpg'), 'MIS role does not reference MIS.jpg');
+assert(rcContent.includes('VibeCoder.jpg'), 'vibe_coding role does not reference VibeCoder.jpg');
 assert(rcContent.includes('Others.jpg'), 'OTHER_ROLE does not reference Others.jpg');
 assert(rcContent.includes('portfolio_control_center'), 'Fallback to portfolio_control_center defaultStartupRole not found');
 console.log('✅ PASS: RoleContext avatar mappings and cleanBase asset resolution verified');

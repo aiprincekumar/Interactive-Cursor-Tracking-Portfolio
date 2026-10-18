@@ -301,6 +301,104 @@ const SKILL_DATA = {
       'Forensic ledger scrutiny detecting irregular accounting entries, unapproved write-offs, and compliance deviations.',
       'Audit-ready electronic documentation archives ensuring rapid turnaround during statutory inspections.'
     ]
+  },
+
+  // --- Category 6: Vibe Coding & AI Software Engineering ---
+  'Cursor & Windsurf IDEs': {
+    category: 'AI Coding Environments',
+    title: 'Cursor & Windsurf IDEs',
+    level: '98%',
+    tag: 'AI-Native Code Generation & Composer',
+    points: [
+      'Deep mastery of Cursor Composer, multi-file code editing, and contextual codebase indexing via .cursorrules.',
+      'Windsurf Cascade flow utilization for real-time collaborative human-in-the-loop AI programming.',
+      'Autonomous refactoring, semantic code search, and instant context retrieval across large repositories.',
+      '10x developer throughput converting natural language specs into production-ready implementations.'
+    ]
+  },
+  'Claude Code & Agent Loops': {
+    category: 'AI Coding Environments',
+    title: 'Claude Code & Agent Loops',
+    level: '96%',
+    tag: 'Autonomous Terminal CLI & Multi-Agent Loops',
+    points: [
+      'Orchestrating Claude Code CLI for autonomous feature construction, test writing, and bug hunting.',
+      'Designing robust subagent DAGs, task delegation architectures, and persistent state management.',
+      'Continuous verification gates running automated builds and linters to validate generated code.',
+      'Automated pull request creation, git commit hygiene, and multi-file architectural refactoring.'
+    ]
+  },
+  'v0.dev & Generative UI': {
+    category: 'AI Coding Environments',
+    title: 'v0.dev & Generative UI',
+    level: '95%',
+    tag: 'Prompt-to-Component Rapid Prototyping',
+    points: [
+      'Rapid scaffolding of modern React component trees, responsive layouts, and animations from natural language.',
+      'Clean translation of design mockups into semantic Tailwind CSS and shadcn/ui component architectures.',
+      'Zero-layout-shift component composition, accessibility attributes (ARIA), and micro-animations.',
+      'Instant component iteration, variant generation, and production codebase integration.'
+    ]
+  },
+  'Autonomous Debugging & Verification': {
+    category: 'AI Coding Environments',
+    title: 'Autonomous Debugging & Verification',
+    level: '94%',
+    tag: 'Self-Healing Code & Quality Gates',
+    points: [
+      'Automated root-cause diagnosis using agent introspection and recursive error-trace evaluation.',
+      'Automated test generation with Vitest/Jest, Playwright, and Oxlint static analysis integration.',
+      'Self-healing code routines that inspect build failure outputs and patch defects automatically.',
+      'Zero-regression deployment readiness checks adhering to strict safety and architectural guidelines.'
+    ]
+  },
+  'Next.js 14 & React Ecosystem': {
+    category: 'Full-Stack SaaS',
+    title: 'Next.js 14 & React Ecosystem',
+    level: '97%',
+    tag: 'App Router, Server Components & SSR',
+    points: [
+      'Modern App Router architecture, Server and Client Component boundary management, and streaming SSR.',
+      'Server Actions for seamless form submissions, database mutations, and optimistic UI updates.',
+      'Dynamic routing, parallel and intercepting routes, and layout caching optimization.',
+      'Production deployment on Vercel with edge computing, image optimization, and analytics.'
+    ]
+  },
+  'Tailwind CSS & Modern UI': {
+    category: 'Full-Stack SaaS',
+    title: 'Tailwind CSS & Modern UI',
+    level: '98%',
+    tag: 'Utility-First Styling & Luxury Polish',
+    points: [
+      'High-velocity styling using Tailwind CSS, custom design tokens, and fluid typography systems.',
+      'Dark mode implementation with CSS variables, smooth transitions, and obsidian luxury aesthetics.',
+      'Fluid physics, micro-interactions, responsive breakpoints, and custom animation keyframes.',
+      'Elimination of style regressions with rigorous component-level style encapsulation.'
+    ]
+  },
+  'Supabase & Cloud Backend': {
+    category: 'Full-Stack SaaS',
+    title: 'Supabase & Cloud Backend',
+    level: '95%',
+    tag: 'PostgreSQL, Row Level Security & Auth',
+    points: [
+      'Relational schema design, automated migrations, and complex SQL joins in cloud PostgreSQL.',
+      'Row Level Security (RLS) policies for multi-tenant SaaS authorization and data privacy.',
+      'Instant real-time subscriptions, WebSocket event broadcasting, and file storage bucket management.',
+      'Edge Functions in TypeScript for secure webhooks, Stripe billing, and background jobs.'
+    ]
+  },
+  'LLM APIs & Prompt Architecture': {
+    category: 'Full-Stack SaaS',
+    title: 'LLM APIs & Prompt Architecture',
+    level: '96%',
+    tag: 'Anthropic Claude, OpenAI & Google Gemini APIs',
+    points: [
+      'Integration of frontier LLM APIs (Claude 3.5 Sonnet, GPT-4o, Gemini 1.5 Pro) with streaming responses.',
+      'Context window engineering, prompt caching strategies, system instruction protection, and few-shot calibration.',
+      'Structured schema generation with Zod validation, tool calling, and deterministic JSON outputs.',
+      'Cost-aware token budget routing, rate-limit backoff handling, and latency optimization.'
+    ]
   }
 };
 
@@ -312,6 +410,10 @@ const OVERVIEW_CATEGORIES = [
   {
     name: 'Data Intelligence & Operations',
     skills: ['MIS Reporting & Analytics', 'MS Excel (Advanced)', 'Commercial Computing & Office IT Suite', 'Windows OS Administration']
+  },
+  {
+    name: 'AI Engineering & Autonomous Development',
+    skills: ['Cursor & Windsurf IDEs', 'Claude Code & Agent Loops', 'Next.js 14 & React Ecosystem', 'Supabase & Cloud Backend']
   }
 ];
 
@@ -337,6 +439,27 @@ const MIS_CATEGORIES = [
   }
 ];
 
+const VIBE_CODING_CATEGORIES = [
+  {
+    name: 'AI Coding Environments & Tooling',
+    skills: [
+      'Cursor & Windsurf IDEs',
+      'Claude Code & Agent Loops',
+      'v0.dev & Generative UI',
+      'Autonomous Debugging & Verification'
+    ]
+  },
+  {
+    name: 'Full-Stack SaaS & Cloud Frameworks',
+    skills: [
+      'Next.js 14 & React Ecosystem',
+      'Tailwind CSS & Modern UI',
+      'Supabase & Cloud Backend',
+      'LLM APIs & Prompt Architecture'
+    ]
+  }
+];
+
 const OTHER_CATEGORIES = [
   {
     name: 'Executive Business Intelligence & Dashboards',
@@ -351,19 +474,29 @@ const OTHER_CATEGORIES = [
 const OVERVIEW_SKILLS_FLAT = OVERVIEW_CATEGORIES.flatMap((c) => c.skills);
 const ACCOUNTANT_SKILLS_FLAT = ACCOUNTANT_CATEGORIES.flatMap((c) => c.skills);
 const MIS_SKILLS_FLAT = MIS_CATEGORIES.flatMap((c) => c.skills);
+const VIBE_CODING_SKILLS_FLAT = VIBE_CODING_CATEGORIES.flatMap((c) => c.skills);
 const OTHER_SKILLS_FLAT = OTHER_CATEGORIES.flatMap((c) => c.skills);
 
 // Backward compatibility alias for legacy event dispatches
 SKILL_DATA['Computer Applications (ADCA)'] = SKILL_DATA['Commercial Computing & Office IT Suite'];
 SKILL_DATA['Strategic Operations & Governance'] = SKILL_DATA['Corporate Financial Controls'];
 SKILL_DATA['Process Automation & Workflows'] = SKILL_DATA['Automated ERP & Banking Pipelines'];
+SKILL_DATA['Cursor & Windsurf AI IDEs'] = SKILL_DATA['Cursor & Windsurf IDEs'];
+SKILL_DATA['LLM APIs & Context Engineering'] = SKILL_DATA['LLM APIs & Prompt Architecture'];
 
 export default function SkillsSection() {
-  const { activeRole, isOverview, isMIS, isOther } = useRoleTab();
+  const { activeRole, isOverview, isMIS, isOther, isVibeCoding } = useRoleTab();
+  const isVibe = Boolean(isVibeCoding || activeRole === 'vibe_coding');
   const isOverviewRole = Boolean(isOverview || activeRole === 'overview');
-  const categories = isOverviewRole ? OVERVIEW_CATEGORIES : (isOther ? OTHER_CATEGORIES : (isMIS ? MIS_CATEGORIES : ACCOUNTANT_CATEGORIES));
-  const currentSkillsFlat = isOverviewRole ? OVERVIEW_SKILLS_FLAT : (isOther ? OTHER_SKILLS_FLAT : (isMIS ? MIS_SKILLS_FLAT : ACCOUNTANT_SKILLS_FLAT));
-  const defaultSkill = isOverviewRole ? 'Tally Prime & ERP 9' : (isOther ? 'Power BI & Fiscal Dashboards' : (isMIS ? 'MIS Reporting & Analytics' : 'Tally Prime & ERP 9'));
+  const categories = isOverviewRole
+    ? OVERVIEW_CATEGORIES
+    : (isVibe ? VIBE_CODING_CATEGORIES : (isOther ? OTHER_CATEGORIES : (isMIS ? MIS_CATEGORIES : ACCOUNTANT_CATEGORIES)));
+  const currentSkillsFlat = isOverviewRole
+    ? OVERVIEW_SKILLS_FLAT
+    : (isVibe ? VIBE_CODING_SKILLS_FLAT : (isOther ? OTHER_SKILLS_FLAT : (isMIS ? MIS_SKILLS_FLAT : ACCOUNTANT_SKILLS_FLAT)));
+  const defaultSkill = isOverviewRole
+    ? 'Tally Prime & ERP 9'
+    : (isVibe ? 'Cursor & Windsurf IDEs' : (isOther ? 'Power BI & Fiscal Dashboards' : (isMIS ? 'MIS Reporting & Analytics' : 'Tally Prime & ERP 9')));
 
   const [userSelectedSkill, setUserSelectedSkill] = useState(null);
 
@@ -373,7 +506,7 @@ export default function SkillsSection() {
     : defaultSkill;
 
   const activeData = SKILL_DATA[selectedSkill] || SKILL_DATA[defaultSkill];
-  const accentColor = isOverviewRole ? '#6366F1' : (isOther ? '#8B5CF6' : (isMIS ? '#3B82F6' : '#FF4D6D'));
+  const accentColor = isOverviewRole ? '#6366F1' : (isVibe ? '#10B981' : (isOther ? '#8B5CF6' : (isMIS ? '#3B82F6' : '#FF4D6D')));
 
   useEffect(() => {
     const handleSelectSkill = (e) => {
@@ -393,7 +526,7 @@ export default function SkillsSection() {
       {/* Section Pill Badge - Reel style */}
       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs">
         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
-        02 ✦ Skills &bull; {isOverviewRole ? 'Executive Overview Stack' : (isOther ? 'Corporate Controller & BI Stack' : (isMIS ? 'Data & MIS Stack' : 'Accounting & Tax Stack'))}
+        02 ✦ Skills &bull; {isOverviewRole ? 'Executive Overview Stack' : (isVibe ? 'AI & Vibe Coding Stack' : (isOther ? 'Corporate Controller & BI Stack' : (isMIS ? 'Data & MIS Stack' : 'Accounting & Tax Stack')))}
       </div>
 
       {/* Heading matching Reel t=9.5s: "What I work with" */}
@@ -403,7 +536,9 @@ export default function SkillsSection() {
         </h2>
         <p className="mt-3 text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
           {isOverviewRole
-            ? 'Hover or tap any skill to inspect the curated dual-domain technical matrix synthesizing certified statutory accounting, audited financial ledgers, and large-scale government MIS systems.'
+            ? 'Hover or tap any skill to inspect the curated multi-domain technical matrix synthesizing certified statutory accounting, audited financial ledgers, large-scale government MIS systems, and autonomous AI vibe coding.'
+            : isVibe
+            ? 'Hover or tap any skill to inspect rapid full-stack SaaS engineering, AI coding environments (Cursor, Windsurf, Claude Code), autonomous agent loops, and prompt architecture.'
             : isOther
             ? 'Hover or tap any skill to inspect specialized corporate controller competencies: Power BI fiscal intelligence, multi-entity ledger consolidation, automated ERP reconciliation, and statutory risk governance.'
             : isMIS
@@ -481,6 +616,8 @@ export default function SkillsSection() {
             style={{
               backgroundColor: isOverviewRole
                 ? 'rgba(99, 102, 241, 0.15)'
+                : isVibe
+                ? 'rgba(16, 185, 129, 0.15)'
                 : isOther
                 ? 'rgba(139, 92, 246, 0.15)'
                 : (isMIS ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 77, 109, 0.15)')
@@ -528,6 +665,8 @@ export default function SkillsSection() {
                 className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${
                   isOverviewRole
                     ? 'from-[#6366F1] to-[#A5B4FC]'
+                    : isVibe
+                    ? 'from-[#10B981] to-[#6EE7B7]'
                     : isOther
                     ? 'from-[#8B5CF6] to-[#C4B5FD]'
                     : (isMIS ? 'from-[#3B82F6] to-[#93C5FD]' : 'from-[#FF4D6D] to-[#FFA4B6]')

@@ -11,7 +11,7 @@
     "prebuild": "npm run generate:resume",
     "build": "vite build",
     "lint": "oxlint",
-    "test": "node scripts/verify_marquee.mjs && node scripts/verify_layout_density.mjs && node scripts/test_layout_density_adversarial.mjs && node scripts/verify_dynamic_avatar.cjs && node scripts/verify_avatar_role_switcher.mjs && node scripts/test_avatar_role_switcher_adversarial.mjs && node scripts/test_reviewer3_final_hardening.mjs",
+    "test": "node scripts/verify_marquee.mjs && node scripts/verify_layout_density.mjs && node scripts/test_layout_density_adversarial.mjs && node scripts/verify_dynamic_avatar.cjs && node scripts/verify_avatar_role_switcher.mjs && node scripts/test_avatar_role_switcher_adversarial.mjs && node scripts/test_reviewer3_final_hardening.mjs && node scripts/verify_vibe_coder_integration.mjs",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"

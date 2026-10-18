@@ -6,9 +6,13 @@ const TOP_ITEMS = [
   'Tally Prime',
   'GST Portal',
   'Income Tax E-Filing',
+  'Cursor IDE',
+  'Claude Code',
+  'Next.js 14',
   'MS Excel (Advanced)',
   'Path Solution ERP',
   'Adobe Photoshop',
+  'Supabase',
   'CorelDraw',
   'PageMaker',
   'Windows 11 OS',
@@ -19,6 +23,10 @@ const BOTTOM_ITEMS = [
   'Tax Advisory & Filing',
   'Financial Accounting',
   'GST Compliance & ITC',
+  'Windsurf',
+  'v0.dev',
+  'Tailwind CSS',
+  'LLM Prompt APIs',
   'MIS Executive Analytics',
   'Inventory & Stock Control',
   'DAY-NULM Skill Mission',
@@ -28,6 +36,87 @@ const BOTTOM_ITEMS = [
 ];
 
 const TECH_DETAILS = {
+  // Vibe Coding & AI Software Engineering Items
+  'Cursor IDE': {
+    title: 'Cursor AI Code Editor',
+    categoryBadge: 'AI Coding Environments',
+    experienceMetric: 'Production Mastery • 98% Velocity',
+    role: 'vibe_coding',
+    roleLabel: 'Vibe Coding Track',
+    targetId: 'skill-cursor-windsurf-ides',
+    skillKey: 'Cursor & Windsurf IDEs',
+    hint: 'Click to inspect skill →'
+  },
+  'Claude Code': {
+    title: 'Claude Code Agent Loops',
+    categoryBadge: 'Autonomous Dev Loops',
+    experienceMetric: 'Multi-Agent DAGs • 96% Mastery',
+    role: 'vibe_coding',
+    roleLabel: 'Vibe Coding Track',
+    targetId: 'skill-claude-code-agent-loops',
+    skillKey: 'Claude Code & Agent Loops',
+    hint: 'Click to inspect skill →'
+  },
+  'Windsurf': {
+    title: 'Windsurf Cascade AI Flow',
+    categoryBadge: 'AI-Native IDEs',
+    experienceMetric: 'Cascade Architecture • 96% Flow',
+    role: 'vibe_coding',
+    roleLabel: 'Vibe Coding Track',
+    targetId: 'skill-cursor-windsurf-ides',
+    skillKey: 'Cursor & Windsurf IDEs',
+    hint: 'Click to inspect skill →'
+  },
+  'v0.dev': {
+    title: 'v0.dev Generative UI',
+    categoryBadge: 'Prompt-to-Component',
+    experienceMetric: 'React & Tailwind • 95% Precision',
+    role: 'vibe_coding',
+    roleLabel: 'Vibe Coding Track',
+    targetId: 'skill-v0-dev-generative-ui',
+    skillKey: 'v0.dev & Generative UI',
+    hint: 'Click to inspect skill →'
+  },
+  'Next.js 14': {
+    title: 'Next.js 14 (App Router & SSR)',
+    categoryBadge: 'Full-Stack SaaS',
+    experienceMetric: 'App Router & SSR • 97% Mastery',
+    role: 'vibe_coding',
+    roleLabel: 'Vibe Coding Track',
+    targetId: 'skill-next-js-14-react-ecosystem',
+    skillKey: 'Next.js 14 & React Ecosystem',
+    hint: 'Click to inspect skill →'
+  },
+  'Supabase': {
+    title: 'Supabase Cloud Backend & RLS',
+    categoryBadge: 'PostgreSQL & Realtime',
+    experienceMetric: 'Auth, RLS & Edge • 95% Mastery',
+    role: 'vibe_coding',
+    roleLabel: 'Vibe Coding Track',
+    targetId: 'skill-supabase-cloud-backend',
+    skillKey: 'Supabase & Cloud Backend',
+    hint: 'Click to inspect skill →'
+  },
+  'Tailwind CSS': {
+    title: 'Tailwind CSS (Modern UI)',
+    categoryBadge: 'Utility-First Styling',
+    experienceMetric: 'Modern Dark UI • 98% Polish',
+    role: 'vibe_coding',
+    roleLabel: 'Vibe Coding Track',
+    targetId: 'skill-tailwind-css-modern-ui',
+    skillKey: 'Tailwind CSS & Modern UI',
+    hint: 'Click to inspect skill →'
+  },
+  'LLM Prompt APIs': {
+    title: 'LLM APIs & Prompt Architecture',
+    categoryBadge: 'Generative AI Systems',
+    experienceMetric: 'Claude & GPT APIs • 96% Mastery',
+    role: 'vibe_coding',
+    roleLabel: 'Vibe Coding Track',
+    targetId: 'skill-llm-apis-prompt-architecture',
+    skillKey: 'LLM APIs & Prompt Architecture',
+    hint: 'Click to inspect skill →'
+  },
   // Top Ribbon Items
   'Tally Prime': {
     title: 'Tally Prime & ERP 9',

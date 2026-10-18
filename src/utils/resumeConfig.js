@@ -56,6 +56,23 @@ export const RESUME_ROLE_CONFIG = {
     glowColor: 'rgba(59, 130, 246, 0.35)',
     confettiColors: ['#3B82F6', '#60A5FA', '#93C5FD', '#38BDF8', '#FFFFFF']
   },
+  vibe_coding: {
+    id: 'vibe_coding',
+    fileName: 'resume.pdf',
+    downloadFilename: 'Atul_Verma_Vibe_Coder_Resume.pdf',
+    label: 'Vibe Coder Resume',
+    badge: 'AI & SaaS Track',
+    subBadge: 'Rapid Prototyping & AI Software Engineer',
+    accent: '#10B981',
+    accentHover: '#059669',
+    accentActive: '#047857',
+    bgLight: 'bg-emerald-50',
+    borderLight: 'border-emerald-200',
+    textAccent: 'text-[#10B981]',
+    ringAccent: 'focus-visible:ring-[#10B981]',
+    glowColor: 'rgba(16, 185, 129, 0.35)',
+    confettiColors: ['#10B981', '#34D399', '#6EE7B7', '#A7F3D0', '#FFFFFF']
+  },
   other: {
     id: 'other',
     fileName: 'resume-controller.pdf',

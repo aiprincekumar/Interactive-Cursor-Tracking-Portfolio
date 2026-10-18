@@ -5,8 +5,9 @@ import { useRoleTab } from '../context/RoleContext';
 
 const ACCOUNTANT_ROLES = ['exp-01', 'exp-02', 'exp-04'];
 const MIS_ROLES = ['exp-03', 'exp-05', 'exp-06'];
+const VIBE_CODING_ROLES = ['exp-vibe-01'];
 const OTHER_ROLES = ['exp-other-01', 'exp-other-02', 'exp-other-03'];
-const OVERVIEW_ROLES = ['exp-01', 'exp-03']; // GST Consultant (Accountant flagship) + MIS Executive (MIS flagship)
+const OVERVIEW_ROLES = ['exp-01', 'exp-03', 'exp-vibe-01']; // GST Consultant (Accountant) + MIS Executive (MIS) + Vibe Coder (AI SaaS)
 
 const EXPERIENCES = [
   {
@@ -181,6 +182,26 @@ const EXPERIENCES = [
     techStack: ['Enterprise Data Systems', 'Statutory Auditing', 'Biometric Databases', 'District Operations', 'Audit Trails', 'Public Governance'],
     accentColor: '#6366F1',
     activeHighlight: false
+  },
+  {
+    id: 'exp-vibe-01',
+    targetId: 'exp-vibe-coder',
+    period: '2026 (6 MONTHS)',
+    status: 'Active AI Practice (Recent / 2026)',
+    role: 'Independent AI Builder / Freelance Vibe Coder',
+    company: 'Self-Employed / Stealth SaaS Studio',
+    location: 'Remote / Global',
+    description: 'Rapid prototype deployment, end-to-end fullstack AI SaaS applications, prompt architecture, autonomous coding agent loops, Supabase & Next.js backend, Stripe webhooks, and client delivery.',
+    deliverables: [
+      'Rapid prototype deployment of 25+ responsive full-stack SaaS MVPs using Cursor Composer, Windsurf Cascade, and Claude Code with 10x faster shipping velocity.',
+      'Architected multi-agent autonomous dev loops with Oxlint static analysis, Vitest automated testing, and self-healing error recovery routines.',
+      'Integrated Supabase PostgreSQL databases with Row-Level Security (RLS) policies, edge functions, and real-time WebSocket state synchronization.',
+      'Deployed production Stripe payment webhooks, subscription billing workflows, and frontier LLM streaming APIs (Claude 3.5 Sonnet, GPT-4o).'
+    ],
+    techStack: ['Next.js 14', 'Cursor AI', 'Claude Code', 'Supabase', 'Tailwind CSS', 'Stripe API', 'TypeScript', 'Autonomous Loops'],
+    accentColor: '#10B981',
+    activeHighlight: true,
+    trackBadge: 'AI & SaaS Track'
   }
 ];
 
@@ -196,10 +217,16 @@ export default function ExperienceSection() {
   const activeRole = roleContext?.activeRole ?? 'accountant';
   const isOverview = roleContext?.isOverview ?? (activeRole === 'overview');
   const isOther = roleContext?.isOther ?? (activeRole === 'other');
+  const isVibe = Boolean(roleContext?.isVibeCoding || activeRole === 'vibe_coding');
+
+  const accentColor = isOverview ? '#6366F1' : isVibe ? '#10B981' : isOther ? '#8B5CF6' : (activeRole === 'mis' ? '#3B82F6' : '#FF4D6D');
 
   const filteredExperiences = EXPERIENCES.filter((exp) => {
     if (isOverview || activeRole === 'overview') {
       return OVERVIEW_ROLES.includes(exp.id);
+    }
+    if (isVibe || activeRole === 'vibe_coding') {
+      return VIBE_CODING_ROLES.includes(exp.id);
     }
     if (isOther || activeRole === 'other') {
       return OTHER_ROLES.includes(exp.id);
@@ -216,12 +243,25 @@ export default function ExperienceSection() {
     <section id="experience" className="py-24 px-4 md:px-8 max-w-6xl mx-auto scroll-mt-28">
       <div className="bg-white dark:bg-[#161122] rounded-3xl border border-[#E7E2D8] dark:border-[#2D2340] p-8 md:p-12 shadow-xl shadow-stone-900/5 dark:shadow-black/50 relative overflow-hidden transition-colors duration-300">
         {/* Soft subtle background glow */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-[#FF4D6D]/5 dark:from-[#D946EF]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div
+          className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+          style={{
+            background: isOverview
+              ? 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)'
+              : isVibe
+              ? 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%)'
+              : isOther
+              ? 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)'
+              : activeRole === 'mis'
+              ? 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)'
+              : 'radial-gradient(circle, rgba(255,77,109,0.15) 0%, transparent 70%)'
+          }}
+        />
 
         {/* Section Pill Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-6 shadow-xs transition-colors">
-          <span className="w-2 h-2 rounded-full bg-[#FF4D6D]" />
-          03 ✦ Experience &bull; {activeRole === 'overview' ? 'Executive Overview' : (isOther || activeRole === 'other') ? 'Corporate Controller & BI' : activeRole === 'mis' ? 'Data & MIS' : 'Accounting & Tax'}
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
+          03 ✦ Experience &bull; {activeRole === 'overview' ? 'Executive Overview' : isVibe ? 'AI & Vibe Coding' : (isOther || activeRole === 'other') ? 'Corporate Controller & BI' : activeRole === 'mis' ? 'Data & MIS' : 'Accounting & Tax'}
         </div>
 
         {/* Header with Title, Period Pill, and Coral Accent Line */}
@@ -230,10 +270,12 @@ export default function ExperienceSection() {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#18181B] dark:text-[#F5F2F8] tracking-tight font-['Outfit',sans-serif] transition-colors">
               Journey &amp; Experience
             </h2>
-            <div className="w-12 h-1 bg-[#FF4D6D] rounded-full mt-4" />
+            <div className="w-12 h-1 rounded-full mt-4" style={{ backgroundColor: accentColor }} />
             <p className="mt-3 text-stone-600 dark:text-stone-300 text-sm md:text-base max-w-xl font-normal leading-relaxed transition-colors">
               {activeRole === 'overview'
-                ? 'Curated flagship highlights synthesized exclusively from verified Financial and Data & Operations tracks, showcasing dual-domain mastery.'
+                ? 'Curated flagship highlights synthesized from Financial, Data & Operations, and AI Vibe Coding tracks, showcasing multi-domain mastery.'
+                : isVibe
+                ? 'Independent AI SaaS engineering, rapid prototype deployment, autonomous coding agent loops, and prompt-driven full-stack development.'
                 : isOther || activeRole === 'other'
                 ? 'Advanced specialization in corporate financial controls, automated ERP reconciliation pipelines, Power BI fiscal dashboards, and statutory audit strategy.'
                 : activeRole === 'mis'
@@ -244,10 +286,12 @@ export default function ExperienceSection() {
 
           {/* Subtitle / Period Pill Badge */}
           <div className="flex items-center gap-3 bg-[#FAF8F5] dark:bg-[#100C1A] px-4 py-2.5 rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] shadow-2xs self-start md:self-end transition-colors">
-            <Calendar className="w-4 h-4 text-[#FF4D6D]" />
+            <Calendar className="w-4 h-4" style={{ color: accentColor }} />
             <span className="text-xs sm:text-sm font-mono font-bold text-[#18181B] dark:text-stone-200">
               {activeRole === 'overview'
-                ? '2018 — PRESENT • 7+ Years Dual Executive Track (Finance & MIS)'
+                ? '2018 — 2026 • 7+ Years Finance & MIS + AI Vibe Coding'
+                : isVibe
+                ? '2026 (6 Months) • Rapid AI Prototyping & SaaS Engineering'
                 : activeRole === 'accountant'
                 ? '2020 — 2026 • 4+ Years Core Accounting & 3+ Years Tax Practice'
                 : activeRole === 'mis'
