@@ -657,10 +657,10 @@ export default function ContactSection() {
           <div 
             role="status" 
             aria-live="polite"
-            className={`fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 sm:px-5 py-3 rounded-full bg-white/95 dark:bg-[#161122]/95 backdrop-blur-md text-[#18181B] dark:text-[#F5F2F8] max-w-[94vw] sm:max-w-xl transition-all duration-300 animate-toast-in ${
+            className={`fixed bottom-6 sm:bottom-8 z-50 flex items-center gap-3 px-4 sm:px-5 py-3 rounded-full bg-white/95 dark:bg-[#161122]/95 backdrop-blur-md text-[#18181B] dark:text-[#F5F2F8] transition-all duration-300 ${
               isSimpleNotice
-                ? 'border border-amber-500/80 dark:border-amber-400/80 shadow-2xl shadow-amber-500/20'
-                : 'border border-emerald-500 dark:border-emerald-500 shadow-2xl shadow-emerald-500/20'
+                ? 'left-6 sm:left-8 max-w-[calc(100vw-5.5rem)] sm:max-w-md animate-toast-in-left border border-amber-500/80 dark:border-amber-400/80 shadow-2xl shadow-amber-500/20'
+                : 'left-1/2 -translate-x-1/2 max-w-[94vw] sm:max-w-xl animate-toast-in border border-emerald-500 dark:border-emerald-500 shadow-2xl shadow-emerald-500/20'
             }`}
           >
             <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${

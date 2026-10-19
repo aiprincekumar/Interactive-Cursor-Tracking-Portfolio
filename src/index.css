@@ -303,6 +303,21 @@ html.theme-transition *::after {
   animation: toastSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes toastSlideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.animate-toast-in-left {
+  animation: toastSlideInLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Grid & Dots backgrounds with subtle neutral tone */
 .bg-dot-pattern {
   background-image: radial-gradient(rgba(24, 24, 27, 0.06) 1px, transparent 1px);
@@ -369,7 +384,8 @@ html.theme-transition *::after {
   .animate-marquee-left,
   .animate-marquee-right,
   .animate-tab-fade,
-  .animate-toast-in {
+  .animate-toast-in,
+  .animate-toast-in-left {
     animation: none !important;
   }
 }
