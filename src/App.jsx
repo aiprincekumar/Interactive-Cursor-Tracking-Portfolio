@@ -17,8 +17,10 @@ import BackToTopButton from './components/BackToTopButton';
 import { soundFX } from './utils/audio';
 import { useLab } from './context/LabContext';
 import { RoleProvider } from './context/RoleContext';
+import { useSimpleMode } from './context/SimpleModeContext';
 
 export default function App() {
+  const { isSimpleMode } = useSimpleMode();
   const heroRef = useRef(null);
   const [isInsideHero, setIsInsideHero] = useState(false);
   const [capturedPhotos, setCapturedPhotos] = useState([]);
@@ -111,18 +113,28 @@ export default function App() {
     soundFX.playCursorSelect(cursorId);
   };
 
+  const effectiveSoundEnabled = isSimpleMode ? false : soundEnabled;
+
+  useEffect(() => {
+    if (isSimpleMode) {
+      soundFX.setEnabled(false);
+    } else {
+      soundFX.setEnabled(soundEnabled);
+    }
+  }, [isSimpleMode, soundEnabled]);
+
   const handlePhotoCaptured = (newPhoto) => {
     setCapturedPhotos((prev) => [newPhoto, ...prev]);
   };
 
   return (
-    <RoleProvider soundEnabled={soundEnabled}>
+    <RoleProvider soundEnabled={effectiveSoundEnabled}>
       <div className="min-h-screen bg-[#FAF8F5] dark:bg-[#0B0813] text-[#18181B] dark:text-[#F5F2F8] transition-colors duration-300 relative selection:bg-[#FF4D6D] selection:text-white overflow-x-hidden">
         {/* Background Subtle Mesh Dots */}
       <div className="fixed inset-0 bg-dot-pattern opacity-50 dark:opacity-30 pointer-events-none z-0 transition-opacity duration-300" />
 
-      {/* Dynamic Multi-Variant Interactive Cursor Manager */}
-      {!reducedMotion && (
+      {/* Dynamic Multi-Variant Interactive Cursor Manager (Disabled in Simple Mode) */}
+      {!isSimpleMode && !reducedMotion && (
         <DynamicCursorManager
           activeCursor={activeCursor}
           heroRef={heroRef}
@@ -138,15 +150,15 @@ export default function App() {
         />
       )}
 
-      {/* Global Quick Lab Studio Slide-Out Drawer & Floating Action Button */}
-      <LabStudioDrawer />
+      {/* Global Quick Lab Studio Slide-Out Drawer & Floating Action Button (Disabled in Simple Mode) */}
+      {!isSimpleMode && <LabStudioDrawer />}
 
       {/* Floating Back-To-Top Button with Scroll Progress Indicator */}
       <BackToTopButton />
 
       {/* Top Navbar */}
       <Navbar
-        soundEnabled={soundEnabled}
+        soundEnabled={effectiveSoundEnabled}
         setSoundEnabled={setSoundEnabled}
         activeCursor={activeCursor}
         onSelectCursor={handleSelectCursor}
@@ -160,17 +172,17 @@ export default function App() {
           isInsideHero={isInsideHero}
           setIsInsideHero={setIsInsideHero}
           onPhotoCaptured={handlePhotoCaptured}
-          soundEnabled={soundEnabled}
+          soundEnabled={effectiveSoundEnabled}
           setSoundEnabled={setSoundEnabled}
           forcedState={forcedState}
           reducedMotion={reducedMotion}
         />
 
-        {/* 2. Diagonal Crossed Marquee Ribbons with Butterfly Delimiters (Reel t=7.85s) */}
-        <TechMarqueeBanner />
+        {/* 2. Diagonal Crossed Marquee Ribbons with Butterfly Delimiters (Reel t=7.85s) - Hidden in Simple Mode */}
+        {!isSimpleMode && <TechMarqueeBanner />}
 
         {/* 3. "Who I am" / Personal Narrative & Education (Reel t=8.3s - 9.2s) */}
-        <AboutSection soundEnabled={soundEnabled} />
+        <AboutSection soundEnabled={effectiveSoundEnabled} />
 
         {/* 4. "What I work with" / Interactive Skill Matrix & Dark Card (Reel t=9.3s - 11.8s) */}
         <SkillsSection />
@@ -184,13 +196,15 @@ export default function App() {
         {/* 6. Competitive Programming & Coding Records (Reel t=15.0s - 16.0s) */}
         <CodingAchievementsSection />
 
-        {/* 7. Interactive Polaroid Studio & Camera Roll Memories */}
-        <CameraRollGallery
-          capturedPhotos={capturedPhotos}
-        />
+        {/* 7. Interactive Polaroid Studio & Camera Roll Memories - Hidden in Simple Mode */}
+        {!isSimpleMode && (
+          <CameraRollGallery
+            capturedPhotos={capturedPhotos}
+          />
+        )}
 
-        {/* 8. Portfolio Control Center */}
-        <InteractivePlayground />
+        {/* 8. Portfolio Control Center - Hidden in Simple Mode */}
+        {!isSimpleMode && <InteractivePlayground />}
 
         {/* 9. Contact: "Let's build something meaningful." (Reel t=16.1s - 16.9s) */}
         <ContactSection />

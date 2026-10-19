@@ -35,7 +35,7 @@ export function SimpleModeProvider({ children }) {
 
   const toggleSimpleMode = useCallback(() => setIsSimpleMode(prev => !prev), []);
 
-  const value = { isSimpleMode, toggleSimpleMode };
+  const value = { isSimpleMode, setIsSimpleMode, toggleSimpleMode };
 
   return (
     <SimpleModeContext.Provider value={value}>

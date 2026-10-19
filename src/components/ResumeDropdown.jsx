@@ -25,6 +25,7 @@ export default function ResumeDropdown({
   } catch {
     // In case ResumeDropdown is mounted outside SimpleModeProvider
   }
+  const isSimpleMode = simpleContext?.isSimpleMode ?? false;
   const toggleSimpleMode = simpleContext?.toggleSimpleMode ?? (() => {});
 
   // Connect active role unconditionally from RoleContext
@@ -479,14 +480,33 @@ export default function ResumeDropdown({
             className="w-full flex items-center justify-between px-2.5 py-2 text-left rounded-xl text-xs font-semibold text-stone-700 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-white dark:hover:bg-stone-800/80 transition-colors cursor-pointer group"
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <span className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 shrink-0">
+              <span
+                className={`p-1.5 rounded-lg shrink-0 transition-colors ${
+                  isSimpleMode
+                    ? 'bg-[#FF4D6D] text-white'
+                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
+                }`}
+              >
                 <Eye className="w-3.5 h-3.5" />
               </span>
               <div className="truncate">
-                <p className="font-bold text-[#18181B] dark:text-white leading-tight">Basic Overview</p>
-                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">Toggle simple view</p>
+                <p className="font-bold text-[#18181B] dark:text-white leading-tight">
+                  {isSimpleMode ? 'Interactive Mode' : 'Basic Overview'}
+                </p>
+                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">
+                  {isSimpleMode ? 'Switch to interactive 3D/kinematics' : 'Toggle clean simple view'}
+                </p>
               </div>
             </div>
+            <span
+              className={`text-[9px] font-mono px-1.5 py-0.5 rounded-md font-bold shrink-0 ml-2 transition-colors ${
+                isSimpleMode
+                  ? 'bg-[#FF4D6D]/15 text-[#FF4D6D] dark:bg-[#FF4D6D]/25'
+                  : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
+              }`}
+            >
+              {isSimpleMode ? 'ACTIVE' : 'SIMPLE'}
+            </span>
           </button>
         </div>
       )}

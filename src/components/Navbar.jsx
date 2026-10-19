@@ -154,8 +154,9 @@ export default function Navbar({
     { label: 'Contact', href: '#contact', id: 'contact' }
   ];
 
-  // Global Keyboard Shortcut: Cmd+K / Ctrl+K
+  // Global Keyboard Shortcut: Cmd+K / Ctrl+K (Disabled in Simple Mode)
   useEffect(() => {
+    if (isSimpleMode) return;
     const handleGlobalKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -175,7 +176,16 @@ export default function Navbar({
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [soundEnabled]);
+  }, [isSimpleMode, soundEnabled]);
+
+  // Auto-close open popovers when entering simple mode
+  useEffect(() => {
+    if (isSimpleMode) {
+      setIsSearchOpen(false);
+      setIsExploreOpen(false);
+      setIsRibbonOpen(false);
+    }
+  }, [isSimpleMode]);
 
   // Outside click & Escape listener for ribbon, role secondary bar & explore sub-bar
   useEffect(() => {
@@ -381,62 +391,64 @@ export default function Navbar({
             })}
           </nav>
 
-          {/* Right Action Group - Order: [🔍 Search] -> [✨ Explore] -> [🦋 Cursor] -> [🌓 Theme] -> [🔊 Sound] -> [📄 Resume] -> [☰ Menu] */}
+          {/* Right Action Group - Order: [🔍 Search] -> [✨ Explore] -> [🦋 Cursor] -> [👁️ Simple] -> [🌓 Theme] -> [🔊 Sound] -> [📄 Resume] -> [☰ Menu] */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* 1. Global Search Trigger Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setIsSearchOpen(true);
-                if (isExploreOpen) setIsExploreOpen(false);
-                if (isRoleBarOpen) setIsRoleBarOpen(false);
-                if (isRibbonOpen) setIsRibbonOpen(false);
-                if (mobileMenuOpen) setMobileMenuOpen(false);
-                if (soundEnabled) soundFX.playFocusBeep();
-              }}
-              aria-label="Search portfolio (Cmd+K)"
-              aria-haspopup="dialog"
-              aria-expanded={isSearchOpen}
-              className="group relative h-8 w-8 sm:w-auto sm:px-2.5 sm:py-1 rounded-full flex items-center justify-center gap-1.5 bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
-              title="Search portfolio (Cmd+K or Ctrl+K)"
-            >
-              <Search className="w-3.5 h-3.5 text-stone-600 dark:text-stone-300 group-hover:text-[#18181B] dark:group-hover:text-white transition-colors" />
-              <span className="hidden lg:inline-block text-[11px] font-semibold text-stone-600 dark:text-stone-300 group-hover:text-[#18181B] dark:group-hover:text-white">
-                Search
-              </span>
-              <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono font-bold text-stone-500 dark:text-stone-400 bg-[#F0EBE1] dark:bg-stone-900 border border-[#E5DFD5] dark:border-stone-700 rounded shadow-2xs leading-none">
-                ⌘K
-              </kbd>
-            </button>
+            {/* 1. Global Search Trigger Button (Disabled in Simple Mode) */}
+            {!isSimpleMode && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSearchOpen(true);
+                  if (isExploreOpen) setIsExploreOpen(false);
+                  if (isRoleBarOpen) setIsRoleBarOpen(false);
+                  if (isRibbonOpen) setIsRibbonOpen(false);
+                  if (mobileMenuOpen) setMobileMenuOpen(false);
+                  if (soundEnabled) soundFX.playFocusBeep();
+                }}
+                aria-label="Search portfolio (Cmd+K)"
+                aria-haspopup="dialog"
+                aria-expanded={isSearchOpen}
+                className="group relative h-8 w-8 sm:w-auto sm:px-2.5 sm:py-1 rounded-full flex items-center justify-center gap-1.5 bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+                title="Search portfolio (Cmd+K or Ctrl+K)"
+              >
+                <Search className="w-3.5 h-3.5 text-stone-600 dark:text-stone-300 group-hover:text-[#18181B] dark:group-hover:text-white transition-colors" />
+                <span className="hidden lg:inline-block text-[11px] font-semibold text-stone-600 dark:text-stone-300 group-hover:text-[#18181B] dark:group-hover:text-white">
+                  Search
+                </span>
+                <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono font-bold text-stone-500 dark:text-stone-400 bg-[#F0EBE1] dark:bg-stone-900 border border-[#E5DFD5] dark:border-stone-700 rounded shadow-2xs leading-none">
+                  ⌘K
+                </kbd>
+              </button>
+            )}
 
-            {/* 2. Explore / Showcase & Lab SubBar Trigger Button */}
-            <button
-              type="button"
-              onClick={toggleExploreBar}
-              aria-label="Explore Showcase & Lab (Gallery, Playground)"
-              aria-expanded={isExploreOpen}
-              className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${
-                isExploreOpen
-                  ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
-                  : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95'
-              }`}
-              title="Explore Showcase & Lab (Gallery, Playground)"
-            >
-              <LayoutGrid
-                className="w-4 h-4 transition-transform duration-200"
-                style={{ color: isExploreOpen ? (isDark ? '#18181B' : '#FFFFFF') : '#FF4D6D' }}
-              />
-              {/* Dynamic Indicator Dot with ping animation */}
-              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 pointer-events-none">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
-              </span>
-            </button>
+            {/* 2. Explore / Showcase & Lab SubBar Trigger Button (Disabled in Simple Mode) */}
+            {!isSimpleMode && (
+              <button
+                type="button"
+                onClick={toggleExploreBar}
+                aria-label="Explore Showcase & Lab (Gallery, Playground)"
+                aria-expanded={isExploreOpen}
+                className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${
+                  isExploreOpen
+                    ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
+                    : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95'
+                }`}
+                title="Explore Showcase & Lab (Gallery, Playground)"
+              >
+                <LayoutGrid
+                  className="w-4 h-4 transition-transform duration-200"
+                  style={{ color: isExploreOpen ? (isDark ? '#18181B' : '#FFFFFF') : '#FF4D6D' }}
+                />
+                {/* Dynamic Indicator Dot with ping animation */}
+                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 pointer-events-none">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
+                </span>
+              </button>
+            )}
 
-            {/* Standalone role-switcher button (formerly RoleTabsBar with variant="navbar") removed in favor of universal avatar trigger */}
-
-            {/* 3. Dynamic Cursor Variant Selector (Desktop & Fine Pointer Only) */}
-            {isDesktopCursor && (
+            {/* 3. Dynamic Cursor Variant Selector (Disabled in Simple Mode) */}
+            {!isSimpleMode && isDesktopCursor && (
               <button
                 type="button"
                 onClick={() => {
@@ -470,18 +482,22 @@ export default function Navbar({
               </button>
             )}
 
-            {/* Simple Mode Toggle Button */}
+            {/* 4. Simple Mode Toggle Button */}
             <button
               type="button"
               onClick={toggleSimpleMode}
-              aria-label="Simple view"
-              title="Simple view"
-              className="p-2 rounded-full text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-all cursor-pointer relative group"
+              aria-label={isSimpleMode ? "Exit simple mode (Interactive view)" : "Simple mode (Clean view)"}
+              title={isSimpleMode ? "Exit simple mode (Interactive view)" : "Simple mode (Clean view)"}
+              className={`p-2 rounded-full transition-all cursor-pointer relative group ${
+                isSimpleMode
+                  ? 'bg-[#FF4D6D] text-white shadow-xs hover:bg-[#FF3358]'
+                  : 'text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
+              }`}
             >
               <Eye className="w-4 h-4" />
             </button>
 
-            {/* Theme Toggle Button (Light / Dark) */}
+            {/* 5. Theme Toggle Button (Light / Dark) */}
             <button
               type="button"
               onClick={toggleTheme}
@@ -496,32 +512,34 @@ export default function Navbar({
               )}
             </button>
 
-            {/* 5. Audio Toggle Button */}
-            <button
-              type="button"
-              onClick={() => {
-                const next = !soundEnabled;
-                setSoundEnabled(next);
-                soundFX.setEnabled(next);
-                if (next) soundFX.playSparkle();
-              }}
-              aria-label={soundEnabled ? 'Mute Audio' : 'Enable Audio'}
-              className="p-2 rounded-full text-stone-600 dark:text-stone-400 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer"
-              title={soundEnabled ? 'Mute Audio' : 'Enable Audio'}
-            >
-              {soundEnabled ? (
-                <Volume2 className="w-4 h-4 text-[#FF4D6D]" />
-              ) : (
-                <VolumeX className="w-4 h-4 text-stone-400 dark:text-stone-500" />
-              )}
-            </button>
+            {/* 6. Audio Toggle Button (Hidden in Simple Mode) */}
+            {!isSimpleMode && (
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !soundEnabled;
+                  setSoundEnabled(next);
+                  soundFX.setEnabled(next);
+                  if (next) soundFX.playSparkle();
+                }}
+                aria-label={soundEnabled ? 'Mute Audio' : 'Enable Audio'}
+                className="p-2 rounded-full text-stone-600 dark:text-stone-400 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer"
+                title={soundEnabled ? 'Mute Audio' : 'Enable Audio'}
+              >
+                {soundEnabled ? (
+                  <Volume2 className="w-4 h-4 text-[#FF4D6D]" />
+                ) : (
+                  <VolumeX className="w-4 h-4 text-stone-400 dark:text-stone-500" />
+                )}
+              </button>
+            )}
 
-            {/* 6. Smart Resume Action Dropdown */}
+            {/* 7. Smart Resume Action Dropdown */}
             <div className="hidden sm:block">
               <ResumeDropdown soundEnabled={soundEnabled} />
             </div>
 
-            {/* 7. Mobile Menu Toggle */}
+            {/* 8. Mobile Menu Toggle */}
             <button
               type="button"
               onClick={() => {
@@ -568,8 +586,8 @@ export default function Navbar({
           />
         )}
 
-        {/* Floating Secondary Horizontal Sub-Bar for Explore (Gallery & Lab) */}
-        {isExploreOpen && (
+        {/* Floating Secondary Horizontal Sub-Bar for Explore (Gallery & Lab - Hidden in Simple Mode) */}
+        {!isSimpleMode && isExploreOpen && (
           <ExploreSubBar
             variant="floating-bar"
             isOpen={isExploreOpen}
@@ -581,8 +599,8 @@ export default function Navbar({
           />
         )}
 
-        {/* Expandable Cursor Selector Ribbon with Smooth Animation (Desktop & Fine Pointer Only) */}
-        {isDesktopCursor && isRibbonOpen && (
+        {/* Expandable Cursor Selector Ribbon with Smooth Animation (Disabled in Simple Mode) */}
+        {!isSimpleMode && isDesktopCursor && isRibbonOpen && (
           <div className="desktop-cursor-only mt-2.5 max-w-7xl mx-auto animate-in fade-in slide-in-from-top-2 duration-200 transition-all">
             <CursorSelectorRibbon
               activeCursor={activeCursor}
@@ -615,31 +633,54 @@ export default function Navbar({
               className="mb-1"
             />
 
-            {/* 2. Mobile In-Drawer Search Launchpad */}
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setIsSearchOpen(true);
-                if (soundEnabled) soundFX.playFocusBeep();
-              }}
-              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white dark:bg-stone-800 border border-[#E7E2D8] dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white shadow-2xs font-medium text-xs transition-colors mb-1 cursor-pointer"
-            >
-              <span className="flex items-center gap-2">
-                <Search className="w-4 h-4 text-[#FF4D6D]" />
-                <span>Search portfolio...</span>
-              </span>
-              <kbd className="px-1.5 py-0.5 text-[9px] font-mono font-bold text-stone-500 dark:text-stone-400 bg-[#F0EBE1] dark:bg-stone-900 border border-[#E5DFD5] dark:border-stone-700 rounded shadow-2xs">
-                ⌘K
-              </kbd>
-            </button>
+            {/* 2. Mobile In-Drawer Search Launchpad (Hidden in Simple Mode) */}
+            {!isSimpleMode && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setIsSearchOpen(true);
+                  if (soundEnabled) soundFX.playFocusBeep();
+                }}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white dark:bg-stone-800 border border-[#E7E2D8] dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white shadow-2xs font-medium text-xs transition-colors mb-1 cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Search className="w-4 h-4 text-[#FF4D6D]" />
+                  <span>Search portfolio...</span>
+                </span>
+                <kbd className="px-1.5 py-0.5 text-[9px] font-mono font-bold text-stone-500 dark:text-stone-400 bg-[#F0EBE1] dark:bg-stone-900 border border-[#E5DFD5] dark:border-stone-700 rounded shadow-2xs">
+                  ⌘K
+                </kbd>
+              </button>
+            )}
 
-            {/* 3. Mobile Explore Showcase & Lab Quick-Jump Card */}
-            <ExploreSubBar
-              variant="drawer-card"
-              onClose={() => setMobileMenuOpen(false)}
-              soundEnabled={soundEnabled}
-            />
+            {/* 3. Mobile Explore Showcase & Lab Quick-Jump Card (Hidden in Simple Mode) */}
+            {!isSimpleMode && (
+              <ExploreSubBar
+                variant="drawer-card"
+                onClose={() => setMobileMenuOpen(false)}
+                soundEnabled={soundEnabled}
+              />
+            )}
+
+            {/* Simple Mode Toggle in Mobile Drawer */}
+            <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-white dark:bg-stone-800 border border-[#E7E2D8] dark:border-stone-700 text-stone-700 dark:text-stone-200 text-xs font-semibold">
+              <span className="flex items-center gap-2">
+                <Eye className="w-4 h-4 text-[#FF4D6D]" />
+                <span>View Mode</span>
+              </span>
+              <button
+                type="button"
+                onClick={toggleSimpleMode}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-colors cursor-pointer ${
+                  isSimpleMode
+                    ? 'bg-[#FF4D6D] text-white hover:bg-[#FF3358]'
+                    : 'bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-700 dark:text-stone-200'
+                }`}
+              >
+                {isSimpleMode ? 'Simple View 👁️' : 'Interactive 🚀'}
+              </button>
+            </div>
 
             {/* Theme Toggle in Mobile Drawer */}
             <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-white dark:bg-stone-800 border border-[#E7E2D8] dark:border-stone-700 text-stone-700 dark:text-stone-200 text-xs font-semibold">

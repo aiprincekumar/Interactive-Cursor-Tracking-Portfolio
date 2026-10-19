@@ -1,29 +1,46 @@
-/* Simple Mode – hide advanced UI elements */
-body.simple-mode .zoom-button,
-body.simple-mode .scroll-button,
-body.simple-mode .auto-scroll,
-body.simple-mode .gyro-control,
-body.simple-mode .drag-drop,
-body.simple-mode .cursor-tracking,
-body.simple-mode .search-section,
-body.simple-mode .explore-subbar,
-body.simple-mode .role-tabs-bar,
-body.simple-mode .lab-studio-drawer,
-body.simple-mode .back-to-top-button,
-body.simple-mode .tech-marquee-banner,
-body.simple-mode .coding-achievements-section,
-body.simple-mode .camera-roll-gallery,
-body.simple-mode .interactive-playground {
+/* ==========================================================================
+   Simple Mode Stylesheet
+   Activated when <body class="simple-mode"> is toggled.
+   Provides clean, fast, clutter-free viewing experience with standard system cursor.
+   ========================================================================== */
+
+/* 1. Universal Standard Browser Cursor Everywhere */
+body.simple-mode,
+body.simple-mode * {
+  cursor: auto !important;
+}
+
+body.simple-mode a,
+body.simple-mode button,
+body.simple-mode input,
+body.simple-mode select,
+body.simple-mode textarea,
+body.simple-mode [role="button"],
+body.simple-mode label {
+  cursor: pointer !important;
+}
+
+body.simple-mode [disabled],
+body.simple-mode [aria-disabled="true"] {
+  cursor: not-allowed !important;
+}
+
+/* 2. Hide any lingering custom cursor canvas or followers */
+body.simple-mode canvas.cursor-canvas,
+body.simple-mode .cursor-follower,
+body.simple-mode .dynamic-cursor,
+body.simple-mode .desktop-cursor-only {
   display: none !important;
 }
-/* Hero section – only show first image */
-body.simple-mode .hero-section .hero-image:not(:first-child) {
-  display: none !important;
+
+/* 3. Hero Section Compact Layout when in Simple Mode */
+body.simple-mode #hero {
+  min-height: 75vh;
+  touch-action: auto !important;
 }
-/* Adjust hero container height when simplified */
-body.simple-mode .hero-section {
-  min-height: 60vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+@media (min-width: 768px) {
+  body.simple-mode #hero {
+    min-height: 85vh;
+  }
 }

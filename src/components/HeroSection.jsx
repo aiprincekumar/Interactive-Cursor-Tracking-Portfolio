@@ -8,6 +8,7 @@ import { useGyroscopeTracking } from '../hooks/useGyroscopeTracking';
 import { useDraggableCharacter } from '../hooks/useDraggableCharacter';
 import { formatVintageTimestamp } from '../utils/polaroidExport';
 import { useLab, POSE_INDEX_MAP, ZOOM_FOCUS_MAP } from '../context/LabContext';
+import { useSimpleMode } from '../context/SimpleModeContext';
 
 /**
  * Full-Screen Reel-Accurate Character Hero Section
@@ -50,6 +51,7 @@ export default function HeroSection({
   forcedState,
   reducedMotion
 }) {
+  const { isSimpleMode } = useSimpleMode();
   const { activeRole, activeTrack } = useRoleTab();
   const lab = useLab();
   const customCursorEnabled = lab?.customCursorEnabled ?? true;
@@ -116,12 +118,19 @@ export default function HeroSection({
     }
   }, [characterZoom]);
 
-  // High-performance Mobile & Gyroscope tracking hook
+  // High-performance Mobile & Gyroscope tracking hook (Disabled in Simple Mode)
   const gyro = useGyroscopeTracking({
-    enabled: !reducedMotion,
-    scrollEnabled: true,
-    reducedMotion
+    enabled: !reducedMotion && !isSimpleMode,
+    scrollEnabled: !isSimpleMode,
+    reducedMotion: reducedMotion || isSimpleMode
   });
+
+  // Keep isInsideHero in sync with simple mode
+  useEffect(() => {
+    if (isSimpleMode) {
+      setIsInsideHero(false);
+    }
+  }, [isSimpleMode, setIsInsideHero]);
 
   useEffect(() => {
     userScaleRef.current = userScale;
@@ -145,7 +154,7 @@ export default function HeroSection({
   const imgLowerRightRef = useRef(null);
   const reticleRef = useRef(null);
 
-  // Character Drag-and-Drop system (physics-ready, frictionless, 60/120fps)
+  // Character Drag-and-Drop system (physics-ready, frictionless, 60/120fps - Disabled in Simple Mode)
   const {
     posRef,
     isHolding,
@@ -161,8 +170,8 @@ export default function HeroSection({
     heroRef: sectionRef,
     characterRef: characterInnerRef,
     userScale,
-    enabled: dragEnabled,
-    dragEnabled,
+    enabled: dragEnabled && !isSimpleMode,
+    dragEnabled: dragEnabled && !isSimpleMode,
     dragBoundaryConstrained,
     dragAutoSnapBack
   });
@@ -228,6 +237,23 @@ export default function HeroSection({
     let active = true;
     let localRafId = null;
     let lastTime = performance.now();
+
+    if (isSimpleMode) {
+      if (stageRef.current) {
+        stageRef.current.style.transform = 'none';
+      }
+      if (bgBackdropRef.current) {
+        bgBackdropRef.current.style.transform = 'none';
+      }
+      if (characterInnerRef.current) {
+        characterInnerRef.current.style.transform = `scale(${effectiveScale})`;
+        characterInnerRef.current.style.transformOrigin = activeTransformOrigin;
+      }
+      animStateRef.current.activePose = 'center';
+      return () => {
+        active = false;
+      };
+    }
 
     if (reducedMotion) {
       if (stageRef.current) {
@@ -497,11 +523,11 @@ export default function HeroSection({
         cancelAnimationFrame(localRafId);
       }
     };
-  }, [reducedMotion, forcedState, gazeMode, poseOverride, gyro.gyroStateRef]);
+  }, [reducedMotion, isSimpleMode, forcedState, gazeMode, poseOverride, gyro.gyroStateRef, effectiveScale, activeTransformOrigin]);
 
-  // High-performance passive window pointer tracking (0ms input latency, no React event queue overhead)
+  // High-performance passive window pointer tracking (0ms input latency, no React event queue overhead - Disabled in Simple Mode)
   useEffect(() => {
-    if (reducedMotion) return;
+    if (reducedMotion || isSimpleMode) return;
 
     const handleWindowPointer = (e) => {
       const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
@@ -583,7 +609,7 @@ export default function HeroSection({
       window.removeEventListener('touchend', handlePointerUp);
       window.removeEventListener('touchcancel', handlePointerUp);
     };
-  }, [reducedMotion, setIsInsideHero, gyro.gyroStateRef]);
+  }, [reducedMotion, isSimpleMode, setIsInsideHero, gyro.gyroStateRef]);
 
   // Floating HUD notification trigger
   const triggerHud = useCallback((customMsg = null, duration = 1500) => {
@@ -643,12 +669,13 @@ export default function HeroSection({
     triggerHud();
   }, [triggerHud, setCharacterZoom]);
 
-  // Non-passive wheel listener (Ctrl/Meta + Wheel) and 2-finger pinch gesture
+  // Non-passive wheel listener (Ctrl/Meta + Wheel) and 2-finger pinch gesture (Disabled in Simple Mode)
   const isPinchingRef = useRef(false);
   const touchDistRef = useRef(null);
   const touchStartScaleRef = useRef(1.0);
 
   useEffect(() => {
+    if (isSimpleMode) return;
     const heroEl = sectionRef.current;
     if (!heroEl) return;
 
@@ -715,11 +742,11 @@ export default function HeroSection({
       heroEl.removeEventListener('touchend', handleTouchEnd);
       heroEl.removeEventListener('touchcancel', handleTouchEnd);
     };
-  }, [triggerHud]);
+  }, [isSimpleMode, triggerHud]);
 
-  // Trigger Shutter Snap Action
+  // Trigger Shutter Snap Action (Disabled in Simple Mode)
   const triggerCapture = useCallback(() => {
-    if (isPinchingRef.current) return;
+    if (isSimpleMode || isPinchingRef.current) return;
     soundFX.playShutter();
 
     if (!reducedMotion && flashConfettiEnabledRef.current) {
@@ -771,7 +798,7 @@ export default function HeroSection({
     setTimeout(() => {
       setIsFlashing(false);
     }, 280);
-  }, [reducedMotion, onPhotoCaptured]);
+  }, [isSimpleMode, reducedMotion, onPhotoCaptured]);
 
   return (
     <section
@@ -780,11 +807,11 @@ export default function HeroSection({
         if (heroRef) heroRef.current = el;
       }}
       id="hero"
-      onPointerEnter={() => {
+      onPointerEnter={isSimpleMode ? undefined : () => {
         setIsInsideHero(true);
         animStateRef.current.isHovered = true;
       }}
-      onPointerLeave={() => {
+      onPointerLeave={isSimpleMode ? undefined : () => {
         const state = animStateRef.current;
         const gState = gyro.gyroStateRef.current;
         if (gState && gState.isActive) {
@@ -798,7 +825,7 @@ export default function HeroSection({
           state.targetNormY = 0;
         }
       }}
-      onClick={() => {
+      onClick={isSimpleMode ? undefined : () => {
         if (gyro.permissionState === 'prompt') {
           gyro.requestPermission().then((granted) => {
             if (granted) triggerHud('Gyro Enabled & Active');
@@ -807,17 +834,23 @@ export default function HeroSection({
         }
         triggerCapture();
       }}
-      className={`relative w-full h-screen min-h-screen overflow-hidden select-none bg-[#FAF8F5] dark:bg-[#0B0813] flex items-center justify-center cursor-pointer transition-colors duration-300 ${
-        isInsideHero && !reducedMotion && customCursorEnabled ? 'cursor-none' : ''
+      className={`relative w-full ${
+        isSimpleMode
+          ? 'min-h-[75vh] md:min-h-[85vh] py-12 md:py-16'
+          : 'h-screen min-h-screen'
+      } overflow-hidden select-none bg-[#FAF8F5] dark:bg-[#0B0813] flex items-center justify-center transition-colors duration-300 ${
+        !isSimpleMode && isInsideHero && !reducedMotion && customCursorEnabled ? 'cursor-none' : ''
       }`}
-      style={{ touchAction: 'pan-y' }}
+      style={{ touchAction: isSimpleMode ? 'auto' : 'pan-y' }}
     >
-      {/* 1. Shutter Flash Overlay */}
-      <div
-        className={`fixed inset-0 bg-white z-50 pointer-events-none transition-opacity duration-200 ${
-          isFlashing ? 'opacity-95' : 'opacity-0'
-        }`}
-      />
+      {/* 1. Shutter Flash Overlay (Disabled in Simple Mode) */}
+      {!isSimpleMode && (
+        <div
+          className={`fixed inset-0 bg-white z-50 pointer-events-none transition-opacity duration-200 ${
+            isFlashing ? 'opacity-95' : 'opacity-0'
+          }`}
+        />
+      )}
 
       {/* 2. Studio Stage Backdrop Background Layer */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden select-none">
@@ -833,30 +866,34 @@ export default function HeroSection({
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10 dark:from-[#0B0813]/70 dark:via-[#0B0813]/20 dark:to-[#0B0813]/40 pointer-events-none transition-colors duration-300" />
       </div>
 
-      {/* 3. Full-Bleed Full-Width Character Flat 2D Stage (Covers entire Hero Viewport - 10 Total Poses) */}
+      {/* 3. Character Stage: In Simple Mode, renders ONLY ONE single image (IMG_CENTER_FRONT) */}
       <div
         ref={stageRef}
         className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none z-10 will-change-transform"
-        style={{ willChange: 'transform' }}
+        style={{ willChange: isSimpleMode ? 'auto' : 'transform' }}
       >
         <div
           ref={characterInnerRef}
-          onPointerDown={(e) => {
+          onPointerDown={isSimpleMode ? undefined : (e) => {
             e.stopPropagation();
             handlePointerDown(e);
           }}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          onDoubleClick={(e) => {
+          onPointerMove={isSimpleMode ? undefined : handlePointerMove}
+          onPointerUp={isSimpleMode ? undefined : handlePointerUp}
+          onPointerCancel={isSimpleMode ? undefined : handlePointerUp}
+          onDoubleClick={isSimpleMode ? undefined : (e) => {
             e.stopPropagation();
             resetPosition();
             triggerHud('Position Centered 🎯');
           }}
-          className={`relative h-[74vh] sm:h-[82vh] md:h-full aspect-[16/9] w-auto max-w-none flex items-center justify-center will-change-transform pointer-events-auto select-none touch-none ${
-            isDragging || isHolding
-              ? 'cursor-grabbing'
-              : 'cursor-grab hover:cursor-grab'
+          className={`relative ${
+            isSimpleMode
+              ? 'h-[55vh] sm:h-[65vh] md:h-[72vh] aspect-[16/9] w-auto max-w-none flex items-center justify-center select-none pointer-events-none'
+              : `h-[74vh] sm:h-[82vh] md:h-full aspect-[16/9] w-auto max-w-none flex items-center justify-center will-change-transform pointer-events-auto select-none touch-none ${
+                  isDragging || isHolding
+                    ? 'cursor-grabbing'
+                    : 'cursor-grab hover:cursor-grab'
+                }`
           }`}
           style={{
             transform: `scale(${effectiveScale})`,
@@ -866,100 +903,114 @@ export default function HeroSection({
               : (isTransitioning
                   ? 'transform 350ms cubic-bezier(0.16, 1, 0.3, 1), transform-origin 400ms cubic-bezier(0.16, 1, 0.3, 1)'
                   : 'transform-origin 400ms cubic-bezier(0.16, 1, 0.3, 1)'),
-            filter: `contrast(1.04) brightness(1.02) drop-shadow(0 ${Math.round(liftProgress * 28)}px ${Math.round(liftProgress * 32)}px rgba(0,0,0,${(liftProgress * 0.32).toFixed(2)}))`
+            filter: isSimpleMode
+              ? 'contrast(1.04) brightness(1.02)'
+              : `contrast(1.04) brightness(1.02) drop-shadow(0 ${Math.round(liftProgress * 28)}px ${Math.round(liftProgress * 32)}px rgba(0,0,0,${(liftProgress * 0.32).toFixed(2)}))`
           }}
           onTransitionEnd={() => setIsTransitioning(false)}
         >
-          <img
-            ref={imgIdleRef}
-            src={IMG_REAR}
-            alt="Rear View (Idle)"
-            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
-            style={{ opacity: 1, willChange: 'opacity', transform: 'translateZ(0)' }}
-            loading="eager"
-            decoding="sync"
-          />
-          <img
-            ref={imgCenterRef}
-            src={IMG_CENTER_FRONT}
-            alt="Center Front Gaze"
-            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
-            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
-            loading="eager"
-            decoding="sync"
-          />
-          <img
-            ref={imgUpperCenterRef}
-            src={IMG_CENTER_UP}
-            alt="Upper Center Gaze"
-            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
-            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
-            loading="eager"
-            decoding="sync"
-          />
-          <img
-            ref={imgLowerCenterRef}
-            src={IMG_LOWER_CENTER}
-            alt="Lower Center Glance"
-            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
-            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
-            loading="eager"
-            decoding="sync"
-          />
-          <img
-            ref={imgLeftRef}
-            src={IMG_CENTER_LEFT}
-            alt="Profile Left Gaze"
-            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
-            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
-            loading="eager"
-            decoding="sync"
-          />
-          <img
-            ref={imgRightRef}
-            src={IMG_CENTER_RIGHT}
-            alt="Profile Right Gaze"
-            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
-            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
-            loading="eager"
-            decoding="sync"
-          />
-          <img
-            ref={imgUpperLeftRef}
-            src={IMG_UPPER_LEFT}
-            alt="Upper Left Glance"
-            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
-            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
-            loading="eager"
-            decoding="sync"
-          />
-          <img
-            ref={imgLowerLeftRef}
-            src={IMG_LOWER_LEFT}
-            alt="Lower Left Glance"
-            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
-            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
-            loading="eager"
-            decoding="sync"
-          />
-          <img
-            ref={imgUpperRightRef}
-            src={IMG_UPPER_RIGHT}
-            alt="Upper Right Glance"
-            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
-            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
-            loading="eager"
-            decoding="sync"
-          />
-          <img
-            ref={imgLowerRightRef}
-            src={IMG_LOWER_RIGHT}
-            alt="Lower Right Glance"
-            className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
-            style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
-            loading="eager"
-            decoding="sync"
-          />
+          {isSimpleMode ? (
+            <img
+              src={IMG_CENTER_FRONT}
+              alt="Atul Verma"
+              className="w-full h-full object-contain object-center pointer-events-none"
+              loading="eager"
+              decoding="sync"
+            />
+          ) : (
+            <>
+              <img
+                ref={imgIdleRef}
+                src={IMG_REAR}
+                alt="Rear View (Idle)"
+                className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
+                style={{ opacity: 1, willChange: 'opacity', transform: 'translateZ(0)' }}
+                loading="eager"
+                decoding="sync"
+              />
+              <img
+                ref={imgCenterRef}
+                src={IMG_CENTER_FRONT}
+                alt="Center Front Gaze"
+                className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
+                style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
+                loading="eager"
+                decoding="sync"
+              />
+              <img
+                ref={imgUpperCenterRef}
+                src={IMG_CENTER_UP}
+                alt="Upper Center Gaze"
+                className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
+                style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
+                loading="eager"
+                decoding="sync"
+              />
+              <img
+                ref={imgLowerCenterRef}
+                src={IMG_LOWER_CENTER}
+                alt="Lower Center Glance"
+                className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
+                style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
+                loading="eager"
+                decoding="sync"
+              />
+              <img
+                ref={imgLeftRef}
+                src={IMG_CENTER_LEFT}
+                alt="Profile Left Gaze"
+                className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
+                style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
+                loading="eager"
+                decoding="sync"
+              />
+              <img
+                ref={imgRightRef}
+                src={IMG_CENTER_RIGHT}
+                alt="Profile Right Gaze"
+                className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
+                style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
+                loading="eager"
+                decoding="sync"
+              />
+              <img
+                ref={imgUpperLeftRef}
+                src={IMG_UPPER_LEFT}
+                alt="Upper Left Glance"
+                className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
+                style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
+                loading="eager"
+                decoding="sync"
+              />
+              <img
+                ref={imgLowerLeftRef}
+                src={IMG_LOWER_LEFT}
+                alt="Lower Left Glance"
+                className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
+                style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
+                loading="eager"
+                decoding="sync"
+              />
+              <img
+                ref={imgUpperRightRef}
+                src={IMG_UPPER_RIGHT}
+                alt="Upper Right Glance"
+                className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
+                style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
+                loading="eager"
+                decoding="sync"
+              />
+              <img
+                ref={imgLowerRightRef}
+                src={IMG_LOWER_RIGHT}
+                alt="Lower Right Glance"
+                className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
+                style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
+                loading="eager"
+                decoding="sync"
+              />
+            </>
+          )}
         </div>
       </div>
 
@@ -967,8 +1018,8 @@ export default function HeroSection({
       <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_120px_rgba(11,8,19,0.7)] pointer-events-none z-0" />
       <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#FAF8F5] via-[#FAF8F5]/60 to-transparent dark:from-[#0B0813] dark:via-[#0B0813]/60 pointer-events-none z-0 transition-colors duration-300" />
 
-      {/* 4.5. Floating Zoom HUD Badge */}
-      {showHudBadge && (
+      {/* 4.5. Floating Zoom HUD Badge (Disabled in Simple Mode) */}
+      {!isSimpleMode && showHudBadge && (
         <div
           role="status"
           aria-live="polite"
@@ -981,19 +1032,23 @@ export default function HeroSection({
         </div>
       )}
 
-      {/* 5. Sleek Camera Focus Reticle (Follows Cursor Smoothly) */}
-      <div
-        ref={reticleRef}
-        className="fixed top-0 left-0 pointer-events-none z-30 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 opacity-60 hidden md:block"
-        style={{ willChange: 'transform' }}
-      >
-        <div className="w-12 h-12 border border-white/80 rounded-xl flex items-center justify-center shadow-xs backdrop-blur-[1px]">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#FF4D6D]" />
+      {/* 5. Sleek Camera Focus Reticle (Follows Cursor Smoothly - Disabled in Simple Mode) */}
+      {!isSimpleMode && (
+        <div
+          ref={reticleRef}
+          className="fixed top-0 left-0 pointer-events-none z-30 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 opacity-60 hidden md:block"
+          style={{ willChange: 'transform' }}
+        >
+          <div className="w-12 h-12 border border-white/80 rounded-xl flex items-center justify-center shadow-xs backdrop-blur-[1px]">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#FF4D6D]" />
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 6. Reel Element: Bottom Controls Layout (Responsive 2-Row on Mobile, 2-Column Split on Desktop) */}
-      <div className="absolute bottom-6 sm:bottom-8 left-4 sm:left-6 md:left-12 right-4 sm:right-6 md:right-12 z-20 pointer-events-none flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6">
+      {/* 6. Reel Element: Bottom Controls Layout */}
+      <div className={`absolute bottom-6 sm:bottom-8 left-4 sm:left-6 md:left-12 right-4 sm:right-6 md:right-12 z-20 pointer-events-none flex flex-col md:flex-row md:items-end ${
+        isSimpleMode ? 'justify-center sm:justify-start' : 'justify-between'
+      } gap-4 md:gap-6`}>
         {/* Row 1 on Mobile / Left Column on Desktop: Clean Typography & Social Icons */}
         <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-2.5 sm:gap-3 pointer-events-auto w-full sm:w-auto">
           {Boolean(activeTrack?.heroTitle || activeTrack?.heroSubtitle) && (
@@ -1118,8 +1173,9 @@ export default function HeroSection({
           </div>
         </div>
 
-        {/* Row 2 on Mobile / Right Column on Desktop: Camera Controls, Gyro Pill & Scale Pill */}
-        <div className="flex items-center justify-center self-center md:self-auto md:justify-end flex-wrap sm:flex-nowrap gap-2 sm:gap-3 pointer-events-auto w-full sm:w-auto">
+        {/* Row 2 on Mobile / Right Column on Desktop: Camera Controls, Gyro Pill & Scale Pill (Disabled in Simple Mode) */}
+        {!isSimpleMode && (
+          <div className="flex items-center justify-center self-center md:self-auto md:justify-end flex-wrap sm:flex-nowrap gap-2 sm:gap-3 pointer-events-auto w-full sm:w-auto">
           {/* Gyro Sensor & Tilt-Scroll Control Pill (Available in all modes: Desktop, Tablet & Mobile) */}
           {gyro.isSupported && (
             <div
@@ -1380,6 +1436,7 @@ export default function HeroSection({
             <Images className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF4D6D] transition-transform group-hover:scale-110" />
           </a>
         </div>
+        )}
       </div>
     </section>
   );
