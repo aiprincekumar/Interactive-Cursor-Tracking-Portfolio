@@ -277,6 +277,17 @@ html.theme-transition *::after {
 }
 
 /* Floating Toast notification animation */
+@keyframes toastSlideUp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
 @keyframes toastSlideDown {
   0% {
     opacity: 0;
@@ -289,7 +300,7 @@ html.theme-transition *::after {
 }
 
 .animate-toast-in {
-  animation: toastSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: toastSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Grid & Dots backgrounds with subtle neutral tone */

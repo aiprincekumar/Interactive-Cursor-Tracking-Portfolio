@@ -3,6 +3,7 @@ import {
   Mail, 
   MapPin, 
   Check, 
+  Info,
   Send, 
   ArrowUpRight, 
   ArrowRight,
@@ -649,29 +650,44 @@ export default function ContactSection() {
 
   return (
     <section id="contact" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
-      {/* Floating Success Toast Notification */}
-      {showToast && (
-        <div 
-          role="status" 
-          aria-live="polite"
-          className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 sm:px-5 py-3 rounded-full bg-white/95 dark:bg-[#161122]/95 backdrop-blur-md border border-emerald-500 dark:border-emerald-500 text-[#18181B] dark:text-[#F5F2F8] shadow-2xl shadow-emerald-500/20 animate-toast-in max-w-[94vw] sm:max-w-xl transition-all duration-300"
-        >
-          <div className="w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-          </div>
-          <span className="text-xs sm:text-sm font-semibold text-[#18181B] dark:text-white leading-tight">
-            {toastMessage || 'Inquiry Sent Successfully! Direct WhatsApp & Email are now unlocked.'}
-          </span>
-          <button
-            type="button"
-            onClick={dismissToast}
-            aria-label="Dismiss notification"
-            className="p-1 rounded-full text-stone-400 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-[#201830] transition-colors shrink-0 ml-1 cursor-pointer"
+      {/* Floating Toast Notification */}
+      {showToast && (() => {
+        const isSimpleNotice = Boolean(toastMessage && toastMessage.includes('Simple Mode'));
+        return (
+          <div 
+            role="status" 
+            aria-live="polite"
+            className={`fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 sm:px-5 py-3 rounded-full bg-white/95 dark:bg-[#161122]/95 backdrop-blur-md text-[#18181B] dark:text-[#F5F2F8] max-w-[94vw] sm:max-w-xl transition-all duration-300 animate-toast-in ${
+              isSimpleNotice
+                ? 'border border-amber-500/80 dark:border-amber-400/80 shadow-2xl shadow-amber-500/20'
+                : 'border border-emerald-500 dark:border-emerald-500 shadow-2xl shadow-emerald-500/20'
+            }`}
           >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+              isSimpleNotice
+                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+            }`}>
+              {isSimpleNotice ? (
+                <Info className="w-3.5 h-3.5 stroke-[2.5]" />
+              ) : (
+                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+              )}
+            </div>
+            <span className="text-xs sm:text-sm font-semibold text-[#18181B] dark:text-white leading-tight">
+              {toastMessage || 'Inquiry Sent Successfully! Direct WhatsApp & Email are now unlocked.'}
+            </span>
+            <button
+              type="button"
+              onClick={dismissToast}
+              aria-label="Dismiss notification"
+              className="p-1 rounded-full text-stone-400 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-[#201830] transition-colors shrink-0 ml-1 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        );
+      })()}
 
       <div className="max-w-7xl mx-auto">
         {/* Section Pill Badge */}
