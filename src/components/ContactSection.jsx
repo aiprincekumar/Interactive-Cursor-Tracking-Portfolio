@@ -38,6 +38,7 @@ import {
 } from './Icons';
 import { soundFX } from '../utils/audio';
 import LeafletOfflineMap from './LeafletOfflineMap';
+import { useSimpleMode } from '../context/SimpleModeContext';
 
 const SOCIAL_LINKS = [
   {
@@ -106,6 +107,7 @@ const UNLOCK_STORAGE_KEY = 'portfolio_contact_unlocked';
 const UNLOCK_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export default function ContactSection() {
+  const { isSimpleMode } = useSimpleMode();
   const [activeTab, setActiveTab] = useState('touch');
   const [emailCopied, setEmailCopied] = useState(false);
   const [whatsappCopied, setWhatsappCopied] = useState(false);
@@ -131,6 +133,7 @@ export default function ContactSection() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [lastSubmittedData, setLastSubmittedData] = useState(() => {
     if (typeof window === 'undefined') return null;
@@ -256,9 +259,27 @@ export default function ContactSection() {
     };
   }, []);
 
+  // Simple Mode guard: ensure showIframe remains false and map stays offline when simple mode is active and iframe not preloaded
+  useEffect(() => {
+    if (isSimpleMode && !iframeLoaded) {
+      setShowIframe(false);
+      if (mapMode === 'google') {
+        setMapMode('osm');
+      }
+    }
+  }, [isSimpleMode, iframeLoaded, mapMode]);
+
   // Hybrid map auto-upgrade engine: after 2.5s auto-upgrades if online and not manually toggled
   const AUTO_UPGRADE_DELAY = 2500;
   useEffect(() => {
+    if (isSimpleMode) {
+      if (upgradeTimerRef.current) {
+        clearTimeout(upgradeTimerRef.current);
+        upgradeTimerRef.current = null;
+      }
+      return;
+    }
+
     if (activeTab !== 'location') {
       if (upgradeTimerRef.current) {
         clearTimeout(upgradeTimerRef.current);
@@ -291,7 +312,7 @@ export default function ContactSection() {
         upgradeTimerRef.current = null;
       }
     };
-  }, [activeTab, isOnline, manuallyToggled, mapMode]);
+  }, [activeTab, isOnline, manuallyToggled, mapMode, isSimpleMode]);
 
   // Cleanup all timers on unmount
   useEffect(() => {
@@ -453,6 +474,18 @@ export default function ContactSection() {
   };
 
   const handleToggleMapMode = () => {
+    if (isSimpleMode && !iframeLoaded) {
+      soundFX.playPop();
+      setToastMessage('Simple Mode सक्रिय है, केवल ऑफलाइन मैप उपलब्ध है');
+      setShowToast(true);
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+      toastTimeoutRef.current = setTimeout(() => {
+        setShowToast(false);
+        toastTimeoutRef.current = null;
+      }, 4000);
+      return;
+    }
+
     soundFX.playFocusBeep();
     setManuallyToggled(true);
     if (mapMode === 'google') {
@@ -468,6 +501,18 @@ export default function ContactSection() {
   };
 
   const handleRetryLive = () => {
+    if (isSimpleMode && !iframeLoaded) {
+      soundFX.playPop();
+      setToastMessage('Simple Mode सक्रिय है, केवल ऑफलाइन मैप उपलब्ध है');
+      setShowToast(true);
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+      toastTimeoutRef.current = setTimeout(() => {
+        setShowToast(false);
+        toastTimeoutRef.current = null;
+      }, 4000);
+      return;
+    }
+
     soundFX.playFocusBeep();
     const online = typeof navigator !== 'undefined' ? navigator.onLine : true;
     setIsOnline(online);
@@ -560,6 +605,7 @@ export default function ContactSection() {
       }
 
       // Show Floating Toast notification for 5 seconds
+      setToastMessage('Inquiry Sent Successfully! Direct WhatsApp & Email are now unlocked.');
       setShowToast(true);
       soundFX.playSparkle();
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
@@ -614,7 +660,7 @@ export default function ContactSection() {
             <Check className="w-3.5 h-3.5 stroke-[2.5]" />
           </div>
           <span className="text-xs sm:text-sm font-semibold text-[#18181B] dark:text-white leading-tight">
-            Inquiry Sent Successfully! Direct WhatsApp &amp; Email are now unlocked.
+            {toastMessage || 'Inquiry Sent Successfully! Direct WhatsApp & Email are now unlocked.'}
           </span>
           <button
             type="button"
@@ -1411,6 +1457,11 @@ export default function ContactSection() {
                         </span>
                         <span>Loading Live Map...</span>
                       </div>
+                    ) : isSimpleMode && mapMode !== 'google' ? (
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-md border border-emerald-200/80 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-mono font-bold shadow-md select-none transition-all">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        <span>Offline Cache Map • Simple Mode</span>
+                      </div>
                     ) : !isOnline ? (
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-md border border-amber-200 dark:border-amber-800/80 text-amber-700 dark:text-amber-400 text-xs font-mono font-bold shadow-md select-none transition-all">
                         <span className="w-2 h-2 rounded-full bg-amber-500" />
@@ -1512,7 +1563,7 @@ export default function ContactSection() {
                 />
 
                 {/* Live Interactive Google Maps Iframe (Crossfaded Layer) */}
-                {showIframe && (
+                {showIframe && (!isSimpleMode || iframeLoaded) && (
                   <iframe
                     title="Office Location Map - Daltonganj, Medininagar, Jharkhand"
                     src={mapEmbedUrl}
