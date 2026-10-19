@@ -482,22 +482,7 @@ export default function Navbar({
               </button>
             )}
 
-            {/* 4. Simple Mode Toggle Button */}
-            <button
-              type="button"
-              onClick={toggleSimpleMode}
-              aria-label={isSimpleMode ? "Exit simple mode (Interactive view)" : "Simple mode (Clean view)"}
-              title={isSimpleMode ? "Exit simple mode (Interactive view)" : "Simple mode (Clean view)"}
-              className={`p-2 rounded-full transition-all cursor-pointer relative group ${
-                isSimpleMode
-                  ? 'bg-[#FF4D6D] text-white shadow-xs hover:bg-[#FF3358]'
-                  : 'text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
-              }`}
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-
-            {/* 5. Theme Toggle Button (Light / Dark) */}
+            {/* 4. Theme Toggle Button (Light / Dark) */}
             <button
               type="button"
               onClick={toggleTheme}
@@ -512,7 +497,7 @@ export default function Navbar({
               )}
             </button>
 
-            {/* 6. Audio Toggle Button (Hidden in Simple Mode) */}
+            {/* 5. Audio Toggle Button (Hidden in Simple Mode) */}
             {!isSimpleMode && (
               <button
                 type="button"

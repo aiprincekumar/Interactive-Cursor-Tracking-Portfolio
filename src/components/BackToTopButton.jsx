@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useLab } from '../context/LabContext';
+import { useSimpleMode } from '../context/SimpleModeContext';
 
 /**
  * Floating Back-To-Top Button with Scroll Progress Indicator
@@ -9,14 +10,67 @@ import { useLab } from '../context/LabContext';
  * Features:
  * - Circular SVG progress indicator with vibrant gradient stroke (#FF4D6D to #FFAA00)
  * - Scroll threshold visibility (>400px past Hero section) with smooth fade/scale
- * - Unified floating cluster alongside the Control Center FAB
+ * - Strict Vertical Right-Rail Alignment (right-6 sm:right-8):
+ *   - Normal Mode: sits at bottom-38 sm:bottom-42 (above Simple Mode Toggle and Lab FAB)
+ *   - Simple Mode: glides down to bottom-22 sm:bottom-25 (above Simple Mode Toggle)
  * - Web Audio API sparkle sound trigger upon click
  * - WCAG AAA Accessible with tooltip, aria-label, and keyboard focus states
  */
+const UNLOCK_STORAGE_KEY = 'portfolio_contact_unlocked';
+
 export default function BackToTopButton() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const { soundEnabled } = useLab();
+  const { isSimpleMode } = useSimpleMode();
+  const [isUnlocked, setIsUnlocked] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const stored = localStorage.getItem(UNLOCK_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.unlocked && parsed?.expiry && Date.now() < parsed.expiry) {
+          return true;
+        }
+      }
+    } catch {
+      // Ignored
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const checkUnlocked = () => {
+      try {
+        const stored = localStorage.getItem(UNLOCK_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.unlocked && parsed?.expiry && Date.now() < parsed.expiry) {
+            setIsUnlocked(true);
+            return;
+          }
+        }
+      } catch {
+        // Ignored
+      }
+      setIsUnlocked(false);
+    };
+
+    const handleUnlocked = () => setIsUnlocked(true);
+    const handleLocked = () => setIsUnlocked(false);
+
+    window.addEventListener('storage', checkUnlocked);
+    window.addEventListener('contact_channel_unlocked', handleUnlocked);
+    window.addEventListener('contact_channel_locked', handleLocked);
+
+    return () => {
+      window.removeEventListener('storage', checkUnlocked);
+      window.removeEventListener('contact_channel_unlocked', handleUnlocked);
+      window.removeEventListener('contact_channel_locked', handleLocked);
+    };
+  }, []);
 
   useEffect(() => {
     let ticking = false;
@@ -73,9 +127,24 @@ export default function BackToTopButton() {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (scrollProgress / 100) * circumference;
 
+  // Stacking logic:
+  // Normal mode:
+  // - WhatsApp unlocked: sits at bottom-54 sm:bottom-58 (above SimpleToggle at bottom-38)
+  // - WhatsApp locked: sits at bottom-38 sm:bottom-42 (above SimpleToggle at bottom-22)
+  // Simple mode:
+  // - WhatsApp unlocked: sits at bottom-38 sm:bottom-42 (above SimpleToggle at bottom-22)
+  // - WhatsApp locked: sits at bottom-22 sm:bottom-25 (above SimpleToggle at bottom-6)
+  const verticalPositionClass = isSimpleMode
+    ? isUnlocked
+      ? 'bottom-38 sm:bottom-42'
+      : 'bottom-22 sm:bottom-25'
+    : isUnlocked
+      ? 'bottom-54 sm:bottom-58'
+      : 'bottom-38 sm:bottom-42';
+
   return (
     <div
-      className={`fixed bottom-22 right-6 sm:bottom-24 sm:right-8 z-40 select-none transition-all duration-300 ease-out ${
+      className={`fixed right-6 sm:right-8 z-40 select-none transition-all duration-300 ease-out ${verticalPositionClass} ${
         isVisible
           ? 'opacity-100 scale-100 pointer-events-auto translate-y-0'
           : 'opacity-0 scale-75 pointer-events-none translate-y-3'

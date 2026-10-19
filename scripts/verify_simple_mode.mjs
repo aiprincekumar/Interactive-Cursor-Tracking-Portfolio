@@ -70,17 +70,44 @@ check('Navbar.jsx hides Cursor ribbon button in Simple Mode', navbarCode.include
 check('Navbar.jsx hides Audio toggle button in Simple Mode', navbarCode.includes('{!isSimpleMode && (') && navbarCode.includes('soundFX.setEnabled(next)'));
 check('Navbar.jsx disables Cmd+K shortcut in Simple Mode', navbarCode.includes('if (isSimpleMode) return;') && navbarCode.includes("e.key.toLowerCase() === 'k'"));
 check('Navbar.jsx auto-closes drawers and ribbons on Simple Mode activation', navbarCode.includes('if (isSimpleMode) {') && navbarCode.includes('setIsSearchOpen(false);'));
-check('Navbar.jsx contains Eye toggle button for Simple Mode', navbarCode.includes('onClick={toggleSimpleMode}') && navbarCode.includes('<Eye className="w-4 h-4" />'));
 check('Navbar.jsx preserves logo/avatar, nav links, theme toggle, and resume dropdown', navbarCode.includes('toggleTheme') && navbarCode.includes('<ResumeDropdown') && navbarCode.includes('navLinks.map'));
 
-// 5. Inspect ResumeDropdown.jsx
+// 5. Inspect ExploreSubBar.jsx
+const explorePath = path.resolve('src/components/ExploreSubBar.jsx');
+const exploreCode = fs.readFileSync(explorePath, 'utf8');
+
+check('ExploreSubBar.jsx imports useSimpleMode', exploreCode.includes("import { useSimpleMode } from '../context/SimpleModeContext'"));
+check('ExploreSubBar.jsx places Simple Mode toggle before Gallery without icon', exploreCode.includes("id: 'simple-mode-toggle'") && exploreCode.indexOf("id: 'simple-mode-toggle'") < exploreCode.indexOf("id: 'gallery'") && exploreCode.includes("item.id === 'simple-mode-toggle'"));
+
+// 6. Inspect Floating Action Buttons (Vertical Stacking & Strict Right-Rail Alignment)
+const floatingPath = path.resolve('src/components/FloatingSimpleModeToggle.jsx');
+const floatingExists = fs.existsSync(floatingPath);
+const floatingCode = floatingExists ? fs.readFileSync(floatingPath, 'utf8') : '';
+
+const backToTopPath = path.resolve('src/components/BackToTopButton.jsx');
+const backToTopExists = fs.existsSync(backToTopPath);
+const backToTopCode = backToTopExists ? fs.readFileSync(backToTopPath, 'utf8') : '';
+
+const labDrawerPath = path.resolve('src/components/LabStudioDrawer.jsx');
+const labDrawerExists = fs.existsSync(labDrawerPath);
+const labDrawerCode = labDrawerExists ? fs.readFileSync(labDrawerPath, 'utf8') : '';
+
+check('FloatingSimpleModeToggle.jsx exists and imports useSimpleMode', floatingExists && floatingCode.includes("useSimpleMode"));
+check('App.jsx mounts FloatingSimpleModeToggle FAB', appCode.includes('<FloatingSimpleModeToggle') && appCode.includes('FloatingSimpleModeToggle from'));
+check('FloatingSimpleModeToggle enforces strict vertical right rail (right-6 sm:right-8) with zero horizontal offsets', floatingCode.includes('fixed right-6 sm:right-8') && !floatingCode.includes('right-22') && !floatingCode.includes('right-25'));
+check('FloatingSimpleModeToggle vertically adapts (bottom-6 in Simple Mode, bottom-22 in Normal Mode)', floatingCode.includes("'bottom-6 sm:bottom-8'") && floatingCode.includes("'bottom-22 sm:bottom-25'"));
+check('BackToTopButton imports useSimpleMode and enforces strict vertical right rail (right-6 sm:right-8)', backToTopExists && backToTopCode.includes('useSimpleMode') && backToTopCode.includes('fixed right-6 sm:right-8'));
+check('BackToTopButton vertically stacks above Simple Mode toggle (bottom-22 in Simple Mode, bottom-38 in Normal Mode)', backToTopCode.includes("'bottom-22 sm:bottom-25'") && backToTopCode.includes("'bottom-38 sm:bottom-42'"));
+check('LabStudioDrawer FAB sits at bottom-6 right-6 sm:bottom-8 sm:right-8', labDrawerExists && labDrawerCode.includes('bottom-6 right-6 sm:bottom-8 sm:right-8'));
+
+// 7. Inspect ResumeDropdown.jsx
 const resumePath = path.resolve('src/components/ResumeDropdown.jsx');
 const resumeCode = fs.readFileSync(resumePath, 'utf8');
 
 check('ResumeDropdown.jsx accesses isSimpleMode and toggleSimpleMode', resumeCode.includes('isSimpleMode') && resumeCode.includes('toggleSimpleMode'));
 check('ResumeDropdown.jsx contains Basic Overview item toggling simple mode', resumeCode.includes('toggleSimpleMode()') && resumeCode.includes('Basic Overview'));
 
-// 6. Inspect simple-mode.css
+// 8. Inspect simple-mode.css
 const cssPath = path.resolve('src/styles/simple-mode.css');
 const cssCode = fs.readFileSync(cssPath, 'utf8');
 

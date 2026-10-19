@@ -13,6 +13,8 @@ import InteractivePlayground from './components/InteractivePlayground';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import LabStudioDrawer from './components/LabStudioDrawer';
+import FloatingWhatsAppButton from './components/FloatingWhatsAppButton';
+import FloatingSimpleModeToggle from './components/FloatingSimpleModeToggle';
 import BackToTopButton from './components/BackToTopButton';
 import { soundFX } from './utils/audio';
 import { useLab } from './context/LabContext';
@@ -152,6 +154,12 @@ export default function App() {
 
       {/* Global Quick Lab Studio Slide-Out Drawer & Floating Action Button (Disabled in Simple Mode) */}
       {!isSimpleMode && <LabStudioDrawer />}
+
+      {/* Floating Direct WhatsApp Channel Button (Unlocked via Contact Section) */}
+      <FloatingWhatsAppButton />
+
+      {/* Floating Persistent Simple Mode Toggle FAB (Always Visible) */}
+      <FloatingSimpleModeToggle />
 
       {/* Floating Back-To-Top Button with Scroll Progress Indicator */}
       <BackToTopButton />

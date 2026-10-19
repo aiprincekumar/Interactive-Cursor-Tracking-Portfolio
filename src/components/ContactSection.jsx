@@ -23,7 +23,8 @@ import {
   Phone,
   Layers,
   ShieldCheck,
-  Zap
+  Zap,
+  X
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -129,6 +130,7 @@ export default function ContactSection() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [showToast, setShowToast] = useState(false);
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [lastSubmittedData, setLastSubmittedData] = useState(() => {
     if (typeof window === 'undefined') return null;
@@ -185,6 +187,7 @@ export default function ContactSection() {
   const whatsappTimeoutRef = useRef(null);
   const addressTimeoutRef = useRef(null);
   const upgradeTimerRef = useRef(null);
+  const toastTimeoutRef = useRef(null);
 
   const directEmail = 'Atulravi2015@gmail.com';
   const formattedWhatsApp = '+91 7992383804';
@@ -297,8 +300,17 @@ export default function ContactSection() {
       if (whatsappTimeoutRef.current) clearTimeout(whatsappTimeoutRef.current);
       if (addressTimeoutRef.current) clearTimeout(addressTimeoutRef.current);
       if (upgradeTimerRef.current) clearTimeout(upgradeTimerRef.current);
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     };
   }, []);
+
+  const dismissToast = () => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+      toastTimeoutRef.current = null;
+    }
+    setShowToast(false);
+  };
 
   const handleTabChange = (tabId, moveFocus = false) => {
     if (moveFocus) {
@@ -517,10 +529,11 @@ export default function ContactSection() {
         },
         body: JSON.stringify(submissionPayload)
       });
+      const result = await res.json().catch(() => null);
 
       // Even if API returns non-200, we gracefully process fallback unlock
       if (!res.ok) {
-        console.warn('FormSubmit returned status:', res.status);
+        console.warn('FormSubmit returned status:', res?.status, result);
       }
     } catch (err) {
       console.warn('FormSubmit fetch encountered network error, activating fallback:', err);
@@ -537,9 +550,23 @@ export default function ContactSection() {
           userData: { ...formData }
         };
         localStorage.setItem(UNLOCK_STORAGE_KEY, JSON.stringify(unlockData));
+        window.dispatchEvent(
+          new CustomEvent('contact_channel_unlocked', {
+            detail: { unlocked: true, userData: unlockData.userData }
+          })
+        );
       } catch (e) {
         console.warn('Failed to persist unlock state:', e);
       }
+
+      // Show Floating Toast notification for 5 seconds
+      setShowToast(true);
+      soundFX.playSparkle();
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+      toastTimeoutRef.current = setTimeout(() => {
+        setShowToast(false);
+        toastTimeoutRef.current = null;
+      }, 5000);
 
       triggerCelebration();
 
@@ -560,6 +587,7 @@ export default function ContactSection() {
     setIsUnlocked(false);
     try {
       localStorage.removeItem(UNLOCK_STORAGE_KEY);
+      window.dispatchEvent(new CustomEvent('contact_channel_locked'));
     } catch {
       // Ignore
     }
@@ -575,6 +603,30 @@ export default function ContactSection() {
 
   return (
     <section id="contact" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
+      {/* Floating Success Toast Notification */}
+      {showToast && (
+        <div 
+          role="status" 
+          aria-live="polite"
+          className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 sm:px-5 py-3 rounded-full bg-white/95 dark:bg-[#161122]/95 backdrop-blur-md border border-emerald-500 dark:border-emerald-500 text-[#18181B] dark:text-[#F5F2F8] shadow-2xl shadow-emerald-500/20 animate-toast-in max-w-[94vw] sm:max-w-xl transition-all duration-300"
+        >
+          <div className="w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+          </div>
+          <span className="text-xs sm:text-sm font-semibold text-[#18181B] dark:text-white leading-tight">
+            Inquiry Sent Successfully! Direct WhatsApp &amp; Email are now unlocked.
+          </span>
+          <button
+            type="button"
+            onClick={dismissToast}
+            aria-label="Dismiss notification"
+            className="p-1 rounded-full text-stone-400 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-[#201830] transition-colors shrink-0 ml-1 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto">
         {/* Section Pill Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs whitespace-nowrap max-w-full overflow-x-auto">
