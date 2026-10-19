@@ -12,6 +12,7 @@ import RoleTabsBar from './RoleTabsBar';
 import ExploreSubBar from './ExploreSubBar';
 import { useRoleTab, ROLE_DATA, DEFAULT_ROLE } from '../context/RoleContext';
 import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar({
@@ -39,6 +40,7 @@ export default function Navbar({
   const [imageError, setImageError] = useState(false);
   const avatarImgRef = useRef(null);
   const avatarButtonRef = useRef(null);
+  const mobileMenuButtonRef = useRef(null);
 
   useEffect(() => {
     setImageLoaded(false);
@@ -59,6 +61,7 @@ export default function Navbar({
   const toggleTheme = themeContext?.toggleTheme ?? (() => {});
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  useBodyScrollLock(mobileMenuOpen);
   let simpleContext = null;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -187,9 +190,9 @@ export default function Navbar({
     }
   }, [isSimpleMode]);
 
-  // Outside click & Escape listener for ribbon, role secondary bar & explore sub-bar
+  // Outside click & Escape listener for ribbon, role secondary bar, explore sub-bar & mobile menu
   useEffect(() => {
-    if (!isRibbonOpen && !isRoleBarOpen && !isExploreOpen) return;
+    if (!isRibbonOpen && !isRoleBarOpen && !isExploreOpen && !mobileMenuOpen) return;
 
     const handleClickOutside = (event) => {
       if (navContainerRef.current && !navContainerRef.current.contains(event.target)) {
@@ -205,11 +208,18 @@ export default function Navbar({
           setIsExploreOpen(false);
           if (soundEnabled) soundFX.playRibbonToggle(false);
         }
+        if (mobileMenuOpen) {
+          setMobileMenuOpen(false);
+        }
       }
     };
 
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
+        if (mobileMenuOpen) {
+          setMobileMenuOpen(false);
+          mobileMenuButtonRef.current?.focus();
+        }
         if (isRibbonOpen) {
           setIsRibbonOpen(false);
           soundFX.playRibbonToggle(false);
@@ -235,7 +245,7 @@ export default function Navbar({
       document.removeEventListener('touchstart', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isRibbonOpen, isRoleBarOpen, isExploreOpen, soundEnabled]);
+  }, [isRibbonOpen, isRoleBarOpen, isExploreOpen, mobileMenuOpen, soundEnabled]);
 
   // ScrollSpy listener to highlight active section in Navbar
   useEffect(() => {
@@ -277,6 +287,15 @@ export default function Navbar({
 
   return (
     <>
+      {mobileMenuOpen && (
+        <div
+          role="button"
+          tabIndex={-1}
+          aria-label="Close navigation menu"
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-xs md:hidden z-30 transition-opacity duration-200"
+        />
+      )}
       <header ref={navContainerRef} className="fixed top-0 left-0 right-0 z-40 px-2 sm:px-3 md:px-8 py-3.5">
         <div className="relative max-w-7xl mx-auto bg-[#FAF8F5]/90 dark:bg-[#161122]/90 backdrop-blur-md rounded-full border border-[#E7E2D8] dark:border-[#2D2340] px-2.5 sm:px-4 md:px-5 py-2 shadow-xs flex items-center justify-between transition-colors">
           {/* Brand Group: Universal Role Switcher Avatar Button + Atul Verma Home Link */}
@@ -526,6 +545,7 @@ export default function Navbar({
 
             {/* 8. Mobile Menu Toggle */}
             <button
+              ref={mobileMenuButtonRef}
               type="button"
               onClick={() => {
                 const next = !mobileMenuOpen;
@@ -606,7 +626,7 @@ export default function Navbar({
 
         {/* Mobile Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden mt-2 max-w-7xl mx-auto bg-[#FAF8F5]/98 dark:bg-[#161122]/98 backdrop-blur-xl rounded-2xl border border-[#E7E2D8] dark:border-[#2D2340] p-4 shadow-xl flex flex-col gap-2.5 animate-in slide-in-from-top-2">
+          <div className="md:hidden mt-2 max-w-7xl mx-auto bg-[#FAF8F5]/98 dark:bg-[#161122]/98 backdrop-blur-xl rounded-2xl border border-[#E7E2D8] dark:border-[#2D2340] p-4 shadow-xl flex flex-col gap-2.5 animate-in slide-in-from-top-2 max-h-[calc(100dvh-5.5rem)] overflow-y-auto overscroll-contain relative z-40 scroll-smooth">
             {/* 1. Mobile Career Track Switcher Card */}
             <RoleTabsBar
               variant="drawer"
