@@ -76,6 +76,26 @@ const AUTOCOMPLETE_LIST = [
   'color white',
   'color red',
   'color purple',
+  'bgcolor',
+  'bgcolor obsidian',
+  'bgcolor navy',
+  'bgcolor aubergine',
+  'bgcolor matrix-black',
+  'bgcolor slate',
+  'bgcolor cyber-purple',
+  'bgcolor pure-black',
+  'bgcolor default',
+  'bg',
+  'background',
+  'color-bg',
+  'opacity',
+  'opacity solid',
+  'opacity default',
+  'opacity glass',
+  'opacity semi',
+  'transparent',
+  'transparency',
+  'glass',
   'font-size',
   'font-size small',
   'font-size medium',
@@ -153,6 +173,54 @@ const COLOR_PRESETS = {
   white: { name: 'Pure White', hex: '#f8fafc' },
   red: { name: 'Hacker Red', hex: '#ef4444' },
   purple: { name: 'Deep Purple', hex: '#a855f7' }
+};
+
+const DEFAULT_OS_BG = {
+  mac: '#0A0F18',
+  win: '#012456',
+  linux: '#2c001e'
+};
+
+const BG_COLOR_PRESETS = {
+  obsidian: { name: 'Obsidian Mac', hex: '#0a0f18' },
+  mac: { name: 'Obsidian Mac', hex: '#0a0f18' },
+  navy: { name: 'PowerShell Navy', hex: '#012456' },
+  powershell: { name: 'PowerShell Navy', hex: '#012456' },
+  win: { name: 'PowerShell Navy', hex: '#012456' },
+  aubergine: { name: 'Ubuntu Aubergine', hex: '#2c001e' },
+  ubuntu: { name: 'Ubuntu Aubergine', hex: '#2c001e' },
+  linux: { name: 'Ubuntu Aubergine', hex: '#2c001e' },
+  'matrix-black': { name: 'Matrix Black', hex: '#081208' },
+  matrix: { name: 'Matrix Black', hex: '#081208' },
+  slate: { name: 'Deep Slate', hex: '#0f172a' },
+  'cyber-purple': { name: 'Cyber Purple', hex: '#180828' },
+  purple: { name: 'Cyber Purple', hex: '#180828' },
+  'pure-black': { name: 'Pure Pitch Black', hex: '#000000' },
+  black: { name: 'Pure Pitch Black', hex: '#000000' }
+};
+
+const OPACITY_PRESETS = {
+  solid: 1.0,
+  default: 0.95,
+  glass: 0.85,
+  semi: 0.70
+};
+
+const hexToRgba = (hex, alpha = 1) => {
+  if (!hex) return `rgba(10, 15, 24, ${alpha})`;
+  let clean = hex.replace('#', '').trim();
+  if (clean.length === 3) {
+    clean = clean
+      .split('')
+      .map((c) => c + c)
+      .join('');
+  }
+  if (clean.length !== 6) return `rgba(10, 15, 24, ${alpha})`;
+  const num = parseInt(clean, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
 const FONT_SIZE_PRESETS = {
@@ -373,6 +441,8 @@ const HELP_MANUAL = [
   '',
   '[Color & Typography]',
   '  color <preset|#hex>  : matrix, amber, cyan, pink, white, red, purple, or #hex',
+  '  bgcolor <preset|#hex>: obsidian, navy, aubergine, matrix-black, slate, cyber-purple, pure-black, default, or #hex',
+  '  opacity <val|preset> : solid (1.0), default (0.95), glass (0.85), semi (0.70), or 40%-100%',
   '  font-size <preset|px>: Set font size (small: 11px, medium: 13px, large: 16px, xl: 18px)',
   '  zoom <in|out|reset>  : Scale font size up (+2px), down (-2px), or reset',
   '  font-family <name>   : Select typography: mono, pixel, retro, fira, matrix',
@@ -593,6 +663,26 @@ export default function TerminalCLI({
     }
     return 'mono';
   });
+
+  // Persistent background color: preset hex or custom #hex or null (tracks OS default)
+  const [customBgColor, setCustomBgColor] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('terminal_bg_color') || null;
+    }
+    return null;
+  });
+
+  // Persistent background opacity: 0.40 to 1.0 (default 0.95)
+  const [bgOpacity, setBgOpacity] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('terminal_bg_opacity');
+      if (saved && !isNaN(Number(saved))) return Number(saved);
+    }
+    return 0.95;
+  });
+
+  const effectiveBgHex = customBgColor || DEFAULT_OS_BG[osStyle] || '#0A0F18';
+  const effectiveBgRgba = hexToRgba(effectiveBgHex, bgOpacity);
 
   const [inputVal, setInputVal] = useState('');
   const [history, setHistory] = useState(() => [
@@ -1260,10 +1350,138 @@ export default function TerminalCLI({
           break;
         }
 
+        // Terminal Background Color Customization
+        case 'bgcolor':
+        case 'bg':
+        case 'background':
+        case 'color-bg': {
+          const bgArg = arg.toLowerCase().trim();
+          if (!bgArg) {
+            outputResult = [
+              `Current terminal background: ${customBgColor ? customBgColor : `Default OS (${DEFAULT_OS_BG[osStyle] || '#0A0F18'})`}`,
+              `Current opacity: ${Math.round(bgOpacity * 100)}% (${bgOpacity})`,
+              '',
+              'Available background presets:',
+              '  bgcolor obsidian     (#0a0f18) - Sleek macOS obsidian dark',
+              '  bgcolor navy         (#012456) - Windows PowerShell deep navy',
+              '  bgcolor aubergine    (#2c001e) - Ubuntu Linux aubergine',
+              '  bgcolor matrix-black (#081208) - Deep matrix terminal green-black',
+              '  bgcolor slate        (#0f172a) - Modern developer slate',
+              '  bgcolor cyber-purple (#180828) - Neon synthwave dark purple',
+              '  bgcolor pure-black   (#000000) - High-contrast pitch black',
+              '  bgcolor default      - Reset to track active OS styling',
+              '',
+              'Custom hex colors are also supported: e.g. "bgcolor #0d1117" or "bgcolor #1e1e2e"'
+            ].join('\n');
+            soundFX.playTerminalSuccess?.();
+            break;
+          }
+
+          if (bgArg === 'default' || bgArg === 'auto' || bgArg === 'reset') {
+            setCustomBgColor(null);
+            if (typeof window !== 'undefined') localStorage.removeItem('terminal_bg_color');
+            outputResult = `[✔] Terminal background reset to follow active OS style (${DEFAULT_OS_BG[osStyle] || '#0A0F18'}).`;
+            soundFX.playTerminalSuccess?.();
+          } else if (BG_COLOR_PRESETS[bgArg]) {
+            const selected = BG_COLOR_PRESETS[bgArg];
+            setCustomBgColor(selected.hex);
+            if (typeof window !== 'undefined') localStorage.setItem('terminal_bg_color', selected.hex);
+            outputResult = `[✔] Terminal background color set to ${selected.name} (${selected.hex}).`;
+            soundFX.playTerminalSuccess?.();
+          } else if (/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(bgArg)) {
+            setCustomBgColor(bgArg);
+            if (typeof window !== 'undefined') localStorage.setItem('terminal_bg_color', bgArg);
+            outputResult = `[✔] Custom background hex color applied: ${bgArg}.`;
+            soundFX.playTerminalSuccess?.();
+          } else {
+            isError = true;
+            outputResult = [
+              `[✘] Invalid background color "${arg}".`,
+              'Available presets:',
+              '  bgcolor obsidian / mac        : #0a0f18',
+              '  bgcolor navy / win            : #012456',
+              '  bgcolor aubergine / linux     : #2c001e',
+              '  bgcolor matrix-black / matrix : #081208',
+              '  bgcolor slate                 : #0f172a',
+              '  bgcolor cyber-purple / purple : #180828',
+              '  bgcolor pure-black / black    : #000000',
+              '  bgcolor default / auto / reset: Follow active OS style',
+              '',
+              'Custom hex colors are also supported: e.g. "bgcolor #0d1117" or "bgcolor #1e1e2e"'
+            ].join('\n');
+            soundFX.playTerminalError?.();
+          }
+          break;
+        }
+
+        // Terminal Background Opacity Customization
+        case 'opacity':
+        case 'transparent':
+        case 'transparency':
+        case 'glass': {
+          const opArg = arg.toLowerCase().trim();
+          if (!opArg) {
+            outputResult = [
+              `Current background opacity: ${Math.round(bgOpacity * 100)}% (${bgOpacity})`,
+              'Available opacity presets:',
+              '  opacity solid   : 100% (1.0) - Completely opaque background',
+              '  opacity default : 95% (0.95) - Standard balanced opacity',
+              '  opacity glass   : 85% (0.85) - Frosted glassmorphism look',
+              '  opacity semi    : 70% (0.70) - High transparency translucency',
+              '',
+              'Direct numbers/percentages supported: e.g. "opacity 90", "opacity 75%", "opacity 0.8" (clamped between 0.4 and 1.0).'
+            ].join('\n');
+            soundFX.playTerminalSuccess?.();
+            break;
+          }
+
+          let targetVal = null;
+          if (OPACITY_PRESETS[opArg] !== undefined) {
+            targetVal = OPACITY_PRESETS[opArg];
+          } else {
+            const cleanNum = opArg.replace('%', '').trim();
+            const parsed = parseFloat(cleanNum);
+            if (!isNaN(parsed)) {
+              if (opArg.includes('%') || parsed > 1.0) {
+                targetVal = parsed / 100;
+              } else {
+                targetVal = parsed;
+              }
+            }
+          }
+
+          if (targetVal !== null) {
+            const clamped = Math.min(1.0, Math.max(0.4, Math.round(targetVal * 100) / 100));
+            setBgOpacity(clamped);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('terminal_bg_opacity', String(clamped));
+            }
+            outputResult = `[✔] Terminal background opacity set to ${Math.round(clamped * 100)}% (${clamped}).`;
+            soundFX.playTerminalSuccess?.();
+          } else {
+            isError = true;
+            outputResult = [
+              `[✘] Invalid opacity value "${arg}".`,
+              `Current opacity: ${Math.round(bgOpacity * 100)}% (${bgOpacity})`,
+              'Available presets:',
+              '  opacity solid   : 100% (1.0)',
+              '  opacity default : 95% (0.95)',
+              '  opacity glass   : 85% (0.85)',
+              '  opacity semi    : 70% (0.70)',
+              '',
+              'Direct values supported: e.g. "opacity 90", "opacity 75%", "opacity 0.8" (clamped between 0.4 and 1.0).'
+            ].join('\n');
+            soundFX.playTerminalError?.();
+          }
+          break;
+        }
+
         // Reset All Defaults
         case 'reset': {
           setOsStyle('mac');
           setFontColor('#10b981');
+          setCustomBgColor(null);
+          setBgOpacity(0.95);
           setFontSize(13);
           setFontFamily('mono');
           setSize(DEFAULT_SIZE);
@@ -1273,11 +1491,13 @@ export default function TerminalCLI({
           if (typeof window !== 'undefined') {
             localStorage.removeItem('terminal_os_style');
             localStorage.removeItem('terminal_font_color');
+            localStorage.removeItem('terminal_bg_color');
+            localStorage.removeItem('terminal_bg_opacity');
             localStorage.removeItem('terminal_font_size');
             localStorage.removeItem('terminal_font_family');
           }
           outputResult =
-            '[✔] Terminal settings restored to defaults: macOS Look & Feel, Matrix Green, 13px font, Monospace, 720x480 floating window.';
+            '[✔] Terminal settings restored to defaults: macOS Look & Feel, Matrix Green, 13px font, Monospace, default OS background (95% opacity), 720x480 floating window.';
           soundFX.playTerminalSuccess?.();
           break;
         }
@@ -1523,6 +1743,8 @@ export default function TerminalCLI({
       onClose,
       osStyle,
       fontColor,
+      customBgColor,
+      bgOpacity,
       fontSize,
       fontFamily,
       commandHistory
@@ -1631,12 +1853,7 @@ export default function TerminalCLI({
           aria-label="Minimized Terminal Window"
           className="fixed bottom-5 right-5 z-[9995] flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-2xl backdrop-blur-md cursor-pointer transition-all duration-200 select-none border"
           style={{
-            backgroundColor:
-              osStyle === 'win'
-                ? '#012456ee'
-                : osStyle === 'linux'
-                ? '#2c001eee'
-                : '#0B0F19ee',
+            backgroundColor: hexToRgba(effectiveBgHex, bgOpacity),
             borderColor: `${fontColor}60`
           }}
           onClick={() => setIsMinimized(false)}
@@ -1678,6 +1895,7 @@ export default function TerminalCLI({
             fontFamily: FONT_FAMILIES[fontFamily] || FONT_FAMILIES.mono,
             borderColor: `${fontColor}45`,
             boxShadow: `0 20px 60px ${fontColor}18`,
+            backgroundColor: hexToRgba(effectiveBgHex, bgOpacity),
             ...(isMaximized
               ? {}
               : {

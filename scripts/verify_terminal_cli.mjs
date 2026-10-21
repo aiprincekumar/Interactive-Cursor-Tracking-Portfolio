@@ -79,7 +79,15 @@ const requiredCommands = [
   'cowsay',
   'fortune',
   'confetti',
-  'weather'
+  'weather',
+  'bgcolor',
+  'bg',
+  'background',
+  'color-bg',
+  'opacity',
+  'transparent',
+  'transparency',
+  'glass'
 ];
 for (const cmd of requiredCommands) {
   assert(terminalCode.includes(`case '${cmd}':`), `TerminalCLI must handle command '${cmd}'`);
@@ -109,6 +117,14 @@ const expectedFiles = ['about.md', 'skills.json', 'projects.ts', 'resume.pdf', '
 for (const file of expectedFiles) {
   assert(terminalCode.includes(file), `TerminalCLI must include virtual file "${file}"`);
 }
+
+// 3e. Check Background Color & Opacity Customization
+assert(terminalCode.includes('DEFAULT_OS_BG'), 'TerminalCLI must define DEFAULT_OS_BG');
+assert(terminalCode.includes('BG_COLOR_PRESETS'), 'TerminalCLI must define BG_COLOR_PRESETS');
+assert(terminalCode.includes('terminal_bg_color'), 'TerminalCLI must persist customBgColor in localStorage');
+assert(terminalCode.includes('OPACITY_PRESETS'), 'TerminalCLI must define OPACITY_PRESETS');
+assert(terminalCode.includes('terminal_bg_opacity'), 'TerminalCLI must persist bgOpacity in localStorage');
+assert(terminalCode.includes('hexToRgba'), 'TerminalCLI must implement hexToRgba helper for background rendering');
 
 // 4. Check audio methods in audio.js
 const audioPath = path.join(projectRoot, 'src', 'utils', 'audio.js');

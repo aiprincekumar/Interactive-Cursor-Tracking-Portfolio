@@ -285,9 +285,112 @@ console.log('✔ PASS: All coding font families (mono, pixel, retro, fira, matri
 assert(switchCode.includes("case 'reset':"), 'TerminalCLI must handle "reset" command');
 assert(terminalCode.includes("setOsStyle('mac')"), 'Reset must restore macOS');
 assert(terminalCode.includes("setFontColor('#10b981')"), 'Reset must restore Matrix green');
+assert(terminalCode.includes("setCustomBgColor(null)"), 'Reset must restore customBgColor to null');
+assert(terminalCode.includes("setBgOpacity(0.95)"), 'Reset must restore bgOpacity to 0.95');
 assert(terminalCode.includes('setFontSize(13)'), 'Reset must restore 13px font size');
 assert(terminalCode.includes("setFontFamily('mono')"), 'Reset must restore mono font');
-console.log('✔ PASS: Reset command restores all default typography, colors, and layout');
+assert(terminalCode.includes("localStorage.removeItem('terminal_bg_color')"), 'Reset must clear terminal_bg_color from localStorage');
+assert(terminalCode.includes("localStorage.removeItem('terminal_bg_opacity')"), 'Reset must clear terminal_bg_opacity from localStorage');
+console.log('✔ PASS: Reset command restores all default typography, colors, background, and layout');
+
+// =========================================================================
+// SUITE 7B: Terminal Background Color & Opacity Simulation Engine
+// =========================================================================
+console.log('\n[Suite 7B: Background Color & Opacity Verification]');
+
+// 1. Extract DEFAULT_OS_BG
+const defaultOsBgMatch = terminalCode.match(/const DEFAULT_OS_BG = \{([\s\S]*?)\};/);
+assert(defaultOsBgMatch, 'DEFAULT_OS_BG definition must be present');
+const defaultOsBgDef = defaultOsBgMatch[1];
+assert(defaultOsBgDef.includes("mac: '#0A0F18'"), 'macOS default background must be #0A0F18');
+assert(defaultOsBgDef.includes("win: '#012456'"), 'Windows default background must be #012456');
+assert(defaultOsBgDef.includes("linux: '#2c001e'"), 'Linux default background must be #2c001e');
+console.log('✔ PASS: DEFAULT_OS_BG accurately maps mac, win, and linux default colors');
+
+// 2. Extract BG_COLOR_PRESETS
+const bgPresetMatch = terminalCode.match(/const BG_COLOR_PRESETS = \{([\s\S]*?)\};/);
+assert(bgPresetMatch, 'BG_COLOR_PRESETS definition must be present');
+const bgPresetsDef = bgPresetMatch[1];
+const expectedBgPresets = [
+  'obsidian', 'mac', 'navy', 'powershell', 'win', 'aubergine', 'ubuntu',
+  'linux', 'matrix-black', 'matrix', 'slate', 'cyber-purple', 'purple',
+  'pure-black', 'black'
+];
+for (const preset of expectedBgPresets) {
+  assert(bgPresetsDef.includes(`'${preset}':`) || bgPresetsDef.includes(`${preset}:`), `BG_COLOR_PRESETS must include "${preset}"`);
+}
+console.log('✔ PASS: All 15 background color presets and aliases defined');
+
+// 3. Extract OPACITY_PRESETS
+const opacityPresetMatch = terminalCode.match(/const OPACITY_PRESETS = \{([\s\S]*?)\};/);
+assert(opacityPresetMatch, 'OPACITY_PRESETS definition must be present');
+const opacityPresetsDef = opacityPresetMatch[1];
+assert(opacityPresetsDef.includes('solid: 1.0'), 'Opacity preset solid must be 1.0');
+assert(opacityPresetsDef.includes('default: 0.95'), 'Opacity preset default must be 0.95');
+assert(opacityPresetsDef.includes('glass: 0.85'), 'Opacity preset glass must be 0.85');
+assert(opacityPresetsDef.includes('semi: 0.70') || opacityPresetsDef.includes('semi: 0.7'), 'Opacity preset semi must be 0.70');
+console.log('✔ PASS: All 4 opacity presets (solid, default, glass, semi) verified');
+
+// 4. Empirical test of hexToRgba simulation
+function simulateHexToRgba(hex, alpha = 1) {
+  if (!hex) return `rgba(10, 15, 24, ${alpha})`;
+  let clean = hex.replace('#', '').trim();
+  if (clean.length === 3) {
+    clean = clean.split('').map((c) => c + c).join('');
+  }
+  if (clean.length !== 6) return `rgba(10, 15, 24, ${alpha})`;
+  const num = parseInt(clean, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+assert.strictEqual(simulateHexToRgba('#0a0f18', 0.95), 'rgba(10, 15, 24, 0.95)', '6-digit hexToRgba conversion correct');
+assert.strictEqual(simulateHexToRgba('#000000', 1.0), 'rgba(0, 0, 0, 1)', 'pure black hexToRgba correct');
+assert.strictEqual(simulateHexToRgba('#fff', 0.85), 'rgba(255, 255, 255, 0.85)', '3-digit hex shorthand expansion correct');
+console.log('✔ PASS: hexToRgba mathematical transformation verified');
+
+// 5. Opacity parsing and clamping simulation
+function simulateOpacityParsing(arg) {
+  const presets = { solid: 1.0, default: 0.95, glass: 0.85, semi: 0.70 };
+  const cleanArg = arg.toLowerCase().trim();
+  if (presets[cleanArg] !== undefined) return presets[cleanArg];
+  const cleanNum = cleanArg.replace('%', '').trim();
+  const parsed = parseFloat(cleanNum);
+  if (!isNaN(parsed)) {
+    let target = cleanArg.includes('%') || parsed > 1.0 ? parsed / 100 : parsed;
+    return Math.min(1.0, Math.max(0.4, Math.round(target * 100) / 100));
+  }
+  return null;
+}
+assert.strictEqual(simulateOpacityParsing('solid'), 1.0, 'Preset solid returns 1.0');
+assert.strictEqual(simulateOpacityParsing('glass'), 0.85, 'Preset glass returns 0.85');
+assert.strictEqual(simulateOpacityParsing('semi'), 0.70, 'Preset semi returns 0.70');
+assert.strictEqual(simulateOpacityParsing('default'), 0.95, 'Preset default returns 0.95');
+assert.strictEqual(simulateOpacityParsing('90'), 0.90, 'Direct number 90 parsed to 0.9');
+assert.strictEqual(simulateOpacityParsing('75%'), 0.75, 'Percentage 75% parsed to 0.75');
+assert.strictEqual(simulateOpacityParsing('0.8'), 0.80, 'Decimal 0.8 parsed to 0.8');
+assert.strictEqual(simulateOpacityParsing('10%'), 0.40, 'Low opacity clamped to minimum 0.4');
+assert.strictEqual(simulateOpacityParsing('150%'), 1.0, 'High opacity clamped to maximum 1.0');
+assert.strictEqual(simulateOpacityParsing('invalid'), null, 'Invalid string returns null');
+console.log('✔ PASS: Opacity parsing, percentage handling & boundary clamping (0.40 to 1.0) verified');
+
+// 6. Commands and Aliases in Switch
+assert(
+  switchCode.includes("case 'bgcolor':") &&
+  switchCode.includes("case 'bg':") &&
+  switchCode.includes("case 'background':") &&
+  switchCode.includes("case 'color-bg':"),
+  'All bgcolor command aliases must be present in switch'
+);
+assert(
+  switchCode.includes("case 'opacity':") &&
+  switchCode.includes("case 'transparent':") &&
+  switchCode.includes("case 'transparency':") &&
+  switchCode.includes("case 'glass':"),
+  'All opacity command aliases must be present in switch'
+);
+console.log('✔ PASS: bgcolor and opacity command aliases wired into switch engine');
 
 // =========================================================================
 // SUITE 8: Power Pack Virtual Filesystem & Utilities
