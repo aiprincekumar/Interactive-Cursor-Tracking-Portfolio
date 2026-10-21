@@ -1,6 +1,7 @@
 import React from 'react';
 import { Trophy, Zap, ShieldCheck, Award, Database, Server } from 'lucide-react';
 import { useRoleTab } from '../context/RoleContext';
+import { useAnnounce } from '../context/AnnouncerContext';
 import AnimatedCounter from './AnimatedCounter';
 
 const ACCOUNTANT_STATS = [
@@ -230,10 +231,19 @@ export default function CodingAchievementsSection() {
 
   const accentColor = isOverview ? '#6366F1' : isVibe ? '#10B981' : isOther ? '#8B5CF6' : (isMIS ? '#3B82F6' : '#FF4D6D');
 
+  let announce = null;
+  try {
+    const announcer = useAnnounce();
+    announce = announcer?.announce;
+  } catch {
+    // fallback
+  }
+
   return (
-    <section id="achievements" className="py-24 bg-[#FAF8F5] dark:bg-[#0B0813] text-[#18181B] dark:text-[#F5F2F8] relative overflow-hidden select-none my-12 scroll-mt-28 border-y border-[#E7E2D8] dark:border-[#2D2340]">
+    <section id="achievements" aria-labelledby="achievements-heading" className="py-24 bg-[#FAF8F5] dark:bg-[#0B0813] text-[#18181B] dark:text-[#F5F2F8] relative overflow-hidden select-none my-12 scroll-mt-28 border-y border-[#E7E2D8] dark:border-[#2D2340]">
       {/* Ambient background glow */}
       <div
+        aria-hidden="true"
         className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl pointer-events-none"
         style={{
           background: isOverview
@@ -247,10 +257,10 @@ export default function CodingAchievementsSection() {
             : 'radial-gradient(circle, rgba(255,77,109,0.1) 0%, transparent 70%)'
         }}
       />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div aria-hidden="true" className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Scrolling Platform Marquee */}
-      <div className="w-[120%] -ml-[10%] bg-white dark:bg-[#161122] border-y border-[#E7E2D8] dark:border-[#2D2340] shadow-xs py-3.5 mb-16 overflow-hidden transition-all duration-300">
+      <div aria-hidden="true" className="w-[120%] -ml-[10%] bg-white dark:bg-[#161122] border-y border-[#E7E2D8] dark:border-[#2D2340] shadow-xs py-3.5 mb-16 overflow-hidden transition-all duration-300">
         <div className="flex w-max animate-marquee-left items-center">
           {tickerSequence.map((item, idx) => (
             <div
@@ -268,15 +278,34 @@ export default function CodingAchievementsSection() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs whitespace-nowrap max-w-full overflow-x-auto">
+            <div
+              tabIndex={0}
+              data-tts="Section 5: Achievements"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs whitespace-nowrap max-w-full overflow-x-auto focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+            >
               <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
               <span className="truncate sm:overflow-visible">05 ✦ Professional Milestones &bull; {isOverview ? 'Executive Overview' : isVibe ? 'AI & Vibe Coding' : isOther ? 'Corporate Controller & BI' : isMIS ? 'Data & MIS' : 'Accounting & Tax'}</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem] xl:text-5xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap">
+            <h2
+              id="achievements-heading"
+              tabIndex={0}
+              data-tts="Professional Milestones and Certifications"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem] xl:text-5xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg"
+            >
               Professional <span className="text-[#FF4D6D]" style={{ color: accentColor }}>Milestones</span> &amp; Certifications.
             </h2>
             <div className="w-12 h-1 rounded-full mb-4" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
-            <p className="text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
+            <p
+              tabIndex={0}
+              data-tts={
+                isOverview ? "Synthesized career milestones bridging statutory tax practice, audited ledger reconciliation, and autonomous AI vibe coding." :
+                isVibe ? "Proven speed and engineering precision in AI prompt-to-app synthesis, autonomous multi-agent coding loops, and modern full-stack SaaS architecture." :
+                isAccountant ? "Proven domain excellence in corporate bookkeeping, GST and Income Tax statutory compliance, and BRS audit precision." :
+                isMIS ? "Demonstrated leadership in executive reporting, database reconciliation, automated dashboards, and cross-district operational analytics." :
+                "Proven multidisciplinary leadership uniting financial management, institutional MIS systems, and strategic enterprise administration."
+              }
+              className="text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg"
+            >
               {isOverview && "Synthesized career milestones bridging statutory tax practice, audited ledger reconciliation, and autonomous AI vibe coding."}
               {!isOverview && isVibe && "Proven speed and engineering precision in AI prompt-to-app synthesis, autonomous multi-agent coding loops, and modern full-stack SaaS architecture."}
               {!isOverview && isAccountant && "Proven domain excellence in corporate bookkeeping, GST & Income Tax statutory compliance, and BRS audit precision."}
@@ -286,7 +315,11 @@ export default function CodingAchievementsSection() {
           </div>
 
           {/* Aggregate Badge */}
-          <div className="flex items-center gap-3 bg-white dark:bg-[#161122] px-5 py-3 rounded-2xl border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none shrink-0">
+          <div
+            tabIndex={0}
+            data-tts={`${isOverview ? 'Multi-Track Verified' : isVibe ? 'AI Software Engineering' : isOther ? 'Multidisciplinary Professional' : isMIS ? 'Data and Operations Analytics' : 'Statutory Tax Practice'}: ${isVibe ? '10x Speed' : isMIS ? '5+ Years Verified' : '7+ Years Verified'}`}
+            className="flex items-center gap-3 bg-white dark:bg-[#161122] px-5 py-3 rounded-2xl border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none shrink-0 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          >
             <Trophy className="w-5 h-5" style={{ color: accentColor }} />
             <div>
               <div className="text-[11px] text-stone-500 dark:text-stone-400 font-mono uppercase">
@@ -304,7 +337,11 @@ export default function CodingAchievementsSection() {
 
         {/* AI-Synthesized Role Banner */}
         {Boolean(isOther || activeRole === 'other') && (
-          <div className="mb-8 p-4 rounded-2xl bg-purple-50/90 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 shadow-xs flex items-center gap-3.5 text-purple-900 dark:text-purple-200">
+          <div
+            tabIndex={0}
+            data-tts="AI Synthesized Role: This specialized profile was synthesized by AI from verified Accountant and MIS competencies."
+            className="mb-8 p-4 rounded-2xl bg-purple-50/90 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 shadow-xs flex items-center gap-3.5 text-purple-900 dark:text-purple-200 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          >
             <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 text-lg">
               🤖
             </div>
@@ -322,7 +359,13 @@ export default function CodingAchievementsSection() {
             return (
               <div
                 key={p.label}
-                className="bg-white dark:bg-[#161122] hover:bg-stone-50 dark:hover:bg-[#201830] rounded-3xl p-6 border border-[#E7E2D8] dark:border-[#2D2340] hover:border-[#FF4D6D]/40 dark:hover:border-[#3D3055] shadow-sm shadow-stone-900/5 dark:shadow-none transition-all duration-300 hover:-translate-y-1 group flex flex-col justify-between"
+                tabIndex={0}
+                data-card="true"
+                data-tts={`${p.platform}: ${p.stat}, ${p.label}. ${p.sublabel}`}
+                onClick={() => {
+                  if (announce) announce(`Achievement metric: ${p.platform}, ${p.stat} ${p.label}. ${p.sublabel}`, 'polite');
+                }}
+                className="bg-white dark:bg-[#161122] hover:bg-stone-50 dark:hover:bg-[#201830] rounded-3xl p-6 border border-[#E7E2D8] dark:border-[#2D2340] hover:border-[#FF4D6D]/40 dark:hover:border-[#3D3055] shadow-sm shadow-stone-900/5 dark:shadow-none transition-all duration-300 hover:-translate-y-1 group flex flex-col justify-between focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -353,7 +396,11 @@ export default function CodingAchievementsSection() {
 
         {/* Role-Specific Impact Highlight Banner */}
         {isOverview ? (
-          <div className="bg-gradient-to-r from-white to-[#FAF8F5] dark:from-[#161122] dark:to-[#161122] rounded-3xl p-6 sm:p-8 border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div
+            tabIndex={0}
+            data-tts="Impact Highlight: Dual Domain Mastery: Certified Statutory Accounting and Government MIS Systems. Synthesizing 7+ years of double-entry bookkeeping, GSTR compliance, and audited financial statements with large-scale public sector database management."
+            className="bg-gradient-to-r from-white to-[#FAF8F5] dark:from-[#161122] dark:to-[#161122] rounded-3xl p-6 sm:p-8 border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 shrink-0">
                 <span className="text-xl">📊</span>
@@ -378,7 +425,11 @@ export default function CodingAchievementsSection() {
             </div>
           </div>
         ) : isVibe ? (
-          <div className="bg-gradient-to-r from-white to-[#FAF8F5] dark:from-[#161122] dark:to-[#161122] rounded-3xl p-6 sm:p-8 border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div
+            tabIndex={0}
+            data-tts="Impact Highlight: 10x Shipping Velocity: Prompt-Driven Full-Stack SaaS Engineering. Deploying resilient production web architectures using Next.js 14, Supabase, and Tailwind CSS while orchestrating autonomous Claude Code and Cursor Composer multi-agent loops."
+            className="bg-gradient-to-r from-white to-[#FAF8F5] dark:from-[#161122] dark:to-[#161122] rounded-3xl p-6 sm:p-8 border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-[#10B981] flex items-center justify-center text-white shadow-lg shadow-emerald-600/30 shrink-0">
                 <span className="text-xl">⚡</span>
@@ -403,7 +454,11 @@ export default function CodingAchievementsSection() {
             </div>
           </div>
         ) : isOther ? (
-          <div className="bg-gradient-to-r from-white to-[#FAF8F5] dark:from-[#161122] dark:to-[#161122] rounded-3xl p-6 sm:p-8 border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div
+            tabIndex={0}
+            data-tts="Impact Highlight: Cross-Functional Executive Management, Statutory Oversight and Enterprise Operations. Delivering unified operational governance by seamlessly bridging corporate finance, data-driven MIS architectures, and strategic administrative execution."
+            className="bg-gradient-to-r from-white to-[#FAF8F5] dark:from-[#161122] dark:to-[#161122] rounded-3xl p-6 sm:p-8 border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-[#FF4D6D] flex items-center justify-center text-white shadow-lg shadow-pink-600/30 shrink-0">
                 <span className="text-xl">🦋</span>
@@ -428,7 +483,11 @@ export default function CodingAchievementsSection() {
             </div>
           </div>
         ) : isMIS ? (
-          <div className="bg-gradient-to-r from-white to-[#FAF8F5] dark:from-[#161122] dark:to-[#161122] rounded-3xl p-6 sm:p-8 border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div
+            tabIndex={0}
+            data-tts="Impact Highlight: Government Initiative and Operational Analytics. DAY-NULM Skill India Mission and Cross-District Biometric Systems. Administered candidate verification databases, monitored AEBAS attendance tracking across 4 districts, and automated weekly governance MIS reports."
+            className="bg-gradient-to-r from-white to-[#FAF8F5] dark:from-[#161122] dark:to-[#161122] rounded-3xl p-6 sm:p-8 border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-[#FF4D6D] flex items-center justify-center text-white shadow-lg shadow-pink-600/30 shrink-0">
                 <span className="text-xl">🦋</span>
@@ -453,7 +512,11 @@ export default function CodingAchievementsSection() {
             </div>
           </div>
         ) : (
-          <div className="bg-gradient-to-r from-white to-[#FAF8F5] dark:from-[#161122] dark:to-[#161122] rounded-3xl p-6 sm:p-8 border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div
+            tabIndex={0}
+            data-tts="Impact Highlight: Commercial Audit and Statutory Compliance. Commercial Enterprise Accounting Finalization and Corporate Statutory Governance. Spearheaded year-end financial finalization, ledger scrubdowns, multi-branch BRS reconciliations, and timely GST and TDS tax return filings."
+            className="bg-gradient-to-r from-white to-[#FAF8F5] dark:from-[#161122] dark:to-[#161122] rounded-3xl p-6 sm:p-8 border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-[#FF4D6D] flex items-center justify-center text-white shadow-lg shadow-pink-600/30 shrink-0">
                 <span className="text-xl">🦋</span>

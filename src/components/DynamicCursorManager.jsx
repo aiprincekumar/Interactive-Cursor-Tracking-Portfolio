@@ -87,8 +87,10 @@ export default function DynamicCursorManager({
     };
   }, []);
 
-  // Compute effective reduced motion (prop overrides system if passed)
-  const effectiveReducedMotion = propReducedMotion !== undefined ? propReducedMotion : prefersReducedMotion;
+  // Compute effective reduced motion (prop or lab context overrides system if passed)
+  const effectiveReducedMotion = propReducedMotion !== undefined
+    ? propReducedMotion
+    : (Boolean(lab?.reducedMotion) || prefersReducedMotion);
 
   // Manage .custom-cursor-disabled class and direct style cursor overrides on document body and html root
   useEffect(() => {

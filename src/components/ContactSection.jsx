@@ -38,6 +38,7 @@ import {
   FacebookIcon
 } from './Icons';
 import { soundFX } from '../utils/audio';
+import { useAnnounce } from '../context/AnnouncerContext';
 import LeafletOfflineMap from './LeafletOfflineMap';
 import { useSimpleMode } from '../context/SimpleModeContext';
 
@@ -109,6 +110,13 @@ const UNLOCK_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export default function ContactSection() {
   const { isSimpleMode } = useSimpleMode();
+  let announce = null;
+  try {
+    const announcer = useAnnounce();
+    announce = announcer?.announce;
+  } catch {
+    // fallback
+  }
   const [activeTab, setActiveTab] = useState('touch');
   const [emailCopied, setEmailCopied] = useState(false);
   const [whatsappCopied, setWhatsappCopied] = useState(false);
@@ -161,13 +169,13 @@ export default function ContactSection() {
     },
     {
       id: 'direct',
-      label: 'Direct Channel',
+      label: 'Direct Details',
       badge: isUnlocked ? '✓ Unlocked' : '🔒 Gated',
       icon: MessageCircle
     },
     {
       id: 'location',
-      label: 'Location & Office Map',
+      label: 'Location & Office',
       badge: 'Medininagar HQ',
       icon: MapPin
     }
@@ -390,6 +398,7 @@ export default function ContactSection() {
       if (emailTimeoutRef.current) clearTimeout(emailTimeoutRef.current);
       setEmailCopied(true);
       soundFX.playSparkle();
+      if (announce) announce('Email address copied to clipboard', 'polite');
       emailTimeoutRef.current = setTimeout(() => {
         setEmailCopied(false);
         emailTimeoutRef.current = null;
@@ -546,6 +555,7 @@ export default function ContactSection() {
     if (!phoneRegex.test(formData.whatsapp.trim())) {
       setSubmitError('Please enter a valid WhatsApp phone number with country code (e.g. +91 9876543210).');
       soundFX.playPop();
+      if (announce) announce('Please enter a valid WhatsApp phone number', 'assertive');
       return;
     }
 
@@ -587,6 +597,7 @@ export default function ContactSection() {
       setIsSubmitting(false);
       setIsUnlocked(true);
       setLastSubmittedData({ ...formData });
+      if (announce) announce('Message sent successfully! Thank you for reaching out.', 'polite');
 
       // Save unlock state for 24 hours
       try {
@@ -649,7 +660,7 @@ export default function ContactSection() {
   const whatsAppLink = `https://wa.me/917992383804?text=${encodeURIComponent(whatsAppInquiryText)}`;
 
   return (
-    <section id="contact" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
+    <section id="contact" aria-labelledby="contact-heading" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
       {/* Floating Toast Notification */}
       {showToast && (() => {
         const isSimpleNotice = Boolean(toastMessage && toastMessage.includes('Simple Mode'));
@@ -691,18 +702,31 @@ export default function ContactSection() {
 
       <div className="max-w-7xl mx-auto">
         {/* Section Pill Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs whitespace-nowrap max-w-full overflow-x-auto">
+        <div
+          tabIndex={0}
+          data-tts="Section 9: Contact"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs whitespace-nowrap max-w-full overflow-x-auto focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        >
           <span className="w-2 h-2 rounded-full bg-[#FF4D6D] shrink-0" />
           <span className="truncate sm:overflow-visible">06 ✦ Contact &bull; Inquiries &amp; HQ</span>
         </div>
 
         {/* Section Heading & Subtitle */}
         <div className="mb-6">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap">
+          <h2
+            id="contact-heading"
+            tabIndex={0}
+            data-tts="Let's build something meaningful."
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg"
+          >
             Let's build something <span className="text-[#FF4D6D]">meaningful</span>.
           </h2>
           <div className="w-12 h-1 rounded-full bg-[#FF4D6D] mb-4" />
-          <p className="text-stone-600 dark:text-stone-400 text-sm sm:text-base max-w-xl font-normal leading-relaxed">
+          <p
+            tabIndex={0}
+            data-tts="Have a role, a project, or a question about my work? Submit your inquiry below to instantly unlock direct WhatsApp and email channels."
+            className="text-stone-600 dark:text-stone-400 text-sm sm:text-base max-w-xl font-normal leading-relaxed focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg"
+          >
             Have a role, a project, or a question about my work? Submit your inquiry below to instantly unlock direct WhatsApp &amp; email channels.
           </p>
         </div>
@@ -715,7 +739,7 @@ export default function ContactSection() {
           onKeyDown={handleKeyDown}
           className="flex p-1.5 bg-[#FAF8F5] dark:bg-[#100C1A]/80 rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] gap-1.5 mb-8 overflow-x-auto no-scrollbar"
         >
-          {CONTACT_TABS.map((tab) => {
+          {CONTACT_TABS.map((tab, idx) => {
             const isActive = activeTab === tab.id;
             const Icon = tab.icon;
             return (
@@ -726,11 +750,18 @@ export default function ContactSection() {
                 id={`contact-tab-${tab.id}`}
                 aria-selected={isActive}
                 aria-controls={`contact-panel-${tab.id}`}
-                tabIndex={isActive ? 0 : -1}
+                tabIndex={0}
+                data-tts={`Tab ${idx + 1} of 3: ${tab.label}, ${isActive ? 'Selected' : 'Unselected'}. Press Enter to view or Tab to move forward`}
                 type="button"
                 onClick={() => handleTabChange(tab.id, false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setActiveTab(tab.id);
+                  }
+                }}
                 onMouseEnter={() => soundFX.playChipHover()}
-                className={`flex-1 min-w-[140px] sm:min-w-0 min-h-[44px] flex items-center justify-center gap-2 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold font-mono transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] whitespace-nowrap ${
+                className={`flex-1 min-w-[140px] sm:min-w-0 min-h-[44px] flex items-center justify-center gap-2 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold font-mono transition-all duration-200 cursor-pointer select-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-xl whitespace-nowrap ${
                   isActive
                     ? 'bg-white dark:bg-[#201830] text-[#18181B] dark:text-[#F5F2F8] shadow-sm border border-[#E7E2D8] dark:border-[#2D2340]'
                     : 'text-stone-600 dark:text-[#A99EBA] hover:text-[#18181B] dark:hover:text-[#F5F2F8] hover:bg-white/60 dark:hover:bg-[#201830]/60'
@@ -770,8 +801,12 @@ export default function ContactSection() {
               className="animate-tab-fade focus:outline-none w-full"
             >
               <div className="w-full">
-                {/* Form Header */}
-                <div className="mb-8">
+                {/* Form Sub-header */}
+                <div
+                  tabIndex={0}
+                  data-tts="Sub-header: Direct Communication Form"
+                  className="mb-8 p-2 -ml-2 rounded-xl focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                >
                   <div className="flex items-center gap-2.5 mb-2">
                     <div className="w-8 h-8 rounded-xl bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] border border-[#FFD1DC] dark:border-[#FF4D6D]/30 flex items-center justify-center shrink-0">
                       <Send className="w-4 h-4" />
@@ -786,7 +821,12 @@ export default function ContactSection() {
                 </div>
 
                 {submitError && (
-                  <div className="mb-6 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2.5 shadow-2xs">
+                  <div
+                    role="alert"
+                    aria-live="assertive"
+                    id="contact-form-error"
+                    className="mb-6 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2.5 shadow-2xs"
+                  >
                     <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
                     <span className="font-medium">{submitError}</span>
                   </div>
@@ -803,10 +843,11 @@ export default function ContactSection() {
                         id="field-name"
                         type="text"
                         required
+                        data-tts="Input field: Your Name"
                         placeholder="e.g. Rahul Sharma"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 shadow-2xs"
+                        className="w-full px-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 shadow-2xs"
                       />
                     </div>
 
@@ -819,10 +860,11 @@ export default function ContactSection() {
                         id="field-email"
                         type="email"
                         required
+                        data-tts="Input field: Email Address"
                         placeholder="rahul@enterprise.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 shadow-2xs"
+                        className="w-full px-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 shadow-2xs"
                       />
                     </div>
 
@@ -837,10 +879,13 @@ export default function ContactSection() {
                           id="field-whatsapp"
                           type="tel"
                           required
+                          data-tts="Input field: WhatsApp Phone Number with Country Code"
                           placeholder="+91 98765 43210"
                           value={formData.whatsapp}
                           onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 font-mono shadow-2xs"
+                          aria-invalid={Boolean(submitError)}
+                          aria-describedby={submitError ? "contact-form-error" : undefined}
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 font-mono shadow-2xs"
                         />
                         <Phone className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5 pointer-events-none" />
                       </div>
@@ -855,10 +900,11 @@ export default function ContactSection() {
                         <input
                           id="field-company"
                           type="text"
+                          data-tts="Input field: Company or Organization"
                           placeholder="FinCorp Pvt Ltd / Self"
                           value={formData.company}
                           onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 shadow-2xs"
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 shadow-2xs"
                         />
                         <Building2 className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5 pointer-events-none" />
                       </div>
@@ -873,9 +919,10 @@ export default function ContactSection() {
                       <select
                         id="field-role"
                         required
+                        data-tts="Select dropdown: Inquiry Category or Role"
                         value={formData.role}
                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                        className="w-full px-3.5 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 text-xs outline-none focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-[#18181B] dark:text-white cursor-pointer shadow-2xs"
+                        className="w-full px-3.5 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 text-xs outline-none focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden text-[#18181B] dark:text-white cursor-pointer shadow-2xs"
                       >
                         <option value="Taxation & Accounting">Taxation &amp; Accounting</option>
                         <option value="MIS & Data Analytics">MIS &amp; Data Analytics</option>
@@ -893,9 +940,10 @@ export default function ContactSection() {
                       </label>
                       <select
                         id="field-budget"
+                        data-tts="Select dropdown: Estimated Budget"
                         value={formData.budget}
                         onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                        className="w-full px-3.5 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 text-xs outline-none focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-[#18181B] dark:text-white cursor-pointer shadow-2xs"
+                        className="w-full px-3.5 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 text-xs outline-none focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden text-[#18181B] dark:text-white cursor-pointer shadow-2xs"
                       >
                         <option value="Flexible / Open to Discuss">Flexible / Open to Discuss</option>
                         <option value="Under ₹25,000">Under ₹25,000</option>
@@ -914,9 +962,10 @@ export default function ContactSection() {
                       </label>
                       <select
                         id="field-urgency"
+                        data-tts="Select dropdown: Project Timeline or Urgency"
                         value={formData.urgency}
                         onChange={(e) => setFormData({ ...formData, urgency: e.target.value })}
-                        className="w-full px-3.5 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 text-xs outline-none focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-[#18181B] dark:text-white cursor-pointer shadow-2xs"
+                        className="w-full px-3.5 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 text-xs outline-none focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden text-[#18181B] dark:text-white cursor-pointer shadow-2xs"
                       >
                         <option value="Normal (Within 1-2 weeks)">Normal (Within 1-2 weeks)</option>
                         <option value="Urgent / Immediate (1-3 days)">Urgent / Immediate (1-3 days)</option>
@@ -932,11 +981,12 @@ export default function ContactSection() {
                       <textarea
                         id="field-message"
                         required
+                        data-tts="Textarea field: Inquiry Details and Message"
                         rows={4}
                         placeholder="Please outline the deliverables, current bottleneck, tools used, or specific goals..."
                         value={formData.message}
                         onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 resize-none shadow-2xs"
+                        className="w-full px-4 py-3 rounded-xl border border-[#DCD5CB] dark:border-stone-700 bg-[#FAF8F5] dark:bg-[#100C1A]/80 focus:bg-white dark:focus:bg-stone-900 focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D]/30 text-xs outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden transition-all text-[#18181B] dark:text-white dark:placeholder-stone-500 resize-none shadow-2xs"
                       />
                     </div>
                   </div>
@@ -955,7 +1005,8 @@ export default function ContactSection() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full md:w-auto px-8 py-3.5 rounded-xl bg-[#18181B] hover:bg-black dark:bg-white dark:text-[#18181B] dark:hover:bg-stone-200 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer disabled:opacity-70 disabled:pointer-events-none shrink-0"
+                      data-tts="Button: Submit Inquiry and Unlock Direct Channel"
+                      className="w-full md:w-auto px-8 py-3.5 rounded-xl bg-[#18181B] hover:bg-black dark:bg-white dark:text-[#18181B] dark:hover:bg-stone-200 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer disabled:opacity-70 disabled:pointer-events-none shrink-0 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
                     >
                       {isSubmitting ? (
                         <>
@@ -987,6 +1038,27 @@ export default function ContactSection() {
               onKeyDown={handlePanelKeyDown}
               className="animate-tab-fade space-y-6 focus:outline-none"
             >
+              {/* Direct Channels Sub-header */}
+              <div
+                tabIndex={0}
+                data-tts="Sub-header: Verified Direct Communication Channels"
+                className="flex items-center gap-2.5 p-2 -ml-2 rounded-xl focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+              >
+                <div className="w-8 h-8 rounded-xl bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] border border-[#FFD1DC] dark:border-[#FF4D6D]/30 flex items-center justify-center shrink-0">
+                  <MessageCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-['Outfit',sans-serif] text-xl sm:text-2xl font-bold text-[#18181B] dark:text-[#F5F2F8]">
+                    Verified Direct Communication Channels
+                  </h3>
+                  <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400">
+                    {isUnlocked 
+                      ? 'Priority access channels active for direct inquiry, voice call, and instant messaging'
+                      : 'Protected channels to maintain focused, spam-free communication'}
+                  </p>
+                </div>
+              </div>
+
               {isUnlocked ? (
                 /* UNLOCKED STANDALONE PANEL */
                 <div className="space-y-6 animate-in zoom-in-95 duration-300">
@@ -1021,7 +1093,12 @@ export default function ContactSection() {
                   {/* Priority Channel Cards (WhatsApp & Direct Email) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* Priority WhatsApp Card */}
-                    <div className="p-6 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/80 flex flex-col justify-between space-y-4 shadow-xs">
+                    <div
+                      tabIndex={0}
+                      data-card="true"
+                      data-tts={`WhatsApp Priority Channel: ${formattedWhatsApp}. Direct chat with Atul Verma for project briefing, quotations, and timeline alignment.`}
+                      className="p-6 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/80 flex flex-col justify-between space-y-4 shadow-xs focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-2xl"
+                    >
                       <div>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
@@ -1046,7 +1123,7 @@ export default function ContactSection() {
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => soundFX.playSparkle()}
-                          className="flex-1 py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-transform active:scale-95"
+                          className="flex-1 py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-transform active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                         >
                           <MessageCircle className="w-4 h-4" />
                           <span>Chat on WhatsApp</span>
@@ -1057,7 +1134,7 @@ export default function ContactSection() {
                           type="button"
                           onClick={copyWhatsApp}
                           aria-label="Copy WhatsApp Number"
-                          className="py-3 px-4 rounded-xl bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border border-emerald-300 dark:border-emerald-800 text-xs font-bold font-mono transition-colors cursor-pointer flex items-center justify-center gap-2"
+                          className="py-3 px-4 rounded-xl bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border border-emerald-300 dark:border-emerald-800 text-xs font-bold font-mono transition-colors cursor-pointer flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                           title="Copy WhatsApp"
                         >
                           {whatsappCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -1067,7 +1144,12 @@ export default function ContactSection() {
                     </div>
 
                     {/* Direct Email Card */}
-                    <div className="p-6 rounded-2xl bg-pink-50/60 dark:bg-[#FF4D6D]/10 border border-[#FFD1DC] dark:border-[#FF4D6D]/30 flex flex-col justify-between space-y-4 shadow-xs">
+                    <div
+                      tabIndex={0}
+                      data-card="true"
+                      data-tts={`Direct Email Inbox: ${directEmail}. Direct personal email for formal proposals, contract reviews, and enterprise paperwork.`}
+                      className="p-6 rounded-2xl bg-pink-50/60 dark:bg-[#FF4D6D]/10 border border-[#FFD1DC] dark:border-[#FF4D6D]/30 flex flex-col justify-between space-y-4 shadow-xs focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-2xl"
+                    >
                       <div>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#FF4D6D] uppercase tracking-wider">
@@ -1090,7 +1172,7 @@ export default function ContactSection() {
                         <a
                           href={`mailto:${directEmail}`}
                           onClick={() => soundFX.playSparkle()}
-                          className="flex-1 py-3 px-4 rounded-xl bg-[#18181B] hover:bg-black dark:bg-white dark:text-[#18181B] dark:hover:bg-stone-200 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-transform active:scale-95"
+                          className="flex-1 py-3 px-4 rounded-xl bg-[#18181B] hover:bg-black dark:bg-white dark:text-[#18181B] dark:hover:bg-stone-200 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-transform active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                         >
                           <Mail className="w-4 h-4" />
                           <span>Compose Email</span>
@@ -1101,7 +1183,7 @@ export default function ContactSection() {
                           type="button"
                           onClick={copyEmail}
                           aria-label="Copy Email address"
-                          className="py-3 px-4 rounded-xl bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border border-[#FFD1DC] dark:border-[#FF4D6D]/30 text-xs font-bold font-mono transition-colors cursor-pointer flex items-center justify-center gap-2"
+                          className="py-3 px-4 rounded-xl bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border border-[#FFD1DC] dark:border-[#FF4D6D]/30 text-xs font-bold font-mono transition-colors cursor-pointer flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                           title="Copy Email"
                         >
                           {emailCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -1285,7 +1367,12 @@ export default function ContactSection() {
                   {/* Masked / Blurred Channel Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* WhatsApp Card (Masked) */}
-                    <div className="p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] relative overflow-hidden flex flex-col justify-between space-y-4">
+                    <div
+                      tabIndex={0}
+                      data-card="true"
+                      data-tts="WhatsApp Priority Channel: Gated. Direct WhatsApp number unlocks immediately upon submitting your project requirements."
+                      className="p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] relative overflow-hidden flex flex-col justify-between space-y-4 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-2xl"
+                    >
                       <div>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2 text-xs font-mono font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
@@ -1307,7 +1394,7 @@ export default function ContactSection() {
                       <button
                         type="button"
                         onClick={() => handleTabChange('touch')}
-                        className="w-full py-2.5 px-4 rounded-xl bg-stone-200/70 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 font-bold text-xs font-mono flex items-center justify-center gap-2 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors cursor-pointer"
+                        className="w-full py-2.5 px-4 rounded-xl bg-stone-200/70 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 font-bold text-xs font-mono flex items-center justify-center gap-2 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                       >
                         <Lock className="w-3.5 h-3.5 text-amber-500" />
                         <span>Unlock WhatsApp via Inquiry Form</span>
@@ -1315,7 +1402,12 @@ export default function ContactSection() {
                     </div>
 
                     {/* Email Card (Masked) */}
-                    <div className="p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] relative overflow-hidden flex flex-col justify-between space-y-4">
+                    <div
+                      tabIndex={0}
+                      data-card="true"
+                      data-tts="Official Email Inbox: Gated. Personal inbox address unlocks immediately upon submitting your project requirements."
+                      className="p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] relative overflow-hidden flex flex-col justify-between space-y-4 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-2xl"
+                    >
                       <div>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2 text-xs font-mono font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
@@ -1337,7 +1429,7 @@ export default function ContactSection() {
                       <button
                         type="button"
                         onClick={() => handleTabChange('touch')}
-                        className="w-full py-2.5 px-4 rounded-xl bg-stone-200/70 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 font-bold text-xs font-mono flex items-center justify-center gap-2 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors cursor-pointer"
+                        className="w-full py-2.5 px-4 rounded-xl bg-stone-200/70 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 font-bold text-xs font-mono flex items-center justify-center gap-2 hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                       >
                         <Lock className="w-3.5 h-3.5 text-amber-500" />
                         <span>Unlock Email via Inquiry Form</span>
@@ -1397,8 +1489,32 @@ export default function ContactSection() {
               onKeyDown={handlePanelKeyDown}
               className="animate-tab-fade space-y-6 focus:outline-none"
             >
+              {/* Location Sub-header */}
+              <div
+                tabIndex={0}
+                data-tts="Sub-header: Corporate Headquarters and Geographic Presence"
+                className="flex items-center gap-2.5 p-2 -ml-2 rounded-xl focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+              >
+                <div className="w-8 h-8 rounded-xl bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] border border-[#FFD1DC] dark:border-[#FF4D6D]/30 flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-['Outfit',sans-serif] text-xl sm:text-2xl font-bold text-[#18181B] dark:text-[#F5F2F8]">
+                    Corporate Headquarters &amp; Geographic Presence
+                  </h3>
+                  <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400">
+                    Medininagar, Palamu, Jharkhand &bull; In-person consultations &amp; regional operations
+                  </p>
+                </div>
+              </div>
+
               {/* Header Address Card with 1-Click Copy & Google Maps Action */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-2xs">
+              <div
+                tabIndex={0}
+                data-card="true"
+                data-tts="Corporate Headquarters: Medininagar, Palamu, Jharkhand"
+                className="p-5 sm:p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-2xs focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-2xl"
+              >
                 <div className="flex items-start sm:items-center gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 border border-[#FFD1DC] dark:border-[#FF4D6D]/30 flex items-center justify-center text-[#FF4D6D] shrink-0 shadow-2xs">
                     <MapPin className="w-6 h-6" />
@@ -1419,7 +1535,7 @@ export default function ContactSection() {
                   <button
                     type="button"
                     onClick={copyAddress}
-                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold font-mono transition-all duration-200 cursor-pointer shadow-2xs active:scale-95 ${
+                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold font-mono transition-all duration-200 cursor-pointer shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
                       addressCopied
                         ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800'
                         : 'bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border-[#E7E2D8] dark:border-stone-700'
@@ -1443,7 +1559,7 @@ export default function ContactSection() {
                     href="https://maps.google.com/?q=Daltonganj%2C+Medininagar%2C+Palamau%2C+Jharkhand+822101"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#18181B] hover:bg-black dark:bg-white dark:text-[#18181B] dark:hover:bg-stone-200 text-white text-xs font-bold font-mono transition-all duration-200 shadow-2xs hover:shadow-sm active:scale-95 group"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#18181B] hover:bg-black dark:bg-white dark:text-[#18181B] dark:hover:bg-stone-200 text-white text-xs font-bold font-mono transition-all duration-200 shadow-2xs hover:shadow-sm active:scale-95 group focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                   >
                     <span>View in Google Maps</span>
                     <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -1452,7 +1568,12 @@ export default function ContactSection() {
               </div>
 
               {/* Interactive Map Box with Floating Controls Toolbar */}
-              <div className="relative rounded-2xl overflow-hidden border border-[#E7E2D8] dark:border-stone-800 shadow-sm bg-stone-100 dark:bg-stone-900 group/map">
+              <div
+                tabIndex={0}
+                data-card="true"
+                data-tts="Interactive Map: Medininagar Headquarters Geographic Coordinates"
+                className="relative rounded-2xl overflow-hidden border border-[#E7E2D8] dark:border-stone-800 shadow-sm bg-stone-100 dark:bg-stone-900 group/map focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-2xl"
+              >
                 {/* Header Floating Status Pill & Map Controls Toolbar */}
                 <div className="absolute top-3 left-3 right-3 z-30 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
                   {/* Status Indicator Pill */}

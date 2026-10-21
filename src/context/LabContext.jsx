@@ -12,7 +12,10 @@ export const FACTORY_DEFAULTS = {
     soundEnabled: true,
     masterVolume: 0.8, // 0.0 - 1.0 (80%)
     pitchMultiplier: 1.0, // 0.5x - 2.0x
-    soundMatchingMode: 'dynamic' // 'dynamic' | 'universal'
+    soundMatchingMode: 'dynamic', // 'dynamic' | 'universal'
+    voiceAnnouncementEnabled: false, // Web Speech API Text-to-Speech
+    voiceFocusEnabled: true, // Web Speech API Keyboard Focus Speech
+    voiceHoverEnabled: false // Web Speech API Mouse Hover Speech
   },
   cursor: {
     customCursorEnabled: true,
@@ -208,7 +211,16 @@ export function loadSavedControlCenterConfig() {
               : (typeof parsed.soundEnabled === 'boolean' ? parsed.soundEnabled : FACTORY_DEFAULTS.audio.soundEnabled),
             masterVolume: clampVolume(audio.masterVolume ?? parsed.masterVolume ?? FACTORY_DEFAULTS.audio.masterVolume),
             pitchMultiplier: clampPitch(audio.pitchMultiplier ?? parsed.pitchMultiplier ?? parsed.audioPitch ?? FACTORY_DEFAULTS.audio.pitchMultiplier),
-            soundMatchingMode: (audio.soundMatchingMode === 'universal' || parsed.soundMatchingMode === 'universal') ? 'universal' : 'dynamic'
+            soundMatchingMode: (audio.soundMatchingMode === 'universal' || parsed.soundMatchingMode === 'universal') ? 'universal' : 'dynamic',
+            voiceAnnouncementEnabled: typeof audio.voiceAnnouncementEnabled === 'boolean'
+              ? audio.voiceAnnouncementEnabled
+              : (typeof parsed.voiceAnnouncementEnabled === 'boolean' ? parsed.voiceAnnouncementEnabled : FACTORY_DEFAULTS.audio.voiceAnnouncementEnabled),
+            voiceFocusEnabled: typeof audio.voiceFocusEnabled === 'boolean'
+              ? audio.voiceFocusEnabled
+              : (typeof parsed.voiceFocusEnabled === 'boolean' ? parsed.voiceFocusEnabled : FACTORY_DEFAULTS.audio.voiceFocusEnabled),
+            voiceHoverEnabled: typeof audio.voiceHoverEnabled === 'boolean'
+              ? audio.voiceHoverEnabled
+              : (typeof parsed.voiceHoverEnabled === 'boolean' ? parsed.voiceHoverEnabled : FACTORY_DEFAULTS.audio.voiceHoverEnabled)
           },
           cursor: {
             customCursorEnabled: typeof cursor.customCursorEnabled === 'boolean'
@@ -342,6 +354,54 @@ export function loadSavedControlCenterConfig() {
       legacyLab?.audio?.soundMatchingMode === 'universal' ||
       legacyLab?.soundMatchingMode === 'universal'
     ) ? 'universal' : 'dynamic';
+
+    const voiceAnnouncementEnabled = resolveBoolean(
+      [
+        legacyStudio?.audio?.voiceAnnouncementEnabled,
+        legacyStudio?.voiceAnnouncementEnabled,
+        legacyLab?.audio?.voiceAnnouncementEnabled,
+        legacyLab?.voiceAnnouncementEnabled
+      ],
+      (() => {
+        try {
+          const directStored = localStorage.getItem('portfolio_voice_announcement_enabled');
+          if (directStored !== null) return directStored === 'true';
+        } catch {}
+        return FACTORY_DEFAULTS.audio.voiceAnnouncementEnabled;
+      })()
+    );
+
+    const voiceFocusEnabled = resolveBoolean(
+      [
+        legacyStudio?.audio?.voiceFocusEnabled,
+        legacyStudio?.voiceFocusEnabled,
+        legacyLab?.audio?.voiceFocusEnabled,
+        legacyLab?.voiceFocusEnabled
+      ],
+      (() => {
+        try {
+          const directStored = localStorage.getItem('portfolio_voice_focus_enabled');
+          if (directStored !== null) return directStored === 'true';
+        } catch {}
+        return FACTORY_DEFAULTS.audio.voiceFocusEnabled;
+      })()
+    );
+
+    const voiceHoverEnabled = resolveBoolean(
+      [
+        legacyStudio?.audio?.voiceHoverEnabled,
+        legacyStudio?.voiceHoverEnabled,
+        legacyLab?.audio?.voiceHoverEnabled,
+        legacyLab?.voiceHoverEnabled
+      ],
+      (() => {
+        try {
+          const directStored = localStorage.getItem('portfolio_voice_hover_enabled');
+          if (directStored !== null) return directStored === 'true';
+        } catch {}
+        return FACTORY_DEFAULTS.audio.voiceHoverEnabled;
+      })()
+    );
 
     const customCursorEnabled = resolveBoolean(
       [
@@ -484,7 +544,10 @@ export function loadSavedControlCenterConfig() {
         soundEnabled,
         masterVolume,
         pitchMultiplier,
-        soundMatchingMode
+        soundMatchingMode,
+        voiceAnnouncementEnabled,
+        voiceFocusEnabled,
+        voiceHoverEnabled
       },
       cursor: {
         customCursorEnabled,
@@ -575,6 +638,9 @@ export function LabProvider({ children, initialSoundEnabled }) {
   const [masterVolume, setMasterVolumeState] = useState(initialConfig.audio.masterVolume);
   const [pitchMultiplier, setPitchMultiplierState] = useState(initialConfig.audio.pitchMultiplier);
   const [soundMatchingMode, setSoundMatchingModeState] = useState(initialConfig.audio.soundMatchingMode);
+  const [voiceAnnouncementEnabled, setVoiceAnnouncementEnabledState] = useState(Boolean(initialConfig.audio.voiceAnnouncementEnabled));
+  const [voiceFocusEnabled, setVoiceFocusEnabledState] = useState(Boolean(initialConfig.audio.voiceFocusEnabled));
+  const [voiceHoverEnabled, setVoiceHoverEnabledState] = useState(Boolean(initialConfig.audio.voiceHoverEnabled));
 
   // Cursor Tab State
   const [customCursorEnabled, setCustomCursorEnabledState] = useState(initialConfig.cursor.customCursorEnabled);
@@ -710,6 +776,12 @@ export function LabProvider({ children, initialSoundEnabled }) {
     };
   }, [glassBlur, motionSpeed, accentColor, layoutDensity]);
 
+  // Synchronize reduced-motion root class for accessibility
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.classList.toggle('reduced-motion', Boolean(reducedMotion));
+  }, [reducedMotion]);
+
   // Synchronize audio engine live
   useEffect(() => {
     try {
@@ -727,6 +799,16 @@ export function LabProvider({ children, initialSoundEnabled }) {
           soundFX.setSoundMatchingMode(soundMatchingMode);
         }
       }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('portfolio:sound-toggle', {
+            detail: { enabled: soundEnabled, masterVolume }
+          })
+        );
+        if (!soundEnabled && 'speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+        }
+      }
     } catch {
       // Handled silently
     }
@@ -742,7 +824,10 @@ export function LabProvider({ children, initialSoundEnabled }) {
         soundEnabled,
         masterVolume,
         pitchMultiplier,
-        soundMatchingMode
+        soundMatchingMode,
+        voiceAnnouncementEnabled,
+        voiceFocusEnabled,
+        voiceHoverEnabled
       },
       cursor: {
         customCursorEnabled,
@@ -849,7 +934,22 @@ export function LabProvider({ children, initialSoundEnabled }) {
     if (soundFX && typeof soundFX.setEnabled === 'function') {
       soundFX.setEnabled(enabled);
     }
-  }, []);
+    if (typeof window !== 'undefined') {
+      try {
+        const curVol = soundFX?.getMasterVolume ? soundFX.getMasterVolume() : masterVolume;
+        window.dispatchEvent(
+          new CustomEvent('portfolio:sound-toggle', {
+            detail: { enabled, masterVolume: curVol }
+          })
+        );
+        if (!enabled && 'speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+        }
+      } catch {
+        // Handled silently
+      }
+    }
+  }, [masterVolume]);
 
   const setMasterVolume = useCallback((val) => {
     const clamped = clampVolume(val);
@@ -872,6 +972,36 @@ export function LabProvider({ children, initialSoundEnabled }) {
     setSoundMatchingModeState(validMode);
     if (soundFX && typeof soundFX.setSoundMatchingMode === 'function') {
       soundFX.setSoundMatchingMode(validMode);
+    }
+  }, []);
+
+  const setVoiceAnnouncementEnabled = useCallback((val) => {
+    const enabled = Boolean(val);
+    setVoiceAnnouncementEnabledState(enabled);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('portfolio:set-voice-announcement', { detail: { enabled } })
+      );
+    }
+  }, []);
+
+  const setVoiceFocusEnabled = useCallback((val) => {
+    const enabled = Boolean(val);
+    setVoiceFocusEnabledState(enabled);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('portfolio:set-voice-focus', { detail: { enabled } })
+      );
+    }
+  }, []);
+
+  const setVoiceHoverEnabled = useCallback((val) => {
+    const enabled = Boolean(val);
+    setVoiceHoverEnabledState(enabled);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('portfolio:set-voice-hover', { detail: { enabled } })
+      );
     }
   }, []);
 
@@ -1002,6 +1132,20 @@ export function LabProvider({ children, initialSoundEnabled }) {
     setMasterVolumeState(f.audio.masterVolume);
     setPitchMultiplierState(f.audio.pitchMultiplier);
     setSoundMatchingModeState(f.audio.soundMatchingMode);
+    setVoiceAnnouncementEnabledState(f.audio.voiceAnnouncementEnabled);
+    setVoiceFocusEnabledState(f.audio.voiceFocusEnabled);
+    setVoiceHoverEnabledState(f.audio.voiceHoverEnabled);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('portfolio:set-voice-announcement', { detail: { enabled: f.audio.voiceAnnouncementEnabled } })
+      );
+      window.dispatchEvent(
+        new CustomEvent('portfolio:set-voice-focus', { detail: { enabled: f.audio.voiceFocusEnabled } })
+      );
+      window.dispatchEvent(
+        new CustomEvent('portfolio:set-voice-hover', { detail: { enabled: f.audio.voiceHoverEnabled } })
+      );
+    }
 
     // Cursor
     setCustomCursorEnabledState(f.cursor.customCursorEnabled);
@@ -1129,6 +1273,9 @@ export function LabProvider({ children, initialSoundEnabled }) {
               if (inc.audio.masterVolume !== undefined) setMasterVolumeState(clampVolume(inc.audio.masterVolume));
               if (inc.audio.pitchMultiplier !== undefined) setPitchMultiplierState(clampPitch(inc.audio.pitchMultiplier));
               if (inc.audio.soundMatchingMode !== undefined) setSoundMatchingModeState(inc.audio.soundMatchingMode);
+              if (inc.audio.voiceAnnouncementEnabled !== undefined) setVoiceAnnouncementEnabledState(Boolean(inc.audio.voiceAnnouncementEnabled));
+              if (inc.audio.voiceFocusEnabled !== undefined) setVoiceFocusEnabledState(Boolean(inc.audio.voiceFocusEnabled));
+              if (inc.audio.voiceHoverEnabled !== undefined) setVoiceHoverEnabledState(Boolean(inc.audio.voiceHoverEnabled));
             }
             if (inc.cursor) {
               if (inc.cursor.customCursorEnabled !== undefined) setCustomCursorEnabledState(Boolean(inc.cursor.customCursorEnabled));
@@ -1204,10 +1351,16 @@ export function LabProvider({ children, initialSoundEnabled }) {
     masterVolume,
     pitchMultiplier,
     soundMatchingMode,
+    voiceAnnouncementEnabled,
+    voiceFocusEnabled,
+    voiceHoverEnabled,
     setSoundEnabled,
     setMasterVolume,
     setPitchMultiplier,
     setSoundMatchingMode,
+    setVoiceAnnouncementEnabled,
+    setVoiceFocusEnabled,
+    setVoiceHoverEnabled,
 
     // Tab 2: Cursor & Dynamics
     customCursorEnabled,
@@ -1316,10 +1469,16 @@ export function LabProvider({ children, initialSoundEnabled }) {
     masterVolume,
     pitchMultiplier,
     soundMatchingMode,
+    voiceAnnouncementEnabled,
+    voiceFocusEnabled,
+    voiceHoverEnabled,
     setSoundEnabled,
     setMasterVolume,
     setPitchMultiplier,
     setSoundMatchingMode,
+    setVoiceAnnouncementEnabled,
+    setVoiceFocusEnabled,
+    setVoiceHoverEnabled,
     customCursorEnabled,
     cursorScale,
     flightLerpSpeed,

@@ -523,6 +523,97 @@ class SoundFX {
     ring.stop(t + 0.13);
   }
 
+  // 11. Mechanical Keyboard Key Click (Tactile click-clack with micro pitch variance)
+  playKeyClick() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+
+    const t = this.ctx.currentTime;
+    // Slight random pitch variation (0.92x to 1.08x) for authentic tactile typing feeling
+    const jitter = 0.92 + Math.random() * 0.16;
+
+    // High snappy transient click
+    const click = this.ctx.createOscillator();
+    const clickGain = this.ctx.createGain();
+    click.type = 'triangle';
+    click.frequency.setValueAtTime(Math.min(20000, Math.max(20, 2600 * this.pitchMultiplier * jitter)), t);
+    click.frequency.exponentialRampToValueAtTime(Math.max(20, 420 * this.pitchMultiplier), t + 0.007);
+    clickGain.gain.setValueAtTime(0.06, t);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.012);
+    click.connect(clickGain);
+    clickGain.connect(this.masterGain);
+    click.start(t);
+    click.stop(t + 0.012);
+
+    // Subtle bottom-out dampening clack
+    const clack = this.ctx.createOscillator();
+    const clackGain = this.ctx.createGain();
+    clack.type = 'sine';
+    clack.frequency.setValueAtTime(Math.max(20, 310 * this.pitchMultiplier * jitter), t);
+    clack.frequency.exponentialRampToValueAtTime(Math.max(20, 110 * this.pitchMultiplier), t + 0.018);
+    clackGain.gain.setValueAtTime(0.04, t);
+    clackGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+    clack.connect(clackGain);
+    clackGain.connect(this.masterGain);
+    clack.start(t);
+    clack.stop(t + 0.02);
+  }
+
+  // 12. Terminal Success Chime (Bright sci-fi confirmation arpeggio)
+  playTerminalSuccess() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+
+    this.triggerHaptic([8, 12]);
+    const t = this.ctx.currentTime;
+    // D5 (587.33 Hz) -> A5 (880 Hz) crisp confirmation chime
+    const notes = [587.33, 880];
+    notes.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const startTime = t + idx * 0.055;
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(Math.min(20000, Math.max(20, freq * this.pitchMultiplier)), startTime);
+      gain.gain.setValueAtTime(0.07, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.12);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(startTime);
+      osc.stop(startTime + 0.12);
+    });
+  }
+
+  // 13. Terminal Error Buzz (Retro vintage Unix error buzzer)
+  playTerminalError() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+
+    this.triggerHaptic([20, 30, 20]);
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const filter = this.ctx.createBiquadFilter();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(Math.max(20, 140 * this.pitchMultiplier), t);
+    osc.frequency.setValueAtTime(Math.max(20, 110 * this.pitchMultiplier), t + 0.06);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1200, t);
+
+    gain.gain.setValueAtTime(0.08, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.14);
+  }
+
   // --- Sound Dispatcher Helper ---
   playSound(soundId) {
     switch (soundId) {
@@ -555,6 +646,15 @@ class SoundFX {
         break;
       case 'snap':
         this.playSnapSound();
+        break;
+      case 'keyclick':
+        this.playKeyClick();
+        break;
+      case 'terminal-success':
+        this.playTerminalSuccess();
+        break;
+      case 'terminal-error':
+        this.playTerminalError();
         break;
       default:
         this.playLaserFocus();

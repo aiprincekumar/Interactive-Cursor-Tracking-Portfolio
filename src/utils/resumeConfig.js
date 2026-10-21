@@ -58,7 +58,7 @@ export const RESUME_ROLE_CONFIG = {
   },
   vibe_coding: {
     id: 'vibe_coding',
-    fileName: 'resume.pdf',
+    fileName: 'resume-vibe-coder.pdf',
     downloadFilename: 'Atul_Verma_Vibe_Coder_Resume.pdf',
     label: 'Vibe Coder Resume',
     badge: 'AI & SaaS Track',

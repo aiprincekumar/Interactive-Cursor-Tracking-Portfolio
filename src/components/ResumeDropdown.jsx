@@ -5,6 +5,7 @@ import { soundFX } from '../utils/audio';
 import { useRoleTab } from '../context/RoleContext.jsx';
 import { useSimpleMode } from '../context/SimpleModeContext.jsx';
 import { getResumeConfig } from '../utils/resumeConfig.js';
+import { useAnnounce } from '../context/AnnouncerContext';
 
 export default function ResumeDropdown({
   soundEnabled = true,
@@ -17,6 +18,7 @@ export default function ResumeDropdown({
   const dropdownRef = useRef(null);
   const primaryButtonRef = useRef(null);
   const toggleButtonRef = useRef(null);
+  const itemRefs = useRef([]);
 
   let simpleContext = null;
   try {
@@ -31,6 +33,14 @@ export default function ResumeDropdown({
   // Connect active role unconditionally from RoleContext
   const roleCtx = useRoleTab();
   const activeRole = roleCtx?.activeRole || 'accountant';
+
+  let announce = null;
+  try {
+    const announcer = useAnnounce();
+    announce = announcer?.announce;
+  } catch {
+    // fallback
+  }
 
   // Active role-specific resume configuration
   const resumeConfig = useMemo(() => getResumeConfig(activeRole), [activeRole]);
@@ -82,6 +92,44 @@ export default function ResumeDropdown({
     };
   }, [isOpen]);
 
+  // Focus the first menu item when dropdown opens via keyboard/click
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        itemRefs.current[0]?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // Roving ArrowUp / ArrowDown navigation for menuitems
+  const handleMenuKeyDown = (e) => {
+    const totalItems = 4;
+    const currentIndex = itemRefs.current.indexOf(document.activeElement);
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % totalItems;
+      itemRefs.current[nextIndex]?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prevIndex = currentIndex < 0 ? totalItems - 1 : (currentIndex - 1 + totalItems) % totalItems;
+      itemRefs.current[prevIndex]?.focus();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      itemRefs.current[0]?.focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      itemRefs.current[totalItems - 1]?.focus();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsOpen(false);
+      toggleButtonRef.current?.focus();
+    } else if (e.key === 'Tab') {
+      setIsOpen(false);
+    }
+  };
+
   // Celebratory confetti burst originating from the primary button with role-specific colors
   const triggerConfetti = useCallback(() => {
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -125,6 +173,10 @@ export default function ResumeDropdown({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    if (announce) {
+      announce(`Downloading ${label} PDF resume`, 'polite');
+    }
 
     setIsOpen(false);
     onActionComplete?.();
@@ -331,6 +383,7 @@ export default function ResumeDropdown({
         <div
           role="menu"
           aria-orientation="vertical"
+          onKeyDown={handleMenuKeyDown}
           style={{
             borderColor: `${accent}33`
           }}
@@ -367,6 +420,9 @@ export default function ResumeDropdown({
 
           {/* Option 1: View in New Tab */}
           <button
+            ref={(el) => {
+              itemRefs.current[0] = el;
+            }}
             type="button"
             role="menuitem"
             onClick={handleViewOnline}
@@ -401,6 +457,9 @@ export default function ResumeDropdown({
 
           {/* Option 2: Download PDF (Role-tailored file + Confetti + Sparkle) */}
           <button
+            ref={(el) => {
+              itemRefs.current[1] = el;
+            }}
             type="button"
             role="menuitem"
             onClick={handleDownloadPdf}
@@ -433,6 +492,9 @@ export default function ResumeDropdown({
 
           {/* Option 3: Copy Role Link / Share */}
           <button
+            ref={(el) => {
+              itemRefs.current[2] = el;
+            }}
             type="button"
             role="menuitem"
             onClick={handleCopyOrShare}
@@ -470,6 +532,9 @@ export default function ResumeDropdown({
 
           {/* Option 5: Basic Overview (Simple Mode Toggle) */}
           <button
+            ref={(el) => {
+              itemRefs.current[3] = el;
+            }}
             type="button"
             role="menuitem"
             onClick={() => {

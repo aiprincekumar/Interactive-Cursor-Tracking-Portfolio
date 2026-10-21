@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./styles/simple-mode.css";
+@import "./styles/high-contrast.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -363,7 +364,16 @@ html.theme-transition *::after {
   animation-play-state: paused;
 }
 
-/* Accessibility: prefers-reduced-motion calm static fallback */
+@keyframes simpleFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Accessibility: prefers-reduced-motion and html.reduced-motion calm static fallback */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto !important;
@@ -383,11 +393,82 @@ html.theme-transition *::after {
   .camera-flash-active,
   .animate-marquee-left,
   .animate-marquee-right,
-  .animate-tab-fade,
   .animate-toast-in,
   .animate-toast-in-left {
     animation: none !important;
   }
+
+  .animate-tab-fade {
+    animation: simpleFadeIn 0.15s ease-out forwards !important;
+    transform: none !important;
+  }
+}
+
+html.reduced-motion {
+  scroll-behavior: auto !important;
+}
+
+html.reduced-motion *,
+html.reduced-motion *::before,
+html.reduced-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+html.reduced-motion .flutter-wing-left,
+html.reduced-motion .flutter-wing-right,
+html.reduced-motion .animate-float,
+html.reduced-motion .camera-flash-active,
+html.reduced-motion .animate-marquee-left,
+html.reduced-motion .animate-marquee-right,
+html.reduced-motion .animate-toast-in,
+html.reduced-motion .animate-toast-in-left {
+  animation: none !important;
+}
+
+html.reduced-motion .animate-tab-fade {
+  animation: simpleFadeIn 0.15s ease-out forwards !important;
+  transform: none !important;
+}
+
+/* ==========================================================================
+   Universal High-Contrast Focus Visible Rings (WCAG 2.1 AA / AAA SC 2.4.7 & SC 2.4.11)
+   ========================================================================== */
+:focus-visible {
+  outline: 2px solid var(--theme-accent, #FF4D6D) !important;
+  outline-offset: 2px !important;
+}
+
+.dark :focus-visible {
+  outline: 2px solid var(--theme-accent, #D946EF) !important;
+  outline-offset: 2px !important;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="radio"]:focus-visible,
+[role="menuitem"]:focus-visible {
+  outline: 2px solid var(--theme-accent, #FF4D6D) !important;
+  outline-offset: 2px !important;
+}
+
+.dark button:focus-visible,
+.dark a:focus-visible,
+.dark input:focus-visible,
+.dark select:focus-visible,
+.dark textarea:focus-visible,
+.dark [role="button"]:focus-visible,
+.dark [role="tab"]:focus-visible,
+.dark [role="radio"]:focus-visible,
+.dark [role="menuitem"]:focus-visible {
+  outline: 2px solid var(--theme-accent, #D946EF) !important;
+  outline-offset: 2px !important;
 }
 
 /* ==========================================================================
@@ -412,6 +493,8 @@ html.theme-transition *::after {
 .custom-cursor-disabled button,
 .custom-cursor-disabled [role="button"],
 .custom-cursor-disabled [role="tab"],
+.custom-cursor-disabled [role="radio"],
+.custom-cursor-disabled [role="menuitem"],
 .custom-cursor-disabled input[type="range"],
 .custom-cursor-disabled select,
 .custom-cursor-disabled label {

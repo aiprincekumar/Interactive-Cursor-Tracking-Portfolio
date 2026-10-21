@@ -94,6 +94,13 @@ export function ThemeProvider({ children }) {
       } catch (err) {
         console.warn('Theme audio feedback skipped:', err);
       }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('portfolio:announce', {
+            detail: { message: `Switched to ${nextTheme} mode`, priority: 'polite' }
+          })
+        );
+      }
       return nextTheme;
     });
   }, []);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, ArrowUpRight, Check, X, RefreshCw } from 'lucide-react';
+import { Sparkles, ArrowUpRight, Check, X, RefreshCw, BookOpen } from 'lucide-react';
 import { GithubIcon } from './Icons';
 import { soundFX } from '../utils/audio';
 import { useRoleTab } from '../context/RoleContext';
@@ -130,7 +130,14 @@ const VIBE_CODING_PROJECTS = [
   }
 ];
 
-export default function ProjectsSection() {
+export default function ProjectsSection({ onOpenCaseStudy }) {
+  const handleOpenCaseStudy = (id) => {
+    if (typeof onOpenCaseStudy === 'function') {
+      onOpenCaseStudy(id);
+    } else if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('portfolio:open-case-study', { detail: { id } }));
+    }
+  };
   let roleContext = null;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -323,6 +330,15 @@ export default function ProjectsSection() {
               <span className="text-3xl font-black text-[#FF4D6D] font-mono tracking-tight">
                 01
               </span>
+              <button
+                type="button"
+                onClick={() => handleOpenCaseStudy('01')}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 dark:hover:bg-rose-900 transition-colors cursor-pointer"
+                title="Open P1 Case Study dossier for Project 01"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Case Study</span>
+              </button>
               {trackBadge && (
                 <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
                   {trackBadge}
@@ -393,7 +409,7 @@ export default function ProjectsSection() {
           </div>
 
           {/* CTAs */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <a
               href="#contact"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#FF4D6D] dark:bg-white dark:text-[#18181B] dark:hover:bg-[#FF4D6D] dark:hover:text-white text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
@@ -401,6 +417,16 @@ export default function ProjectsSection() {
               <span>Tax Compliance Advisory</span>
               <ArrowUpRight className="w-4 h-4" />
             </a>
+
+            <button
+              type="button"
+              onClick={() => handleOpenCaseStudy('01')}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[#FF4D6D] hover:bg-[#E03355] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
+              title="Read in-depth case study for GST & Income Tax Engine"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>Inspect Case Study</span>
+            </button>
 
             <a
               href="#experience"
@@ -480,9 +506,20 @@ export default function ProjectsSection() {
         {/* Right Side: Editorial Metadata */}
         <div className="lg:col-span-5">
           <div>
-            <span className="text-3xl font-black text-[#FF4D6D] font-mono tracking-tight">
-              02
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl font-black text-[#FF4D6D] font-mono tracking-tight">
+                02
+              </span>
+              <button
+                type="button"
+                onClick={() => handleOpenCaseStudy('02')}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 dark:hover:bg-rose-900 transition-colors cursor-pointer"
+                title="Open P1 Case Study dossier for Project 02"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Case Study</span>
+              </button>
+            </div>
             <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] mt-1">
               Tally Financial Accounting &amp; Inventory Management
             </h3>
@@ -547,7 +584,7 @@ export default function ProjectsSection() {
           </div>
 
           {/* CTAs */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <a
               href="#contact"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#FF4D6D] dark:bg-white dark:text-[#18181B] dark:hover:bg-[#FF4D6D] dark:hover:text-white text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
@@ -555,6 +592,16 @@ export default function ProjectsSection() {
               <span>Accounting Operations</span>
               <ArrowUpRight className="w-4 h-4" />
             </a>
+
+            <button
+              type="button"
+              onClick={() => handleOpenCaseStudy('02')}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[#FF4D6D] hover:bg-[#E03355] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
+              title="Read in-depth case study for Tally Financial Accounting"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>Inspect Case Study</span>
+            </button>
 
             <a
               href="#experience"
@@ -643,6 +690,15 @@ export default function ProjectsSection() {
                 <span className="text-3xl font-black text-[#FF4D6D] font-mono tracking-tight">
                   {proj.id}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => handleOpenCaseStudy(proj.id)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 dark:hover:bg-rose-900 transition-colors cursor-pointer"
+                  title={`Open P1 Case Study dossier for ${proj.title}`}
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Case Study</span>
+                </button>
                 {trackBadge && (
                   <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
                     {trackBadge}
@@ -696,7 +752,7 @@ export default function ProjectsSection() {
             </div>
 
             {/* CTAs */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <a
                 href={proj.live}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#FF4D6D] dark:bg-white dark:text-[#18181B] dark:hover:bg-[#FF4D6D] dark:hover:text-white text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
@@ -704,6 +760,16 @@ export default function ProjectsSection() {
                 <span>MIS Operations</span>
                 <ArrowUpRight className="w-4 h-4" />
               </a>
+
+              <button
+                type="button"
+                onClick={() => handleOpenCaseStudy(proj.id)}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[#FF4D6D] hover:bg-[#E03355] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
+                title={`Read in-depth case study for ${proj.title}`}
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Inspect Case Study</span>
+              </button>
 
               <a
                 href="#experience"
@@ -790,6 +856,15 @@ export default function ProjectsSection() {
                 <span className="text-3xl font-black text-[#10B981] font-mono tracking-tight">
                   {proj.id}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => handleOpenCaseStudy(proj.id)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors cursor-pointer"
+                  title={`Open P1 Case Study dossier for ${proj.title}`}
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Case Study</span>
+                </button>
                 {trackBadge && (
                   <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                     {trackBadge}
@@ -835,7 +910,7 @@ export default function ProjectsSection() {
             </div>
 
             {/* CTAs */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <a
                 href={proj.live}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#10B981] dark:bg-white dark:text-[#18181B] dark:hover:bg-[#10B981] dark:hover:text-white text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
@@ -843,6 +918,16 @@ export default function ProjectsSection() {
                 <span>Inquire AI SaaS Architecture</span>
                 <ArrowUpRight className="w-4 h-4" />
               </a>
+
+              <button
+                type="button"
+                onClick={() => handleOpenCaseStudy(proj.id)}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
+                title={`Read in-depth case study for ${proj.title}`}
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Inspect Case Study</span>
+              </button>
 
               <a
                 href="#experience"
@@ -925,9 +1010,20 @@ export default function ProjectsSection() {
           {/* Right Side: Editorial Metadata */}
           <div className="lg:col-span-5">
             <div>
-              <span className="text-3xl font-black text-[#10B981] font-mono tracking-tight">
-                {proj.id}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-3xl font-black text-[#10B981] font-mono tracking-tight">
+                  {proj.id}
+                </span>
+              <button
+                type="button"
+                onClick={() => handleOpenCaseStudy(proj.id)}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors cursor-pointer"
+                title={`Open P1 Case Study dossier for ${proj.title}`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Case Study</span>
+              </button>
+            </div>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] mt-1">
                 {proj.title}
               </h3>
@@ -967,7 +1063,7 @@ export default function ProjectsSection() {
             </div>
 
             {/* CTAs */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <a
                 href={proj.live}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#10B981] dark:bg-white dark:text-[#18181B] dark:hover:bg-[#10B981] dark:hover:text-white text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
@@ -975,6 +1071,16 @@ export default function ProjectsSection() {
                 <span>Explore Agent Architecture</span>
                 <ArrowUpRight className="w-4 h-4" />
               </a>
+
+              <button
+                type="button"
+                onClick={() => handleOpenCaseStudy(proj.id)}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
+                title={`Read in-depth case study for ${proj.title}`}
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Inspect Case Study</span>
+              </button>
 
               <a
                 href="#experience"
@@ -1057,9 +1163,20 @@ export default function ProjectsSection() {
           {/* Right Side: Editorial Metadata */}
           <div className="lg:col-span-5">
             <div>
-              <span className="text-3xl font-black text-[#10B981] font-mono tracking-tight">
-                {proj.id}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-3xl font-black text-[#10B981] font-mono tracking-tight">
+                  {proj.id}
+                </span>
+              <button
+                type="button"
+                onClick={() => handleOpenCaseStudy(proj.id)}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors cursor-pointer"
+                title={`Open P1 Case Study dossier for ${proj.title}`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Case Study</span>
+              </button>
+            </div>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] mt-1">
                 {proj.title}
               </h3>
@@ -1099,7 +1216,7 @@ export default function ProjectsSection() {
             </div>
 
             {/* CTAs */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <a
                 href={proj.live}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#10B981] dark:bg-white dark:text-[#18181B] dark:hover:bg-[#10B981] dark:hover:text-white text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
@@ -1107,6 +1224,16 @@ export default function ProjectsSection() {
                 <span>Explore Synthesizer</span>
                 <ArrowUpRight className="w-4 h-4" />
               </a>
+
+              <button
+                type="button"
+                onClick={() => handleOpenCaseStudy(proj.id)}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
+                title={`Read in-depth case study for ${proj.title}`}
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Inspect Case Study</span>
+              </button>
 
               <a
                 href="#experience"
@@ -1123,7 +1250,11 @@ export default function ProjectsSection() {
   };
 
   return (
-    <section id="projects" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
+    <section
+      id="projects"
+      aria-labelledby="projects-heading"
+      className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28"
+    >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
@@ -1135,7 +1266,10 @@ export default function ProjectsSection() {
             />
             <span className="truncate sm:overflow-visible">04 ✦ Selected Work &bull; {activeRole === 'overview' ? 'Executive Overview' : isVibe ? 'AI & Vibe Coding' : (isOther || activeRole === 'other') ? 'Corporate Controller & BI' : activeRole === 'mis' ? 'Data & MIS' : 'Accounting & Tax'}</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap">
+          <h2
+            id="projects-heading"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap"
+          >
             Selected <span className="text-[#FF4D6D]" style={{ color: accentColor }}>work</span>.
           </h2>
           <div className="w-12 h-1 rounded-full mb-4" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
@@ -1283,9 +1417,20 @@ export default function ProjectsSection() {
                 {/* Right Side: Editorial Metadata */}
                 <div className="lg:col-span-5">
                   <div>
-                    <span className="text-3xl font-black text-[#FF4D6D] font-mono tracking-tight">
-                      {OTHER_PROJECTS[0].id}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl font-black text-[#FF4D6D] font-mono tracking-tight">
+                        {OTHER_PROJECTS[0].id}
+                      </span>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCaseStudy(OTHER_PROJECTS[0].id)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 dark:hover:bg-rose-900 transition-colors cursor-pointer"
+                      title={`Open P1 Case Study dossier for ${OTHER_PROJECTS[0].title}`}
+                    >
+                      <BookOpen className="w-3.5 h-3.5" />
+                      <span>Case Study</span>
+                    </button>
+                  </div>
                     <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] mt-1">
                       {OTHER_PROJECTS[0].title}
                     </h3>
@@ -1325,7 +1470,7 @@ export default function ProjectsSection() {
                   </div>
 
                   {/* CTAs */}
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <a
                       href={OTHER_PROJECTS[0].live}
                       className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#FF4D6D] dark:bg-white dark:text-[#18181B] dark:hover:bg-[#FF4D6D] dark:hover:text-white text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
@@ -1333,6 +1478,16 @@ export default function ProjectsSection() {
                       <span>Fiscal Analytics Advisory</span>
                       <ArrowUpRight className="w-4 h-4" />
                     </a>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCaseStudy(OTHER_PROJECTS[0].id)}
+                      className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[#FF4D6D] hover:bg-[#E03355] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
+                      title={`Read in-depth case study for ${OTHER_PROJECTS[0].title}`}
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      <span>Inspect Case Study</span>
+                    </button>
 
                     <a
                       href="#experience"
@@ -1411,9 +1566,20 @@ export default function ProjectsSection() {
                 {/* Right Side: Editorial Metadata */}
                 <div className="lg:col-span-5">
                   <div>
-                    <span className="text-3xl font-black text-[#FF4D6D] font-mono tracking-tight">
-                      {OTHER_PROJECTS[1].id}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl font-black text-[#FF4D6D] font-mono tracking-tight">
+                        {OTHER_PROJECTS[1].id}
+                      </span>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCaseStudy(OTHER_PROJECTS[1].id)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 dark:hover:bg-rose-900 transition-colors cursor-pointer"
+                      title={`Open P1 Case Study dossier for ${OTHER_PROJECTS[1].title}`}
+                    >
+                      <BookOpen className="w-3.5 h-3.5" />
+                      <span>Case Study</span>
+                    </button>
+                  </div>
                     <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] mt-1">
                       {OTHER_PROJECTS[1].title}
                     </h3>
@@ -1453,7 +1619,7 @@ export default function ProjectsSection() {
                   </div>
 
                   {/* CTAs */}
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <a
                       href={OTHER_PROJECTS[1].live}
                       className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#FF4D6D] dark:bg-white dark:text-[#18181B] dark:hover:bg-[#FF4D6D] dark:hover:text-white text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
@@ -1461,6 +1627,16 @@ export default function ProjectsSection() {
                       <span>Corporate Controls Advisory</span>
                       <ArrowUpRight className="w-4 h-4" />
                     </a>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCaseStudy(OTHER_PROJECTS[1].id)}
+                      className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[#FF4D6D] hover:bg-[#E03355] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
+                      title={`Read in-depth case study for ${OTHER_PROJECTS[1].title}`}
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      <span>Inspect Case Study</span>
+                    </button>
 
                     <a
                       href="#experience"
@@ -1496,9 +1672,20 @@ export default function ProjectsSection() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-3xl font-black text-[#FF4D6D] font-mono tracking-tight">
-                      {proj.id}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl font-black text-[#FF4D6D] font-mono tracking-tight">
+                        {proj.id}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenCaseStudy(proj.id)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 dark:hover:bg-rose-900 transition-colors cursor-pointer"
+                        title={`Open P1 Case Study dossier for ${proj.title}`}
+                      >
+                        <BookOpen className="w-3 h-3" />
+                        <span>Case Study</span>
+                      </button>
+                    </div>
                     <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#FAF8F5] dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] text-stone-600 dark:text-stone-300">
                       {proj.category}
                     </span>
@@ -1539,7 +1726,7 @@ export default function ProjectsSection() {
                   </div>
 
                   {/* Links */}
-                  <div className="flex items-center justify-between pt-3 border-t border-[#ECE7DF] dark:border-stone-800">
+                  <div className="flex items-center justify-between pt-3 border-t border-[#ECE7DF] dark:border-stone-800 gap-2">
                     <a
                       href={proj.github}
                       className="text-xs font-semibold text-stone-600 dark:text-stone-400 hover:text-[#18181B] dark:hover:text-white flex items-center gap-1.5 transition-colors"
@@ -1547,6 +1734,17 @@ export default function ProjectsSection() {
                       <GithubIcon className="w-3.5 h-3.5" />
                       Documentation
                     </a>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCaseStudy(proj.id)}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-[#FF4D6D] hover:underline cursor-pointer"
+                      title={`Inspect Case Study for ${proj.title}`}
+                    >
+                      <BookOpen className="w-3.5 h-3.5" />
+                      <span>Case Study</span>
+                    </button>
+
                     <a
                       href={proj.live}
                       className="text-xs font-bold text-[#18181B] dark:text-stone-200 hover:text-[#FF4D6D] dark:hover:text-[#FF4D6D] flex items-center gap-1 transition-colors"

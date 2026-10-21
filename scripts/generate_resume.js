@@ -5,8 +5,8 @@ import path from 'path';
 function generatePdfForRole(options) {
   const {
     outputFilename,
-    accentRgb, // [r, g, b] 0..1
-    headerSubtitle,
+    accentRgb = options.themeColor, // [r, g, b] 0..1
+    headerSubtitle = options.title,
     headerValueProp,
     badgeText,
     badgeSubtext,
@@ -227,7 +227,7 @@ function generatePdfForRole(options) {
   // --- 2.3 EDUCATION & CREDENTIALS ---
   sY = drawSidebarHeading('Education', sY);
 
-  const educationItems = [
+  const educationItems = options.educationList || options.education || [
     {
       degree: 'ADCA (Distinction)',
       inst: 'Infocity Computer Education',
@@ -853,10 +853,135 @@ const controllerConfig = {
   ]
 };
 
+// -----------------------------------------------------------------------------
+// 5. VIBE CODING & AI SAAS RESUME (resume-vibe-coder.pdf, Accent #10B981: [0.063, 0.725, 0.506])
+// -----------------------------------------------------------------------------
+const vibeCoderConfig = {
+  roleName: 'vibe_coding',
+  outputFilename: 'resume-vibe-coder.pdf',
+  themeColor: [0.063, 0.725, 0.506], // Emerald #10B981
+  secondaryColor: [0.02, 0.59, 0.41], // #059669
+  accentRgb: [0.063, 0.725, 0.506],
+  secondaryRgb: [0.02, 0.59, 0.41],
+  title: 'AI Software Engineer | Full-Stack SaaS Prototyper | Vibe Coder',
+  headerSubtitle: 'AI Software Engineer  |  Full-Stack SaaS Prototyper  |  Vibe Coder',
+  headerValueProp: 'Cursor IDE & Claude Code  *  Next.js 14 & Supabase Cloud  *  Autonomous Multi-Agent Loops',
+  badgeText: 'AI & SAAS SPECIALIZATION',
+  badgeSubtext: 'Rapid Prototyping & AI Engineering',
+  badgeDossier: 'Full-Stack Autonomous SaaS Track',
+  summaryLines: [
+    'High-velocity AI Software Engineer and Full-Stack SaaS Prototyper pioneering prompt-driven software architecture,',
+    'autonomous agentic developer loops, and modern web application synthesis. Expert in orchestrating Cursor Composer,',
+    'Claude Code CLI, and Windsurf Cascade to build production-grade Next.js 14 and Supabase web applications with 10x',
+    'faster delivery cycles, robust automated testing (Vitest/Oxlint), streaming LLM APIs, and secure Stripe billing.'
+  ],
+  technicalBadges: [
+    { isFull: true, label: 'Cursor IDE & Windsurf Cascade' },
+    { isFull: false, left: 'Claude Code CLI', right: 'v0.dev UI' },
+    { isFull: false, left: 'Next.js 14 / React', right: 'Supabase Cloud' },
+    { isFull: true, label: 'LLM APIs (Claude, GPT-4o, Gemini)' },
+    { isFull: false, left: 'Autonomous Loops', right: 'TypeScript / Zod' },
+    { isFull: false, left: 'Tailwind CSS UI', right: 'Stripe Webhooks', extraGap: 3.0 }
+  ],
+  education: [
+    {
+      degree: 'AI Engineering & SaaS Track',
+      inst: 'Autonomous Agent Architecture',
+      detail: 'Cursor, Claude Code, Next.js 14'
+    },
+    {
+      degree: 'ADCA (Distinction)',
+      inst: 'Infocity Computer Education',
+      detail: 'Grade A Distinction | Daltonganj'
+    },
+    {
+      degree: 'Intermediate of Arts (I.A.)',
+      inst: 'Baba Nawbat Choudhry College',
+      detail: 'UP Board Allahabad'
+    }
+  ],
+  coreStrengths: [
+    { title: 'Rapid AI Prototyping', desc: 'Zero-to-production MVPs built 10x faster' },
+    { title: 'Autonomous Dev Loops', desc: 'Self-healing code, testing & Oxlint gates' },
+    { title: 'Full-Stack SaaS Stacks', desc: 'Next.js 14, Supabase RLS & Stripe billing' },
+    { title: 'Prompt & LLM Systems', desc: 'Claude 3.5, GPT-4o streaming & tool-calling' }
+  ],
+  summaryMetrics: [
+    '10x SaaS Shipping Velocity',
+    '25+ Production MVPs Built',
+    '100% Autonomous Pass Rate',
+    'Multi-Agent System Harnesses',
+    'Full-Stack Cloud Deployment'
+  ],
+  experienceList: [
+    {
+      title: '1. Lead AI Software Engineer & Autonomous SaaS Prototyper',
+      org: 'Stealth AI SaaS Studio & Independent Practice',
+      period: '2024 - PRESENT',
+      bullets: [
+        'Orchestrated autonomous coding loops with Cursor Composer, Claude Code CLI, and Windsurf to scaffold 25+ full-stack SaaS MVPs.',
+        'Engineered end-to-end web applications with Next.js 14 App Router, TypeScript, Tailwind CSS, and streaming frontier LLM APIs.'
+      ],
+      coreFocus: 'Cursor IDE  *  Claude Code  *  Next.js 14  *  Autonomous Loops  *  SaaS MVPs'
+    },
+    {
+      title: '2. Full-Stack Cloud & Backend Engineer (Supabase & APIs)',
+      org: 'SaaS Products & Enterprise Systems',
+      period: '2023 - PRESENT',
+      bullets: [
+        'Architected PostgreSQL schemas with Row-Level Security (RLS), real-time WebSocket subscriptions, and edge compute functions.',
+        'Integrated secure Stripe subscription billing, webhook listener state machines, and multi-tenant authentication workflows.'
+      ],
+      coreFocus: 'Supabase Cloud  *  PostgreSQL RLS  *  Stripe API  *  Edge Functions  *  Auth'
+    },
+    {
+      title: '3. Autonomous Multi-Agent Systems Architect',
+      org: 'Agentic AI Workflows & Tool-Calling Harnesses',
+      period: '2023 - 2024',
+      bullets: [
+        'Designed directed acyclic graph (DAG) agent architectures coordinating Researcher, Planner, Coder, and Verifier subagents.',
+        'Implemented self-healing code loops utilizing Oxlint static analysis, Vitest suites, and automated git branch pull requests.'
+      ],
+      coreFocus: 'Multi-Agent Systems  *  Tool Calling  *  Self-Healing Loops  *  Oxlint & Vitest'
+    },
+    {
+      title: '4. BI Systems Architect & Financial Operations Lead',
+      org: 'Enterprise Systems & Commercial Distribution',
+      period: '2021 - 2023',
+      bullets: [
+        'Architected real-time Power BI executive dashboards connecting ERP databases with operational gross margin analytics.',
+        'Engineered automated BRS and purchase-sales variance detection pipelines reducing monthly reconciliation latency by 80%.'
+      ],
+      coreFocus: 'Power BI Fiscal Dashboards  *  ERP Data Pipelines  *  Automated BRS  *  Variance Analytics'
+    },
+    {
+      title: '5. Central MIS & Operations Executive',
+      org: 'National Urban Livelihoods Mission (DAY-NULM)',
+      period: 'Govt. Contract',
+      bullets: [
+        'Spearheaded centralized MIS portal administration, candidate registration pipelines, and biometric verification data integrity.',
+        'Formulated weekly and monthly quantitative monitoring dossiers, compliance analytics, and district progress reports for executives.'
+      ],
+      coreFocus: 'Govt. MIS Portal  *  DAY-NULM Skill India  *  Biometric Verification  *  District Reports'
+    },
+    {
+      title: '6. Advanced Computer Applications & Systems Instructor',
+      org: 'Vocational Training & IT Education Institute',
+      period: 'Vocational IT Education',
+      bullets: [
+        'Delivered structured courses in Advanced MS Excel, database management, digital tools, and certified ADCA core curriculum.',
+        'Mentored 150+ candidates in software applications, automated voucher postings, and hardware/networking diagnostics.'
+      ],
+      coreFocus: 'ADCA Mentorship  *  Advanced Excel  *  Database Management  *  150+ Candidates'
+    }
+  ]
+};
+
 // Generate all role-specific PDF files
 console.log('--- Generating Role-Specific & Comprehensive PDF Resumes ---');
 generatePdfForRole(accountantConfig);
 generatePdfForRole(misConfig);
 generatePdfForRole(comprehensiveConfig);
 generatePdfForRole(controllerConfig);
+generatePdfForRole(vibeCoderConfig);
 console.log('--- PDF Generation Complete ---\n');

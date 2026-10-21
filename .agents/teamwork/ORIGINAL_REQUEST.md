@@ -561,3 +561,134 @@ Update download and verification test scripts (`download_osm_tiles.mjs`, `verify
 - [ ] `npm run lint` (`oxlint`) reports 0 errors.
 - [ ] `npm run build` completes production build with 0 errors.
 - [ ] Rule 6 changes log recorded under a new change ID (`CHG-MAP-005`).
+
+
+## 2026-10-19T22:12:04Z
+
+Implement a comprehensive, production-grade WCAG 2.1 AA/AAA compliant Accessibility (A11y) overhaul for the Interactive Cursor-Tracking Portfolio. The system must guarantee 100% barrier-free access across all 4 pillars: full keyboard navigation with focus management, complete screen reader semantic coverage with dynamic live announcements, sensory-safe reduced-motion with automatic native OS cursor fallback, and an independent High-Contrast mode alongside the lightweight Simple Mode.
+
+Working directory: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio
+Integrity mode: development
+
+## Requirements
+
+### R1. Complete Keyboard Navigation & Focus Flow
+- Full page navigability using standard keyboard navigation keys (Tab, Shift+Tab, Enter, Space, Escape, arrow keys).
+- Prominent and distinct :focus-visible outline rings with contrast compliance across all themes.
+- Accessible skip-to-content mechanism (#main-content) that bypasses header/navigation when activated.
+- Robust focus trapping and restoration for all modal overlays, drawers, and popups (Command Palette, Lab Studio Drawer, Resume Dropdown, Lightbox).
+- Logical, predictable tab indexing across all interactive elements (Role tabs, Cursor selector ribbon, Project cards, Contact inputs).
+
+### R2. Screen Reader Semantics & ARIA Landmarks
+- Semantic landmark architecture (<header>, <nav>, <main>, <section>, <footer>, <dialog>).
+- Dynamic announcements using aria-live (polite/assertive) for state updates, tab switches, animated counters completion, form validation messages, and feedback toasts.
+- Explicit accessible labeling (aria-label, aria-labelledby, aria-describedby) for all icon-only buttons, floating action buttons (FABs), badge triggers, and interactive widgets.
+- Decorative canvas visualizers and background animations marked with aria-hidden="true".
+
+### R3. Sensory-Safe Reduced Motion & Cursor Fallback
+- Full adherence to the OS media query @media (prefers-reduced-motion: reduce).
+- When Reduced Motion is active or toggled:
+  - Custom cursor canvas and continuous requestAnimationFrame loops must cleanly shut down and fall back to the native OS cursor (cursor: auto).
+  - Aggressive continuous motion (marquees, 3D card tilt physics, particle explosions) must gracefully freeze or convert to static, readable, accessible presentations.
+  - Page transitions must gracefully default to simple opacity fades.
+
+### R4. Independent High-Contrast Mode & Clean Simple Mode
+- Implement an independent High-Contrast toggle in the Control Center panel (and accessible keyboard shortcut) separate from the lightweight Simple Mode.
+- High-Contrast styling must meet WCAG AAA color contrast ratios (≥ 7:1 for normal text, ≥ 4.5:1 for UI components and large text), with solid crisp borders and zero translucent low-contrast glassmorphism.
+- Seamless co-existence with existing Dark, Light, and Simple Mode states.
+
+### R5. Automated Accessibility Test Suite & Verification Script
+- Provide an automated test verification script (e.g. scripts/verify_accessibility.mjs) that audits the DOM, component attributes, ARIA roles, contrast ratios, and keyboard event handlers.
+- Ensure the full test suite runs cleanly via npm test and npm run build with 0 regressions.
+
+## Acceptance Criteria
+
+### Automated Verification
+- [ ] Running npm run build completes successfully with zero compile or type errors.
+- [ ] Running npm run lint passes without any lint errors.
+- [ ] An automated verification script (scripts/verify_accessibility.mjs) executes and reports 0 accessibility violations across all pages and interactive components.
+
+### Keyboard & Focus Criteria
+- [ ] Navigating strictly via keyboard from page load reaches the skip-link first; pressing Enter moves focus immediately to #main-content.
+- [ ] Every button, link, tab, and input element has a visible, high-contrast focus indicator when navigated via Tab.
+- [ ] When the Command Palette or Lab Studio Drawer is opened via keyboard, focus is trapped inside the overlay; pressing Escape closes the overlay and restores focus to the invoking trigger.
+
+### Screen Reader & ARIA Criteria
+- [ ] All icon buttons (e.g. Floating Action Buttons, theme toggles, modal close buttons) have non-empty, localized or clear descriptive aria-labels.
+- [ ] Custom interactive controls (e.g. Role tabs, custom accordions) utilize appropriate ARIA roles (role="tablist", role="tab", aria-selected, aria-controls).
+- [ ] Canvas elements and decorative particle backgrounds have aria-hidden="true".
+
+### Reduced Motion & Cursor Criteria
+- [ ] In an environment with prefers-reduced-motion: reduce, the custom cursor canvas is hidden/stopped, the mouse pointer displays the system cursor, and animated marquees halt or remain static and fully readable.
+
+### High-Contrast Criteria
+- [ ] Toggling High-Contrast mode instantly switches the document into high-contrast mode with WCAG AAA color contrast, without breaking existing Simple Mode layout or standard Dark/Light themes.
+
+
+## 2026-10-19T22:44:23Z
+
+This is a single self-contained feature; keep it small and focused. Implement a hybrid "Proof-First Social Proof & Testimonials" module for the Interactive Cursor-Tracking Portfolio with active quantifiable impact metrics and a toggle-controlled testimonial system.
+
+Working directory: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio
+Integrity mode: development
+
+## Requirements
+
+### R1. Key Achievements & Impact Metrics (Active by default)
+Display an interactive, visually compelling impact section showcasing quantifiable engineering metrics (such as latency reduction, full-stack features delivered, system uptime, and responsive standards) with cursor-tracking and hover reactive effects.
+
+### R2. Dynamic Smart-Toggle Testimonials
+Provide a fully designed testimonials sub-module (cards or carousel with reviewer name, role, quote, and social link) integrated with a central data configuration file. When `showTestimonials: false`, the section seamlessly displays only the Impact Metrics without any empty placeholders or broken layouts; when `true`, the testimonials reveal smoothly alongside or below the metrics.
+
+## Acceptance Criteria
+
+### Social Proof Verification
+- [ ] Impact Metrics render dynamically from the configuration data without hardcoded values.
+- [ ] Setting `showTestimonials: false` completely suppresses the testimonials component with zero visual awkwardness or empty space.
+- [ ] Setting `showTestimonials: true` dynamically renders the testimonials cards/carousel with smooth entrance animation and interactive cursor reactivity.
+- [ ] Cursor-tracking, hover states, and responsive layout behave cleanly across desktop and mobile screen viewports.
+
+
+## 2026-10-20T21:51:13Z
+
+Implement production-ready P1 Case Studies for all 9 projects in the Interactive Cursor-Tracking Portfolio using an accessible Slide-Over Drawer with 5-stage storytelling, live telemetry simulations, visual architecture diagrams, and metric highlights.
+
+Working directory: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio
+Integrity mode: development
+
+## Requirements
+
+### R1. Case Study Slide-over Drawer & Trigger Integration
+- Clicking any project's case study trigger in `ProjectsSection.jsx` smoothly opens a dedicated Slide-over Drawer from the right side of the screen.
+- Keeps the portfolio anchored in the background while displaying the in-depth digital dossier.
+- Includes complete accessibility controls: keyboard focus trapping, `Escape` key dismissal, ARIA labels & live announcements, background scroll-locking, and toggleable subtle sound FX with mute support.
+
+### R2. Comprehensive 5-Stage Storytelling for All 9 Projects
+- Provide authentic, production-grade case study data for all 9 projects across all tracks (Accountant & Tax, MIS & Analytics, Corporate Controller, Vibe Coding).
+- Each case study strictly follows the 5-stage storytelling structure:
+  1. The Challenge (Enterprise context & regulatory / operational pain points)
+  2. The Solution (Architecture & strategic engineering approach)
+  3. Tech Stack & Obstacles (Overcoming technical latency, schema, or compliance hurdles)
+  4. Measurable Results & Metrics (Before vs. After data, financial savings, reconciliation accuracy)
+  5. Key Lessons Learned (Durable principles & governance takeaways)
+
+### R3. Interactive Simulator, Architecture Blueprint & Evidence
+- Inside each drawer:
+  - Embed an interactive live simulation widget (e.g. 180ms reconciliation runner, prompt synthesis visualizer) with tactile feedback.
+  - Render clear visual system architecture flowcharts for each project.
+  - Provide verified metric badges, artifact excerpts, and live links / GitHub repository references.
+- Supports both Light & Dark themes, High-Contrast mode, and Simple Mode without UI clipping or horizontal overflow.
+
+## Acceptance Criteria
+
+### Functionality & Experience
+- [ ] Clicking any of the 9 projects opens the corresponding Case Study drawer smoothly without full-page navigation.
+- [ ] Pressing `Escape` or clicking the overlay/close button immediately closes the drawer and restores scroll position.
+- [ ] Keyboard navigation (`Tab`, `Shift+Tab`) is trapped inside the open drawer, and focus returns to the triggering card upon closing.
+- [ ] All 9 projects feature non-placeholder, comprehensive 5-stage content, metrics, tech tags, and visual flowcharts.
+- [ ] The interactive simulation in each drawer runs smoothly, updates telemetry, and announces status to screen readers.
+- [ ] Production build succeeds cleanly (`npm run build`) with zero linting, TypeScript, or syntax errors.
+
+## Verification
+- Programmatic build verification via `npm run build`.
+- Automated sanity test verifying all 9 project case study records are loaded and render without crashing or runtime console errors.

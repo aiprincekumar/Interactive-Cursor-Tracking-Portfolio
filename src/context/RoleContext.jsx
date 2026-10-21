@@ -1,5 +1,5 @@
 /* oxlint-disable react/only-export-components */
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { soundFX } from '../utils/audio';
 
 export const STORAGE_KEY = 'portfolio_selected_role';
@@ -157,6 +157,11 @@ export function RoleProvider({ children, soundEnabled = true }) {
     return DEFAULT_ROLE;
   });
 
+  const activeRoleRef = useRef(activeRole);
+  useEffect(() => {
+    activeRoleRef.current = activeRole;
+  }, [activeRole]);
+
   // 2. Core selectRole Handler with Synchronization
   const selectRole = useCallback((newRole, options = {}) => {
     const opts = typeof options === 'string' ? { source: options } : options || {};
@@ -165,51 +170,61 @@ export function RoleProvider({ children, soundEnabled = true }) {
     const normalizedRole = normalizeRole(newRole);
     if (!normalizedRole) return;
 
-    setActiveRoleState((currentRole) => {
-      if (currentRole === normalizedRole && !force) {
-        return currentRole;
-      }
+    const currentRole = activeRoleRef.current;
+    if (currentRole === normalizedRole && !force) {
+      return;
+    }
 
-      // Persist to localStorage safely
+    // Persist to localStorage safely
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY, normalizedRole);
+      }
+    } catch {
+      // Ignore sandbox / quota errors
+    }
+
+    // Update URL query parameter without page reload via window.history.replaceState
+    if (updateUrl && typeof window !== 'undefined') {
       try {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(STORAGE_KEY, normalizedRole);
+        const url = new URL(window.location.href);
+        url.searchParams.set('role', normalizedRole);
+        const safeState = (typeof window.history.state === 'object' && window.history.state !== null)
+          ? { ...window.history.state, role: normalizedRole }
+          : { role: normalizedRole };
+        try {
+          window.history.replaceState(safeState, '', url.toString());
+        } catch {
+          // Fallback: If safeState contains non-serializable properties, replace with minimal clean state
+          window.history.replaceState({ role: normalizedRole }, '', url.toString());
         }
       } catch {
-        // Ignore sandbox / quota errors
+        // Ignore
       }
+    }
 
-      // Update URL query parameter without page reload via window.history.replaceState
-      if (updateUrl && typeof window !== 'undefined') {
-        try {
-          const url = new URL(window.location.href);
-          url.searchParams.set('role', normalizedRole);
-          const safeState = (typeof window.history.state === 'object' && window.history.state !== null)
-            ? { ...window.history.state, role: normalizedRole }
-            : { role: normalizedRole };
-          try {
-            window.history.replaceState(safeState, '', url.toString());
-          } catch {
-            // Fallback: If safeState contains non-serializable properties, replace with minimal clean state
-            window.history.replaceState({ role: normalizedRole }, '', url.toString());
-          }
-        } catch {
-          // Ignore
-        }
+    // Audio feedback
+    if (playSound && soundEnabled) {
+      soundFX.playFocusBeep();
+    }
+
+    // Update state
+    setActiveRoleState(normalizedRole);
+    activeRoleRef.current = normalizedRole;
+
+    // Outbound custom window event and screen reader announcement - dispatched ONCE outside state updater
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('portfolio-role-change', { detail: { role: normalizedRole } }));
+      if (currentRole !== normalizedRole) {
+        const roleTrack = ROLE_DATA[normalizedRole];
+        const roleName = roleTrack?.label || normalizedRole;
+        window.dispatchEvent(
+          new CustomEvent('portfolio:announce', {
+            detail: { message: `Active role changed to ${roleName}`, priority: 'polite' }
+          })
+        );
       }
-
-      // Audio feedback
-      if (playSound && soundEnabled) {
-        soundFX.playFocusBeep();
-      }
-
-      // Outbound custom window event
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('portfolio-role-change', { detail: { role: normalizedRole } }));
-      }
-
-      return normalizedRole;
-    });
+    }
   }, [soundEnabled]);
 
   // 3. Browser History Navigation: Listen to popstate events
@@ -219,19 +234,20 @@ export function RoleProvider({ children, soundEnabled = true }) {
     const handlePopState = (e) => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const urlRole = normalizeRole(params.get('role'));
-        if (urlRole) {
-          selectRole(urlRole, { playSound: false, updateUrl: false, force: true });
+        const roleParam = params.get('role');
+        // Only switch role if an explicit ?role= param is present in URL and is different from current role
+        if (roleParam) {
+          const urlRole = normalizeRole(roleParam);
+          if (urlRole && urlRole !== activeRoleRef.current) {
+            selectRole(urlRole, { playSound: false, updateUrl: false });
+          }
         } else if (e.state?.role) {
           const stateRole = normalizeRole(e.state.role);
-          if (stateRole) {
-            selectRole(stateRole, { playSound: false, updateUrl: false, force: true });
-          } else {
-            selectRole(DEFAULT_ROLE, { playSound: false, updateUrl: false, force: true });
+          if (stateRole && stateRole !== activeRoleRef.current) {
+            selectRole(stateRole, { playSound: false, updateUrl: false });
           }
-        } else {
-          selectRole(DEFAULT_ROLE, { playSound: false, updateUrl: false, force: true });
         }
+        // NEVER fall back to DEFAULT_ROLE on hash navigation (#skills, #about, etc.) or history state without ?role
       } catch {
         // Ignore
       }

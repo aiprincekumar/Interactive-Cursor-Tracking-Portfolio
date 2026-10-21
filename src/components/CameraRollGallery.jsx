@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Camera, Download, Heart, ZoomIn, X, Share2, Archive, Loader2 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { exportAllPolaroidsZip, downloadSinglePolaroid } from '../utils/polaroidExport';
+import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useAnnounce } from '../context/AnnouncerContext';
 
 const BASE_URL = import.meta.env.BASE_URL || './';
 
@@ -43,17 +45,22 @@ export default function CameraRollGallery({ capturedPhotos }) {
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(null);
   const [isDownloadingSingle, setIsDownloadingSingle] = useState(false);
+  let announce = null;
+  try {
+    const announcer = useAnnounce();
+    announce = announcer?.announce;
+  } catch {
+    // fallback
+  }
 
   const allPhotos = [...capturedPhotos, ...INITIAL_PHOTOS];
+  const lightboxRef = useRef(null);
 
-  // Close modal on Escape
-  React.useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') setSelectedPhoto(null);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  // Accessible modal focus trapping & restoration
+  useFocusTrap(Boolean(selectedPhoto), lightboxRef, {
+    onEscape: () => setSelectedPhoto(null),
+    restoreFocus: true
+  });
 
   const handleCardClick = (photo) => {
     soundFX.playFocusBeep();
@@ -68,6 +75,7 @@ export default function CameraRollGallery({ capturedPhotos }) {
       [id]: (prev[id] || 0) + 1
     }));
     setPoppingId(id);
+    if (announce) announce('Liked polaroid photo', 'polite');
     setTimeout(() => setPoppingId(null), 400);
   };
 
@@ -75,14 +83,17 @@ export default function CameraRollGallery({ capturedPhotos }) {
     if (isExporting || allPhotos.length === 0) return;
     soundFX.playShutter();
     setIsExporting(true);
+    if (announce) announce(`Exporting ${allPhotos.length} polaroids as ZIP archive`, 'polite');
     setExportProgress({ current: 0, total: allPhotos.length });
     try {
       await exportAllPolaroidsZip(allPhotos, (current, total) => {
         setExportProgress({ current, total });
       });
       soundFX.playSparkle();
+      if (announce) announce('Polaroid ZIP archive export complete', 'polite');
     } catch (err) {
       console.error('Failed to export polaroid archive:', err);
+      if (announce) announce('Failed to export polaroid archive', 'assertive');
     } finally {
       setIsExporting(false);
       setExportProgress(null);
@@ -93,32 +104,48 @@ export default function CameraRollGallery({ capturedPhotos }) {
     if (!selectedPhoto || isDownloadingSingle) return;
     soundFX.playShutter();
     setIsDownloadingSingle(true);
+    if (announce) announce(`Downloading polaroid photo: ${selectedPhoto.title || 'Polaroid photo'}`, 'polite');
     try {
       await downloadSinglePolaroid(selectedPhoto);
       soundFX.playSparkle();
+      if (announce) announce('Polaroid photo downloaded successfully', 'polite');
     } catch (err) {
       console.error('Failed to download polaroid:', err);
+      if (announce) announce('Failed to download polaroid photo', 'assertive');
     } finally {
       setIsDownloadingSingle(false);
     }
   };
 
   return (
-    <section id="gallery" className="relative w-full py-20 px-4 sm:px-6 lg:px-8 scroll-mt-28">
+    <section id="gallery" aria-labelledby="gallery-heading" className="relative w-full py-20 px-4 sm:px-6 lg:px-8 scroll-mt-28">
       <div className="max-w-7xl mx-auto">
         {/* Section Header with Export All (ZIP) Action */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
         <div className="text-left max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs whitespace-nowrap max-w-full overflow-x-auto">
+          <div
+            tabIndex={0}
+            data-tts="Section 8: Camera Roll"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs whitespace-nowrap max-w-full overflow-x-auto focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          >
             <span className="w-2 h-2 rounded-full bg-[#FF4D6D] shrink-0" />
             <Camera className="w-3.5 h-3.5 text-[#FF4D6D] shrink-0" />
             <span className="truncate sm:overflow-visible">Camera Roll &amp; Moments</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap">
+          <h2
+            id="gallery-heading"
+            tabIndex={0}
+            data-tts="Captured Polaroid Studio"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg"
+          >
             Captured <span className="text-[#FF4D6D]">Polaroid Studio</span>.
           </h2>
           <div className="w-12 h-1 rounded-full bg-[#FF4D6D] mb-4" />
-          <p className="text-stone-600 dark:text-stone-400 text-sm md:text-base font-normal leading-relaxed">
+          <p
+            tabIndex={0}
+            data-tts="Every shutter click in the interactive hero records a frame directly to this physical reel. Tap any photo to inspect details."
+            className="text-stone-600 dark:text-stone-400 text-sm md:text-base font-normal leading-relaxed focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg"
+          >
             Every shutter click in the interactive hero records a frame directly to this physical reel. Tap any photo to inspect details.
           </p>
         </div>
@@ -172,6 +199,8 @@ export default function CameraRollGallery({ capturedPhotos }) {
               key={photo.id}
               role="button"
               tabIndex={0}
+              data-card="true"
+              data-tts={`Polaroid photo: ${photo.title || 'Snapshot'}, captured on ${photo.timestamp}`}
               onClick={() => handleCardClick(photo)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -180,7 +209,7 @@ export default function CameraRollGallery({ capturedPhotos }) {
                 }
               }}
               aria-label={`Inspect polaroid: ${photo.title}`}
-              className={`bg-white p-4 pb-6 rounded-2xl shadow-md shadow-stone-900/5 border border-[#E7E2D8] cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-[#18181B]/25 hover:-translate-y-2 group focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${rotationClass}`}
+              className={`bg-white p-4 pb-6 rounded-2xl shadow-md shadow-stone-900/5 border border-[#E7E2D8] cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-[#18181B]/25 hover:-translate-y-2 group focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${rotationClass}`}
             >
               {/* Alternating Pin & Washi Tape Styling */}
               {index % 2 === 0 ? (
@@ -276,6 +305,7 @@ export default function CameraRollGallery({ capturedPhotos }) {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm animate-in fade-in duration-200"
         >
           <div
+            ref={lightboxRef}
             onClick={(e) => e.stopPropagation()}
             className="bg-white dark:bg-[#161122] rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl border border-[#E7E2D8] dark:border-[#2D2340] relative animate-in zoom-in-95 duration-200 text-left"
           >

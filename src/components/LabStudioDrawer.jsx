@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Sliders,
   X,
@@ -8,6 +8,7 @@ import {
 import { useLab } from '../context/LabContext';
 import { soundFX } from '../utils/audio';
 import ControlCenterPanel from './ControlCenterPanel';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 export default function LabStudioDrawer() {
   const {
@@ -18,6 +19,15 @@ export default function LabStudioDrawer() {
     soundEnabled,
     activeTab
   } = useLab();
+
+  const drawerRef = useRef(null);
+  const fabRef = useRef(null);
+
+  // Trap focus when drawer is open and restore to FAB trigger on close
+  useFocusTrap(isDrawerOpen, drawerRef, {
+    onEscape: closeDrawer,
+    restoreFocus: true
+  });
 
   // Close on Escape key
   useEffect(() => {
@@ -45,6 +55,7 @@ export default function LabStudioDrawer() {
       {/* 1. Persistent Floating Action Button (FAB) */}
       <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40 select-none">
         <button
+          ref={fabRef}
           type="button"
           onClick={toggleDrawer}
           aria-label={isDrawerOpen ? 'Close Portfolio Control Center' : 'Open Portfolio Control Center'}
@@ -54,19 +65,20 @@ export default function LabStudioDrawer() {
           className="group relative flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-[#18181B]/95 dark:bg-[#120D1D]/95 text-[#FF4D6D] border border-[#FF4D6D]/40 shadow-2xl shadow-[#FF4D6D]/25 hover:border-[#FF4D6D] hover:scale-105 active:scale-95 transition-all duration-300 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D] cursor-pointer"
         >
           {/* Subtle Pulse Beacon indicator */}
-          <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+          <span aria-hidden="true" className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-[#FF4D6D]" />
             <span className="relative inline-flex rounded-full h-3.5 w-3.5 border-2 border-white dark:border-[#120D1D] bg-[#FF4D6D]" />
           </span>
 
           <Sliders
+            aria-hidden="true"
             className={`w-6 h-6 transition-transform duration-300 ${
               isDrawerOpen ? 'rotate-90 scale-110 text-white' : 'group-hover:rotate-12'
             }`}
           />
 
           {/* Accessible Tooltip */}
-          <span className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-xl bg-stone-900/95 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 hidden sm:block border border-stone-700/60">
+          <span aria-hidden="true" className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-xl bg-stone-900/95 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 hidden sm:block border border-stone-700/60">
             Control Center
           </span>
         </button>
@@ -76,25 +88,22 @@ export default function LabStudioDrawer() {
       {isDrawerOpen && (
         <div
           role="button"
-          tabIndex={0}
-          aria-label="Close Control Center Drawer"
+          tabIndex={-1}
+          aria-hidden="true"
           onClick={closeDrawer}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              closeDrawer();
-            }
-          }}
           className="fixed inset-0 bg-black/40 backdrop-blur-xs z-[47] transition-opacity duration-300 cursor-pointer"
         />
       )}
 
       {/* 3. Slide-Out Quick Drawer Panel (Zero Layout Shift via translateX) */}
       <aside
+        ref={drawerRef}
         id="portfolio-control-center-drawer"
         role="dialog"
         aria-modal="true"
         aria-label="Portfolio Control Center Drawer"
+        aria-hidden={!isDrawerOpen}
+        inert={!isDrawerOpen ? '' : undefined}
         className={`fixed top-0 right-0 h-full w-[380px] sm:w-[440px] max-w-[95vw] z-[48] bg-[#FAF8F5]/98 dark:bg-[#120D1D]/98 backdrop-blur-2xl border-l border-[#E7E2D8] dark:border-[#2D2340] shadow-2xl flex flex-col transition-transform duration-300 ease-out will-change-transform ${
           isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
         }`}

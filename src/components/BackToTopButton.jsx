@@ -144,6 +144,7 @@ export default function BackToTopButton() {
 
   return (
     <div
+      aria-hidden={!isVisible}
       className={`fixed right-6 sm:right-8 z-40 select-none transition-all duration-300 ease-out ${verticalPositionClass} ${
         isVisible
           ? 'opacity-100 scale-100 pointer-events-auto translate-y-0'
@@ -152,6 +153,7 @@ export default function BackToTopButton() {
     >
       <button
         type="button"
+        tabIndex={isVisible ? 0 : -1}
         onClick={scrollToTop}
         aria-label={`Back to top (scrolled ${Math.round(scrollProgress)}%)`}
         title={`Back to Top (${Math.round(scrollProgress)}%)`}

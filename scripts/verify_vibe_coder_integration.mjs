@@ -119,15 +119,29 @@ test('CodingAchievementsSection.jsx defines vibe stats, ticker, and banner card'
 });
 
 // 9. resumeConfig.js checks
-test('resumeConfig.js includes vibe_coding download and config', () => {
+test('resumeConfig.js includes vibe_coding download and config with dedicated PDF', () => {
   const content = fs.readFileSync(path.resolve('src/utils/resumeConfig.js'), 'utf8');
   assert(content.includes('vibe_coding: {'), 'Missing vibe_coding resume entry');
+  assert(content.includes("fileName: 'resume-vibe-coder.pdf'"), 'Missing resume-vibe-coder.pdf fileName');
   assert(content.includes('Atul_Verma_Vibe_Coder_Resume.pdf'), 'Missing Atul_Verma_Vibe_Coder_Resume.pdf downloadFilename');
   assert(content.includes('Vibe Coder Resume'), 'Missing label Vibe Coder Resume');
   assert(content.includes('#10B981'), 'Missing emerald accent in resumeConfig');
 });
 
-// 10. searchCatalog.js checks
+// 10. Vibe Coder PDF Asset Exists in public/ and dist/
+test('resume-vibe-coder.pdf exists in public/ and dist/ with valid size (>15KB) and %PDF-1.4 header', () => {
+  ['public', 'dist'].forEach((dir) => {
+    const pdfPath = path.resolve(dir, 'resume-vibe-coder.pdf');
+    assert(fs.existsSync(pdfPath), `${dir}/resume-vibe-coder.pdf does not exist`);
+    const stat = fs.statSync(pdfPath);
+    assert(stat.size > 15360, `${dir}/resume-vibe-coder.pdf is too small: ${stat.size} bytes (expected > 15KB)`);
+    const buf = fs.readFileSync(pdfPath);
+    const header = buf.subarray(0, 8).toString('utf-8');
+    assert(header.startsWith('%PDF-1.4'), `${dir}/resume-vibe-coder.pdf header (${header.trim()}) does not match %PDF-1.4`);
+  });
+});
+
+// 11. searchCatalog.js checks
 test('searchCatalog.js has catalog items for action, projects, skills, and experience', () => {
   const content = fs.readFileSync(path.resolve('src/utils/searchCatalog.js'), 'utf8');
   assert(content.includes('act-role-vibe'), 'Missing act-role-vibe switcher action');
@@ -140,7 +154,7 @@ test('searchCatalog.js has catalog items for action, projects, skills, and exper
   assert(content.includes('2026 (6 Mos)'), 'Missing 2026 (6 Mos) experience badge');
 });
 
-// 11. CommandPalette.jsx checks
+// 12. CommandPalette.jsx checks
 test('CommandPalette.jsx recognizes vibe_coding in role switching and badge', () => {
   const content = fs.readFileSync(path.resolve('src/components/CommandPalette.jsx'), 'utf8');
   assert(content.includes("'vibe_coding'"), 'Missing vibe_coding in role switch condition');
@@ -148,5 +162,5 @@ test('CommandPalette.jsx recognizes vibe_coding in role switching and badge', ()
 });
 
 console.log('\n====================================================');
-console.log(`TOTAL AUDIT CHECKS PASSED: ${passCount} / 11`);
+console.log(`TOTAL AUDIT CHECKS PASSED: ${passCount} / 12`);
 console.log('====================================================\n');

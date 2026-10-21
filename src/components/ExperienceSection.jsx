@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Briefcase, Calendar, Sparkles, CheckCircle2 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useRoleTab } from '../context/RoleContext';
+import { useAnnounce } from '../context/AnnouncerContext';
 
 const ACCOUNTANT_ROLES = ['exp-01', 'exp-02', 'exp-04'];
 const MIS_ROLES = ['exp-03', 'exp-05', 'exp-06'];
@@ -234,13 +235,31 @@ export default function ExperienceSection() {
     return activeRole === 'mis' ? MIS_ROLES.includes(exp.id) : ACCOUNTANT_ROLES.includes(exp.id);
   });
 
+  let announce = null;
+  try {
+    const announcer = useAnnounce();
+    announce = announcer?.announce;
+  } catch {
+    // fallback
+  }
+
   const handleCardClick = (id) => {
+    const isExpanding = id !== activeCard;
     setActiveCard(id === activeCard ? null : id);
     soundFX.playPop();
+    const exp = filteredExperiences.find((e) => e.id === id);
+    if (exp && announce) {
+      announce(
+        isExpanding
+          ? `Expanded milestone: ${exp.role} at ${exp.company}. ${exp.period}.`
+          : `Collapsed milestone: ${exp.role}`,
+        'polite'
+      );
+    }
   };
 
   return (
-    <section id="experience" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
+    <section id="experience" aria-labelledby="experience-heading" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
       <div className="max-w-7xl mx-auto">
         {/* Section Pill Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs transition-colors whitespace-nowrap max-w-full overflow-x-auto">
@@ -251,11 +270,30 @@ export default function ExperienceSection() {
         {/* Header with Title, Period Pill, and Coral Accent Line */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
           <div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 transition-colors whitespace-normal sm:whitespace-nowrap">
+            <h2
+              id="experience-heading"
+              tabIndex={0}
+              data-tts="Heading: Journey & Experience."
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 transition-colors whitespace-normal sm:whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-xl px-1 -mx-1"
+            >
               Journey &amp; <span className="text-[#FF4D6D]" style={{ color: accentColor }}>Experience</span>.
             </h2>
             <div className="w-12 h-1 rounded-full mb-4" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
-            <p className="text-stone-600 dark:text-stone-300 text-sm md:text-base max-w-xl font-normal leading-relaxed transition-colors">
+            <p
+              tabIndex={0}
+              data-tts={
+                activeRole === 'overview'
+                  ? 'Curated flagship highlights synthesized from Financial, Data & Operations, and AI Vibe Coding tracks, showcasing multi-domain mastery.'
+                  : isVibe
+                  ? 'Independent AI SaaS engineering, rapid prototype deployment, autonomous coding agent loops, and prompt-driven full-stack development.'
+                  : isOther || activeRole === 'other'
+                  ? 'Advanced specialization in corporate financial controls, automated ERP reconciliation pipelines, Power BI fiscal dashboards, and statutory audit strategy.'
+                  : activeRole === 'mis'
+                  ? 'Public sector MIS database administration, high-stakes biometric field operations across 4 districts, and automated reporting systems.'
+                  : 'Comprehensive career journey spanning financial accounting, statutory GST/Income Tax compliance, government skill mission MIS, and regional field operations.'
+              }
+              className="text-stone-600 dark:text-stone-300 text-sm md:text-base max-w-xl font-normal leading-relaxed transition-colors focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-xl p-1 -m-1"
+            >
               {activeRole === 'overview'
                 ? 'Curated flagship highlights synthesized from Financial, Data & Operations, and AI Vibe Coding tracks, showcasing multi-domain mastery.'
                 : isVibe
@@ -269,7 +307,21 @@ export default function ExperienceSection() {
           </div>
 
           {/* Subtitle / Period Pill Badge */}
-          <div className="flex items-center gap-3 bg-white dark:bg-[#161122] px-4 py-2.5 rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] shadow-2xs self-start md:self-end transition-colors">
+          <div
+            tabIndex={0}
+            data-tts={`Timeline: ${
+              activeRole === 'overview'
+                ? '2018 to 2026, 7+ Years Finance and MIS plus AI Vibe Coding'
+                : isVibe
+                ? '2026, Rapid AI Prototyping and SaaS Engineering'
+                : activeRole === 'accountant'
+                ? '2020 to 2026, 4+ Years Core Accounting and 3+ Years Tax Practice'
+                : activeRole === 'mis'
+                ? '2018 to 2023, 5+ Years Public Sector MIS and Field Operations'
+                : '2018 to PRESENT, 7+ Years Corporate Control and BI Systems'
+            }`}
+            className="flex items-center gap-3 bg-white dark:bg-[#161122] px-4 py-2.5 rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] shadow-2xs self-start md:self-end transition-colors focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+          >
             <Calendar className="w-4 h-4" style={{ color: accentColor }} />
             <span className="text-xs sm:text-sm font-mono font-bold text-[#18181B] dark:text-stone-200">
               {activeRole === 'overview'
@@ -302,6 +354,7 @@ export default function ExperienceSection() {
         <div className="bg-white dark:bg-[#161122] rounded-3xl border border-[#E7E2D8] dark:border-[#2D2340] p-6 sm:p-10 md:p-12 shadow-xl shadow-stone-900/5 dark:shadow-black/50 relative overflow-hidden transition-colors duration-300">
         {/* Soft subtle background glow */}
         <div
+          aria-hidden="true"
           className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none"
           style={{
             background: isOverview
@@ -331,8 +384,20 @@ export default function ExperienceSection() {
               <div
                 key={exp.id}
                 id={exp.targetId || exp.id}
+                role="button"
+                tabIndex={0}
+                data-card="true"
+                data-tts={`Experience Milestone: ${exp.role} at ${exp.company}, ${exp.period}. Status: ${exp.status}. Summary: ${exp.description}`}
+                aria-expanded={isSelected}
+                aria-label={`${exp.role} at ${exp.company}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleCardClick(exp.id);
+                  }
+                }}
                 onClick={() => handleCardClick(exp.id)}
-                className={`scroll-mt-28 group cursor-pointer rounded-2xl p-6 sm:p-7 border transition-all duration-300 relative flex flex-col justify-between hover:-translate-y-1 hover:border-[#FF4D6D]/30 dark:hover:border-[#D946EF]/50 hover:shadow-lg hover:shadow-[#D946EF]/5 ${
+                className={`scroll-mt-28 group cursor-pointer rounded-2xl p-6 sm:p-7 border transition-all duration-300 relative flex flex-col justify-between hover:-translate-y-1 hover:border-[#FF4D6D]/30 dark:hover:border-[#D946EF]/50 hover:shadow-lg hover:shadow-[#D946EF]/5 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${
                   isSelected
                     ? 'bg-[#FAF8F5] dark:bg-[#100C1A] border-[#FF4D6D] ring-2 ring-[#FF4D6D]/20 shadow-md'
                     : 'bg-[#FAF8F5]/80 dark:bg-[#100C1A]/90 border-[#ECE7DF] dark:border-[#2D2340]'
@@ -369,10 +434,18 @@ export default function ExperienceSection() {
 
                   {/* Role Title and Company */}
                   <div className="mb-4">
-                    <h3 className="text-xl font-extrabold text-[#18181B] dark:text-[#F4F4F5] font-['Outfit',sans-serif] group-hover:text-[#FF4D6D] dark:group-hover:text-[#FF4D6D] transition-colors flex items-center gap-2">
+                    <h3
+                      tabIndex={0}
+                      data-tts={`Role: ${exp.role}`}
+                      className="text-xl font-extrabold text-[#18181B] dark:text-[#F4F4F5] font-['Outfit',sans-serif] group-hover:text-[#FF4D6D] dark:group-hover:text-[#FF4D6D] transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg px-1 -mx-1"
+                    >
                       {exp.role}
                     </h3>
-                    <div className="flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400 font-medium mt-1">
+                    <div
+                      tabIndex={0}
+                      data-tts={`Company: ${exp.company}, Location: ${exp.location}`}
+                      className="flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400 font-medium mt-1 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg px-1 -mx-1"
+                    >
                       <Briefcase className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
                       <span>{exp.company}</span>
                       <span>•</span>
@@ -381,14 +454,23 @@ export default function ExperienceSection() {
                   </div>
 
                   {/* Summary Description */}
-                  <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-normal leading-relaxed mb-5">
+                  <p
+                    tabIndex={0}
+                    data-tts={`Overview: ${exp.description}`}
+                    className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-normal leading-relaxed mb-5 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg p-1 -m-1"
+                  >
                     {exp.description}
                   </p>
 
                   {/* Bullet Deliverables */}
                   <div className="space-y-2 mb-6 pt-4 border-t border-[#ECE7DF] dark:border-[#2D2340]">
                     {exp.deliverables.map((bullet, bIdx) => (
-                      <div key={bIdx} className="flex items-start gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium leading-relaxed">
+                      <div
+                        key={bIdx}
+                        tabIndex={0}
+                        data-tts={`Deliverable: ${bullet}`}
+                        className="flex items-start gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium leading-relaxed focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg p-1 -m-1"
+                      >
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#FF4D6D] shrink-0 mt-0.5" />
                         <span>{bullet}</span>
                       </div>
@@ -402,7 +484,9 @@ export default function ExperienceSection() {
                     {exp.techStack.map((tech) => (
                       <span
                         key={tech}
-                        className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white dark:bg-[#201830] border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-[#A99EBA] shadow-2xs group-hover:border-[#FF4D6D]/20 dark:group-hover:border-[#FF4D6D]/40 transition-colors"
+                        tabIndex={0}
+                        data-tts={`Technology: ${tech}`}
+                        className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white dark:bg-[#201830] border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-[#A99EBA] shadow-2xs group-hover:border-[#FF4D6D]/20 dark:group-hover:border-[#FF4D6D]/40 transition-colors focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
                       >
                         {tech}
                       </span>

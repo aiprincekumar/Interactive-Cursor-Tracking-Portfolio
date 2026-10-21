@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { soundFX } from '../utils/audio';
 import { useRoleTab } from '../context/RoleContext';
+import { useLab } from '../context/LabContext';
 
 const TOP_ITEMS = [
   'Tally Prime',
@@ -492,12 +493,15 @@ export default function TechMarqueeBanner() {
   const bottomZIndex = isBottomActive ? 'z-30' : (isTopActive ? 'z-10' : 'z-20');
 
   return (
-    <div
+    <section
+      id="tech-marquee"
+      aria-label="Technology and Core Skills Marquee"
+      aria-hidden="true"
       ref={bannerRef}
       className="relative py-28 sm:py-32 overflow-hidden select-none my-6 pointer-events-none"
     >
       {/* Background Soft Glow */}
-      <div className="absolute inset-0 bg-dot-pattern opacity-40 pointer-events-none" />
+      <div className="absolute inset-0 bg-dot-pattern opacity-40 pointer-events-none" aria-hidden="true" />
 
       {/* TOP RIBBON: Dark Charcoal #18181B at -3.5 degrees (Reel t=7.85s) */}
       <div
@@ -512,6 +516,7 @@ export default function TechMarqueeBanner() {
           style={{ animationPlayState: isPaused ? 'paused' : undefined }}
         >
           {topSequence.map((tech, idx) => {
+            const isDuplicate = idx >= TOP_ITEMS.length;
             const itemKey = `top-${idx}`;
             const details = TECH_DETAILS[tech] || {
               title: tech,
@@ -528,11 +533,14 @@ export default function TechMarqueeBanner() {
                 className="relative flex items-center gap-6 sm:gap-8 px-3 sm:px-4 shrink-0 text-white font-extrabold text-sm sm:text-base md:text-lg tracking-widest uppercase font-['Outfit',sans-serif] cursor-pointer group transition-transform duration-200 hover:scale-105 active:scale-95"
                 onMouseEnter={() => handleMouseEnter(itemKey)}
                 onMouseLeave={() => handleMouseLeave(itemKey)}
-                onFocus={() => setActiveTooltipKey(itemKey)}
+                onFocus={() => {
+                  if (!isDuplicate) setActiveTooltipKey(itemKey);
+                }}
                 onBlur={() => handleBlur(itemKey)}
                 onClick={(e) => handleItemClick(e, tech, itemKey)}
                 role="button"
-                tabIndex={0}
+                tabIndex={-1}
+                aria-hidden="true"
                 aria-haspopup="true"
                 aria-expanded={isTooltipOpen}
                 aria-label={`Inspect ${tech}`}
@@ -544,7 +552,7 @@ export default function TechMarqueeBanner() {
                 }}
               >
                 <span className="hover:text-rose-200 transition-colors drop-shadow-xs">{tech}</span>
-                <span className="text-sm sm:text-base opacity-80 group-hover:scale-125 transition-transform duration-200">🦋</span>
+                <span className="text-sm sm:text-base opacity-80 group-hover:scale-125 transition-transform duration-200" aria-hidden="true">🦋</span>
 
                 {/* Rich Glassmorphism Tooltip (Counter-rotated +3.5deg to remain horizontal 0deg) */}
                 {isTooltipOpen && (
@@ -616,6 +624,7 @@ export default function TechMarqueeBanner() {
           style={{ animationPlayState: isPaused ? 'paused' : undefined }}
         >
           {bottomSequence.map((skill, idx) => {
+            const isDuplicate = idx >= BOTTOM_ITEMS.length;
             const itemKey = `bottom-${idx}`;
             const details = TECH_DETAILS[skill] || {
               title: skill,
@@ -632,11 +641,14 @@ export default function TechMarqueeBanner() {
                 className="relative flex items-center gap-6 sm:gap-8 px-3 sm:px-4 shrink-0 text-white font-extrabold text-sm sm:text-base md:text-lg tracking-widest uppercase font-['Outfit',sans-serif] cursor-pointer group transition-transform duration-200 hover:scale-105 active:scale-95"
                 onMouseEnter={() => handleMouseEnter(itemKey)}
                 onMouseLeave={() => handleMouseLeave(itemKey)}
-                onFocus={() => setActiveTooltipKey(itemKey)}
+                onFocus={() => {
+                  if (!isDuplicate) setActiveTooltipKey(itemKey);
+                }}
                 onBlur={() => handleBlur(itemKey)}
                 onClick={(e) => handleItemClick(e, skill, itemKey)}
                 role="button"
-                tabIndex={0}
+                tabIndex={-1}
+                aria-hidden="true"
                 aria-haspopup="true"
                 aria-expanded={isTooltipOpen}
                 aria-label={`Inspect ${skill}`}
@@ -648,7 +660,7 @@ export default function TechMarqueeBanner() {
                 }}
               >
                 <span className="hover:text-rose-100 transition-colors drop-shadow-xs">{skill}</span>
-                <span className="text-white text-sm sm:text-base opacity-80 group-hover:scale-125 transition-transform duration-200">🦋</span>
+                <span className="text-white text-sm sm:text-base opacity-80 group-hover:scale-125 transition-transform duration-200" aria-hidden="true">🦋</span>
 
                 {/* Rich Glassmorphism Tooltip (Counter-rotated -2.8deg to remain horizontal 0deg) */}
                 {isTooltipOpen && (
@@ -706,6 +718,6 @@ export default function TechMarqueeBanner() {
           })}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

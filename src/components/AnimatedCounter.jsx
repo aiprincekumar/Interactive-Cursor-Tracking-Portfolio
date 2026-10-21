@@ -230,8 +230,12 @@ export default function AnimatedCounter({
   }, [value, resetKey, startAnimation, cancelAnimation, getInitialDisplay]);
 
   return (
-    <span ref={containerRef} className={`tabular-nums inline-block ${className}`}>
-      {displayValue}
+    <span
+      ref={containerRef}
+      className={`tabular-nums inline-block ${className}`}
+      aria-label={String(value)}
+    >
+      <span aria-hidden="true">{displayValue}</span>
     </span>
   );
 }

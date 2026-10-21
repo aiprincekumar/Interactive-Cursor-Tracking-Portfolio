@@ -11,7 +11,11 @@ export default function Footer() {
   return (
     <footer className="border-t border-purple-950/40 dark:border-[#2D2340] bg-[#161220] dark:bg-[#0B0813] text-stone-300 py-16 px-4 md:px-8 relative overflow-hidden select-none transition-colors duration-300">
       {/* Giant Faint Watermark Text matching Reel t=16.8s */}
-      <div className="absolute inset-x-0 bottom-2 text-center pointer-events-none select-none overflow-hidden opacity-[0.06]">
+      <div
+        tabIndex={0}
+        data-tts="Atul Verma Portfolio Footer"
+        className="absolute inset-x-0 bottom-2 text-center select-none overflow-hidden opacity-[0.06] focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-xl"
+      >
         <span className="text-[14vw] font-black uppercase tracking-tighter text-white font-['Outfit',sans-serif] whitespace-nowrap">
           ATUL VERMA
         </span>
@@ -24,10 +28,18 @@ export default function Footer() {
             <span className="text-base">🦋</span>
           </div>
           <div>
-            <div className="text-base font-extrabold text-white font-['Outfit',sans-serif] tracking-tight">
+            <div
+              tabIndex={0}
+              data-tts="Atul Verma Portfolio"
+              className="text-base font-extrabold text-white font-['Outfit',sans-serif] tracking-tight focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-md"
+            >
               Atul Verma • Interactive Portfolio
             </div>
-            <div className="text-xs text-stone-400 flex items-center gap-1.5 justify-center sm:justify-start mt-0.5">
+            <div
+              tabIndex={0}
+              data-tts="Accountant and Tax Consultant, Business Development and Office Administrator"
+              className="text-xs text-stone-400 flex items-center gap-1.5 justify-center sm:justify-start mt-0.5 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-md"
+            >
               <span>Accountant &amp; Tax Consultant</span>
               <span className="text-stone-600">•</span>
               <span>Business Development &amp; Office Administrator</span>
@@ -36,7 +48,11 @@ export default function Footer() {
         </div>
 
         {/* Center Credits */}
-        <div className="flex items-center gap-2 text-xs text-stone-400 font-medium">
+        <div
+          tabIndex={0}
+          data-tts="Crafted with React 19, Tailwind CSS and 120 FPS Kinematics"
+          className="flex items-center gap-2 text-xs text-stone-400 font-medium focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-md"
+        >
           <span>Crafted with</span>
           <Heart className="w-3.5 h-3.5 fill-[#FF4D6D] text-[#FF4D6D]" />
           <span>React 19, Tailwind CSS &amp; 120 FPS Kinematics</span>
@@ -44,12 +60,18 @@ export default function Footer() {
 
         {/* Right Links & Back to Top */}
         <div className="flex items-center gap-4">
-          <span className="text-xs text-stone-400 font-mono">© 2026 Atul Verma. All rights reserved.</span>
+          <span
+            tabIndex={0}
+            data-tts="Copyright 2026 Atul Verma. All rights reserved."
+            className="text-xs text-stone-400 font-mono focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-md"
+          >
+            © 2026 Atul Verma. All rights reserved.
+          </span>
           <button
             type="button"
             onClick={scrollToTop}
             aria-label="Scroll back to top of page"
-            className="p-3 rounded-full bg-[#241E33] dark:bg-[#161122] hover:bg-[#FF4D6D] text-white border border-purple-800/40 dark:border-[#2D2340] transition-all duration-200 active:scale-95 shadow-md cursor-pointer"
+            className="p-3 rounded-full bg-[#241E33] dark:bg-[#161122] hover:bg-[#FF4D6D] text-white border border-purple-800/40 dark:border-[#2D2340] transition-all duration-200 active:scale-95 shadow-md cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
             title="Back to Top"
           >
             <ArrowUp className="w-4 h-4" />

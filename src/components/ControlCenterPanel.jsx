@@ -27,10 +27,14 @@ import {
   Move,
   Footprints,
   Target,
-  Compass
+  Compass,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import { useLab, POSE_INDEX_MAP } from '../context/LabContext';
 import { useTheme } from '../context/ThemeContext';
+import { useHighContrast } from '../context/HighContrastContext';
+import { useAnnounce } from '../context/AnnouncerContext';
 import { soundFX, SOUNDBOARD_SOUNDS } from '../utils/audio';
 
 const SOUND_ICONS = {
@@ -129,10 +133,16 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
     masterVolume,
     pitchMultiplier,
     soundMatchingMode,
+    voiceAnnouncementEnabled,
+    voiceFocusEnabled,
+    voiceHoverEnabled,
     setSoundEnabled,
     setMasterVolume,
     setPitchMultiplier,
     setSoundMatchingMode,
+    setVoiceAnnouncementEnabled,
+    setVoiceFocusEnabled,
+    setVoiceHoverEnabled,
 
     // Cursor
     customCursorEnabled,
@@ -194,6 +204,100 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
   } = lab;
 
   const { theme, toggleTheme } = useTheme();
+
+  let announcerContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    announcerContext = useAnnounce();
+  } catch {
+    // Graceful fallback
+  }
+
+  // Synchronized voice state across Lab Context and Announcer Context
+  const isVoiceAnnouncementOn = Boolean(
+    voiceAnnouncementEnabled ?? announcerContext?.voiceEnabled
+  );
+
+  const isVoiceFocusOn = Boolean(
+    voiceFocusEnabled ?? announcerContext?.voiceFocusEnabled ?? true
+  );
+
+  const isVoiceHoverOn = Boolean(
+    voiceHoverEnabled ?? announcerContext?.hoverVoiceEnabled ?? false
+  );
+
+  const handleToggleVoiceAnnouncement = (nextState) => {
+    const val = typeof nextState === 'boolean' ? nextState : !isVoiceAnnouncementOn;
+    if (setVoiceAnnouncementEnabled) {
+      setVoiceAnnouncementEnabled(val);
+    }
+    if (announcerContext?.setVoiceEnabled) {
+      announcerContext.setVoiceEnabled(val);
+    }
+    if (val && announcerContext?.speak) {
+      announcerContext.speak('Voice announcement enabled');
+    }
+    try {
+      soundFX.init();
+      if (soundEnabled) {
+        soundFX.playLaserFocus();
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  const handleToggleVoiceFocus = (nextState) => {
+    const val = typeof nextState === 'boolean' ? nextState : !isVoiceFocusOn;
+    if (setVoiceFocusEnabled) {
+      setVoiceFocusEnabled(val);
+    }
+    if (announcerContext?.setVoiceFocusEnabled) {
+      announcerContext.setVoiceFocusEnabled(val);
+    }
+    if (val && announcerContext?.speak) {
+      announcerContext.speak('Speak on keyboard focus enabled');
+    }
+    try {
+      soundFX.init();
+      if (soundEnabled) {
+        soundFX.playLaserFocus();
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  const handleToggleVoiceHover = (nextState) => {
+    const val = typeof nextState === 'boolean' ? nextState : !isVoiceHoverOn;
+    if (setVoiceHoverEnabled) {
+      setVoiceHoverEnabled(val);
+    }
+    if (announcerContext?.setHoverVoiceEnabled) {
+      announcerContext.setHoverVoiceEnabled(val);
+    }
+    if (val && announcerContext?.speak) {
+      announcerContext.speak('Mouse hover narration enabled');
+    }
+    try {
+      soundFX.init();
+      if (soundEnabled) {
+        soundFX.playLaserFocus();
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  let highContrastContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    highContrastContext = useHighContrast();
+  } catch {
+    // Graceful fallback
+  }
+  const isHighContrast = Boolean(highContrastContext?.isHighContrast);
+  const toggleHighContrast = highContrastContext?.toggleHighContrast;
 
   const isDrawer = variant === 'drawer';
 
@@ -271,6 +375,41 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
     { id: 'visuals', label: 'Display & Visuals', icon: Palette, tag: getAccentName(accentColor) }
   ];
 
+  const handleTabKeyDown = (e, currentId) => {
+    const tabIds = tabs.map((t) => t.id);
+    const currentIndex = tabIds.indexOf(currentId);
+    let targetIndex = -1;
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      targetIndex = (currentIndex + 1) % tabIds.length;
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      targetIndex = (currentIndex - 1 + tabIds.length) % tabIds.length;
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      targetIndex = 0;
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      targetIndex = tabIds.length - 1;
+    }
+
+    if (targetIndex !== -1) {
+      const nextId = tabIds[targetIndex];
+      setActiveTab(nextId);
+      if (soundEnabled) soundFX.playHapticClick();
+      const tabObj = tabs.find((t) => t.id === nextId);
+      if (typeof window !== 'undefined' && tabObj) {
+        window.dispatchEvent(
+          new CustomEvent('portfolio:announce', {
+            detail: { message: `Switched to Control Center tab: ${tabObj.label}`, priority: 'polite' }
+          })
+        );
+      }
+      const nextTab = document.getElementById(`tab-${nextId}`);
+      nextTab?.focus();
+    }
+  };
+
   return (
     <div className="w-full flex flex-col gap-6">
       {/* 5-Tab Navigation Bar */}
@@ -289,9 +428,18 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
               id={`tab-${tab.id}`}
               aria-selected={isActive}
               aria-controls={`panel-${tab.id}`}
+              tabIndex={isActive ? 0 : -1}
+              onKeyDown={(e) => handleTabKeyDown(e, tab.id)}
               onClick={() => {
                 setActiveTab(tab.id);
                 if (soundEnabled) soundFX.playHapticClick();
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(
+                    new CustomEvent('portfolio:announce', {
+                      detail: { message: `Switched to Control Center tab: ${tab.label}`, priority: 'polite' }
+                    })
+                  );
+                }
               }}
               className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                 isActive
@@ -343,7 +491,12 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                 <button
                   role="switch"
                   aria-checked={soundEnabled}
-                  onClick={() => setSoundEnabled(!soundEnabled)}
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                      window.speechSynthesis.cancel();
+                    }
+                    setSoundEnabled(!soundEnabled);
+                  }}
                   className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/40 ${
                     soundEnabled ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
                   }`}
@@ -416,6 +569,98 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                 <span>2.0x (Treble)</span>
               </div>
             </div>
+          </div>
+
+          {/* Voice Announcement (Text-to-Speech) Toggle Card */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className={`p-2.5 rounded-xl ${isVoiceAnnouncementOn ? 'bg-[#FF4D6D]/10 text-[#FF4D6D]' : 'bg-stone-100 dark:bg-stone-800 text-stone-400'}`}>
+                  {isVoiceAnnouncementOn ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-[#18181B] dark:text-white">Voice Announcement (Text-to-Speech)</h4>
+                    <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full font-bold ${
+                      isVoiceAnnouncementOn ? 'bg-[#FF4D6D]/10 text-[#FF4D6D]' : 'bg-stone-100 dark:bg-stone-800 text-stone-400'
+                    }`}>
+                      {isVoiceAnnouncementOn ? 'Active' : 'Disabled'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                    Speaks role switches, tab transitions, theme changes, keyboard focus (Tab navigation), and screen-reader alerts aloud via Web Speech API (window.speechSynthesis)
+                  </p>
+                </div>
+              </div>
+              <button
+                role="switch"
+                id="switch-voice-announcement"
+                aria-checked={isVoiceAnnouncementOn}
+                aria-label="Toggle Voice Announcement (Text-to-Speech)"
+                onClick={() => handleToggleVoiceAnnouncement(!isVoiceAnnouncementOn)}
+                className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/40 ${
+                  isVoiceAnnouncementOn ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
+                }`}
+              >
+                <span
+                  className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                    isVoiceAnnouncementOn ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Sub-option 1: Speak on Keyboard Focus */}
+            {isVoiceAnnouncementOn && (
+              <div className="pt-3 border-t border-[#E7E2D8]/60 dark:border-[#2D2340]/60 flex items-center justify-between gap-3 text-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                  <span className="font-semibold text-stone-700 dark:text-stone-300">Speak on Keyboard Focus (Tab / Shift+Tab)</span>
+                  <span className="text-[11px] text-stone-500 dark:text-stone-400">Announces buttons, links, inputs & tabs on focus</span>
+                </div>
+                <button
+                  role="switch"
+                  id="switch-voice-focus-announcement"
+                  aria-checked={isVoiceFocusOn}
+                  aria-label="Toggle Speak on Keyboard Focus"
+                  onClick={() => handleToggleVoiceFocus(!isVoiceFocusOn)}
+                  className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/40 ${
+                    isVoiceFocusOn ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                >
+                  <span
+                    className={`block w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${
+                      isVoiceFocusOn ? 'translate-x-4' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+            )}
+
+            {/* Sub-option 2: Mouse Hover Narration */}
+            {isVoiceAnnouncementOn && (
+              <div className="pt-3 border-t border-[#E7E2D8]/60 dark:border-[#2D2340]/60 flex items-center justify-between gap-3 text-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                  <span className="font-semibold text-stone-700 dark:text-stone-300">Mouse Hover Narration</span>
+                  <span className="text-[11px] text-stone-500 dark:text-stone-400">Speaks clean element labels when hovering with mouse pointer</span>
+                </div>
+                <button
+                  role="switch"
+                  id="switch-voice-hover-announcement"
+                  aria-checked={isVoiceHoverOn}
+                  aria-label="Toggle Mouse Hover Narration"
+                  onClick={() => handleToggleVoiceHover(!isVoiceHoverOn)}
+                  className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/40 ${
+                    isVoiceHoverOn ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                >
+                  <span
+                    className={`block w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${
+                      isVoiceHoverOn ? 'translate-x-4' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Sound Matching Mode Selector */}
@@ -1167,8 +1412,8 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
             </div>
           </div>
 
-          {/* Startup Default States & Reduced Motion */}
-          <div className={`grid ${isDrawer ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'} gap-4`}>
+          {/* Startup Default States, Reduced Motion & High Contrast */}
+          <div className={`grid ${isDrawer ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'} gap-4`}>
             {/* Default Cursor State */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-3">
               <div>
@@ -1245,6 +1490,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                 <button
                   role="switch"
                   aria-checked={reducedMotion}
+                  aria-label="Toggle Reduced Motion mode"
                   onClick={() => setReducedMotion(!reducedMotion)}
                   className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/40 ${
                     reducedMotion ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
@@ -1259,6 +1505,40 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
               </div>
               <p className="text-[11px] text-stone-400 dark:text-stone-500">
                 Suppresses rapid movement, continuous head tracking, and photo flashes.
+              </p>
+            </div>
+
+            {/* High-Contrast Mode Toggle (WCAG AAA) */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                    <span>High Contrast</span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-yellow-400/20 text-yellow-600 dark:text-yellow-300 border border-yellow-400/30 font-bold">AAA</span>
+                  </h4>
+                  <p className="text-xs text-stone-500 dark:text-stone-400">21:1 Ratio (Alt+H)</p>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={isHighContrast}
+                  aria-label="Toggle High-Contrast Mode (WCAG AAA)"
+                  onClick={() => {
+                    if (toggleHighContrast) toggleHighContrast();
+                    if (soundEnabled) soundFX.playHapticClick();
+                  }}
+                  className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/40 ${
+                    isHighContrast ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                >
+                  <span
+                    className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                      isHighContrast ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+              <p className="text-[11px] text-stone-400 dark:text-stone-500">
+                Monochrome solid borders, zero glassmorphism, 21:1 ratio.
               </p>
             </div>
           </div>
@@ -1342,6 +1622,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                 {/* Obsidian Dark Option */}
                 <button
                   type="button"
+                  aria-label="Switch to Obsidian Dark theme"
                   onClick={() => {
                     if (theme !== 'dark') toggleTheme();
                   }}
@@ -1364,6 +1645,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                 {/* Linen Light Option */}
                 <button
                   type="button"
+                  aria-label="Switch to Linen Light theme"
                   onClick={() => {
                     if (theme !== 'light') toggleTheme();
                   }}
@@ -1413,6 +1695,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                     <button
                       key={opt.id}
                       type="button"
+                      aria-label={`Select glassmorphism blur: ${opt.label}`}
                       onClick={() => {
                         setGlassBlur(opt.id);
                         if (soundEnabled) soundFX.playHapticClick();
@@ -1459,6 +1742,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                     <button
                       key={opt.speed}
                       type="button"
+                      aria-label={`Select motion rhythm: ${opt.label}`}
                       onClick={() => {
                         setMotionSpeed(opt.speed);
                         if (soundEnabled) soundFX.playHapticClick();
@@ -1512,6 +1796,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                     <button
                       key={c.hex}
                       type="button"
+                      aria-label={`Select accent color: ${c.name}`}
                       onClick={() => {
                         setAccentColor(c.hex);
                         try {

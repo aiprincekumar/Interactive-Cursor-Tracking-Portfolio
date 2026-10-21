@@ -1,7 +1,7 @@
-# BRIEFING — 2026-10-18T20:20:00Z
+# BRIEFING — 2026-10-20T21:51:13Z
 
 ## Mission
-Coordinate and monitor implementation of the preloading cached offline map refinement (remove pointer pin/popups, 7x5 tile grid across zooms 12 & 13, strict maxBounds lock) via General path (teamwork_preview_orchestrator), ensuring end-to-end verification, quality gates, and mandatory independent Victory Audit.
+Coordinate and monitor implementation of production-ready P1 Case Studies for all 9 projects in the Interactive Cursor-Tracking Portfolio using an accessible Slide-Over Drawer with 5-stage storytelling, live telemetry simulations, visual architecture diagrams, and metric highlights via General path (teamwork_preview_orchestrator), ensuring end-to-end verification and mandatory independent Victory Audit.
 
 ## 🔒 My Identity
 - Archetype: sentinel
@@ -14,6 +14,19 @@ Coordinate and monitor implementation of the preloading cached offline map refin
 - Active Cron 1 (Progress): task-29 (*/8 * * * *)
 - Active Cron 2 (Liveness): task-31 (*/10 * * * *)
 - Active Victory Auditor: 9ed0ab52-aa4f-4670-82f0-002fbc02cbad (teamwork_preview_victory_auditor, victory_auditor_8)
+- Generation 8 Orchestrator: 6dd69fc4-47de-4c0f-b24b-930881574e5c (teamwork_preview_orchestrator, orchestrator_8)
+- Active Cron 1 (Progress): dff6f2e7-ad43-4618-8ec3-9138ca1b6a05/task-29 (*/8 * * * *)
+- Active Cron 2 (Liveness): dff6f2e7-ad43-4618-8ec3-9138ca1b6a05/task-31 (*/10 * * * *)
+- SWE Light Agent: 7ee797a7-7544-48f5-ad8e-75d8c2a4728f (teamwork_preview_swe, swe_6)
+- Active Cron 1 (Progress): 414c52fb-747e-4825-8424-0d4661a74c6f/task-33 (*/8 * * * *)
+- Active Cron 2 (Liveness): 414c52fb-747e-4825-8424-0d4661a74c6f/task-35 (*/10 * * * *)
+- Active Worker Lead: 5e1334aa-43eb-47a5-89fa-4a9bfe90b88b (worker_a11y_lead)
+- Generation 9 Victory Auditor: f56d0d27-06b2-4336-b56e-4f06b2d29860 (teamwork_preview_victory_auditor, victory_auditor_9)
+- Generation 9 Orchestrator: e8f40eea-0ae9-4a99-8c5a-d7a6fdea04db (teamwork_preview_orchestrator, orchestrator_9)
+- Active Cron 1 (Progress): 90131db9-7a9c-4c7f-9a3a-0b5af47f5cb1/task-29 (*/8 * * * *)
+- Active Cron 2 (Liveness): 90131db9-7a9c-4c7f-9a3a-0b5af47f5cb1/task-31 (*/10 * * * *)
+- Generation 10 Orchestrator: e1dfba96-2d11-4e79-b794-eefcb70c964a (teamwork_preview_orchestrator, orchestrator_10)
+- Victory Auditor 10: to be spawned on victory claim
 
 ## 🔒 Key Constraints
 - No technical decisions — relay only
@@ -21,26 +34,27 @@ Coordinate and monitor implementation of the preloading cached offline map refin
 - Route selected: General (teamwork_preview_orchestrator) per Routing Decision Table (signals: multi-part fullstack UI and profile feature without explicit lightness signal)
 - Keep context ultra-light
 - Route selected: General (teamwork_preview_orchestrator) per Routing Decision Table (signals: offline map refinement, wide tile coverage, and maxBounds lock without explicit lightness signal)
+- Route selected: General (teamwork_preview_orchestrator) per Routing Decision Table (signals: multi-pillar accessibility overhaul, keyboard navigation, screen reader semantics, reduced motion, high contrast mode without explicit lightness signal)
+- Route selected: SWE Light (teamwork_preview_swe) per Routing Decision Table (signals: single self-contained feature, explicit request to keep it small and focused)
+- Route selected: General (teamwork_preview_orchestrator) per Routing Decision Table (signals: 9 project case studies with slide-over drawer, 5-stage storytelling, interactive live telemetry simulations, visual architecture diagrams, and metric highlights; multi-part project without explicit lightness signal)
 
 ## User Context
-- **Last user request**: Refining the preloading cached offline map: completely remove the location pointer pin and popup tooltip, expand offline tile coverage to a wide 7x5 grid across zooms 12 & 13 matching Google Maps's screen-filling view without grey borders on screens up to 1920px, and enforce strict maxBounds locking.
+- **Last user request**: Implement production-ready P1 Case Studies for all 9 projects in the Interactive Cursor-Tracking Portfolio using an accessible Slide-Over Drawer with 5-stage storytelling, live telemetry simulations, visual architecture diagrams, and metric highlights.
 - **Pending clarifications**: none
-- **Delivered results**: Preloading cached offline map refined with zero pointer pin/popups, 7x5 wide tile grid (88 tiles), strict maxBounds viscosity 1.0 lock, full test pass, and Rule 6 changes log under CHG-MAP-005.
+- **Delivered results**: Prior milestones delivered and verified. Orchestrator 9 completed Phase 0 exploration and drafted SCOPE.md; Orchestrator 10 spawned to execute implementation, testing, and multi-agent quality gates.
 
 ## Project Status
-- **Phase**: complete
+- **Phase**: in progress
 
 ## Victory Audit Status
-- **Triggered**: yes
-- **Verdict**: VICTORY CONFIRMED
+- **Triggered**: no
+- **Verdict**: pending
 - **Retry count**: 0
 
 ## Artifact Index
 - .agents/teamwork/ORIGINAL_REQUEST.md — Authoritative user requests
 - .agents/teamwork/sentinel/BRIEFING.md — Sentinel persistent working memory
-- .agents/teamwork/sentinel/handoff.md — Sentinel final handoff report
-- .agents/teamwork/orchestrator_7/DISPATCH.md — Orchestrator 7 dispatch specification
-- .agents/teamwork/orchestrator_7/handoff.md — Orchestrator 7 handoff report
-- .agents/teamwork/victory_auditor_8/DISPATCH.md — Victory Auditor 8 dispatch specification
-- .agents/teamwork/victory_auditor_8/audit_report.md — Independent Victory Audit report (VICTORY CONFIRMED)
-- changes_log/entries/2026-10-18/change_CHG-MAP-005_2026-10-18_19-35-00.md — Rule 6 changes log
+- .agents/teamwork/sentinel/handoff.md — Sentinel prior handoff report
+- .agents/teamwork/orchestrator_9/DISPATCH.md — Orchestrator 9 dispatch specification
+- .agents/teamwork/orchestrator_9/SCOPE.md — Case studies specification & interface contracts
+- .agents/teamwork/orchestrator_10/DISPATCH.md — Orchestrator 10 dispatch specification

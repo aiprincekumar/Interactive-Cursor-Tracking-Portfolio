@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { soundFX } from '../utils/audio';
 import { useRoleTab } from '../context/RoleContext';
+import { useAnnounce } from '../context/AnnouncerContext';
 
 
 const SKILL_DATA = {
@@ -508,6 +509,26 @@ export default function SkillsSection() {
   const activeData = SKILL_DATA[selectedSkill] || SKILL_DATA[defaultSkill];
   const accentColor = isOverviewRole ? '#6366F1' : (isVibe ? '#10B981' : (isOther ? '#8B5CF6' : (isMIS ? '#3B82F6' : '#FF4D6D')));
 
+  let announce = null;
+  try {
+    const announcer = useAnnounce();
+    announce = announcer?.announce;
+  } catch {
+    // fallback
+  }
+
+  // Voice narration for category stack switches
+  const lastAnnouncedStackRef = React.useRef(activeRole);
+  React.useEffect(() => {
+    if (lastAnnouncedStackRef.current !== activeRole) {
+      lastAnnouncedStackRef.current = activeRole;
+      if (announce) {
+        const stackName = isOverviewRole ? 'Executive Overview Stack' : (isVibe ? 'AI & Vibe Coding Stack' : (isOther ? 'Corporate Controller & BI Stack' : (isMIS ? 'Data & MIS Stack' : 'Accounting & Tax Stack')));
+        announce(`Switched to ${stackName}`, 'polite');
+      }
+    }
+  }, [activeRole, isOverviewRole, isVibe, isOther, isMIS, announce]);
+
   useEffect(() => {
     const handleSelectSkill = (e) => {
       const rawSkill = e.detail?.skill;
@@ -522,21 +543,44 @@ export default function SkillsSection() {
 
 
   return (
-    <section id="skills" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
+    <section id="skills" aria-labelledby="skills-heading" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
       <div className="max-w-7xl mx-auto">
         {/* Section Pill Badge - Reel style */}
-      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs whitespace-nowrap max-w-full overflow-x-auto">
+      <div
+          tabIndex={0}
+          data-tts="Section 2: Skills"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs whitespace-nowrap max-w-full overflow-x-auto focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-full cursor-pointer select-none"
+        >
         <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
         <span className="truncate sm:overflow-visible">02 ✦ Skills &bull; {isOverviewRole ? 'Executive Overview Stack' : (isVibe ? 'AI & Vibe Coding Stack' : (isOther ? 'Corporate Controller & BI Stack' : (isMIS ? 'Data & MIS Stack' : 'Accounting & Tax Stack')))}</span>
       </div>
 
       {/* Heading matching Reel t=9.5s: "What I work with" */}
       <div className="mb-8">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap">
+        <h2
+          id="skills-heading"
+          tabIndex={0}
+          data-tts="Heading: What I work with."
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-xl px-1 -mx-1"
+        >
           What I <span className="text-[#FF4D6D]" style={{ color: accentColor }}>work with</span>.
         </h2>
         <div className="w-12 h-1 rounded-full mb-4" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
-        <p className="text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
+        <p
+          tabIndex={0}
+          data-tts={
+            isOverviewRole
+              ? 'Hover or tap any skill to inspect the curated multi-domain technical matrix synthesizing certified statutory accounting, audited financial ledgers, large-scale government MIS systems, and autonomous AI vibe coding.'
+              : isVibe
+              ? 'Hover or tap any skill to inspect rapid full-stack SaaS engineering, AI coding environments, autonomous agent loops, and prompt architecture.'
+              : isOther
+              ? 'Hover or tap any skill to inspect specialized corporate controller competencies: Power BI fiscal intelligence, multi-entity ledger consolidation, automated ERP reconciliation, and statutory risk governance.'
+              : isMIS
+              ? 'Hover or tap any skill to inspect executive MIS telemetry, advanced data modeling, government database portals, and IT infrastructure administration.'
+              : 'Hover or tap any skill to inspect statutory tax compliance, double-entry Tally bookkeeping, audited financial ledgers, and commercial management.'
+          }
+          className="text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-xl p-1 -m-1"
+        >
           {isOverviewRole
             ? 'Hover or tap any skill to inspect the curated multi-domain technical matrix synthesizing certified statutory accounting, audited financial ledgers, large-scale government MIS systems, and autonomous AI vibe coding.'
             : isVibe
@@ -574,7 +618,9 @@ export default function SkillsSection() {
           {categories.map((cat) => (
             <div key={cat.name} className="space-y-2.5 pb-5 border-b border-[#ECE7DF] dark:border-[#2D2340] last:border-b-0 last:pb-0">
               <div
-                className="text-xs font-bold uppercase tracking-wider font-mono"
+                tabIndex={0}
+                data-tts={`Skill Category: ${cat.name}`}
+                className="text-xs font-bold uppercase tracking-wider font-mono focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg px-1.5 py-0.5 -mx-1.5 inline-block"
                 style={{ color: accentColor }}
               >
                 {cat.name}
@@ -588,14 +634,19 @@ export default function SkillsSection() {
                       key={skill}
                       id={skillId}
                       type="button"
+                      data-tts={`Skill: ${skill}`}
                       onClick={() => {
                         setUserSelectedSkill(skill);
                         soundFX.playFocusBeep();
+                        if (announce) {
+                          const data = SKILL_DATA[skill];
+                          announce(`Selected skill: ${skill}. Proficiency: ${data?.level || '95%'}.`, 'polite');
+                        }
                       }}
                       onMouseEnter={() => {
                         setUserSelectedSkill(skill);
                       }}
-                      className={`scroll-mt-28 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 active:scale-95 cursor-pointer ${
+                      className={`scroll-mt-28 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${
                         isSelected
                           ? 'bg-[#18181B] dark:bg-white text-white dark:text-[#18181B] shadow-md shadow-black/15 scale-105 border border-black dark:border-white'
                           : 'bg-[#FAF8F5] dark:bg-[#100C1A] text-stone-700 dark:text-[#A99EBA] hover:text-[#18181B] dark:hover:text-[#F5F2F8] hover:bg-[#F2ECE4] dark:hover:bg-[#201830] border border-[#E7E2D8] dark:border-[#2D2340]'
@@ -611,7 +662,12 @@ export default function SkillsSection() {
         </div>
 
         {/* Right Column: Active Skill Detailed Card matching Reel t=9.5s (Dark Charcoal Card) */}
-        <div className="lg:col-span-5 bg-[#18181B] text-white p-7 sm:p-9 rounded-3xl border border-stone-800 shadow-2xl relative overflow-hidden transition-all duration-300">
+        <div
+          tabIndex={0}
+          data-card="true"
+          data-tts={`Detailed Skill: ${activeData.title}. Category: ${activeData.category}. Proficiency: ${activeData.level}. Key points: ${activeData.points.join('; ')}`}
+          className="lg:col-span-5 bg-[#18181B] text-white p-7 sm:p-9 rounded-3xl border border-stone-800 shadow-2xl relative overflow-hidden transition-all duration-300 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+        >
           {/* Subtle Ambient Glow */}
           <div
             className="absolute top-0 right-0 w-48 h-48 rounded-full blur-2xl pointer-events-none"
@@ -627,7 +683,11 @@ export default function SkillsSection() {
           />
 
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 mb-4 border-b border-stone-800">
+          <div
+            tabIndex={0}
+            data-tts={`Category: ${activeData.category}. Proficiency: ${activeData.level}`}
+            className="flex items-center justify-between pb-4 mb-4 border-b border-stone-800 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg px-1.5 py-0.5 -mx-1.5"
+          >
             <span
               className="text-xs uppercase tracking-widest font-mono font-bold"
               style={{ color: accentColor }}
@@ -639,17 +699,30 @@ export default function SkillsSection() {
             </span>
           </div>
 
-          <h3 className="text-3xl font-extrabold font-['Outfit',sans-serif] tracking-tight text-white mb-1">
+          <h3
+            tabIndex={0}
+            data-tts={`Skill Name: ${activeData.title}`}
+            className="text-3xl font-extrabold font-['Outfit',sans-serif] tracking-tight text-white mb-1 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg px-1 -mx-1 inline-block"
+          >
             {activeData.title}
           </h3>
-          <p className="text-xs text-stone-400 font-medium mb-6">
+          <p
+            tabIndex={0}
+            data-tts={`Skill Focus: ${activeData.tag}`}
+            className="text-xs text-stone-400 font-medium mb-6 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg px-1 -mx-1"
+          >
             {activeData.tag}
           </p>
 
           {/* Points */}
           <div className="space-y-3 mb-6">
             {activeData.points.map((pt, i) => (
-              <div key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-stone-300 leading-relaxed">
+              <div
+                key={i}
+                tabIndex={0}
+                data-tts={`Key Capability: ${pt}`}
+                className="flex items-start gap-2.5 text-xs sm:text-sm text-stone-300 leading-relaxed focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg p-1 -m-1"
+              >
                 <span className="shrink-0 mt-0.5" style={{ color: accentColor }}>✦</span>
                 <span>{pt}</span>
               </div>
@@ -657,7 +730,11 @@ export default function SkillsSection() {
           </div>
 
           {/* Proficiency progress bar */}
-          <div className="pt-4 border-t border-stone-800">
+          <div
+            tabIndex={0}
+            data-tts={`Mastery Metric: ${activeData.level} proficiency level`}
+            className="pt-4 border-t border-stone-800 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-xl p-1.5 -m-1.5"
+          >
             <div className="flex items-center justify-between text-xs text-stone-400 mb-2 font-mono">
               <span>MASTERY METRIC</span>
               <span className="text-white font-bold">{activeData.level}</span>

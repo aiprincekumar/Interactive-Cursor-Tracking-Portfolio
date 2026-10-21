@@ -1,0 +1,205 @@
+/* ==========================================================================
+   High-Contrast Mode Stylesheet (WCAG 2.1 AAA Compliant)
+   - Strict >= 7.0:1 Normal Text Relative Luminance Contrast
+   - Strict >= 4.5:1 UI Component & Border Relative Luminance Contrast
+   - Crisp 2px Solid High-Contrast Borders
+   - Zero Translucent Glassmorphism (backdrop-filter: none !important)
+   - Ultra-Prominent Focus Rings
+   - Windows High Contrast (forced-colors: active) support
+   ========================================================================== */
+
+/* 1. Light High-Contrast Theme (html.high-contrast without .dark) */
+html.high-contrast,
+body.high-contrast {
+  --bg-page: #FFFFFF !important;
+  --text-primary: #000000 !important;
+  --text-secondary: #18181B !important;
+  --card-bg: #FFFFFF !important;
+  --card-border: #000000 !important;
+  --card-border-subtle: #000000 !important;
+  --primary: #0000EE !important;
+  --primary-hover: #000099 !important;
+  --theme-accent: #0000EE !important;
+  --glass-blur: 0px !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+/* 2. Dark High-Contrast Theme (html.high-contrast.dark, .dark.high-contrast) */
+html.high-contrast.dark,
+html.dark.high-contrast,
+.dark.high-contrast,
+.dark body.high-contrast,
+body.dark.high-contrast {
+  --bg-page: #000000 !important;
+  --text-primary: #FFFFFF !important;
+  --text-secondary: #E4E4E7 !important;
+  --card-bg: #000000 !important;
+  --card-border: #FFFFFF !important;
+  --card-border-subtle: #FFFFFF !important;
+  --primary: #FFFF00 !important;
+  --primary-hover: #FFFF66 !important;
+  --theme-accent: #FFFF00 !important;
+  --glass-blur: 0px !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+/* 3. Zero Glassmorphism Guarantee: Opaque Surfaces & No Backdrop Blur */
+html.high-contrast .glass-panel,
+html.high-contrast .glass-card,
+html.high-contrast .obsidian-card,
+html.high-contrast [class*="backdrop-blur"],
+html.high-contrast [class*="bg-white/"],
+html.high-contrast [class*="bg-black/"],
+html.high-contrast [class*="bg-slate-900/"],
+html.high-contrast [class*="bg-stone-900/"],
+html.high-contrast [class*="bg-[#0B0813]/"],
+html.high-contrast [class*="bg-[#FAF8F5]/"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.high-contrast .glass-panel,
+html.high-contrast .glass-card,
+html.high-contrast .obsidian-card {
+  background-color: #FFFFFF !important;
+  border: 2px solid #000000 !important;
+  box-shadow: none !important;
+}
+
+html.high-contrast.dark .glass-panel,
+html.high-contrast.dark .glass-card,
+html.high-contrast.dark .obsidian-card,
+.dark.high-contrast .glass-panel,
+.dark.high-contrast .glass-card,
+.dark.high-contrast .obsidian-card {
+  background-color: #000000 !important;
+  border: 2px solid #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+/* 4. High-Contrast Text & Anchor Elements */
+html.high-contrast p,
+html.high-contrast span,
+html.high-contrast li,
+html.high-contrast dd,
+html.high-contrast dt {
+  color: #000000 !important;
+}
+
+html.high-contrast.dark p,
+html.high-contrast.dark span,
+html.high-contrast.dark li,
+html.high-contrast.dark dd,
+html.high-contrast.dark dt,
+.dark.high-contrast p,
+.dark.high-contrast span,
+.dark.high-contrast li,
+.dark.high-contrast dd,
+.dark.high-contrast dt {
+  color: #FFFFFF !important;
+}
+
+html.high-contrast a {
+  color: #0000EE !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+
+html.high-contrast.dark a,
+.dark.high-contrast a {
+  color: #FFFF00 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+
+/* 5. Solid Crisp Borders on Buttons, Tabs, Inputs & Cards */
+html.high-contrast button,
+html.high-contrast input,
+html.high-contrast select,
+html.high-contrast textarea,
+html.high-contrast [role="button"],
+html.high-contrast [role="tab"],
+html.high-contrast [role="radio"] {
+  border: 2px solid #000000 !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+html.high-contrast.dark button,
+html.high-contrast.dark input,
+html.high-contrast.dark select,
+html.high-contrast.dark textarea,
+html.high-contrast.dark [role="button"],
+html.high-contrast.dark [role="tab"],
+html.high-contrast.dark [role="radio"],
+.dark.high-contrast button,
+.dark.high-contrast input,
+.dark.high-contrast select,
+.dark.high-contrast textarea,
+.dark.high-contrast [role="button"],
+.dark.high-contrast [role="tab"],
+.dark.high-contrast [role="radio"] {
+  border: 2px solid #FFFFFF !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+/* Active states for tabs and buttons */
+html.high-contrast [role="tab"][aria-selected="true"],
+html.high-contrast [role="radio"][aria-checked="true"] {
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+  border-color: #000000 !important;
+}
+
+html.high-contrast.dark [role="tab"][aria-selected="true"],
+html.high-contrast.dark [role="radio"][aria-checked="true"],
+.dark.high-contrast [role="tab"][aria-selected="true"],
+.dark.high-contrast [role="radio"][aria-checked="true"] {
+  background-color: #FFFF00 !important;
+  color: #000000 !important;
+  border-color: #FFFF00 !important;
+}
+
+/* 6. Ultra-Prominent Focus Rings in High-Contrast Mode */
+html.high-contrast :focus-visible,
+html.high-contrast *:focus-visible {
+  outline: 3px solid #000000 !important;
+  outline-offset: 3px !important;
+}
+
+html.high-contrast.dark :focus-visible,
+html.high-contrast.dark *:focus-visible,
+.dark.high-contrast :focus-visible,
+.dark.high-contrast *:focus-visible {
+  outline: 3px solid #FFFF00 !important;
+  outline-offset: 3px !important;
+}
+
+/* 7. Hide non-essential ambient background blobs and decorative textures */
+html.high-contrast .bg-dot-pattern,
+html.high-contrast [class*="blur-3xl"],
+html.high-contrast [class*="blur-2xl"],
+html.high-contrast [class*="blur-xl"] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 8. Native Windows / OS Forced Colors Support */
+@media (forced-colors: active) {
+  * {
+    forced-color-adjust: auto;
+  }
+  .glass-panel,
+  .glass-card,
+  .obsidian-card {
+    backdrop-filter: none !important;
+    border: 2px solid ButtonText !important;
+  }
+  :focus-visible {
+    outline: 3px solid Highlight !important;
+    outline-offset: 3px !important;
+  }
+}

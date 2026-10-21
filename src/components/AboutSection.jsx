@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useRoleTab } from '../context/RoleContext';
+import { useAnnounce } from '../context/AnnouncerContext';
 
 // Tab Definitions
 const TABS = [
@@ -272,6 +273,7 @@ const OTHER_COMPETENCIES = [
 ];
 
 const VIBE_CODING_STORY = {
+  alignmentBadge: 'AI Alignment',
   p1: (
     <>
       I am a <strong className="text-[#10B981] font-bold">Vibe Coder &amp; AI Software Engineer</strong> specializing in prompt-driven software architecture, autonomous agent workflows, and rapid full-stack SaaS engineering.
@@ -288,6 +290,7 @@ const VIBE_CODING_STORY = {
 };
 
 const OVERVIEW_STORY = {
+  alignmentBadge: 'Executive Alignment',
   p1: (
     <>
       I am a <strong className="text-[#6366F1] font-bold">Financial, Operations &amp; AI Software Executive</strong> with unified expertise synthesizing statutory accounting, corporate taxation, enterprise MIS data intelligence, and rapid AI vibe coding.
@@ -304,6 +307,7 @@ const OVERVIEW_STORY = {
 };
 
 const ACCOUNTANT_STORY = {
+  alignmentBadge: 'Leadership Alignment',
   p1: (
     <>
       I am an experienced <strong className="text-[#FF4D6D] font-bold">Senior Accountant &amp; Tax Consultant</strong> with over 7+ years of expertise in comprehensive financial accounting via Tally ERP/Prime, statutory compliance, and GST &amp; Income Tax advisory.
@@ -320,6 +324,7 @@ const ACCOUNTANT_STORY = {
 };
 
 const MIS_STORY = {
+  alignmentBadge: 'Analytics Alignment',
   p1: (
     <>
       I am a seasoned <strong className="text-[#3B82F6] font-bold">MIS Executive &amp; Data Operations Specialist</strong> with proven expertise in enterprise telemetry, government portal administration (DAY-NULM Skill India), advanced spreadsheet modeling, and multi-district operational deployments.
@@ -336,6 +341,7 @@ const MIS_STORY = {
 };
 
 const OTHER_STORY = {
+  alignmentBadge: 'Strategic Alignment',
   p1: (
     <>
       I am a <strong className="text-[#8B5CF6] font-bold">Business Intelligence &amp; Corporate Controller</strong> practitioner synthesized by AI from verified dual competencies in statutory accounting and executive MIS analytics.
@@ -459,6 +465,15 @@ const ROLE_ABOUT_DESCRIPTIONS = {
     'An executive corporate controller and BI strategist synthesizing rigorous statutory financial controls with automated ERP pipelines and dynamic Power BI telemetry.'
 };
 
+function getA11yText(node) {
+  if (!node) return '';
+  if (typeof node === 'string') return node;
+  if (typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(getA11yText).join('');
+  if (node.props && node.props.children) return getA11yText(node.props.children);
+  return '';
+}
+
 export default function AboutSection({ soundEnabled = true }) {
   const { activeRole, isOverview, isMIS, isOther, isVibeCoding } = useRoleTab();
   const isVibe = Boolean(isVibeCoding || activeRole === 'vibe_coding');
@@ -466,6 +481,15 @@ export default function AboutSection({ soundEnabled = true }) {
   const [addressCopied, setAddressCopied] = useState(false);
   const tabButtonRefs = useRef({});
   const copyTimeoutRef = useRef(null);
+
+  let announce = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const announcer = useAnnounce();
+    announce = announcer?.announce;
+  } catch {
+    // Graceful fallback
+  }
 
   const fullAddress = 'Daltonganj (Medininagar), Dist: Palamau, Pin: 822101, Jharkhand, India';
   const accentColor = isOverview ? '#6366F1' : isOther ? '#8B5CF6' : isVibe ? '#10B981' : (isMIS ? '#3B82F6' : '#FF4D6D');
@@ -513,20 +537,23 @@ export default function AboutSection({ soundEnabled = true }) {
     }
     if (tabId === activeTab) return;
     setActiveTab(tabId);
+    if (announce) {
+      const tabObj = TABS.find((t) => t.id === tabId);
+      if (tabObj) announce(`Switched to About tab: ${tabObj.label}`);
+    }
     if (soundEnabled) {
       soundFX.playFocusBeep();
     }
   };
 
-  const handleKeyDown = (e) => {
-    const currentIndex = TABS.findIndex((t) => t.id === activeTab);
+  const handleTabKeyDown = (e, idx) => {
     if (e.key === 'ArrowRight') {
       e.preventDefault();
-      const nextIndex = (currentIndex + 1) % TABS.length;
+      const nextIndex = (idx + 1) % TABS.length;
       handleTabChange(TABS[nextIndex].id, true);
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      const prevIndex = (currentIndex - 1 + TABS.length) % TABS.length;
+      const prevIndex = (idx - 1 + TABS.length) % TABS.length;
       handleTabChange(TABS[prevIndex].id, true);
     } else if (e.key === 'Home') {
       e.preventDefault();
@@ -536,11 +563,16 @@ export default function AboutSection({ soundEnabled = true }) {
       handleTabChange(TABS[TABS.length - 1].id, true);
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
-      const panel = document.getElementById(`about-panel-${activeTab}`);
+      const panel = document.getElementById(`about-panel-${TABS[idx].id}`);
       if (panel) {
         panel.focus();
       }
     }
+  };
+
+  const handleKeyDown = (e) => {
+    const currentIndex = TABS.findIndex((t) => t.id === activeTab);
+    handleTabKeyDown(e, currentIndex >= 0 ? currentIndex : 0);
   };
 
   const handlePanelKeyDown = (e) => {
@@ -606,11 +638,15 @@ export default function AboutSection({ soundEnabled = true }) {
   };
 
   return (
-    <section id="about" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
+    <section id="about" aria-labelledby="about-heading" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 scroll-mt-28">
       <div className="max-w-7xl mx-auto">
         {/* Top Header Row with Section Badge and Subtitle Indicator */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs w-fit transition-colors whitespace-nowrap max-w-full overflow-x-auto">
+          <div
+            tabIndex={0}
+            data-tts="Section 1: About"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-xs font-bold uppercase tracking-wider mb-4 shadow-xs w-fit transition-colors whitespace-nowrap max-w-full overflow-x-auto focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-full cursor-pointer select-none"
+          >
             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
             <span className="truncate sm:overflow-visible">01 ✦ About &bull; {isOverview ? 'Executive Overview' : isOther ? 'Business Intelligence & Controller' : isVibe ? 'Vibe Coding & AI Software' : (isMIS ? 'Data & MIS Profile' : 'Accounting & Tax Profile')}</span>
           </div>
@@ -623,13 +659,20 @@ export default function AboutSection({ soundEnabled = true }) {
 
         {/* Section Heading */}
         <div className="mb-6">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 transition-colors duration-300 whitespace-normal sm:whitespace-nowrap">
+          <h2
+            id="about-heading"
+            tabIndex={0}
+            data-tts="Heading: Who I am."
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 transition-colors duration-300 whitespace-normal sm:whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-xl px-1 -mx-1"
+          >
             Who I <span className="text-[#FF4D6D]" style={{ color: accentColor }}>am</span>.
           </h2>
           <div className="w-12 h-1 rounded-full mb-4 transition-all duration-300" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
           <p
             key={activeRole}
-            className="animate-tab-fade text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-2xl font-normal leading-relaxed"
+            tabIndex={0}
+            data-tts={aboutDescription}
+            className="animate-tab-fade text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-2xl font-normal leading-relaxed focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-xl p-1 -m-1"
           >
             {aboutDescription}
           </p>
@@ -653,10 +696,9 @@ export default function AboutSection({ soundEnabled = true }) {
           role="tablist" 
           aria-label="About section tabs"
           aria-orientation="horizontal"
-          onKeyDown={handleKeyDown}
           className="flex p-1.5 bg-[#FAF8F5] dark:bg-[#18181B] rounded-2xl border border-[#ECE7DF] dark:border-stone-800 gap-1.5 mb-8 overflow-x-auto no-scrollbar transition-colors"
         >
-          {TABS.map((tab) => {
+          {TABS.map((tab, idx) => {
             const isActive = activeTab === tab.id;
             const Icon = tab.icon;
             return (
@@ -667,21 +709,21 @@ export default function AboutSection({ soundEnabled = true }) {
                 id={`about-tab-${tab.id}`}
                 aria-selected={isActive}
                 aria-controls={`about-panel-${tab.id}`}
-                tabIndex={isActive ? 0 : -1}
+                tabIndex={0}
                 type="button"
+                data-tts={`Tab ${idx + 1} of ${TABS.length}: ${tab.label} (${tab.badge}), ${isActive ? 'Selected' : 'Unselected'}. Press Enter to view or Tab to move forward`}
                 onClick={() => handleTabChange(tab.id, false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setActiveTab(tab.id);
+                  }
+                  handleTabKeyDown(e, idx);
+                }}
                 onMouseEnter={() => {
                   if (soundEnabled) soundFX.playChipHover();
                 }}
-                className={`flex-1 min-w-[150px] sm:min-w-0 min-h-[44px] flex items-center justify-center gap-2.5 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold font-mono transition-all duration-200 cursor-pointer select-none focus:outline-none ${
-                  isOverview
-                    ? 'focus-visible:ring-2 focus-visible:ring-[#6366F1]'
-                    : isOther
-                      ? 'focus-visible:ring-2 focus-visible:ring-[#8B5CF6]'
-                      : isMIS
-                        ? 'focus-visible:ring-2 focus-visible:ring-[#3B82F6]'
-                        : 'focus-visible:ring-2 focus-visible:ring-[#FF4D6D]'
-                } whitespace-nowrap ${
+                className={`flex-1 min-w-[150px] sm:min-w-0 min-h-[44px] flex items-center justify-center gap-2.5 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold font-mono transition-all duration-200 cursor-pointer select-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden whitespace-nowrap ${
                   isActive
                     ? 'bg-white dark:bg-[#27272A] text-[#18181B] dark:text-[#F4F4F5] shadow-sm border border-[#E7E2D8] dark:border-stone-700'
                     : 'text-stone-600 dark:text-stone-400 hover:text-[#18181B] dark:hover:text-stone-200 hover:bg-white/60 dark:hover:bg-stone-800/60'
@@ -744,21 +786,34 @@ export default function AboutSection({ soundEnabled = true }) {
             >
               {/* Executive 3-Paragraph Narrative */}
               <div className="space-y-4">
-                <p className="text-base sm:text-lg md:text-xl text-[#18181B] dark:text-[#F4F4F5] font-medium leading-relaxed font-['Outfit',sans-serif] transition-colors">
+                <p
+                  tabIndex={0}
+                  data-tts={getA11yText(story.p1)}
+                  className="text-base sm:text-lg md:text-xl text-[#18181B] dark:text-[#F4F4F5] font-medium leading-relaxed font-['Outfit',sans-serif] transition-colors focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg p-1 -m-1"
+                >
                   {story.p1}
                 </p>
 
-                <p className="text-stone-600 dark:text-stone-300 text-sm sm:text-base leading-relaxed font-normal transition-colors">
+                <p
+                  tabIndex={0}
+                  data-tts={getA11yText(story.p2)}
+                  className="text-stone-600 dark:text-stone-300 text-sm sm:text-base leading-relaxed font-normal transition-colors focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg p-1 -m-1"
+                >
                   {story.p2}
                 </p>
 
-                <p className="text-stone-600 dark:text-stone-300 text-sm sm:text-base leading-relaxed font-normal transition-colors">
+                <p
+                  tabIndex={0}
+                  data-tts={getA11yText(story.p3)}
+                  className="text-stone-600 dark:text-stone-300 text-sm sm:text-base leading-relaxed font-normal transition-colors focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg p-1 -m-1"
+                >
                   {story.p3}
                 </p>
               </div>
 
               {/* Prominent Career Vision & Strategic Objective (Aligned) */}
-              <div className={`p-6 sm:p-7 rounded-2xl bg-gradient-to-br ${
+              <div
+                className={`rounded-2xl p-6 sm:p-7 bg-gradient-to-br ${
                 isOverview
                   ? 'from-[#EEF2FF] via-white to-[#FAF8F5] dark:from-indigo-950/20 dark:via-[#161122] dark:to-[#161122] border-[#6366F1]/25 dark:border-[#6366F1]/30'
                   : isOther
@@ -767,7 +822,11 @@ export default function AboutSection({ soundEnabled = true }) {
                       ? 'from-[#EFF6FF] via-white to-[#FAF8F5] dark:from-blue-950/20 dark:via-[#161122] dark:to-[#161122] border-[#3B82F6]/30 dark:border-[#3B82F6]/30'
                       : 'from-[#FFF5F7] via-white to-[#FAF8F5] dark:from-pink-950/20 dark:via-[#161122] dark:to-[#161122] border-[#FF4D6D]/20 dark:border-[#FF4D6D]/30'
               } border-2 shadow-xs relative overflow-hidden transition-all duration-300`}>
-                <div className="flex items-center justify-between mb-3">
+                <div 
+                  tabIndex={0}
+                  data-tts={`Sub-header: Career Vision & Strategic Objective, ${story.alignmentBadge || 'Executive Alignment'}`}
+                  className="flex items-center justify-between mb-3 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg p-1 -m-1"
+                >
                   <div
                     className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider"
                     style={{ color: accentColor }}
@@ -786,17 +845,28 @@ export default function AboutSection({ soundEnabled = true }) {
                             : 'border-[#FFD1DC] dark:border-pink-900/60 text-[#FF4D6D] dark:text-pink-300'
                     }`}
                   >
-                    {isOverview ? 'Executive Alignment' : isOther ? 'Strategic Alignment' : (isMIS ? 'Analytics Alignment' : 'Leadership Alignment')}
+                    {story.alignmentBadge || 'Executive Alignment'}
                   </span>
                 </div>
-                <p className="text-[#18181B] dark:text-stone-100 text-sm sm:text-base font-semibold leading-relaxed font-['Outfit',sans-serif] transition-colors">
-                  {story.visionQuote}
-                </p>
+                <div
+                  tabIndex={0}
+                  data-card="true"
+                  data-tts={`Vision Quote: ${getA11yText(story.visionQuote)}`}
+                  className="focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg p-1 -m-1"
+                >
+                  <p className="text-[#18181B] dark:text-stone-100 text-sm sm:text-base font-semibold leading-relaxed font-['Outfit',sans-serif] transition-colors">
+                    {story.visionQuote}
+                  </p>
+                </div>
               </div>
 
               {/* 4 High-Level Core Competency Pillars */}
               <div className="pt-2">
-                <div className="flex items-center justify-between mb-4">
+                <div 
+                  tabIndex={0}
+                  data-tts="Sub-header: Executive Competency Pillars, 4 Strategic Domains"
+                  className="flex items-center justify-between mb-4 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg p-1 -m-1"
+                >
                   <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#18181B] dark:text-stone-200 uppercase tracking-wider">
                     <CheckCircle2 className="w-4 h-4" style={{ color: accentColor }} />
                     <span>{isOverview ? 'Executive Competency Pillars' : isOther ? 'Strategic Competency Pillars' : (isMIS ? 'Data & MIS Competency Pillars' : 'Core Competency Pillars')}</span>
@@ -812,7 +882,10 @@ export default function AboutSection({ soundEnabled = true }) {
                     return (
                       <div 
                         key={comp.title}
-                        className="p-5 sm:p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#161122] border border-[#ECE7DF] dark:border-[#2D2340] hover:border-stone-400/50 dark:hover:border-[#3D3055] transition-all duration-200 flex flex-col justify-between group"
+                        tabIndex={0}
+                        data-card="true"
+                        data-tts={`Competency: ${comp.title}. Description: ${comp.desc || comp.description}. Domain: ${comp.domain || comp.category}`}
+                        className="p-5 sm:p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#161122] border border-[#ECE7DF] dark:border-[#2D2340] hover:border-stone-400/50 dark:hover:border-[#3D3055] transition-all duration-200 flex flex-col justify-between group focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
                       >
                         <div>
                           <div className="flex items-center justify-between mb-3.5">
@@ -858,7 +931,11 @@ export default function AboutSection({ soundEnabled = true }) {
               } focus-visible:ring-offset-2 rounded-2xl`}
             >
             {/* Header intro */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#ECE7DF] dark:border-stone-800 gap-2">
+            <div 
+              tabIndex={0}
+              data-tts="Sub-header: Academic & Technical Credentials"
+              className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#ECE7DF] dark:border-stone-800 gap-2 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-xl p-1 -m-1"
+            >
               <div>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-[#18181B] dark:text-[#F4F4F5] font-['Outfit',sans-serif] transition-colors">
                   Academic &amp; Technical Qualifications
@@ -878,7 +955,10 @@ export default function AboutSection({ soundEnabled = true }) {
                 <div 
                   key={cred.level}
                   id={cred.targetId || ('edu-' + cred.level)}
-                  className="scroll-mt-28 relative p-6 sm:p-7 rounded-2xl bg-[#FAF8F5] dark:bg-[#161122] border border-[#ECE7DF] dark:border-[#2D2340] hover:border-[#FF4D6D]/30 dark:hover:border-[#D946EF]/50 transition-all duration-200 group"
+                  tabIndex={0}
+                  data-card="true"
+                  data-tts={`Credential: ${cred.title} at ${cred.institution}, ${cred.location}. Status: ${cred.status}. Highlights: ${cred.highlights.join('; ')}`}
+                  className="scroll-mt-28 relative p-6 sm:p-7 rounded-2xl bg-[#FAF8F5] dark:bg-[#161122] border border-[#ECE7DF] dark:border-[#2D2340] hover:border-[#FF4D6D]/30 dark:hover:border-[#D946EF]/50 transition-all duration-200 group focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
                 >
                   {/* Timeline Node Dot */}
                   <div 
@@ -960,7 +1040,11 @@ export default function AboutSection({ soundEnabled = true }) {
               } focus-visible:ring-offset-2 rounded-2xl`}
             >
             {/* Header intro with verified seal */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#ECE7DF] dark:border-stone-800 gap-3">
+            <div 
+              tabIndex={0}
+              data-tts="Sub-header: Official Bio-Data and Personal Dossier"
+              className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#ECE7DF] dark:border-stone-800 gap-3 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-xl p-1 -m-1"
+            >
               <div>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-[#18181B] dark:text-[#F4F4F5] font-['Outfit',sans-serif] transition-colors">
                   Official Bio-Data Dossier
@@ -985,7 +1069,12 @@ export default function AboutSection({ soundEnabled = true }) {
             </div>
 
             {/* Main Credential Card */}
-            <div className="bg-[#FAF8F5] dark:bg-[#161122] rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] p-6 sm:p-8 space-y-6 shadow-2xs transition-colors">
+            <div 
+              tabIndex={0}
+              data-card="true"
+              data-tts={`Primary Details Dossier for Atul Verma: ${bioDataFields.map((f) => `${f.label}: ${f.value}`).join('. ')}. Permanent location: Daltonganj, Jharkhand.`}
+              className="bg-[#FAF8F5] dark:bg-[#161122] rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] p-6 sm:p-8 space-y-6 shadow-2xs transition-colors focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+            >
               {/* Profile Bar */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E7E2D8] dark:border-[#2D2340]">
                 <div className="flex items-center gap-3.5">
@@ -1022,7 +1111,9 @@ export default function AboutSection({ soundEnabled = true }) {
                   return (
                     <div 
                       key={field.label}
-                      className="p-4 rounded-xl bg-white dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] flex flex-col justify-between space-y-2 hover:border-[#FF4D6D]/30 dark:hover:border-[#D946EF]/50 transition-colors"
+                      tabIndex={0}
+                      data-tts={`${field.label}: ${field.value}`}
+                      className="p-4 rounded-xl bg-white dark:bg-[#100C1A] border border-[#E7E2D8] dark:border-[#2D2340] flex flex-col justify-between space-y-2 hover:border-[#FF4D6D]/30 dark:hover:border-[#D946EF]/50 transition-colors focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
                     >
                       <div className="flex items-center justify-between text-stone-500 dark:text-stone-400">
                         <span className="text-xs font-mono flex items-center gap-1.5">
@@ -1074,7 +1165,12 @@ export default function AboutSection({ soundEnabled = true }) {
                   </button>
                 </div>
 
-                <div className="bg-white dark:bg-[#100C1A] p-4 rounded-xl border border-[#E7E2D8] dark:border-[#2D2340] flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
+                <div
+                  tabIndex={0}
+                  data-card="true"
+                  data-tts="Permanent Address and Headquarters: Medininagar, Palamu, Jharkhand"
+                  className="bg-white dark:bg-[#100C1A] p-4 rounded-xl border border-[#E7E2D8] dark:border-[#2D2340] flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                >
                   <div className="font-medium text-[#18181B] dark:text-stone-200 text-xs sm:text-sm leading-relaxed">
                     {fullAddress}
                   </div>

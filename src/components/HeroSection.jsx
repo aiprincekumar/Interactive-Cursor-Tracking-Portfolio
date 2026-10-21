@@ -9,6 +9,7 @@ import { useDraggableCharacter } from '../hooks/useDraggableCharacter';
 import { formatVintageTimestamp } from '../utils/polaroidExport';
 import { useLab, POSE_INDEX_MAP, ZOOM_FOCUS_MAP } from '../context/LabContext';
 import { useSimpleMode } from '../context/SimpleModeContext';
+import { useAnnounce } from '../context/AnnouncerContext';
 
 /**
  * Full-Screen Reel-Accurate Character Hero Section
@@ -52,6 +53,7 @@ export default function HeroSection({
   reducedMotion
 }) {
   const { isSimpleMode } = useSimpleMode();
+  const { announce } = useAnnounce();
   const { activeRole, activeTrack } = useRoleTab();
   const lab = useLab();
   const customCursorEnabled = lab?.customCursorEnabled ?? true;
@@ -117,6 +119,20 @@ export default function HeroSection({
       setUserScale(characterZoom);
     }
   }, [characterZoom]);
+
+  // Voice narration for character pose overrides
+  const lastAnnouncedPoseRef = useRef(null);
+  useEffect(() => {
+    if (poseOverride !== null && poseOverride !== undefined) {
+      const poseName = typeof poseOverride === 'number' ? (POSE_INDEX_MAP[poseOverride] || `Pose ${poseOverride}`) : poseOverride;
+      if (lastAnnouncedPoseRef.current !== poseName) {
+        lastAnnouncedPoseRef.current = poseName;
+        if (announce) {
+          announce(`Character pose changed to ${poseName}`, 'polite');
+        }
+      }
+    }
+  }, [poseOverride, announce]);
 
   // High-performance Mobile & Gyroscope tracking hook (Disabled in Simple Mode)
   const gyro = useGyroscopeTracking({
@@ -783,6 +799,9 @@ export default function HeroSection({
       };
       
       const poseData = poseMap[activePose] || poseMap['center'];
+      if (announce) {
+        announce(`Polaroid snapshot captured: ${poseData.title}`, 'polite');
+      }
       
       onPhotoCaptured({
         id: Date.now(),
@@ -798,7 +817,7 @@ export default function HeroSection({
     setTimeout(() => {
       setIsFlashing(false);
     }, 280);
-  }, [isSimpleMode, reducedMotion, onPhotoCaptured]);
+  }, [isSimpleMode, reducedMotion, onPhotoCaptured, announce]);
 
   return (
     <section
@@ -807,6 +826,7 @@ export default function HeroSection({
         if (heroRef) heroRef.current = el;
       }}
       id="hero"
+      aria-label="Introduction & Character Tracking"
       onPointerEnter={isSimpleMode ? undefined : () => {
         setIsInsideHero(true);
         animStateRef.current.isHovered = true;
@@ -853,11 +873,12 @@ export default function HeroSection({
       )}
 
       {/* 2. Studio Stage Backdrop Background Layer */}
-      <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden select-none">
+      <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden select-none" aria-hidden="true">
         <img
           ref={bgBackdropRef}
           src={IMG_BG_HERO}
-          alt="Studio Stage Backdrop"
+          alt=""
+          aria-hidden="true"
           className="w-full h-full object-cover object-[center_32%] pointer-events-none select-none will-change-transform dark:brightness-[0.88] dark:contrast-[1.08] transition-[filter] duration-300"
           loading="eager"
           decoding="sync"
@@ -1051,6 +1072,28 @@ export default function HeroSection({
       } gap-4 md:gap-6`}>
         {/* Row 1 on Mobile / Left Column on Desktop: Clean Typography & Social Icons */}
         <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-2.5 sm:gap-3 pointer-events-auto w-full sm:w-auto">
+          {/* Eyebrow Badge & Role Track Badge Pills */}
+          <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+            <div
+              tabIndex={0}
+              data-tts="Status: Available for hire 2026"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/85 dark:bg-[#161122]/85 backdrop-blur-md border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-[11px] font-bold uppercase tracking-wider shadow-2xs focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-full cursor-pointer select-none"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span>Available for hire &bull; 2026</span>
+            </div>
+            {activeTrack?.badge && (
+              <div
+                tabIndex={0}
+                data-tts={`Current track: ${activeTrack.badge}`}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/80 dark:bg-[#161122]/80 backdrop-blur-md border border-[#E7E2D8] dark:border-[#2D2340] text-stone-600 dark:text-stone-300 text-[10px] font-mono font-bold shadow-2xs focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-full cursor-pointer select-none"
+              >
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: activeTrack.accent || '#FF4D6D' }} />
+                <span>{activeTrack.badge}</span>
+              </div>
+            )}
+          </div>
+
           {Boolean(activeTrack?.heroTitle || activeTrack?.heroSubtitle) && (
             <div
               key={activeRole}
@@ -1059,12 +1102,20 @@ export default function HeroSection({
               }`}
             >
               {activeTrack?.heroTitle && (
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#18181B] dark:text-[#F4F4F5] tracking-tight leading-tight font-['Outfit',sans-serif] drop-shadow-xs transition-colors duration-300">
+                <h1
+                  tabIndex={0}
+                  data-tts={`Hero Title: ${activeTrack.heroTitle}`}
+                  className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#18181B] dark:text-[#F4F4F5] tracking-tight leading-tight font-['Outfit',sans-serif] drop-shadow-xs transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg px-1 -mx-1"
+                >
                   {activeTrack.heroTitle}
                 </h1>
               )}
               {activeTrack?.heroSubtitle && (
-                <p className="text-sm sm:text-base md:text-lg font-semibold text-[#27272A] dark:text-stone-300 tracking-tight drop-shadow-2xs transition-colors duration-300">
+                <p
+                  tabIndex={0}
+                  data-tts={`Hero Subtitle: ${activeTrack.heroSubtitle}`}
+                  className="text-sm sm:text-base md:text-lg font-semibold text-[#27272A] dark:text-stone-300 tracking-tight drop-shadow-2xs transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg px-1 -mx-1"
+                >
                   {activeTrack.heroSubtitle}
                 </p>
               )}
@@ -1081,7 +1132,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-full"
               title="Notion"
             >
               <NotionIcon className="w-4 h-4" />
@@ -1095,7 +1146,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-full"
               title="GitHub (Coming Soon)"
             >
               <GithubIcon className="w-4 h-4" />
@@ -1109,7 +1160,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-full"
               title="LinkedIn"
             >
               <LinkedinIcon className="w-4 h-4" />
@@ -1123,7 +1174,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-full"
               title="YouTube"
             >
               <YoutubeIcon className="w-4 h-4" />
@@ -1137,7 +1188,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#18181B]/80 dark:hover:bg-[#27272A] backdrop-blur-md border border-[#E7E2D8] dark:border-stone-800 shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-stone-200 hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-full"
               title="Facebook"
             >
               <FacebookIcon className="w-4 h-4" />
@@ -1151,7 +1202,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#161122]/85 dark:hover:bg-[#201830] backdrop-blur-md border border-[#E7E2D8] dark:border-[#2D2340] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-[#A99EBA] hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#161122]/85 dark:hover:bg-[#201830] backdrop-blur-md border border-[#E7E2D8] dark:border-[#2D2340] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-[#A99EBA] hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-full"
               title="Instagram"
             >
               <InstagramIcon className="w-4 h-4" />
@@ -1165,7 +1216,7 @@ export default function HeroSection({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#161122]/85 dark:hover:bg-[#201830] backdrop-blur-md border border-[#E7E2D8] dark:border-[#2D2340] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-[#A99EBA] hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all"
+              className="w-8 h-8 rounded-full bg-white/85 hover:bg-white dark:bg-[#161122]/85 dark:hover:bg-[#201830] backdrop-blur-md border border-[#E7E2D8] dark:border-[#2D2340] shadow-2xs hover:shadow-md flex items-center justify-center text-[#18181B] dark:text-[#A99EBA] hover:text-[#FF3F6C] dark:hover:text-[#FF4D6D] hover:scale-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-full"
               title="X (formerly Twitter)"
             >
               <TwitterIcon className="w-4 h-4" />

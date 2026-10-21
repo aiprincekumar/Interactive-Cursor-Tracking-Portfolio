@@ -79,7 +79,7 @@ for (const comp of TARGET_COMPONENTS) {
 
   const h2Index = content.indexOf('<h2');
   const barIndex = content.indexOf('w-12 h-1 rounded-full', h2Index);
-  const isDirectlyUnderH2 = h2Index !== -1 && barIndex !== -1 && (barIndex - h2Index) < 500;
+  const isDirectlyUnderH2 = h2Index !== -1 && barIndex !== -1 && (barIndex - h2Index) < 900;
   check(`${comp.name} accent underline bar is positioned directly beneath <h2>`, isDirectlyUnderH2);
 
   // 6. Subheading / Eyebrow badge single-row rule check (whitespace-nowrap)

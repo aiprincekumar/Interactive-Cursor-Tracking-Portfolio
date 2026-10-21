@@ -26,6 +26,7 @@ import { useRoleTab } from '../context/RoleContext';
 import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
 import { getResumeConfig } from '../utils/resumeConfig';
 import { useTheme } from '../context/ThemeContext';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const CATEGORIES = ['All', 'Actions', 'Sections', 'Projects', 'Skills', 'Experience', 'Education'];
 
@@ -165,6 +166,14 @@ export default function CommandPalette({
   const inputRef = useRef(null);
   const listRef = useRef(null);
   const itemRefs = useRef([]);
+  const modalContainerRef = useRef(null);
+
+  // Accessible focus trapping & restoration
+  useFocusTrap(isOpen, modalContainerRef, {
+    initialFocusRef: inputRef,
+    onEscape: onClose,
+    restoreFocus: true
+  });
 
   // Listen for global custom open event
   useEffect(() => {
@@ -451,6 +460,7 @@ export default function CommandPalette({
       className="fixed inset-0 z-50 bg-black/65 backdrop-blur-md flex items-start justify-center pt-12 sm:pt-20 px-3 sm:px-4 pb-6 animate-in fade-in duration-200"
     >
       <div
+        ref={modalContainerRef}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-2xl bg-[#FAF8F5] dark:bg-[#18181B] rounded-3xl border border-[#E7E2D8] dark:border-stone-800 shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-150 transition-colors"
       >
@@ -460,6 +470,10 @@ export default function CommandPalette({
           <input
             ref={inputRef}
             type="text"
+            role="combobox"
+            aria-expanded={isOpen}
+            aria-autocomplete="list"
+            aria-controls="command-palette-results"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -561,7 +575,7 @@ export default function CommandPalette({
         )}
 
         {/* Results List (Grouped by Category) */}
-        <div ref={listRef} className="overflow-y-auto p-3 space-y-4">
+        <div id="command-palette-results" role="listbox" aria-label="Search results" ref={listRef} className="overflow-y-auto p-3 space-y-4">
           {totalCount === 0 ? (
             <div className="py-12 px-6 text-center text-stone-500 dark:text-stone-400">
               <SearchX className="w-10 h-10 mx-auto text-stone-300 dark:text-stone-600 mb-2" />
@@ -613,6 +627,9 @@ export default function CommandPalette({
                       return (
                         <div
                           key={item.id}
+                          id={`search-result-${item.id}`}
+                          role="option"
+                          aria-selected={isSelected}
                           ref={(el) => {
                             itemRefs.current[item.flatIndex] = el;
                           }}

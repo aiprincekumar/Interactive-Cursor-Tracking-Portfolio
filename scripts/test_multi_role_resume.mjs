@@ -22,28 +22,32 @@ function assert(condition, testName, details = '') {
 }
 
 // ----------------------------------------------------
-// TEST 1: Role-Specific PDF Assets in public/
+// TEST 1: Role-Specific PDF Assets in public/ and dist/
 // ----------------------------------------------------
-console.log('--- 1. VERIFY ALL FOUR ROLE PDF ASSETS ---');
+console.log('--- 1. VERIFY ALL FIVE ROLE PDF ASSETS IN public/ AND dist/ ---');
 const expectedPdfs = [
-  { file: 'resume-accountant.pdf', minSize: 10000 },
-  { file: 'resume-mis.pdf', minSize: 10000 },
-  { file: 'resume.pdf', minSize: 10000 },
-  { file: 'resume-controller.pdf', minSize: 10000 }
+  { file: 'resume-accountant.pdf', minSize: 15360 },
+  { file: 'resume-mis.pdf', minSize: 15360 },
+  { file: 'resume.pdf', minSize: 15360 },
+  { file: 'resume-controller.pdf', minSize: 15360 },
+  { file: 'resume-vibe-coder.pdf', minSize: 15360 }
 ];
 
-expectedPdfs.forEach(({ file, minSize }) => {
-  const filePath = path.join(rootDir, 'public', file);
-  const exists = fs.existsSync(filePath);
-  assert(exists, `public/${file} exists`);
+['public', 'dist'].forEach((dir) => {
+  console.log(`\nChecking directory: ${dir}/`);
+  expectedPdfs.forEach(({ file, minSize }) => {
+    const filePath = path.join(rootDir, dir, file);
+    const exists = fs.existsSync(filePath);
+    assert(exists, `${dir}/${file} exists`);
 
-  if (exists) {
-    const stat = fs.statSync(filePath);
-    assert(stat.size >= minSize, `${file} size is valid (${stat.size} bytes >= ${minSize})`);
-    const buf = fs.readFileSync(filePath);
-    const header = buf.subarray(0, 5).toString('utf-8');
-    assert(header === '%PDF-', `${file} has valid %PDF- magic header`);
-  }
+    if (exists) {
+      const stat = fs.statSync(filePath);
+      assert(stat.size > minSize, `${dir}/${file} size is valid (${stat.size} bytes > ${minSize} bytes / 15KB)`);
+      const buf = fs.readFileSync(filePath);
+      const header = buf.subarray(0, 8).toString('utf-8');
+      assert(header.startsWith('%PDF-1.4'), `${dir}/${file} has valid %PDF-1.4 header (found: ${header.trim()})`);
+    }
+  });
 });
 
 // ----------------------------------------------------
@@ -87,6 +91,16 @@ assert(misConfig.label === 'MIS & Analytics Resume', 'MIS label is "MIS & Analyt
 assert(misConfig.badge === 'Data & Operations', 'MIS badge is "Data & Operations"');
 assert(misConfig.accent === '#3B82F6', 'MIS accent is #3B82F6');
 assert(misConfig.getShareUrl('https://atulverma.com').includes('role=mis'), 'MIS getShareUrl includes ?role=mis');
+
+// Verify Vibe Coding Config
+const vibeConfig = getResumeConfig('vibe_coding');
+assert(vibeConfig.fileName === 'resume-vibe-coder.pdf', 'Vibe Coding fileName is resume-vibe-coder.pdf');
+assert(vibeConfig.downloadFilename === 'Atul_Verma_Vibe_Coder_Resume.pdf', 'Vibe Coding downloadFilename is Atul_Verma_Vibe_Coder_Resume.pdf');
+assert(vibeConfig.label === 'Vibe Coder Resume', 'Vibe Coding label is "Vibe Coder Resume"');
+assert(vibeConfig.badge === 'AI & SaaS Track', 'Vibe Coding badge is "AI & SaaS Track"');
+assert(vibeConfig.accent === '#10B981', 'Vibe Coding accent is #10B981');
+assert(typeof vibeConfig.getShareUrl === 'function', 'Vibe Coding has getShareUrl function');
+assert(vibeConfig.getShareUrl('https://atulverma.com').includes('role=vibe_coding'), 'Vibe Coding getShareUrl includes ?role=vibe_coding');
 
 // Verify Other / AI-Synthesized Controller Config
 const otherConfig = getResumeConfig('other');

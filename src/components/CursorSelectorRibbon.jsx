@@ -3,6 +3,7 @@ import { Sparkles, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Check, X }
 import { soundFX } from '../utils/audio';
 import { CATEGORIES, CURSOR_LIST } from '../utils/cursorConstants';
 import CursorIcon from './CursorIcon';
+import { useAnnounce } from '../context/AnnouncerContext';
 
 export default function CursorSelectorRibbon({
   activeCursor = 'butterfly',
@@ -55,19 +56,59 @@ export default function CursorSelectorRibbon({
     soundFX.playRibbonToggle(nextState);
   };
 
+  let announce = null;
+  try {
+    const announcer = useAnnounce();
+    announce = announcer?.announce;
+  } catch {
+    // fallback
+  }
+
   const handleSelectCursor = (cursorId) => {
     soundFX.playCursorSelect(cursorId);
     if (onSelectCursor) {
       onSelectCursor(cursorId);
+    }
+    if (announce) {
+      const cData = CURSOR_LIST.find((c) => c.id === cursorId);
+      const cName = cData ? cData.name : cursorId;
+      announce(`Equipped cursor: ${cName}`, 'polite');
     }
   };
 
   const handleCategoryChange = (category) => {
     soundFX.playChipHover();
     setSelectedCategory(category);
+    if (announce) {
+      announce(`Cursor category: ${category}`, 'polite');
+    }
     // Smooth scroll back to start when switching tabs
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleCursorKeyDown = (e, currentIndex) => {
+    let nextIndex = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      nextIndex = (currentIndex + 1) % filteredCursors.length;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      nextIndex = (currentIndex - 1 + filteredCursors.length) % filteredCursors.length;
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      nextIndex = 0;
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      nextIndex = filteredCursors.length - 1;
+    }
+
+    if (nextIndex !== null) {
+      const nextCursor = filteredCursors[nextIndex];
+      handleSelectCursor(nextCursor.id);
+      const nextBtn = scrollContainerRef.current?.children[nextIndex];
+      nextBtn?.focus();
     }
   };
 
@@ -93,16 +134,21 @@ export default function CursorSelectorRibbon({
           </div>
 
           {/* Category Tabs Pill - Exactly matched to Navbar Menu Bar */}
-          <div className="order-3 sm:order-2 w-full sm:w-auto flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar scroll-smooth gap-1 bg-[#F0EBE1]/60 px-2 sm:px-3 py-1 rounded-full border border-[#E5DFD5]">
+          <div
+            className="order-3 sm:order-2 w-full sm:w-auto flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar scroll-smooth gap-1 bg-[#F0EBE1]/60 px-2 sm:px-3 py-1 rounded-full border border-[#E5DFD5]"
+            role="tablist"
+            aria-label="Cursor Categories"
+          >
             {CATEGORIES.map((cat) => {
               const isSelected = selectedCategory === cat;
               return (
                 <button
                   key={cat}
                   type="button"
+                  role="tab"
                   onClick={() => handleCategoryChange(cat)}
                   onMouseEnter={() => soundFX.playChipHover()}
-                  aria-pressed={isSelected}
+                  aria-selected={isSelected}
                   title={`Filter: ${cat}`}
                   className={`text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap transition-all duration-200 cursor-pointer ${
                     isSelected
@@ -183,14 +229,17 @@ export default function CursorSelectorRibbon({
               role="radiogroup"
               aria-label="Interactive Cursor Selection"
             >
-              {filteredCursors.map((cursor) => {
+              {filteredCursors.map((cursor, idx) => {
                 const isActive = activeCursor === cursor.id;
+                const isFocusable = isActive || (!filteredCursors.some(c => c.id === activeCursor) && idx === 0);
                 return (
                   <button
                     key={cursor.id}
                     type="button"
                     role="radio"
                     aria-checked={isActive}
+                    tabIndex={isFocusable ? 0 : -1}
+                    onKeyDown={(e) => handleCursorKeyDown(e, idx)}
                     onClick={() => handleSelectCursor(cursor.id)}
                     onMouseEnter={() => soundFX.playChipHover()}
                     className={`group relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-lg sm:text-xl transition-all duration-200 shrink-0 cursor-pointer focus:outline-hidden ${

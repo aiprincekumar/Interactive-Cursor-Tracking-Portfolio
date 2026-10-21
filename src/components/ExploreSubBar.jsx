@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Image, Sliders, X } from 'lucide-react';
+import { Image, Sliders, X, Terminal } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useSimpleMode } from '../context/SimpleModeContext';
 
@@ -8,6 +8,8 @@ export default function ExploreSubBar({
   isOpen = true,
   onClose,
   soundEnabled = true,
+  onOpenTerminal,
+  onToggleTerminal,
   className = ''
 }) {
   const buttonRefs = useRef([]);
@@ -49,6 +51,13 @@ export default function ExploreSubBar({
       action: 'open-drawer',
       icon: Sliders,
       desc: 'Tune Anywhere'
+    },
+    {
+      id: 'terminal-cli',
+      label: 'Terminal CLI',
+      icon: Terminal,
+      desc: 'Interactive Console',
+      action: 'toggle-terminal'
     }
   ];
 
@@ -64,6 +73,21 @@ export default function ExploreSubBar({
       if (soundEnabled) soundFX.playRibbonSweep('up');
       window.dispatchEvent(new CustomEvent('portfolio:open-lab-drawer'));
       window.dispatchEvent(new CustomEvent('open-lab-drawer'));
+      if (onClose) onClose();
+      return;
+    }
+    if (targetItem.action === 'toggle-terminal' || targetItem.id === 'terminal-cli') {
+      if (soundEnabled) soundFX.playFocusBeep();
+      if (onOpenTerminal) {
+        onOpenTerminal();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('portfolio:open-terminal'));
+        }
+      } else if (onToggleTerminal) {
+        onToggleTerminal();
+      } else if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('portfolio:open-terminal'));
+      }
       if (onClose) onClose();
       return;
     }
@@ -119,7 +143,7 @@ export default function ExploreSubBar({
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="group" aria-label="Showcase and Lab quick links">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2" role="group" aria-label="Showcase and Lab quick links">
           {items.map((item, index) => {
             if (item.id === 'simple-mode-toggle') {
               return (
@@ -161,6 +185,7 @@ export default function ExploreSubBar({
               );
             }
             const Icon = item.icon;
+            const isTerminal = item.id === 'terminal-cli';
             return (
               <button
                 key={item.id}
@@ -172,10 +197,18 @@ export default function ExploreSubBar({
                 onMouseEnter={() => {
                   if (soundEnabled) soundFX.playChipHover();
                 }}
-                className="flex items-center gap-2 px-2.5 py-2 rounded-xl border border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-[#FAF8F5] dark:bg-stone-900/90 hover:bg-white dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white transition-all duration-200 cursor-pointer select-none shadow-2xs group text-left focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+                className={`flex items-center gap-2 px-2.5 py-2 rounded-xl border ${
+                  isTerminal
+                    ? 'border-[#E7E2D8] dark:border-stone-700 hover:border-emerald-500/50 bg-[#FAF8F5] dark:bg-stone-900/90 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 text-stone-700 dark:text-stone-200 hover:text-emerald-600 dark:hover:text-emerald-400'
+                    : 'border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-[#FAF8F5] dark:bg-stone-900/90 hover:bg-white dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white'
+                } transition-all duration-200 cursor-pointer select-none shadow-2xs group text-left focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden`}
                 title={`Jump to ${item.label}`}
               >
-                <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white transition-colors duration-200">
+                <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
+                  isTerminal
+                    ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white'
+                    : 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white'
+                } transition-colors duration-200`}>
                   <Icon className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex flex-col min-w-0">
@@ -257,6 +290,7 @@ export default function ExploreSubBar({
               );
             }
             const Icon = item.icon;
+            const isTerminal = item.id === 'terminal-cli';
             return (
               <button
                 key={item.id}
@@ -268,15 +302,23 @@ export default function ExploreSubBar({
                 onMouseEnter={() => {
                   if (soundEnabled) soundFX.playChipHover();
                 }}
-                className="group relative flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full border border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-white/70 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white transition-all duration-200 cursor-pointer select-none shrink-0 text-xs font-bold font-mono shadow-2xs hover:shadow-xs hover:scale-[1.02] active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
-                title={`Jump to ${item.label}`}
+                className={`group relative flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer select-none shrink-0 text-xs font-bold font-mono shadow-2xs hover:shadow-xs hover:scale-[1.02] active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                  isTerminal
+                    ? 'border-[#E7E2D8] dark:border-stone-700 hover:border-emerald-500/50 bg-white/70 dark:bg-stone-800/80 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 text-stone-700 dark:text-stone-200 hover:text-emerald-600 dark:hover:text-emerald-400'
+                    : 'border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-white/70 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white'
+                }`}
+                title={isTerminal ? "Open Terminal CLI" : `Jump to ${item.label}`}
               >
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shrink-0 bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white transition-colors duration-200">
+                <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shrink-0 ${
+                  isTerminal
+                    ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white'
+                    : 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white'
+                } transition-colors duration-200`}>
                   <Icon className="w-3.5 h-3.5" />
                 </div>
                 <span className="tracking-tight whitespace-nowrap">{item.label}</span>
                 <span className="hidden md:inline text-[10px] font-normal text-stone-400 dark:text-stone-400 group-hover:text-stone-500 dark:group-hover:text-stone-300">
-                  {item.id === 'gallery' ? 'Showcase' : 'Playground'}
+                  {item.id === 'gallery' ? 'Showcase' : item.id === 'terminal-cli' ? 'Console' : 'Playground'}
                 </span>
               </button>
             );

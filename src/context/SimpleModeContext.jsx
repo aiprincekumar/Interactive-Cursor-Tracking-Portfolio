@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 
 const SIMPLE_MODE_STORAGE_KEY = 'portfolio_simple_mode';
 
-const SimpleModeContext = createContext(null);
+export const SimpleModeContext = createContext(null);
 
 export function SimpleModeProvider({ children }) {
   const [isSimpleMode, setIsSimpleMode] = useState(() => {
