@@ -79,7 +79,11 @@ const exploreCode = fs.readFileSync(explorePath, 'utf8');
 check('ExploreSubBar.jsx imports useSimpleMode', exploreCode.includes("import { useSimpleMode } from '../context/SimpleModeContext'"));
 check('ExploreSubBar.jsx places Simple Mode toggle before Gallery without icon', exploreCode.includes("id: 'simple-mode-toggle'") && exploreCode.indexOf("id: 'simple-mode-toggle'") < exploreCode.indexOf("id: 'gallery'") && exploreCode.includes("item.id === 'simple-mode-toggle'"));
 
-// 6. Inspect Floating Action Buttons (Vertical Stacking & Strict Right-Rail Alignment)
+// 6. Inspect Floating Action Buttons (Centralized Master FloatingActionHub & Strict Right-Rail Alignment)
+const hubPath = path.resolve('src/components/FloatingActionHub.jsx');
+const hubExists = fs.existsSync(hubPath);
+const hubCode = hubExists ? fs.readFileSync(hubPath, 'utf8') : '';
+
 const floatingPath = path.resolve('src/components/FloatingSimpleModeToggle.jsx');
 const floatingExists = fs.existsSync(floatingPath);
 const floatingCode = floatingExists ? fs.readFileSync(floatingPath, 'utf8') : '';
@@ -88,17 +92,13 @@ const backToTopPath = path.resolve('src/components/BackToTopButton.jsx');
 const backToTopExists = fs.existsSync(backToTopPath);
 const backToTopCode = backToTopExists ? fs.readFileSync(backToTopPath, 'utf8') : '';
 
-const labDrawerPath = path.resolve('src/components/LabStudioDrawer.jsx');
-const labDrawerExists = fs.existsSync(labDrawerPath);
-const labDrawerCode = labDrawerExists ? fs.readFileSync(labDrawerPath, 'utf8') : '';
-
-check('FloatingSimpleModeToggle.jsx exists and imports useSimpleMode', floatingExists && floatingCode.includes("useSimpleMode"));
-check('App.jsx mounts FloatingSimpleModeToggle FAB', appCode.includes('<FloatingSimpleModeToggle') && appCode.includes('FloatingSimpleModeToggle from'));
-check('FloatingSimpleModeToggle enforces strict vertical right rail (right-6 sm:right-8) with zero horizontal offsets', floatingCode.includes('fixed right-6 sm:right-8') && !floatingCode.includes('right-22') && !floatingCode.includes('right-25'));
-check('FloatingSimpleModeToggle vertically adapts (bottom-6 in Simple Mode, bottom-22 in Normal Mode)', floatingCode.includes("'bottom-6 sm:bottom-8'") && floatingCode.includes("'bottom-22 sm:bottom-25'"));
-check('BackToTopButton imports useSimpleMode and enforces strict vertical right rail (right-6 sm:right-8)', backToTopExists && backToTopCode.includes('useSimpleMode') && backToTopCode.includes('fixed right-6 sm:right-8'));
-check('BackToTopButton vertically stacks above Simple Mode toggle (bottom-22 in Simple Mode, bottom-38 in Normal Mode)', backToTopCode.includes("'bottom-22 sm:bottom-25'") && backToTopCode.includes("'bottom-38 sm:bottom-42'"));
-check('LabStudioDrawer FAB sits at bottom-6 right-6 sm:bottom-8 sm:right-8', labDrawerExists && labDrawerCode.includes('bottom-6 right-6 sm:bottom-8 sm:right-8'));
+check('FloatingActionHub unifies Simple Mode toggle and imports useSimpleMode', (hubExists && hubCode.includes('useSimpleMode')) || (floatingExists && floatingCode.includes('useSimpleMode')));
+check('App.jsx mounts FloatingActionHub', appCode.includes('<FloatingActionHub') && appCode.includes('FloatingActionHub from'));
+check('FloatingActionHub enforces strict vertical right rail (bottom-6 right-6 sm:bottom-8 sm:right-8)', hubCode.includes('bottom-6 right-6 sm:bottom-8 sm:right-8'));
+check('FloatingActionHub houses Simple Mode toggle with smooth speed-dial actions', hubExists && hubCode.includes('simple-mode-toggle') && hubCode.includes('toggleSimpleMode'));
+check('BackToTopButton enforces strict vertical right rail (right-6 sm:right-8)', backToTopExists && backToTopCode.includes('fixed right-6 sm:right-8'));
+check('BackToTopButton dynamically stacks above FloatingActionHub (bottom-22 collapsed, bottom-56/72 expanded)', backToTopCode.includes("'bottom-22 sm:bottom-25'") && backToTopCode.includes('isHubOpen'));
+check('Master FloatingActionHub FAB sits at bottom-6 right-6 sm:bottom-8 sm:right-8', hubExists && hubCode.includes('bottom-6 right-6 sm:bottom-8 sm:right-8'));
 
 // 7. Inspect ResumeDropdown.jsx
 const resumePath = path.resolve('src/components/ResumeDropdown.jsx');

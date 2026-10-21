@@ -13,6 +13,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 export default function LabStudioDrawer() {
   const {
     isDrawerOpen,
+    openDrawer,
     closeDrawer,
     toggleDrawer,
     resetDefaults,
@@ -21,13 +22,36 @@ export default function LabStudioDrawer() {
   } = useLab();
 
   const drawerRef = useRef(null);
-  const fabRef = useRef(null);
 
-  // Trap focus when drawer is open and restore to FAB trigger on close
+  // Trap focus when drawer is open and restore focus on close
   useFocusTrap(isDrawerOpen, drawerRef, {
     onEscape: closeDrawer,
     restoreFocus: true
   });
+
+  // Listen to custom events from FloatingActionHub or elsewhere
+  useEffect(() => {
+    const handleOpen = () => {
+      if (openDrawer) openDrawer();
+      else if (toggleDrawer) toggleDrawer();
+    };
+    const handleToggle = () => {
+      if (toggleDrawer) toggleDrawer();
+    };
+    const handleClose = () => {
+      if (closeDrawer) closeDrawer();
+    };
+
+    window.addEventListener('open_lab_studio', handleOpen);
+    window.addEventListener('toggle_lab_studio', handleToggle);
+    window.addEventListener('close_lab_studio', handleClose);
+
+    return () => {
+      window.removeEventListener('open_lab_studio', handleOpen);
+      window.removeEventListener('toggle_lab_studio', handleToggle);
+      window.removeEventListener('close_lab_studio', handleClose);
+    };
+  }, [openDrawer, toggleDrawer, closeDrawer]);
 
   // Close on Escape key
   useEffect(() => {
@@ -52,39 +76,7 @@ export default function LabStudioDrawer() {
 
   return (
     <>
-      {/* 1. Persistent Floating Action Button (FAB) */}
-      <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40 select-none">
-        <button
-          ref={fabRef}
-          type="button"
-          onClick={toggleDrawer}
-          aria-label={isDrawerOpen ? 'Close Portfolio Control Center' : 'Open Portfolio Control Center'}
-          aria-expanded={isDrawerOpen}
-          aria-controls="portfolio-control-center-drawer"
-          title="Portfolio Control Center (Audio, Cursors, Hero, Preferences)"
-          className="group relative flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-[#18181B]/95 dark:bg-[#120D1D]/95 text-[#FF4D6D] border border-[#FF4D6D]/40 shadow-2xl shadow-[#FF4D6D]/25 hover:border-[#FF4D6D] hover:scale-105 active:scale-95 transition-all duration-300 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D] cursor-pointer"
-        >
-          {/* Subtle Pulse Beacon indicator */}
-          <span aria-hidden="true" className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-[#FF4D6D]" />
-            <span className="relative inline-flex rounded-full h-3.5 w-3.5 border-2 border-white dark:border-[#120D1D] bg-[#FF4D6D]" />
-          </span>
-
-          <Sliders
-            aria-hidden="true"
-            className={`w-6 h-6 transition-transform duration-300 ${
-              isDrawerOpen ? 'rotate-90 scale-110 text-white' : 'group-hover:rotate-12'
-            }`}
-          />
-
-          {/* Accessible Tooltip */}
-          <span aria-hidden="true" className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-xl bg-stone-900/95 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 hidden sm:block border border-stone-700/60">
-            Control Center
-          </span>
-        </button>
-      </div>
-
-      {/* 2. Semi-Transparent Modal Backdrop */}
+      {/* 1. Semi-Transparent Modal Backdrop */}
       {isDrawerOpen && (
         <div
           role="button"

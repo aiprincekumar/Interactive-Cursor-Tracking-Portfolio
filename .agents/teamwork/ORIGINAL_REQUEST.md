@@ -692,3 +692,53 @@ Integrity mode: development
 ## Verification
 - Programmatic build verification via `npm run build`.
 - Automated sanity test verifying all 9 project case study records are loaded and render without crashing or runtime console errors.
+
+
+## 2026-10-21T11:58:45Z
+
+Implement 4 completely fresh, verified non-existent portfolio features into the Interactive Cursor-Tracking Portfolio for Atul Verma (Accountant & Tax Consultant • AI Software Engineer • MIS Executive) in Normal Mode with WCAG 2.2 AA accessibility and zero regressions on existing 96+ visual and density tests.
+
+Working directory: c:\Users\Atul Verma\Desktop\AI Document\Interactive Cursor-Tracking Portfolio
+Integrity mode: development
+
+## Requirements
+
+### R1. Interactive Project Cost & Service Fee Quotation Estimator (Feature 1)
+Build a dedicated interactive modal launched from an eye-catching CTA card in the Contact section and a quick shortcut in the top Navbar.
+- Supports 3 distinct domain tracks: Accounting & Tax Advisory, MIS & Data Operations, and AI & Web Engineering.
+- Provides interactive sliders and toggles for monthly invoice volume (50 to 2,000+), delivery turnaround (Standard vs Express), and engagement type (One-Time vs Retainer).
+- Computes dynamic fee ranges in ₹, estimated delivery timelines, and itemized deliverables.
+- Implements Dual Actions: "Send Quote to WhatsApp" (pre-formatted with exact quote details) and "Pre-fill Contact Form" (smoothly scrolls to the on-page form and populates service, budget, and scope).
+- Fully accessible with WCAG 2.2 AA focus trap and Escape key dismissal.
+
+### R2. Digital Business Card & Downloadable vCard (Feature 4)
+Build a downloadable vCard (.vcf) generator and an interactive digital business card modal focused strictly inside the Contact Section (Direct Channel tab).
+- Generates standard RFC 6350 compliant `.vcf` file that triggers direct 1-tap "Add to Contacts" on iOS and Android with Atul's verified details.
+- Displays a high-contrast digital card modal featuring avatar, title, contact metadata, and a dynamic scannable SVG QR code.
+
+### R3. Verified Credential & Academic Certificate Lightbox Inspector (Feature 6)
+Enhance the Qualifications tab in the About Section with an official certificate inspector.
+- Each credential card (ADCA Infocity Daltonganj, JAC Intermediate in Science, JAC Matriculation) receives an "Inspect Credential & Certificate 🔍" trigger.
+- Opens a high-fidelity official certificate preview complete with institutional header, gold verification seal, security watermark, roll code/serial number, and verified badges.
+- Features a 1-click "Copy Verification ID" button with tooltip feedback, previous/next keyboard navigation, and escape-to-close.
+
+### R4. Multilingual Language Switcher (Hindi ⇄ English) (Feature 8)
+Introduce a global bilingual localization system.
+- An animated `[EN | HI]` pill switcher in the top Navbar and mobile drawer.
+- Implements comprehensive natural localization covering navigation links, hero taglines, about narrative tabs, skills, experience, and contact forms in professional Devanagari Hindi.
+- Preserves technical brand and domain terms (e.g. Tally Prime, GST, ITR, React, Next.js, Power BI) in English for precision.
+- Persists user language preference in `localStorage`.
+
+## Acceptance Criteria
+
+### Functionality & Integration
+- [ ] Quotation Estimator calculates realistic fee ranges across all 3 domain tracks and correctly pre-fills the Contact Section form or launches WhatsApp chat.
+- [ ] Digital Business Card modal opens cleanly from the Direct Channel tab in ContactSection and downloads valid `.vcf` file with MIME type `text/vcard`.
+- [ ] Credential Lightbox displays official certificate layouts with correct roll numbers/codes and functional "Copy Verification ID".
+- [ ] Language toggle seamlessly switches between English and Hindi without page reload or layout shift, persisting choice across sessions.
+
+### Quality & Performance
+- [ ] `npm run lint` passes with 0 oxlint errors.
+- [ ] Existing `npm test` suite (21 test files, 96+ visual and density checks) passes with 100% success rate and zero regressions.
+- [ ] A dedicated verification script `scripts/verify_fresh_features.mjs` runs and passes all programmatic assertion checks for the 4 features.
+- [ ] All new modals adhere to WCAG 2.2 AA focus management and keyboard operability.

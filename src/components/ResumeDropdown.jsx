@@ -6,6 +6,7 @@ import { useRoleTab } from '../context/RoleContext.jsx';
 import { useSimpleMode } from '../context/SimpleModeContext.jsx';
 import { getResumeConfig } from '../utils/resumeConfig.js';
 import { useAnnounce } from '../context/AnnouncerContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ResumeDropdown({
   soundEnabled = true,
@@ -13,6 +14,7 @@ export default function ResumeDropdown({
   inDrawer = false,
   onActionComplete
 }) {
+  const { isHindi } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const dropdownRef = useRef(null);
@@ -330,7 +332,7 @@ export default function ResumeDropdown({
           }`}
         >
           <FileText className="w-3.5 h-3.5 shrink-0" />
-          <span>{inDrawer ? label : 'Resume'}</span>
+          <span>{inDrawer ? label : (isHindi ? 'रिज्यूमे' : 'Resume')}</span>
         </button>
 
         {/* Vertical Divider */}
@@ -446,12 +448,16 @@ export default function ResumeDropdown({
                 <Eye className="w-3.5 h-3.5" />
               </span>
               <div className="truncate">
-                <p className="font-bold text-[#18181B] dark:text-white leading-tight">View Online</p>
-                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">Open active PDF in new tab</p>
+                <p className="font-bold text-[#18181B] dark:text-white leading-tight">
+                  {isHindi ? 'ऑनलाइन देखें' : 'View Online'}
+                </p>
+                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">
+                  {isHindi ? 'सक्रिय PDF नए टैब में खोलें' : 'Open active PDF in new tab'}
+                </p>
               </div>
             </div>
             <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold shrink-0 ml-2">
-              PREVIEW
+              {isHindi ? 'पूर्वावलोकन' : 'PREVIEW'}
             </span>
           </button>
 
@@ -475,8 +481,12 @@ export default function ResumeDropdown({
                 <Download className="w-3.5 h-3.5" />
               </span>
               <div className="truncate">
-                <p className="font-bold text-[#18181B] dark:text-white leading-tight">Download PDF</p>
-                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">Role-tailored dossier</p>
+                <p className="font-bold text-[#18181B] dark:text-white leading-tight">
+                  {isHindi ? 'PDF डाउनलोड करें' : 'Download PDF'}
+                </p>
+                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">
+                  {isHindi ? 'रोल-अनुरूप डॉसियर' : 'Role-tailored dossier'}
+                </p>
               </div>
             </div>
             <span
@@ -512,10 +522,10 @@ export default function ResumeDropdown({
               </span>
               <div className="truncate">
                 <p className="font-bold text-[#18181B] dark:text-white leading-tight">
-                  {copied ? 'Link Copied!' : 'Share / Copy Link'}
+                  {copied ? (isHindi ? 'लिंक कॉपी हुआ!' : 'Link Copied!') : (isHindi ? 'शेयर / लिंक कॉपी करें' : 'Share / Copy Link')}
                 </p>
                 <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">
-                  {copied ? 'Ready with active role' : `Share link with ?role=${activeRole}`}
+                  {copied ? (isHindi ? 'सक्रिय रोल के साथ तैयार' : 'Ready with active role') : `Share link with ?role=${activeRole}`}
                 </p>
               </div>
             </div>
@@ -526,7 +536,7 @@ export default function ResumeDropdown({
                   : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
               }`}
             >
-              {copied ? 'COPIED!' : 'SHARE'}
+              {copied ? (isHindi ? 'कॉपी हुआ!' : 'COPIED!') : (isHindi ? 'शेयर' : 'SHARE')}
             </span>
           </button>
 
@@ -556,10 +566,10 @@ export default function ResumeDropdown({
               </span>
               <div className="truncate">
                 <p className="font-bold text-[#18181B] dark:text-white leading-tight">
-                  {isSimpleMode ? 'Interactive Mode' : 'Basic Overview'}
+                  {isSimpleMode ? (isHindi ? 'इंटरएक्टिव मोड' : 'Interactive Mode') : (isHindi ? 'बेसिक अवलोकन (Basic Overview)' : 'Basic Overview')}
                 </p>
                 <p className="text-[10px] text-stone-500 dark:text-stone-400 font-normal leading-tight">
-                  {isSimpleMode ? 'Switch to interactive 3D/kinematics' : 'Toggle clean simple view'}
+                  {isSimpleMode ? (isHindi ? '3D/काइनेमैटिक्स दृश्य पर लौटें' : 'Switch to interactive 3D/kinematics') : (isHindi ? 'स्वच्छ और सरल दृश्य पर स्विच करें' : 'Toggle clean simple view')}
                 </p>
               </div>
             </div>
@@ -570,7 +580,7 @@ export default function ResumeDropdown({
                   : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
               }`}
             >
-              {isSimpleMode ? 'ACTIVE' : 'SIMPLE'}
+              {isSimpleMode ? (isHindi ? 'सक्रिय' : 'ACTIVE') : (isHindi ? 'सरल' : 'SIMPLE')}
             </span>
           </button>
         </div>

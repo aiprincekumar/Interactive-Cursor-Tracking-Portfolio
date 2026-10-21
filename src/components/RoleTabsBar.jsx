@@ -2,6 +2,7 @@
 import React, { useRef } from 'react';
 import { Briefcase, BarChart2, Sparkles, LayoutDashboard, X, Terminal } from 'lucide-react';
 import { useRoleTab, ROLE_TRACKS } from '../context/RoleContext';
+import { useLanguage } from '../context/LanguageContext';
 import { soundFX } from '../utils/audio';
 
 export { ROLE_TRACKS };
@@ -52,6 +53,15 @@ export default function RoleTabsBar({
   } catch {
     // Graceful fallback if mounted outside RoleProvider in tests
   }
+
+  let languageContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    languageContext = useLanguage();
+  } catch {
+    // fallback
+  }
+  const isHindi = languageContext?.isHindi ?? false;
 
   const rawActiveRole = propActiveRole ?? context?.activeRole ?? 'accountant';
   const activeRole = (typeof rawActiveRole === 'string' ? rawActiveRole.trim().toLowerCase() : '') || 'accountant';
@@ -148,10 +158,10 @@ export default function RoleTabsBar({
       <div className={`w-full bg-white dark:bg-stone-800 rounded-2xl border border-[#E7E2D8] dark:border-stone-700 p-2.5 shadow-2xs ${className}`}>
         <div className="flex items-center justify-between mb-2 px-1">
           <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-            Career Track
+            {isHindi ? 'करियर ट्रैक' : 'Career Track'}
           </span>
           <span className="text-[10px] font-mono font-bold text-[#FF4D6D] bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 px-2 py-0.5 rounded-full border border-[#FFD1DC] dark:border-[#FF4D6D]/30">
-            Instant Sync
+            {isHindi ? 'त्वरित सिंक' : 'Instant Sync'}
           </span>
         </div>
 
@@ -184,7 +194,7 @@ export default function RoleTabsBar({
                     ? 'bg-[#FAF8F5] dark:bg-stone-900 text-[#18181B] dark:text-white shadow-xs ring-1 ring-black/5 dark:ring-white/10'
                     : 'bg-white dark:bg-stone-800/80 border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white'
                 }`}
-                title={`Switch career track to ${track.label}`}
+                title={isHindi ? `करियर ट्रैक बदलें: ${track.label_hi || track.label}` : `Switch career track to ${track.label}`}
               >
                 <Icon
                   className={`w-3.5 h-3.5 shrink-0 transition-colors ${
@@ -192,7 +202,7 @@ export default function RoleTabsBar({
                   }`}
                   style={{ color: isActive ? accent : undefined }}
                 />
-                <span className="whitespace-nowrap">{track.label}</span>
+                <span className="whitespace-nowrap">{(isHindi && track.label_hi) ? track.label_hi : track.label}</span>
               </button>
             );
           })}
@@ -209,8 +219,8 @@ export default function RoleTabsBar({
     const activeTrack = roleList.find((t) => t.id === activeRole) || roleList[0];
     const Icon = getRoleIcon(activeTrack);
     const accentColor = activeTrack?.accent || (isAccountant ? '#FF4D6D' : '#3B82F6');
-    const roleLabel = activeTrack?.label || (isAccountant ? 'Accountant & Tax' : 'MIS & Analytics');
-    const trackBadge = activeTrack?.badge || '';
+    const roleLabel = (isHindi && activeTrack?.label_hi) ? activeTrack.label_hi : (activeTrack?.label || (isAccountant ? 'Accountant & Tax' : 'MIS & Analytics'));
+    const trackBadge = (isHindi && activeTrack?.badge_hi) ? activeTrack.badge_hi : (activeTrack?.badge || '');
 
     const handleClick = () => {
       if (onToggle) {
@@ -230,10 +240,10 @@ export default function RoleTabsBar({
         onMouseEnter={() => {
           if (soundEnabled) soundFX.playChipHover();
         }}
-        aria-label={isOpen ? 'Close Career Track Switcher' : `Career Track: ${roleLabel}${trackBadge ? ` (${trackBadge})` : ''}`}
+        aria-label={isOpen ? (isHindi ? 'करियर ट्रैक स्विचर बंद करें' : 'Close Career Track Switcher') : (isHindi ? `करियर ट्रैक: ${roleLabel}${trackBadge ? ` (${trackBadge})` : ''}` : `Career Track: ${roleLabel}${trackBadge ? ` (${trackBadge})` : ''}`)}
         aria-expanded={Boolean(isOpen)}
         aria-haspopup="dialog"
-        title={`Active Career Track: ${roleLabel} - Click to switch`}
+        title={isHindi ? `सक्रिय करियर ट्रैक: ${roleLabel} - बदलने के लिए क्लिक करें` : `Active Career Track: ${roleLabel} - Click to switch`}
         className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
           isOpen
             ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
@@ -273,10 +283,10 @@ export default function RoleTabsBar({
         {/* Left Side Label / Badge */}
         <div className="hidden sm:flex items-center gap-1.5 pl-1 shrink-0">
           <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-            Career Track
+            {isHindi ? 'करियर ट्रैक' : 'Career Track'}
           </span>
           <span className="text-[10px] font-mono font-bold text-[#FF4D6D] bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 px-2 py-0.5 rounded-full border border-[#FFD1DC] dark:border-[#FF4D6D]/30">
-            Live Sync
+            {isHindi ? 'लाइव सिंक' : 'Live Sync'}
           </span>
         </div>
 
@@ -315,7 +325,7 @@ export default function RoleTabsBar({
                     ? 'bg-white dark:bg-stone-800 border-[#18181B] dark:border-white text-[#18181B] dark:text-white shadow-xs ring-1 ring-[#18181B]/10 dark:ring-white/20 scale-[1.02]'
                     : 'bg-white/60 dark:bg-stone-800/60 hover:bg-white dark:hover:bg-stone-800 border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white'
                 }`}
-                title={`Switch portfolio to ${track.label}`}
+                title={isHindi ? `पोर्टफोलियो को ${track.label_hi || track.label} पर बदलें` : `Switch portfolio to ${track.label}`}
               >
                 <div
                   className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
@@ -331,7 +341,7 @@ export default function RoleTabsBar({
                 </div>
 
                 <span className="tracking-tight whitespace-nowrap">
-                  {track.label}
+                  {(isHindi && track.label_hi) ? track.label_hi : track.label}
                 </span>
 
                 {isActive && (
@@ -358,7 +368,7 @@ export default function RoleTabsBar({
               if (soundEnabled) soundFX.playChipHover();
             }}
             aria-label="Close Career Track Selection Bar"
-            title="Close (Esc)"
+            title={isHindi ? 'बंद करें (Esc)' : 'Close (Esc)'}
             className="w-7 h-7 rounded-full flex items-center justify-center text-stone-500 dark:text-stone-400 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-stone-800 border border-transparent hover:border-stone-300 dark:hover:border-stone-600 transition-all cursor-pointer"
           >
             <X className="w-4 h-4" />
@@ -403,7 +413,7 @@ export default function RoleTabsBar({
                 ? 'bg-white dark:bg-stone-800 text-[#18181B] dark:text-white shadow-sm border border-[#E7E2D8] dark:border-stone-700'
                 : 'text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-white/60 dark:hover:bg-stone-800/50'
             }`}
-            title={`Select ${track.label}`}
+            title={isHindi ? `${track.label_hi || track.label} चुनें` : `Select ${track.label}`}
           >
             <Icon
               className={`w-3.5 sm:w-4 h-3.5 sm:h-4 shrink-0 transition-colors ${
@@ -411,7 +421,7 @@ export default function RoleTabsBar({
               }`}
               style={{ color: isActive ? accent : undefined }}
             />
-            <span>{track.label}</span>
+            <span>{(isHindi && track.label_hi) ? track.label_hi : track.label}</span>
           </button>
         );
       })}

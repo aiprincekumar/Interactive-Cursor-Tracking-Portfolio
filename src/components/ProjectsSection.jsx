@@ -3,21 +3,26 @@ import { Sparkles, ArrowUpRight, Check, X, RefreshCw, BookOpen } from 'lucide-re
 import { GithubIcon } from './Icons';
 import { soundFX } from '../utils/audio';
 import { useRoleTab } from '../context/RoleContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const OTHER_PROJECTS = [
   {
     id: '05',
     targetId: 'proj-enterprise-transformation',
     title: 'Executive Power BI Fiscal Intelligence & Reconciliation Engine',
+    title_hi: 'कार्यकारी Power BI वित्तीय इंटेलिजेंस एवं समाधान इंजन',
     category: 'Corporate Controller & BI',
+    category_hi: 'कॉर्पोरेट कंट्रोलर एवं BI',
     subtitle: 'Enterprise Workflow Transformation Initiative & Multi-Entity General Ledger Analytics',
+    subtitle_hi: 'एंटरप्राइज वर्कफ़्लो परिवर्तन पहल एवं मल्टी-इकाई सामान्य लेजर एनालिटिक्स',
     description: 'Engineered an executive business intelligence architecture unifying multi-company accounting ledgers, automated bank feeds, and statutory GST compliance pipelines into real-time Power BI fiscal dashboards. Automated multi-ledger variance detection, cash flow projections, and margin analytics for executive leadership.',
+    description_hi: 'मल्टी-कंपनी अकाउंटिंग लेजर, ऑटोमेटेड बैंक फीड और वैधानिक GST अनुपालन को रीयल-टाइम Power BI वित्तीय डैशबोर्ड में एकीकृत करने वाला आर्किटेक्चर। वरिष्ठ नेतृत्व के लिए मल्टी-लेजर विचरण पहचान, कैश फ्लो अनुमान और मार्जिन एनालिटिक्स को स्वचालित किया।',
     tags: ['Power BI', 'Corporate Controls', 'ERP Automation', 'Financial Analytics', 'Variance Intelligence', 'Executive Reporting'],
     metrics: [
-      { label: 'Ledger Volume Tracked', val: '₹25Cr+' },
-      { label: 'Reconciliation Speed', val: '99.9%' },
-      { label: 'Reporting Latency', val: '-80%' },
-      { label: 'Entities Consolidated', val: '6 Entities' }
+      { label: 'Ledger Volume Tracked', label_hi: 'ट्रैक किया गया लेजर वॉल्यूम', val: '₹25Cr+' },
+      { label: 'Reconciliation Speed', label_hi: 'समाधान गति', val: '99.9%' },
+      { label: 'Reporting Latency', label_hi: 'रिपोर्टिंग विलंबता', val: '-80%' },
+      { label: 'Entities Consolidated', label_hi: 'समेकित इकाइयाँ', val: '6 Entities' }
     ],
     github: '#',
     live: '#contact'
@@ -26,15 +31,19 @@ const OTHER_PROJECTS = [
     id: '06',
     targetId: 'proj-business-advisory',
     title: 'Corporate Financial Controls & Internal Audit Governance',
+    title_hi: 'कॉर्पोरेट वित्तीय नियंत्रण एवं आंतरिक ऑडिट प्रशासन',
     category: 'Statutory Strategy & Governance',
+    category_hi: 'वैधानिक रणनीति एवं प्रशासन',
     subtitle: 'Statutory Tax Strategy, Working Capital Modeling & Internal Audit Controls',
+    subtitle_hi: 'वैधानिक कर रणनीति, कार्यशील पूंजी मॉडलिंग एवं आंतरिक ऑडिट नियंत्रण',
     description: 'Designed and deployed an institutional internal financial control framework across commercial branches. Automated GSTR-2B vs ERP purchase matching, advance tax liability forecasting, vendor withholding tax governance, and institutional audit trails, eliminating non-compliance risks and tax penalties.',
+    description_hi: 'वाणिज्यिक शाखाओं में एक संस्थागत आंतरिक वित्तीय नियंत्रण ढांचा तैयार और तैनात किया। गैर-अनुपालन जोखिमों और कर दंडों को समाप्त करते हुए GSTR-2B बनाम ERP खरीद मिलान, अग्रिम कर देयता पूर्वानुमान और ऑडिट ट्रेल्स को स्वचालित किया।',
     tags: ['Statutory Strategy', 'Internal Financial Controls', 'Audit Automation', 'Working Capital', 'Audit Trails', 'Risk Governance'],
     metrics: [
-      { label: 'Statutory Adherence', val: '100%' },
-      { label: 'Tax Variance Prevented', val: '₹45L+' },
-      { label: 'Audit Readiness', val: '100%' },
-      { label: 'Control Pipeline', val: 'Zero Notice' }
+      { label: 'Statutory Adherence', label_hi: 'वैधानिक अनुपालन', val: '100%' },
+      { label: 'Tax Variance Prevented', label_hi: 'रोका गया कर विचरण', val: '₹45L+' },
+      { label: 'Audit Readiness', label_hi: 'ऑडिट तत्परता', val: '100%' },
+      { label: 'Control Pipeline', label_hi: 'नियंत्रण पाइपलाइन', val: 'Zero Notice' }
     ],
     github: '#',
     live: '#contact'
@@ -46,14 +55,18 @@ const COMPANION_PROJECTS = [
     id: '03',
     targetId: 'proj-day-nulm',
     title: 'DAY-NULM Skill India MIS Reporting Portal',
+    title_hi: 'DAY-NULM Skill India MIS रिपोर्टिंग पोर्टल',
     category: 'Govt Operations & Analytics',
+    category_hi: 'सरकारी संचालन एवं एनालिटिक्स',
     subtitle: 'Deendayal Antyodaya Yojana - National Urban Livelihoods Mission',
+    subtitle_hi: 'दीनदयाल अंत्योदय योजना - राष्ट्रीय शहरी आजीविका मिशन',
     description: 'Centralized MIS database management and candidate tracking system for Skill India mission batches. Orchestrated trainee enrolment data, biometric attendance logs, assessment scheduling, certification progress, and government compliance analytics.',
+    description_hi: 'Skill India मिशन बैचों के लिए केंद्रीकृत MIS डेटाबेस प्रबंधन और उम्मीदवार ट्रैकिंग सिस्टम। प्रशिक्षु नामांकन डेटा, बायोमेट्रिक उपस्थिति लॉग, मूल्यांकन शेड्यूलिंग, प्रमाणन प्रगति और सरकारी अनुपालन एनालिटिक्स का संचालन।',
     tags: ['Government MIS Portal', 'Skill India (DAY-NULM)', 'Candidate Lifecycle Analytics', 'Batch Certification', 'Advanced Excel', 'Data Auditing'],
     metrics: [
-      { label: 'Batches Tracked', val: '50+' },
-      { label: 'Trainees Managed', val: '2,500+' },
-      { label: 'Reporting Accuracy', val: '99.8%' }
+      { label: 'Batches Tracked', label_hi: 'ट्रैक किए गए बैच', val: '50+' },
+      { label: 'Trainees Managed', label_hi: 'प्रबंधित प्रशिक्षु', val: '2,500+' },
+      { label: 'Reporting Accuracy', label_hi: 'रिपोर्टिंग सटीकता', val: '99.8%' }
     ],
     github: '#',
     live: '#contact'
@@ -62,14 +75,18 @@ const COMPANION_PROJECTS = [
     id: '04',
     targetId: 'proj-smart-card',
     title: 'Multi-District Smart Card Operations & Enrollment Engine',
+    title_hi: 'बहु-जिला स्मार्ट कार्ड संचालन एवं नामांकन इंजन',
     category: 'Field Operations & Data Systems',
+    category_hi: 'फील्ड ऑपरेशंस एवं डेटा सिस्टम',
     subtitle: 'Cross-State Field Data Collection, Biometric Verification & Citizen Rollout',
+    subtitle_hi: 'अंतर-राज्यीय फील्ड डेटा संग्रह, बायोमेट्रिक सत्यापन एवं नागरिक रोलआउट',
     description: 'Large-scale identity and smart card logistics pipeline across 4 key districts in Bihar & Jharkhand. Handled citizen field verification, biometric data capture workflows, secure upload synchronization, hardware diagnostics, and prompt multi-tier issue resolution.',
+    description_hi: 'बिहार और झारखंड के 4 प्रमुख जिलों में बड़े पैमाने पर पहचान और स्मार्ट कार्ड रसद पाइपलाइन। नागरिक क्षेत्र सत्यापन, बायोमेट्रिक डेटा कैप्चर वर्कफ़्लो, सुरक्षित अपलोड सिंक्रनाइज़ेशन और हार्डवेयर डायग्नोस्टिक्स का प्रबंधन।',
     tags: ['Smart Card Deployment', 'Biometric Enrollment', '4 District Operations', 'Bihar & Jharkhand', 'Hardware Troubleshooting', 'Identity Verification'],
     metrics: [
-      { label: 'Districts Covered', val: '4 Districts' },
-      { label: 'Cards Issued', val: '50,000+' },
-      { label: 'Turnaround Time', val: '-35%' }
+      { label: 'Districts Covered', label_hi: 'कवर किए गए जिले', val: '4 Districts' },
+      { label: 'Cards Issued', label_hi: 'जारी किए गए कार्ड', val: '50,000+' },
+      { label: 'Turnaround Time', label_hi: 'टर्नअराउंड समय', val: '-35%' }
     ],
     github: '#',
     live: '#contact'
@@ -150,6 +167,16 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
   const isOther = roleContext?.isOther ?? (activeRole === 'other');
   const isVibe = Boolean(roleContext?.isVibeCoding || activeRole === 'vibe_coding');
   const accentColor = isOverview ? '#6366F1' : isVibe ? '#10B981' : isOther ? '#8B5CF6' : activeRole === 'mis' ? '#3B82F6' : '#FF4D6D';
+
+  let languageContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    languageContext = useLanguage();
+  } catch {
+    // fallback
+  }
+  const t = languageContext?.t ?? ((key, fallback) => fallback || key);
+  const isHindi = languageContext?.isHindi ?? false;
 
   // State for Project 01 PolicyGuard Interactive Mockup
   const [isAuditing, setIsAuditing] = useState(false);
@@ -346,14 +373,16 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
               )}
             </div>
             <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] mt-1">
-              GST &amp; Income Tax Compliance &amp; Verification Engine
+              {isHindi ? 'GST एवं आयकर अनुपालन व सत्यापन इंजन' : 'GST & Income Tax Compliance & Verification Engine'}
             </h3>
             <p className="text-xs sm:text-sm font-bold text-[#FF4D6D] uppercase tracking-wider mt-1 mb-4">
-              Statutory E-Filing, ITC 2B Reconciliation &amp; Tax Audit Verification
+              {isHindi ? 'वैधानिक ई-फाइलिंग, ITC 2B समाधान एवं कर ऑडिट सत्यापन' : 'Statutory E-Filing, ITC 2B Reconciliation & Tax Audit Verification'}
             </p>
 
             <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-normal mb-6">
-              Comprehensive taxation and statutory compliance system covering GSTR-1, GSTR-3B, GSTR-9, and Income Tax (ITR-1 to ITR-4) e-filing. Features automated Input Tax Credit (ITC) ledger reconciliation, 26AS/AIS/TIS variance verification, and TDS deduction auditing with 100% statutory adherence.
+              {isHindi
+                ? 'GSTR-1, GSTR-3B, GSTR-9 और आयकर (ITR-1 से ITR-4) ई-फाइलिंग को कवर करने वाला व्यापक कराधान एवं वैधानिक अनुपालन सिस्टम। 100% वैधानिक अनुपालन के साथ स्वचालित इनपुट टैक्स क्रेडिट (ITC) समाधान, 26AS/AIS/TIS विचरण सत्यापन और TDS कटौती ऑडिट।'
+                : 'Comprehensive taxation and statutory compliance system covering GSTR-1, GSTR-3B, GSTR-9, and Income Tax (ITR-1 to ITR-4) e-filing. Features automated Input Tax Credit (ITC) ledger reconciliation, 26AS/AIS/TIS variance verification, and TDS deduction auditing with 100% statutory adherence.'}
             </p>
 
             {/* Clean Metrics Grid */}
@@ -363,7 +392,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                   500+
                 </div>
                 <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                  Tax Returns &amp; Audits Filed
+                  {isHindi ? 'दाखिल टैक्स रिटर्न एवं ऑडिट' : 'Tax Returns & Audits Filed'}
                 </div>
               </div>
 
@@ -372,7 +401,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                   100%
                 </div>
                 <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                  Statutory Compliance Rate
+                  {isHindi ? 'वैधानिक अनुपालन दर' : 'Statutory Compliance Rate'}
                 </div>
               </div>
 
@@ -381,7 +410,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                   ₹2.5Cr+
                 </div>
                 <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                  Reconciled ITC Ledger Volume
+                  {isHindi ? 'समाधान किया गया ITC लेजर वॉल्यूम' : 'Reconciled ITC Ledger Volume'}
                 </div>
               </div>
 
@@ -390,7 +419,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                   0%
                 </div>
                 <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                  Notice / Penalty Record
+                  {isHindi ? 'पेनल्टी / नोटिस रिकॉर्ड' : 'Notice / Penalty Record'}
                 </div>
               </div>
             </div>
@@ -414,7 +443,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
               href="#contact"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#FF4D6D] dark:bg-white dark:text-[#18181B] dark:hover:bg-[#FF4D6D] dark:hover:text-white text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
             >
-              <span>Tax Compliance Advisory</span>
+              <span>{isHindi ? 'कर अनुपालन परामर्श' : 'Tax Compliance Advisory'}</span>
               <ArrowUpRight className="w-4 h-4" />
             </a>
 
@@ -425,7 +454,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
               title="Read in-depth case study for GST & Income Tax Engine"
             >
               <BookOpen className="w-4 h-4" />
-              <span>Inspect Case Study</span>
+              <span>{isHindi ? 'केस स्टडी देखें' : 'Inspect Case Study'}</span>
             </button>
 
             <a
@@ -433,7 +462,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
               className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-[#18181B] dark:text-stone-200 border border-[#D5CFCE] dark:border-stone-800 font-bold text-xs uppercase tracking-wider transition-colors"
               title="View Practice History"
             >
-              <span>Experience Details</span>
+              <span>{isHindi ? 'अनुभव विवरण' : 'Experience Details'}</span>
             </a>
           </div>
         </div>
@@ -521,14 +550,16 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
               </button>
             </div>
             <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] mt-1">
-              Tally Financial Accounting &amp; Inventory Management
+              {isHindi ? 'Tally वित्तीय लेखांकन एवं इन्वेंटरी प्रबंधन' : 'Tally Financial Accounting & Inventory Management'}
             </h3>
             <p className="text-xs sm:text-sm font-bold text-[#FF4D6D] uppercase tracking-wider mt-1 mb-4">
-              Double-Entry Ledger Pipeline, Voucher Auditing &amp; Multi-Location Stock Control
+              {isHindi ? 'डबल-एंट्री लेजर पाइपलाइन, वाउचर ऑडिटिंग एवं बहु-स्थान स्टॉक नियंत्रण' : 'Double-Entry Ledger Pipeline, Voucher Auditing & Multi-Location Stock Control'}
             </p>
 
             <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-normal mb-6">
-              End-to-end financial accounting and inventory management architecture deployed across commercial operations. Manages automated journal vouchers, ledger balancing, multi-godown stock valuations, aging analyses, and real-time Profit &amp; Loss and Balance Sheet generation with zero duplicate ledger entries.
+              {isHindi
+                ? 'वाणिज्यिक कार्यों में तैनात एंड-टू-एंड वित्तीय लेखांकन और इन्वेंटरी प्रबंधन प्रणाली। स्वचालित जर्नल वाउचर, लेजर संतुलन, मल्टी-गोदाम स्टॉक मूल्यांकन, आयु विश्लेषण और शून्य विसंगति के साथ वास्तविक समय P&L और बैलेंस शीट उत्पादन।'
+                : 'End-to-end financial accounting and inventory management architecture deployed across commercial operations. Manages automated journal vouchers, ledger balancing, multi-godown stock valuations, aging analyses, and real-time Profit & Loss and Balance Sheet generation with zero duplicate ledger entries.'}
             </p>
 
             {/* Clean Metrics Grid */}
@@ -538,7 +569,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                   ₹10Cr+
                 </div>
                 <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                  Annual Transactions Managed
+                  {isHindi ? 'वार्षिक लेनदेन प्रबंधित' : 'Annual Transactions Managed'}
                 </div>
               </div>
 
@@ -547,7 +578,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                   100%
                 </div>
                 <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                  Double-Entry Balance Accuracy
+                  {isHindi ? 'डबल-एंट्री संतुलन सटीकता' : 'Double-Entry Balance Accuracy'}
                 </div>
               </div>
 
@@ -556,7 +587,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                   7+ Years
                 </div>
                 <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                  Continuous Ledger Maintenance
+                  {isHindi ? 'निरंतर लेजर रखरखाव' : 'Continuous Ledger Maintenance'}
                 </div>
               </div>
 
@@ -565,7 +596,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                   0
                 </div>
                 <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                  Unreconciled Variances
+                  {isHindi ? 'असमाधित विसंगतियां' : 'Unreconciled Variances'}
                 </div>
               </div>
             </div>
@@ -589,7 +620,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
               href="#contact"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#18181B] hover:bg-[#FF4D6D] dark:bg-white dark:text-[#18181B] dark:hover:bg-[#FF4D6D] dark:hover:text-white text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
             >
-              <span>Accounting Operations</span>
+              <span>{isHindi ? 'लेखांकन संचालन' : 'Accounting Operations'}</span>
               <ArrowUpRight className="w-4 h-4" />
             </a>
 
@@ -608,7 +639,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
               className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-[#18181B] dark:text-stone-200 border border-[#D5CFCE] dark:border-stone-800 font-bold text-xs uppercase tracking-wider transition-colors"
               title="View Practice History"
             >
-              <span>Work History</span>
+              <span>{isHindi ? 'कार्य इतिहास' : 'Work History'}</span>
             </a>
           </div>
         </div>
@@ -694,7 +725,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                   type="button"
                   onClick={() => handleOpenCaseStudy(proj.id)}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 dark:hover:bg-rose-900 transition-colors cursor-pointer"
-                  title={`Open P1 Case Study dossier for ${proj.title}`}
+                  title={`Open P1 Case Study dossier for ${(isHindi && proj.title_hi) ? proj.title_hi : proj.title}`}
                 >
                   <BookOpen className="w-3.5 h-3.5" />
                   <span>Case Study</span>
@@ -706,25 +737,25 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                 )}
               </div>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] mt-1">
-                {proj.title}
+                {(isHindi && proj.title_hi) ? proj.title_hi : proj.title}
               </h3>
               <p className="text-xs sm:text-sm font-bold text-[#FF4D6D] uppercase tracking-wider mt-1 mb-4">
-                {proj.subtitle}
+                {(isHindi && proj.subtitle_hi) ? proj.subtitle_hi : proj.subtitle}
               </p>
 
               <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-normal mb-6">
-                {proj.description}
+                {(isHindi && proj.description_hi) ? proj.description_hi : proj.description}
               </p>
 
               {/* Clean Metrics Grid */}
               <div className="grid grid-cols-2 gap-4 py-5 border-y border-[#ECE7DF] dark:border-stone-800 mb-6 font-['Outfit',sans-serif]">
                 {proj.metrics.map((m, idx) => (
-                  <div key={m.label}>
+                  <div key={(isHindi && m.label_hi) ? m.label_hi : m.label}>
                     <div className={`text-2xl sm:text-3xl font-extrabold font-mono ${idx === 2 ? 'text-[#FF4D6D]' : 'text-[#18181B] dark:text-stone-100'}`}>
                       {m.val}
                     </div>
                     <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                      {m.label}
+                      {(isHindi && m.label_hi) ? m.label_hi : m.label}
                     </div>
                   </div>
                 ))}
@@ -765,7 +796,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                 type="button"
                 onClick={() => handleOpenCaseStudy(proj.id)}
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[#FF4D6D] hover:bg-[#E03355] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
-                title={`Read in-depth case study for ${proj.title}`}
+                title={`Read in-depth case study for ${(isHindi && proj.title_hi) ? proj.title_hi : proj.title}`}
               >
                 <BookOpen className="w-4 h-4" />
                 <span>Inspect Case Study</span>
@@ -860,7 +891,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                   type="button"
                   onClick={() => handleOpenCaseStudy(proj.id)}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors cursor-pointer"
-                  title={`Open P1 Case Study dossier for ${proj.title}`}
+                  title={`Open P1 Case Study dossier for ${(isHindi && proj.title_hi) ? proj.title_hi : proj.title}`}
                 >
                   <BookOpen className="w-3.5 h-3.5" />
                   <span>Case Study</span>
@@ -872,25 +903,25 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                 )}
               </div>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] mt-1">
-                {proj.title}
+                {(isHindi && proj.title_hi) ? proj.title_hi : proj.title}
               </h3>
               <p className="text-xs sm:text-sm font-bold text-[#10B981] uppercase tracking-wider mt-1 mb-4">
-                {proj.subtitle}
+                {(isHindi && proj.subtitle_hi) ? proj.subtitle_hi : proj.subtitle}
               </p>
 
               <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-normal mb-6">
-                {proj.description}
+                {(isHindi && proj.description_hi) ? proj.description_hi : proj.description}
               </p>
 
               {/* Clean Metrics Grid */}
               <div className="grid grid-cols-2 gap-4 py-5 border-y border-[#ECE7DF] dark:border-stone-800 mb-6 font-['Outfit',sans-serif]">
                 {proj.metrics.map((m, idx) => (
-                  <div key={m.label}>
+                  <div key={(isHindi && m.label_hi) ? m.label_hi : m.label}>
                     <div className={`text-2xl sm:text-3xl font-extrabold font-mono ${idx === 1 ? 'text-[#10B981]' : 'text-[#18181B] dark:text-stone-100'}`}>
                       {m.val}
                     </div>
                     <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                      {m.label}
+                      {(isHindi && m.label_hi) ? m.label_hi : m.label}
                     </div>
                   </div>
                 ))}
@@ -923,7 +954,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                 type="button"
                 onClick={() => handleOpenCaseStudy(proj.id)}
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
-                title={`Read in-depth case study for ${proj.title}`}
+                title={`Read in-depth case study for ${(isHindi && proj.title_hi) ? proj.title_hi : proj.title}`}
               >
                 <BookOpen className="w-4 h-4" />
                 <span>Inspect Case Study</span>
@@ -1018,32 +1049,32 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                 type="button"
                 onClick={() => handleOpenCaseStudy(proj.id)}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors cursor-pointer"
-                title={`Open P1 Case Study dossier for ${proj.title}`}
+                title={`Open P1 Case Study dossier for ${(isHindi && proj.title_hi) ? proj.title_hi : proj.title}`}
               >
                 <BookOpen className="w-3.5 h-3.5" />
                 <span>Case Study</span>
               </button>
             </div>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] mt-1">
-                {proj.title}
+                {(isHindi && proj.title_hi) ? proj.title_hi : proj.title}
               </h3>
               <p className="text-xs sm:text-sm font-bold text-[#10B981] uppercase tracking-wider mt-1 mb-4">
-                {proj.subtitle}
+                {(isHindi && proj.subtitle_hi) ? proj.subtitle_hi : proj.subtitle}
               </p>
 
               <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-normal mb-6">
-                {proj.description}
+                {(isHindi && proj.description_hi) ? proj.description_hi : proj.description}
               </p>
 
               {/* Clean Metrics Grid */}
               <div className="grid grid-cols-2 gap-4 py-5 border-y border-[#ECE7DF] dark:border-stone-800 mb-6 font-['Outfit',sans-serif]">
                 {proj.metrics.map((m, idx) => (
-                  <div key={m.label}>
+                  <div key={(isHindi && m.label_hi) ? m.label_hi : m.label}>
                     <div className={`text-2xl sm:text-3xl font-extrabold font-mono ${idx === 1 ? 'text-[#10B981]' : 'text-[#18181B] dark:text-stone-100'}`}>
                       {m.val}
                     </div>
                     <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                      {m.label}
+                      {(isHindi && m.label_hi) ? m.label_hi : m.label}
                     </div>
                   </div>
                 ))}
@@ -1076,7 +1107,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                 type="button"
                 onClick={() => handleOpenCaseStudy(proj.id)}
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
-                title={`Read in-depth case study for ${proj.title}`}
+                title={`Read in-depth case study for ${(isHindi && proj.title_hi) ? proj.title_hi : proj.title}`}
               >
                 <BookOpen className="w-4 h-4" />
                 <span>Inspect Case Study</span>
@@ -1171,32 +1202,32 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                 type="button"
                 onClick={() => handleOpenCaseStudy(proj.id)}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors cursor-pointer"
-                title={`Open P1 Case Study dossier for ${proj.title}`}
+                title={`Open P1 Case Study dossier for ${(isHindi && proj.title_hi) ? proj.title_hi : proj.title}`}
               >
                 <BookOpen className="w-3.5 h-3.5" />
                 <span>Case Study</span>
               </button>
             </div>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] mt-1">
-                {proj.title}
+                {(isHindi && proj.title_hi) ? proj.title_hi : proj.title}
               </h3>
               <p className="text-xs sm:text-sm font-bold text-[#10B981] uppercase tracking-wider mt-1 mb-4">
-                {proj.subtitle}
+                {(isHindi && proj.subtitle_hi) ? proj.subtitle_hi : proj.subtitle}
               </p>
 
               <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-normal mb-6">
-                {proj.description}
+                {(isHindi && proj.description_hi) ? proj.description_hi : proj.description}
               </p>
 
               {/* Clean Metrics Grid */}
               <div className="grid grid-cols-2 gap-4 py-5 border-y border-[#ECE7DF] dark:border-stone-800 mb-6 font-['Outfit',sans-serif]">
                 {proj.metrics.map((m, idx) => (
-                  <div key={m.label}>
+                  <div key={(isHindi && m.label_hi) ? m.label_hi : m.label}>
                     <div className={`text-2xl sm:text-3xl font-extrabold font-mono ${idx === 1 ? 'text-[#10B981]' : 'text-[#18181B] dark:text-stone-100'}`}>
                       {m.val}
                     </div>
                     <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                      {m.label}
+                      {(isHindi && m.label_hi) ? m.label_hi : m.label}
                     </div>
                   </div>
                 ))}
@@ -1229,7 +1260,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                 type="button"
                 onClick={() => handleOpenCaseStudy(proj.id)}
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
-                title={`Read in-depth case study for ${proj.title}`}
+                title={`Read in-depth case study for ${(isHindi && proj.title_hi) ? proj.title_hi : proj.title}`}
               >
                 <BookOpen className="w-4 h-4" />
                 <span>Inspect Case Study</span>
@@ -1264,25 +1295,31 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
               className="w-2 h-2 rounded-full shrink-0"
               style={{ backgroundColor: accentColor || '#FF4D6D' }}
             />
-            <span className="truncate sm:overflow-visible">04 ✦ Selected Work &bull; {activeRole === 'overview' ? 'Executive Overview' : isVibe ? 'AI & Vibe Coding' : (isOther || activeRole === 'other') ? 'Corporate Controller & BI' : activeRole === 'mis' ? 'Data & MIS' : 'Accounting & Tax'}</span>
+            <span className="truncate sm:overflow-visible">04 ✦ {t('projects.badge', 'Selected Work')} &bull; {activeRole === 'overview' ? (isHindi ? 'कार्यकारी अवलोकन' : 'Executive Overview') : isVibe ? (isHindi ? 'एआई व वाइब कोडिंग' : 'AI & Vibe Coding') : (isOther || activeRole === 'other') ? (isHindi ? 'कॉर्पोरेट कंट्रोलर व बीआई' : 'Corporate Controller & BI') : activeRole === 'mis' ? (isHindi ? 'डेटा व एमआईएस' : 'Data & MIS') : (isHindi ? 'अकाउंटिंग व टैक्स' : 'Accounting & Tax')}</span>
           </div>
           <h2
             id="projects-heading"
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap"
           >
-            Selected <span className="text-[#FF4D6D]" style={{ color: accentColor }}>work</span>.
+            {isHindi ? (
+              <span>प्रमुख प्रोजेक्ट्स एवं <span className="text-[#FF4D6D]" style={{ color: accentColor }}>सिस्टम्स</span></span>
+            ) : (
+              <span>Selected <span className="text-[#FF4D6D]" style={{ color: accentColor }}>work</span>.</span>
+            )}
           </h2>
           <div className="w-12 h-1 rounded-full mb-4" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
           <p className="text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-xl font-normal leading-relaxed">
-            {isOverview || activeRole === 'overview'
-              ? 'Curated multi-domain flagship initiatives combining statutory tax compliance automation, public sector MIS data systems, and autonomous AI vibe coding.'
-              : isVibe
-              ? 'Rapid full-stack SaaS prototypes, autonomous multi-agent developer workflows, and streaming AI generative document synthesizers.'
-              : isOther || activeRole === 'other'
-              ? 'Enterprise financial controls, automated ERP reconciliation pipelines, and executive Power BI business intelligence dashboards.'
-              : activeRole === 'mis'
-              ? 'Large-scale government MIS databases, biometric enrollment operations, and regional administrative analytics.'
-              : 'Curated accounting, statutory tax audit, and enterprise data operations balancing high accuracy with rigorous compliance.'}
+            {isHindi ? t('projects.subtitle') : (
+              isOverview || activeRole === 'overview'
+                ? 'Curated multi-domain flagship initiatives combining statutory tax compliance automation, public sector MIS data systems, and autonomous AI vibe coding.'
+                : isVibe
+                ? 'Rapid full-stack SaaS prototypes, autonomous multi-agent developer workflows, and streaming AI generative document synthesizers.'
+                : isOther || activeRole === 'other'
+                ? 'Enterprise financial controls, automated ERP reconciliation pipelines, and executive Power BI business intelligence dashboards.'
+                : activeRole === 'mis'
+                ? 'Large-scale government MIS databases, biometric enrollment operations, and regional administrative analytics.'
+                : 'Curated accounting, statutory tax audit, and enterprise data operations balancing high accuracy with rigorous compliance.'
+            )}
           </p>
         </div>
 
@@ -1445,12 +1482,12 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                     {/* Clean Metrics Grid */}
                     <div className="grid grid-cols-2 gap-4 py-5 border-y border-[#ECE7DF] dark:border-stone-800 mb-6 font-['Outfit',sans-serif]">
                       {OTHER_PROJECTS[0].metrics.map((m, idx) => (
-                        <div key={m.label}>
+                        <div key={(isHindi && m.label_hi) ? m.label_hi : m.label}>
                           <div className={`text-2xl sm:text-3xl font-extrabold font-mono ${idx === 1 ? 'text-[#FF4D6D]' : 'text-[#18181B] dark:text-stone-100'}`}>
                             {m.val}
                           </div>
                           <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                            {m.label}
+                            {(isHindi && m.label_hi) ? m.label_hi : m.label}
                           </div>
                         </div>
                       ))}
@@ -1594,12 +1631,12 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                     {/* Clean Metrics Grid */}
                     <div className="grid grid-cols-2 gap-4 py-5 border-y border-[#ECE7DF] dark:border-stone-800 mb-6 font-['Outfit',sans-serif]">
                       {OTHER_PROJECTS[1].metrics.map((m, idx) => (
-                        <div key={m.label}>
+                        <div key={(isHindi && m.label_hi) ? m.label_hi : m.label}>
                           <div className={`text-2xl sm:text-3xl font-extrabold font-mono ${idx === 1 ? 'text-[#FF4D6D]' : 'text-[#18181B] dark:text-stone-100'}`}>
                             {m.val}
                           </div>
                           <div className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">
-                            {m.label}
+                            {(isHindi && m.label_hi) ? m.label_hi : m.label}
                           </div>
                         </div>
                       ))}
@@ -1680,7 +1717,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                         type="button"
                         onClick={() => handleOpenCaseStudy(proj.id)}
                         className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 dark:hover:bg-rose-900 transition-colors cursor-pointer"
-                        title={`Open P1 Case Study dossier for ${proj.title}`}
+                        title={`Open P1 Case Study dossier for ${(isHindi && proj.title_hi) ? proj.title_hi : proj.title}`}
                       >
                         <BookOpen className="w-3 h-3" />
                         <span>Case Study</span>
@@ -1692,20 +1729,20 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                   </div>
 
                   <h3 className="text-xl font-bold text-[#18181B] dark:text-white group-hover:text-[#FF4D6D] transition-colors font-['Outfit',sans-serif]">
-                    {proj.title}
+                    {(isHindi && proj.title_hi) ? proj.title_hi : proj.title}
                   </h3>
                   <p className="text-xs font-semibold text-stone-500 dark:text-stone-400 mt-1 mb-3">
-                    {proj.subtitle}
+                    {(isHindi && proj.subtitle_hi) ? proj.subtitle_hi : proj.subtitle}
                   </p>
                   <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed font-normal mb-6">
-                    {proj.description}
+                    {(isHindi && proj.description_hi) ? proj.description_hi : proj.description}
                   </p>
 
                   {/* Metrics */}
                   <div className="grid grid-cols-3 gap-2 py-3 border-y border-[#ECE7DF] dark:border-stone-800 mb-4 text-center">
                     {proj.metrics.map((m) => (
-                      <div key={m.label}>
-                        <div className="text-[10px] text-stone-400 dark:text-stone-500 uppercase font-mono">{m.label}</div>
+                      <div key={(isHindi && m.label_hi) ? m.label_hi : m.label}>
+                        <div className="text-[10px] text-stone-400 dark:text-stone-500 uppercase font-mono">{(isHindi && m.label_hi) ? m.label_hi : m.label}</div>
                         <div className="text-xs font-bold text-[#18181B] dark:text-stone-200 font-mono mt-0.5">{m.val}</div>
                       </div>
                     ))}
@@ -1739,7 +1776,7 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
                       type="button"
                       onClick={() => handleOpenCaseStudy(proj.id)}
                       className="inline-flex items-center gap-1 text-xs font-bold text-[#FF4D6D] hover:underline cursor-pointer"
-                      title={`Inspect Case Study for ${proj.title}`}
+                      title={`Inspect Case Study for ${(isHindi && proj.title_hi) ? proj.title_hi : proj.title}`}
                     >
                       <BookOpen className="w-3.5 h-3.5" />
                       <span>Case Study</span>

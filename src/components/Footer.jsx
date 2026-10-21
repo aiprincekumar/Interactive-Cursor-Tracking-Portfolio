@@ -1,8 +1,11 @@
 import React from 'react';
 import { Heart, ArrowUp } from 'lucide-react';
 import { soundFX } from '../utils/audio';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Footer() {
+  const { isHindi } = useLanguage();
+
   const scrollToTop = () => {
     soundFX.playSparkle();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -33,16 +36,16 @@ export default function Footer() {
               data-tts="Atul Verma Portfolio"
               className="text-base font-extrabold text-white font-['Outfit',sans-serif] tracking-tight focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-md"
             >
-              Atul Verma • Interactive Portfolio
+              {isHindi ? 'अतुल वर्मा • इंटरएक्टिव पोर्टफोलियो' : 'Atul Verma • Interactive Portfolio'}
             </div>
             <div
               tabIndex={0}
               data-tts="Accountant and Tax Consultant, Business Development and Office Administrator"
               className="text-xs text-stone-400 flex items-center gap-1.5 justify-center sm:justify-start mt-0.5 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-md"
             >
-              <span>Accountant &amp; Tax Consultant</span>
+              <span>{isHindi ? 'अकाउंटेंट एवं टैक्स सलाहकार' : 'Accountant & Tax Consultant'}</span>
               <span className="text-stone-600">•</span>
-              <span>Business Development &amp; Office Administrator</span>
+              <span>{isHindi ? 'बिज़नेस डेवलपमेंट एवं ऑफिस एडमिनिस्ट्रेटर' : 'Business Development & Office Administrator'}</span>
             </div>
           </div>
         </div>
@@ -53,9 +56,9 @@ export default function Footer() {
           data-tts="Crafted with React 19, Tailwind CSS and 120 FPS Kinematics"
           className="flex items-center gap-2 text-xs text-stone-400 font-medium focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-md"
         >
-          <span>Crafted with</span>
+          <span>{isHindi ? 'निर्मित' : 'Crafted with'}</span>
           <Heart className="w-3.5 h-3.5 fill-[#FF4D6D] text-[#FF4D6D]" />
-          <span>React 19, Tailwind CSS &amp; 120 FPS Kinematics</span>
+          <span>{isHindi ? 'React 19, Tailwind CSS और 120 FPS काइनेमैटिक्स' : 'React 19, Tailwind CSS & 120 FPS Kinematics'}</span>
         </div>
 
         {/* Right Links & Back to Top */}
@@ -65,14 +68,14 @@ export default function Footer() {
             data-tts="Copyright 2026 Atul Verma. All rights reserved."
             className="text-xs text-stone-400 font-mono focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-md"
           >
-            © 2026 Atul Verma. All rights reserved.
+            {isHindi ? '© 2026 अतुल वर्मा। सर्वाधिकार सुरक्षित।' : '© 2026 Atul Verma. All rights reserved.'}
           </span>
           <button
             type="button"
             onClick={scrollToTop}
-            aria-label="Scroll back to top of page"
+            aria-label={isHindi ? 'पेज के शीर्ष पर वापस जाएं' : 'Scroll back to top of page'}
             className="p-3 rounded-full bg-[#241E33] dark:bg-[#161122] hover:bg-[#FF4D6D] text-white border border-purple-800/40 dark:border-[#2D2340] transition-all duration-200 active:scale-95 shadow-md cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
-            title="Back to Top"
+            title={isHindi ? 'शीर्ष पर जाएं' : 'Back to Top'}
           >
             <ArrowUp className="w-4 h-4" />
           </button>

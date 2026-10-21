@@ -10,6 +10,7 @@ import { formatVintageTimestamp } from '../utils/polaroidExport';
 import { useLab, POSE_INDEX_MAP, ZOOM_FOCUS_MAP } from '../context/LabContext';
 import { useSimpleMode } from '../context/SimpleModeContext';
 import { useAnnounce } from '../context/AnnouncerContext';
+import { useLanguage } from '../context/LanguageContext';
 
 /**
  * Full-Screen Reel-Accurate Character Hero Section
@@ -54,6 +55,15 @@ export default function HeroSection({
 }) {
   const { isSimpleMode } = useSimpleMode();
   const { announce } = useAnnounce();
+  let languageContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    languageContext = useLanguage();
+  } catch {
+    // fallback
+  }
+  const t = languageContext?.t ?? ((key, fallback) => fallback || key);
+  const isHindi = languageContext?.isHindi ?? false;
   const { activeRole, activeTrack } = useRoleTab();
   const lab = useLab();
   const customCursorEnabled = lab?.customCursorEnabled ?? true;
@@ -1080,16 +1090,16 @@ export default function HeroSection({
               className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/85 dark:bg-[#161122]/85 backdrop-blur-md border border-[#E7E2D8] dark:border-[#2D2340] text-[#18181B] dark:text-[#F5F2F8] text-[11px] font-bold uppercase tracking-wider shadow-2xs focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-full cursor-pointer select-none"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span>Available for hire &bull; 2026</span>
+              <span>{t('hero.available', 'Available for hire • 2026')}</span>
             </div>
             {activeTrack?.badge && (
               <div
                 tabIndex={0}
-                data-tts={`Current track: ${activeTrack.badge}`}
+                data-tts={`Current track: ${isHindi && activeTrack.badge_hi ? activeTrack.badge_hi : activeTrack.badge}`}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/80 dark:bg-[#161122]/80 backdrop-blur-md border border-[#E7E2D8] dark:border-[#2D2340] text-stone-600 dark:text-stone-300 text-[10px] font-mono font-bold shadow-2xs focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-full cursor-pointer select-none"
               >
                 <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: activeTrack.accent || '#FF4D6D' }} />
-                <span>{activeTrack.badge}</span>
+                <span>{isHindi && activeTrack.badge_hi ? activeTrack.badge_hi : activeTrack.badge}</span>
               </div>
             )}
           </div>
@@ -1104,19 +1114,19 @@ export default function HeroSection({
               {activeTrack?.heroTitle && (
                 <h1
                   tabIndex={0}
-                  data-tts={`Hero Title: ${activeTrack.heroTitle}`}
+                  data-tts={`Hero Title: ${isHindi && activeTrack.heroTitle_hi ? activeTrack.heroTitle_hi : activeTrack.heroTitle}`}
                   className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#18181B] dark:text-[#F4F4F5] tracking-tight leading-tight font-['Outfit',sans-serif] drop-shadow-xs transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg px-1 -mx-1"
                 >
-                  {activeTrack.heroTitle}
+                  {isHindi && activeTrack.heroTitle_hi ? activeTrack.heroTitle_hi : activeTrack.heroTitle}
                 </h1>
               )}
               {activeTrack?.heroSubtitle && (
                 <p
                   tabIndex={0}
-                  data-tts={`Hero Subtitle: ${activeTrack.heroSubtitle}`}
+                  data-tts={`Hero Subtitle: ${isHindi && activeTrack.heroSubtitle_hi ? activeTrack.heroSubtitle_hi : activeTrack.heroSubtitle}`}
                   className="text-sm sm:text-base md:text-lg font-semibold text-[#27272A] dark:text-stone-300 tracking-tight drop-shadow-2xs transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg px-1 -mx-1"
                 >
-                  {activeTrack.heroSubtitle}
+                  {isHindi && activeTrack.heroSubtitle_hi ? activeTrack.heroSubtitle_hi : activeTrack.heroSubtitle}
                 </p>
               )}
             </div>
@@ -1448,7 +1458,7 @@ export default function HeroSection({
                   className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono font-bold bg-[#FF4D6D]/15 dark:bg-[#FF4D6D]/25 hover:bg-[#FF4D6D]/25 text-[#FF3F6C] dark:text-[#FF4D6D] border border-[#FF4D6D]/30 active:scale-95 transition-all cursor-pointer shrink-0 animate-in fade-in zoom-in-95 duration-200"
                 >
                   <Target className="w-3 h-3 text-[#FF4D6D] animate-spin-slow" />
-                  <span>Center</span>
+                  <span>{t('hero.centerTarget', 'Center')}</span>
                 </button>
               </>
             )}
@@ -1461,8 +1471,8 @@ export default function HeroSection({
               e.stopPropagation();
               triggerCapture();
             }}
-            aria-label="Shoot a look photo"
-            title="Shoot a look"
+            aria-label={isHindi ? 'एक नज़र देखें' : 'Shoot a look photo'}
+            title={isHindi ? 'एक नज़र देखें 📸' : 'Shoot a look'}
             className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-[#18181B] hover:bg-black dark:bg-[#201830] dark:hover:bg-[#2D2340] text-white backdrop-blur-xl shadow-lg shadow-black/15 hover:shadow-xl hover:scale-105 active:scale-95 transition-all group border border-white/20 dark:border-[#2D2340] cursor-pointer shrink-0"
           >
             <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-white transition-transform group-hover:scale-110" />
@@ -1480,8 +1490,8 @@ export default function HeroSection({
           <a
             href="#gallery"
             onClick={(e) => e.stopPropagation()}
-            aria-label="View Moments"
-            title="View Moments"
+            aria-label={isHindi ? 'स्मृतियाँ देखें' : 'View Moments'}
+            title={isHindi ? 'स्मृतियाँ देखें' : 'View Moments'}
             className="w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-white/90 hover:bg-white dark:bg-[#161122]/90 dark:hover:bg-[#201830] text-[#18181B] dark:text-[#F5F2F8] backdrop-blur-xl border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs hover:shadow-md hover:scale-105 active:scale-95 transition-all group cursor-pointer shrink-0"
           >
             <Images className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF4D6D] transition-transform group-hover:scale-110" />

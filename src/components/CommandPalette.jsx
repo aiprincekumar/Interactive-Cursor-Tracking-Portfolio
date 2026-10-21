@@ -27,16 +27,27 @@ import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
 import { getResumeConfig } from '../utils/resumeConfig';
 import { useTheme } from '../context/ThemeContext';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useLanguage } from '../context/LanguageContext';
 
 const CATEGORIES = ['All', 'Actions', 'Sections', 'Projects', 'Skills', 'Experience', 'Education'];
 
+const CATEGORY_LABELS_HI = {
+  All: 'सभी (All)',
+  Actions: 'त्वरित कार्य (Actions)',
+  Sections: 'नेविगेशन (Sections)',
+  Projects: 'प्रोजेक्ट्स (Projects)',
+  Skills: 'कौशल (Skills)',
+  Experience: 'अनुभव (Experience)',
+  Education: 'शिक्षा (Education)'
+};
+
 const CATEGORY_META = {
-  Actions: { label: 'Quick Actions', icon: Zap, color: 'text-amber-500' },
-  Sections: { label: 'Portfolio Navigation', icon: Compass, color: 'text-sky-600' },
-  Projects: { label: 'Featured Projects', icon: FolderGit2, color: 'text-[#FF4D6D]' },
-  Skills: { label: 'Core Expertise & Stacks', icon: Layers, color: 'text-emerald-600' },
-  Experience: { label: 'Professional Journey', icon: Briefcase, color: 'text-amber-600' },
-  Education: { label: 'Education & Credentials', icon: GraduationCap, color: 'text-purple-600' }
+  Actions: { label: 'Quick Actions', label_hi: 'त्वरित कार्य (Quick Actions)', icon: Zap, color: 'text-amber-500' },
+  Sections: { label: 'Portfolio Navigation', label_hi: 'पोर्टफोलियो नेविगेशन (Navigation)', icon: Compass, color: 'text-sky-600' },
+  Projects: { label: 'Featured Projects', label_hi: 'प्रमुख प्रोजेक्ट्स (Featured Projects)', icon: FolderGit2, color: 'text-[#FF4D6D]' },
+  Skills: { label: 'Core Expertise & Stacks', label_hi: 'मुख्य विशेषज्ञता एवं तकनीकी स्टैक (Skills)', icon: Layers, color: 'text-emerald-600' },
+  Experience: { label: 'Professional Journey', label_hi: 'पेशेवर कार्य यात्रा (Experience)', icon: Briefcase, color: 'text-amber-600' },
+  Education: { label: 'Education & Credentials', label_hi: 'शिक्षा एवं प्रमाण-पत्र (Education & Credentials)', icon: GraduationCap, color: 'text-purple-600' }
 };
 
 const SUGGESTIONS = ['GST', 'Tally', 'ITR', 'Resume', 'Excel', 'DAY-NULM', 'Smart Card', 'Contact'];
@@ -149,6 +160,15 @@ export default function CommandPalette({
     // In case CommandPalette is mounted outside ThemeProvider
   }
   const toggleTheme = themeContext?.toggleTheme;
+
+  let langContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    langContext = useLanguage();
+  } catch {
+    // In case CommandPalette is mounted outside LanguageProvider
+  }
+  const isHindi = langContext?.isHindi ?? false;
 
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -394,8 +414,9 @@ export default function CommandPalette({
       window.dispatchEvent(new CustomEvent('switch-about-tab', { detail: { tab: 'qualifications' } }));
     } else if (item.tab === 'biodata') {
       window.dispatchEvent(new CustomEvent('switch-about-tab', { detail: { tab: 'biodata' } }));
-    } else if (item.tab === 'location' || item.tab === 'touch' || item.tab === 'direct') {
+    } else if (item.tab === 'location' || item.tab === 'touch' || item.tab === 'direct' || item.tab === 'quote') {
       window.dispatchEvent(new CustomEvent('switch-contact-tab', { detail: { tab: item.tab } }));
+      window.dispatchEvent(new CustomEvent('portfolio:switch-contact-tab', { detail: { tab: item.tab } }));
     }
 
     // 6. Skill selection dispatch
@@ -480,7 +501,7 @@ export default function CommandPalette({
               setSelectedIndex(0);
             }}
             onKeyDown={handleKeyDown}
-            placeholder='Search GST, Tally, ITR, Resume, Excel, MIS, Skills, or Actions...'
+            placeholder={isHindi ? 'GST, Tally, ITR, रिज्यूमे, Excel, MIS, कौशल या त्वरित कार्य खोजें...' : 'Search GST, Tally, ITR, Resume, Excel, MIS, Skills, or Actions...'}
             className="w-full bg-transparent text-sm sm:text-base font-medium text-[#18181B] dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none"
             aria-label="Search portfolio catalog"
           />
@@ -529,7 +550,7 @@ export default function CommandPalette({
                     : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-700 border border-[#E7E2D8] dark:border-stone-700'
                 }`}
               >
-                {cat}
+                {isHindi ? CATEGORY_LABELS_HI[cat] : cat}
               </button>
             );
           })}
@@ -540,7 +561,7 @@ export default function CommandPalette({
           <div className="px-4 py-2 bg-white/70 dark:bg-stone-900/40 border-b border-[#E7E2D8] dark:border-stone-800 flex items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
               <span className="text-[10px] uppercase font-mono font-bold text-stone-400 dark:text-stone-500 flex items-center gap-1 shrink-0">
-                <Clock className="w-3 h-3" /> Recent:
+                <Clock className="w-3 h-3" /> {isHindi ? 'हालिया:' : 'Recent:'}
               </span>
               {recentSearches.map((term) => (
                 <span
@@ -569,7 +590,7 @@ export default function CommandPalette({
               className="text-[10px] font-mono text-stone-400 dark:text-stone-500 hover:text-red-500 shrink-0 cursor-pointer transition-colors"
               title="Clear all recent searches"
             >
-              Clear
+              {isHindi ? 'हटाएं' : 'Clear'}
             </button>
           </div>
         )}
@@ -579,9 +600,11 @@ export default function CommandPalette({
           {totalCount === 0 ? (
             <div className="py-12 px-6 text-center text-stone-500 dark:text-stone-400">
               <SearchX className="w-10 h-10 mx-auto text-stone-300 dark:text-stone-600 mb-2" />
-              <p className="text-sm font-bold text-stone-700 dark:text-stone-200">No results found for &ldquo;{query}&rdquo;</p>
+              <p className="text-sm font-bold text-stone-700 dark:text-stone-200">
+                {isHindi ? `"${query}" के लिए कोई परिणाम नहीं मिला` : `No results found for “${query}”`}
+              </p>
               <p className="text-xs text-stone-400 dark:text-stone-500 mt-1 mb-4">
-                Spelling tolerance active. Try typing &ldquo;GST&rdquo;, &ldquo;taly&rdquo;, &ldquo;excl&rdquo;, &ldquo;ITR&rdquo;, &ldquo;Resume&rdquo;, or &ldquo;Actions&rdquo;
+                {isHindi ? 'वर्तनी सहिष्णुता सक्रिय। "GST", "taly", "excl", "ITR", "Resume", या "Actions" टाइप करने का प्रयास करें' : 'Spelling tolerance active. Try typing “GST”, “taly”, “excl”, “ITR”, “Resume”, or “Actions”'}
               </p>
               <div className="flex flex-wrap justify-center gap-1.5 max-w-md mx-auto">
                 {SUGGESTIONS.map((sug) => (
@@ -611,7 +634,7 @@ export default function CommandPalette({
                   <div className="flex items-center justify-between px-2 pt-1 pb-1 text-[11px] font-mono font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                     <span className="flex items-center gap-1.5">
                       <DefaultIcon className={`w-3.5 h-3.5 ${meta.color}`} />
-                      <span>{meta.label}</span>
+                      <span>{isHindi ? (meta.label_hi || meta.label) : meta.label}</span>
                     </span>
                     <span className="text-[10px] bg-stone-200/60 dark:bg-stone-800 text-stone-600 dark:text-stone-400 px-2 py-0.2 rounded-full font-mono">
                       {items.length}
@@ -655,7 +678,7 @@ export default function CommandPalette({
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-1.5">
                                 <span className="text-xs sm:text-sm font-bold tracking-tight truncate">
-                                  <HighlightedText text={item.title} query={query} />
+                                  <HighlightedText text={(isHindi && item.title_hi) ? item.title_hi : item.title} query={query} />
                                 </span>
 
                                 {/* Smart Verification Match Badge 1: Exact Match Indicator */}
@@ -668,7 +691,7 @@ export default function CommandPalette({
                                     }`}
                                   >
                                     <Sparkles className="w-2.5 h-2.5" />
-                                    Exact Match
+                                    {isHindi ? 'सटीक मेल (Exact Match)' : 'Exact Match'}
                                   </span>
                                 )}
 
@@ -678,7 +701,7 @@ export default function CommandPalette({
                                     getVerificationBadgeClass(item.matchType || item.badge, isSelected)
                                   }`}
                                 >
-                                  {item.matchType || item.badge}
+                                  {(isHindi && item.badge_hi) ? item.badge_hi : (item.matchType || item.badge)}
                                 </span>
 
                                 {/* Track Affinity Role Badge */}
@@ -690,7 +713,7 @@ export default function CommandPalette({
                                         : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800'
                                     }`}
                                   >
-                                    🧭 Overview
+                                    {isHindi ? '🧭 अवलोकन (Overview)' : '🧭 Overview'}
                                   </span>
                                 )}
                                 {item.role === 'accountant' && (
@@ -701,7 +724,7 @@ export default function CommandPalette({
                                         : 'bg-rose-50 dark:bg-rose-950/60 text-[#FF4D6D] border border-rose-200 dark:border-rose-900'
                                     }`}
                                   >
-                                    💼 Accountant
+                                    {isHindi ? '💼 अकाउंटेंट (Accountant)' : '💼 Accountant'}
                                   </span>
                                 )}
                                 {item.role === 'mis' && (
@@ -712,7 +735,7 @@ export default function CommandPalette({
                                         : 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
                                     }`}
                                   >
-                                    📊 MIS
+                                    {isHindi ? '📊 एमआईएस (MIS)' : '📊 MIS'}
                                   </span>
                                 )}
                                 {item.role === 'vibe_coding' && (
@@ -723,7 +746,7 @@ export default function CommandPalette({
                                         : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
                                     }`}
                                   >
-                                    ⚡ Vibe Coder
+                                    {isHindi ? '⚡ वाइब कोडर (⚡ Vibe Coder)' : '⚡ Vibe Coder'}
                                   </span>
                                 )}
                                 {item.role === 'other' && (
@@ -734,7 +757,7 @@ export default function CommandPalette({
                                         : 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
                                     }`}
                                   >
-                                    🤖 Other ✨ AI
+                                    {isHindi ? '🤖 अन्य ✨ एआई (Other ✨ AI)' : '🤖 Other ✨ AI'}
                                   </span>
                                 )}
                               </div>
@@ -744,7 +767,7 @@ export default function CommandPalette({
                                   isSelected ? 'text-stone-300 dark:text-stone-300' : 'text-stone-500 dark:text-stone-400'
                                 }`}
                               >
-                                <HighlightedText text={item.description} query={query} />
+                                <HighlightedText text={(isHindi && item.description_hi) ? item.description_hi : item.description} query={query} />
                               </p>
                             </div>
                           </div>
@@ -752,7 +775,7 @@ export default function CommandPalette({
                           <div className="flex items-center gap-1 shrink-0 ml-3">
                             {isSelected && (
                               <span className="flex items-center gap-1 text-[10px] font-mono font-semibold text-stone-300 bg-stone-800 dark:bg-stone-700 px-2 py-0.5 rounded-md">
-                                <span>Go</span>
+                                <span>{isHindi ? 'जाएं' : 'Go'}</span>
                                 <CornerDownLeft className="w-3 h-3 text-[#FF4D6D]" />
                               </span>
                             )}
@@ -772,18 +795,18 @@ export default function CommandPalette({
           <div className="flex items-center gap-3">
             <span>
               <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-2xs text-stone-700 dark:text-stone-300">↑</kbd>{' '}
-              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-2xs text-stone-700 dark:text-stone-300">↓</kbd> Navigate
+              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-2xs text-stone-700 dark:text-stone-300">↓</kbd> {isHindi ? 'नेविगेट' : 'Navigate'}
             </span>
             <span>
-              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-2xs text-stone-700 dark:text-stone-300">↵</kbd> Select
+              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-2xs text-stone-700 dark:text-stone-300">↵</kbd> {isHindi ? 'चुनें' : 'Select'}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <span className="hidden sm:inline text-stone-400 dark:text-stone-500 font-sans text-[11px]">
-              {totalCount} results
+              {totalCount} {isHindi ? 'परिणाम' : 'results'}
             </span>
             <span>
-              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-2xs text-stone-700 dark:text-stone-300">esc</kbd> Dismiss
+              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-2xs text-stone-700 dark:text-stone-300">esc</kbd> {isHindi ? 'बंद करें' : 'Dismiss'}
             </span>
           </div>
         </div>

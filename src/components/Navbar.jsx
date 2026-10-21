@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, VolumeX, Menu, X, Search, LayoutGrid, Sun, Moon, Eye } from 'lucide-react';
+import { Volume2, VolumeX, Menu, X, Search, LayoutGrid, Sun, Moon, Eye, Languages, Calculator } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { useSimpleMode } from '../context/SimpleModeContext.jsx';
 import { soundFX } from '../utils/audio';
 import { CURSOR_LIST } from '../utils/cursorConstants';
@@ -77,6 +78,18 @@ export default function Navbar({
     onEscape: () => setMobileMenuOpen(false),
     restoreFocus: true
   });
+  let languageContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    languageContext = useLanguage();
+  } catch {
+    // In case Navbar is mounted outside LanguageProvider
+  }
+  const language = languageContext?.language ?? 'en';
+  const isHindi = languageContext?.isHindi ?? (language === 'hi');
+  const toggleLanguage = languageContext?.toggleLanguage ?? (() => {});
+  const t = languageContext?.t ?? ((key, fallback) => fallback || key);
+
   let simpleContext = null;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -177,20 +190,33 @@ export default function Navbar({
     if (soundEnabled) soundFX.playRibbonToggle(next);
   };
 
+  const handleToggleLanguage = () => {
+    toggleLanguage();
+    if (soundEnabled) soundFX.playFocusBeep();
+    if (announce) {
+      announce(
+        isHindi
+          ? 'Language switched to English • भाषा अंग्रेजी में बदली गई'
+          : 'Language switched to Hindi • भाषा हिंदी में बदल दी गई',
+        'polite'
+      );
+    }
+  };
+
   const navLinks = React.useMemo(() => [
-    { label: 'Home', href: '#hero', id: 'hero' },
-    { label: 'About', href: '#about', id: 'about' },
-    { label: 'Skills', href: '#skills', id: 'skills' },
-    { label: 'Experience', href: '#experience', id: 'experience' },
-    { label: 'Projects', href: '#projects', id: 'projects' },
-    { label: 'Achievements', href: '#achievements', id: 'achievements' },
+    { label: t('nav.home', 'Home'), href: '#hero', id: 'hero' },
+    { label: t('nav.about', 'About'), href: '#about', id: 'about' },
+    { label: t('nav.skills', 'Skills'), href: '#skills', id: 'skills' },
+    { label: t('nav.experience', 'Experience'), href: '#experience', id: 'experience' },
+    { label: t('nav.projects', 'Projects'), href: '#projects', id: 'projects' },
+    { label: t('nav.achievements', 'Achievements'), href: '#achievements', id: 'achievements' },
     ...(TESTIMONIALS_CONFIG?.enabled ? [{
-      label: 'Testimonials',
+      label: t('nav.testimonials', 'Testimonials'),
       href: `#${TESTIMONIALS_CONFIG.sectionId || 'testimonials'}`,
       id: TESTIMONIALS_CONFIG.sectionId || 'testimonials'
     }] : []),
-    { label: 'Contact', href: '#contact', id: 'contact' }
-  ], []);
+    { label: t('nav.contact', 'Contact'), href: '#contact', id: 'contact' }
+  ], [t]);
 
   const handleNavClick = (sectionId, sectionLabel) => {
     isClickNavigatingRef.current = true;
@@ -223,6 +249,20 @@ export default function Navbar({
       announce(`Navigating to ${sectionLabel} section`, 'polite');
     }
   };
+
+  const handleOpenEstimator = () => {
+    const el = document.getElementById('contact');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    window.dispatchEvent(new CustomEvent('portfolio:switch-contact-tab', { detail: { tab: 'quote' } }));
+  };
+
+  useEffect(() => {
+    const handleOpenEstimatorEvent = () => {
+      handleOpenEstimator();
+    };
+    window.addEventListener('portfolio:open-estimator', handleOpenEstimatorEvent);
+    return () => window.removeEventListener('portfolio:open-estimator', handleOpenEstimatorEvent);
+  }, []);
 
   // Global Keyboard Shortcut: Cmd+K / Ctrl+K (Disabled in Simple Mode)
   useEffect(() => {
@@ -587,7 +627,21 @@ export default function Navbar({
               </button>
             )}
 
-            {/* 4. Theme Toggle Button (Light / Dark) */}
+            {/* 4. Multilingual Language Switcher Pill: [EN | HI] */}
+            <button
+              type="button"
+              onClick={handleToggleLanguage}
+              aria-label={isHindi ? "Switch language to English" : "हिंदी में बदलें"}
+              title={isHindi ? "Switch to English" : "हिंदी में बदलें"}
+              className="relative h-8 px-2 sm:px-2.5 py-1 rounded-full flex items-center gap-1 bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+            >
+              <Languages className="w-3.5 h-3.5 text-[#FF4D6D]" />
+              <span className="text-[10px] sm:text-[11px] font-mono font-extrabold tracking-tight">
+                {isHindi ? 'HI' : 'EN'}
+              </span>
+            </button>
+
+            {/* 5. Theme Toggle Button (Light / Dark) */}
             <button
               type="button"
               onClick={toggleTheme}
@@ -783,6 +837,21 @@ export default function Navbar({
                 }`}
               >
                 {isSimpleMode ? 'Simple View 👁️' : 'Interactive 🚀'}
+              </button>
+            </div>
+
+            {/* Language Switcher in Mobile Drawer */}
+            <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-white dark:bg-stone-800 border border-[#E7E2D8] dark:border-stone-700 text-stone-700 dark:text-stone-200 text-xs font-semibold">
+              <span className="flex items-center gap-2">
+                <Languages className="w-4 h-4 text-[#FF4D6D]" />
+                <span>{t('nav.language', 'Language')}</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleToggleLanguage}
+                className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-[11px] font-mono text-stone-700 dark:text-stone-200 font-bold transition-colors cursor-pointer"
+              >
+                {isHindi ? 'हिंदी (HI) 🇮🇳' : 'English (EN) 🌐'}
               </button>
             </div>
 

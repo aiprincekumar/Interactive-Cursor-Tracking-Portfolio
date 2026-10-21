@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useLab } from '../context/LabContext';
-import { useSimpleMode } from '../context/SimpleModeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 /**
  * Floating Back-To-Top Button with Scroll Progress Indicator
@@ -10,66 +10,51 @@ import { useSimpleMode } from '../context/SimpleModeContext';
  * Features:
  * - Circular SVG progress indicator with vibrant gradient stroke (#FF4D6D to #FFAA00)
  * - Scroll threshold visibility (>400px past Hero section) with smooth fade/scale
- * - Strict Vertical Right-Rail Alignment (right-6 sm:right-8):
- *   - Normal Mode: sits at bottom-38 sm:bottom-42 (above Simple Mode Toggle and Lab FAB)
- *   - Simple Mode: glides down to bottom-22 sm:bottom-25 (above Simple Mode Toggle)
+ * - Strict Vertical Right-Rail Alignment (fixed right-6 sm:right-8):
+ *   - Independent floating button that always sits on top of the floating stack
+ *   - Synchronized with Centralized Master Floating Action Hub:
+ *     - When Hub is collapsed: sits at 'bottom-22 sm:bottom-25' (directly above Master FAB)
+ *     - When Hub is expanded: smoothly glides up to bottom-56 sm:bottom-60 (or higher depending on item count)
  * - Web Audio API sparkle sound trigger upon click
  * - WCAG AAA Accessible with tooltip, aria-label, and keyboard focus states
  */
-const UNLOCK_STORAGE_KEY = 'portfolio_contact_unlocked';
-
 export default function BackToTopButton() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
-  const { soundEnabled } = useLab();
-  const { isSimpleMode } = useSimpleMode();
-  const [isUnlocked, setIsUnlocked] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      const stored = localStorage.getItem(UNLOCK_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed?.unlocked && parsed?.expiry && Date.now() < parsed.expiry) {
-          return true;
-        }
-      }
-    } catch {
-      // Ignored
-    }
-    return false;
-  });
+  const [isHubOpen, setIsHubOpen] = useState(false);
+  const [hubItemCount, setHubItemCount] = useState(0);
 
+  let labContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    labContext = useLab();
+  } catch {
+    // safe fallback
+  }
+  const soundEnabled = labContext?.soundEnabled ?? true;
+
+  let langContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    langContext = useLanguage();
+  } catch {
+    // safe fallback
+  }
+  const isHindi = langContext?.isHindi ?? false;
+
+  // Listen to Floating Action Hub expand/collapse state
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const checkUnlocked = () => {
-      try {
-        const stored = localStorage.getItem(UNLOCK_STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed?.unlocked && parsed?.expiry && Date.now() < parsed.expiry) {
-            setIsUnlocked(true);
-            return;
-          }
-        }
-      } catch {
-        // Ignored
+    const handleHubState = (e) => {
+      if (e?.detail !== undefined) {
+        setIsHubOpen(Boolean(e.detail.isOpen));
+        setHubItemCount(Number(e.detail.itemCount || 0));
       }
-      setIsUnlocked(false);
     };
 
-    const handleUnlocked = () => setIsUnlocked(true);
-    const handleLocked = () => setIsUnlocked(false);
-
-    window.addEventListener('storage', checkUnlocked);
-    window.addEventListener('contact_channel_unlocked', handleUnlocked);
-    window.addEventListener('contact_channel_locked', handleLocked);
-
-    return () => {
-      window.removeEventListener('storage', checkUnlocked);
-      window.removeEventListener('contact_channel_unlocked', handleUnlocked);
-      window.removeEventListener('contact_channel_locked', handleLocked);
-    };
+    window.addEventListener('floating_hub_state', handleHubState);
+    return () => window.removeEventListener('floating_hub_state', handleHubState);
   }, []);
 
   useEffect(() => {
@@ -127,20 +112,21 @@ export default function BackToTopButton() {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (scrollProgress / 100) * circumference;
 
-  // Stacking logic:
-  // Normal mode:
-  // - WhatsApp unlocked: sits at bottom-54 sm:bottom-58 (above SimpleToggle at bottom-38)
-  // - WhatsApp locked: sits at bottom-38 sm:bottom-42 (above SimpleToggle at bottom-22)
-  // Simple mode:
-  // - WhatsApp unlocked: sits at bottom-38 sm:bottom-42 (above SimpleToggle at bottom-22)
-  // - WhatsApp locked: sits at bottom-22 sm:bottom-25 (above SimpleToggle at bottom-6)
-  const verticalPositionClass = isSimpleMode
-    ? isUnlocked
-      ? 'bottom-38 sm:bottom-42'
-      : 'bottom-22 sm:bottom-25'
-    : isUnlocked
-      ? 'bottom-54 sm:bottom-58'
-      : 'bottom-38 sm:bottom-42';
+  // Vertical Stacking Logic (Synchronized with FloatingActionHub):
+  // When Hub is collapsed:
+  // - Master FAB is at bottom-6 sm:bottom-8 -> BackToTopButton sits at bottom-22 sm:bottom-25
+  // When Hub is expanded:
+  // - Child items expand upwards.
+  // - If 1 item: child is at bottom-22 sm:bottom-25 -> BackToTopButton glides to bottom-40 sm:bottom-44
+  // - If 2 items: children are at bottom-22 & bottom-38 -> BackToTopButton glides to bottom-56 sm:bottom-60
+  // - If 3+ items: children stack up to bottom-54 -> BackToTopButton glides to bottom-72 sm:bottom-76
+  const verticalPositionClass = isHubOpen
+    ? hubItemCount >= 3
+      ? 'bottom-72 sm:bottom-76'
+      : hubItemCount === 2
+        ? 'bottom-56 sm:bottom-60'
+        : 'bottom-40 sm:bottom-44'
+    : 'bottom-22 sm:bottom-25';
 
   return (
     <div
@@ -155,8 +141,8 @@ export default function BackToTopButton() {
         type="button"
         tabIndex={isVisible ? 0 : -1}
         onClick={scrollToTop}
-        aria-label={`Back to top (scrolled ${Math.round(scrollProgress)}%)`}
-        title={`Back to Top (${Math.round(scrollProgress)}%)`}
+        aria-label={isHindi ? `शीर्ष पर जाएं (स्क्रॉल ${Math.round(scrollProgress)}%)` : `Back to top (scrolled ${Math.round(scrollProgress)}%)`}
+        title={isHindi ? `शीर्ष पर जाएं (${Math.round(scrollProgress)}%)` : `Back to Top (${Math.round(scrollProgress)}%)`}
         className="group relative flex items-center justify-center w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-[#FAF8F5]/90 dark:bg-[#161122]/90 border border-[#E7E2D8] dark:border-[#2D2340] backdrop-blur-md text-[#18181B] dark:text-[#F5F2F8] shadow-lg shadow-black/10 dark:shadow-purple-950/30 hover:border-[#FF4D6D]/60 hover:shadow-xl hover:shadow-[#FF4D6D]/20 hover:scale-105 active:scale-90 transition-all duration-200 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
       >
         {/* SVG Circular Scroll Progress Ring */}
@@ -201,7 +187,7 @@ export default function BackToTopButton() {
 
         {/* Accessible Tooltip */}
         <span className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-xl bg-stone-900/95 px-2.5 py-1 text-xs font-medium text-white opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 hidden sm:block border border-stone-700/60">
-          Back to Top ({Math.round(scrollProgress)}%)
+          {isHindi ? `शीर्ष पर जाएं (${Math.round(scrollProgress)}%)` : `Back to Top (${Math.round(scrollProgress)}%)`}
         </span>
       </button>
     </div>

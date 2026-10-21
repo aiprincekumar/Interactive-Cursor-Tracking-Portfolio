@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
-import { Image, Sliders, X, Terminal } from 'lucide-react';
+import { Image, Sliders, X, Terminal, Calculator } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useSimpleMode } from '../context/SimpleModeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ExploreSubBar({
   variant = 'floating-bar',
@@ -13,6 +14,7 @@ export default function ExploreSubBar({
   className = ''
 }) {
   const buttonRefs = useRef([]);
+  const { isHindi } = useLanguage();
 
   let simpleContext = null;
   try {
@@ -27,36 +29,44 @@ export default function ExploreSubBar({
   const items = [
     {
       id: 'simple-mode-toggle',
-      label: isSimpleMode ? 'Interactive View' : 'Simple Mode',
+      label: isHindi ? (isSimpleMode ? 'इंटरएक्टिव दृश्य' : 'सिंपल मोड') : (isSimpleMode ? 'Interactive View' : 'Simple Mode'),
       action: 'toggle-simple-mode',
-      desc: isSimpleMode ? 'Full 3D & FX' : 'Clean & Fast'
+      desc: isHindi ? (isSimpleMode ? 'पूर्ण 3D व FX' : 'स्वच्छ एवं तेज़') : (isSimpleMode ? 'Full 3D & FX' : 'Clean & Fast')
     },
     {
       id: 'gallery',
-      label: 'Gallery',
+      label: isHindi ? 'गैलरी' : 'Gallery',
       href: '#gallery',
       icon: Image,
-      desc: 'Visual Showcase'
+      desc: isHindi ? 'विजुअल शोकेस' : 'Visual Showcase'
     },
     {
       id: 'playground',
-      label: 'Control Center',
+      label: isHindi ? 'कंट्रोल सेंटर' : 'Control Center',
       href: '#playground',
       icon: Sliders,
-      desc: 'Control Center'
+      desc: isHindi ? 'कंट्रोल सेंटर' : 'Control Center'
     },
     {
       id: 'drawer',
-      label: 'Quick Drawer',
+      label: isHindi ? 'त्वरित ड्रॉअर' : 'Quick Drawer',
       action: 'open-drawer',
       icon: Sliders,
-      desc: 'Tune Anywhere'
+      desc: isHindi ? 'कहीं भी ट्यून करें' : 'Tune Anywhere'
+    },
+    {
+      id: 'fee-estimator',
+      label: isHindi ? 'फीस कैलकुलेटर' : 'Fee Estimator',
+      action: 'open-estimator',
+      icon: Calculator,
+      desc: isHindi ? 'तत्काल कोटेशन' : 'Instant Quotation'
     },
     {
       id: 'terminal-cli',
       label: 'Terminal CLI',
+      label_hi: 'टर्मिनल CLI',
       icon: Terminal,
-      desc: 'Interactive Console',
+      desc: isHindi ? 'इंटरएक्टिव कंसोल' : 'Interactive Console',
       action: 'toggle-terminal'
     }
   ];
@@ -73,6 +83,18 @@ export default function ExploreSubBar({
       if (soundEnabled) soundFX.playRibbonSweep('up');
       window.dispatchEvent(new CustomEvent('portfolio:open-lab-drawer'));
       window.dispatchEvent(new CustomEvent('open-lab-drawer'));
+      if (onClose) onClose();
+      return;
+    }
+    if (targetItem.action === 'open-estimator' || targetItem.id === 'fee-estimator') {
+      if (soundEnabled) soundFX.playSparkle();
+      if (typeof window !== 'undefined') {
+        const el = document.getElementById('contact');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+        window.dispatchEvent(new CustomEvent('portfolio:switch-contact-tab', { detail: { tab: 'quote' } }));
+      }
       if (onClose) onClose();
       return;
     }
@@ -213,7 +235,7 @@ export default function ExploreSubBar({
                 </div>
                 <div className="flex flex-col min-w-0">
                   <span className="text-[11px] font-bold font-mono tracking-tight text-[#18181B] dark:text-white truncate">
-                    {item.label}
+                    {(isHindi && item.label_hi) ? item.label_hi : item.label}
                   </span>
                   <span className="text-[9px] text-stone-500 dark:text-stone-400 truncate">
                     {item.desc}
@@ -276,7 +298,7 @@ export default function ExploreSubBar({
                   }`}
                   title={isSimpleMode ? "Switch to Interactive View" : "Switch to Simple Mode"}
                 >
-                  <span className="tracking-tight whitespace-nowrap">{item.label}</span>
+                  <span className="tracking-tight whitespace-nowrap">{(isHindi && item.label_hi) ? item.label_hi : item.label}</span>
                   <span
                     className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full font-bold transition-colors ${
                       isSimpleMode
@@ -316,7 +338,7 @@ export default function ExploreSubBar({
                 } transition-colors duration-200`}>
                   <Icon className="w-3.5 h-3.5" />
                 </div>
-                <span className="tracking-tight whitespace-nowrap">{item.label}</span>
+                <span className="tracking-tight whitespace-nowrap">{(isHindi && item.label_hi) ? item.label_hi : item.label}</span>
                 <span className="hidden md:inline text-[10px] font-normal text-stone-400 dark:text-stone-400 group-hover:text-stone-500 dark:group-hover:text-stone-300">
                   {item.id === 'gallery' ? 'Showcase' : item.id === 'terminal-cli' ? 'Console' : 'Playground'}
                 </span>

@@ -756,6 +756,10 @@ class SoundFX {
     this.playDropSound();
   }
 
+  playTap() {
+    this.playHapticClick();
+  }
+
   playSnap() {
     this.playSnapSound();
   }

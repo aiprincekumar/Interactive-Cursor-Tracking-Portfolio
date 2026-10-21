@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { RoleContext } from '../context/RoleContext';
 import { useSimpleMode } from '../context/SimpleModeContext';
+import { useLanguage } from '../context/LanguageContext';
 import AnimatedCounter from './AnimatedCounter';
 import { DEFAULT_SOCIAL_PROOF_CONFIG } from '../data/socialProofConfig';
 
@@ -29,7 +30,7 @@ const ICON_MAP = {
 /**
  * Interactive Metric Card with cursor-tracking spotlight and magnetic lift
  */
-function ImpactMetricCard({ metric, accentColor, isSimpleMode, currentRole }) {
+function ImpactMetricCard({ metric, accentColor, isSimpleMode, currentRole, isHindi = false }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
 
@@ -54,11 +55,17 @@ function ImpactMetricCard({ metric, accentColor, isSimpleMode, currentRole }) {
 
   if (!metric) return null;
 
+  const categoryText = (isHindi && metric.category_hi) ? metric.category_hi : (metric.category || 'Benchmark');
+  const labelText = (isHindi && metric.label_hi) ? metric.label_hi : (metric.label || '');
+  const sublabelText = (isHindi && metric.sublabel_hi) ? metric.sublabel_hi : (metric.sublabel || '');
+  const statusText = (isHindi && metric.status_hi) ? metric.status_hi : (metric.status || 'Active');
+  const trendText = (isHindi && metric.trend_hi) ? metric.trend_hi : (metric.trend || '');
+
   return (
     <div
       tabIndex={0}
       data-card="true"
-      data-tts={`Benchmark: ${metric.label || ''}, ${metric.value || ''}. ${metric.sublabel || ''}`}
+      data-tts={`Benchmark: ${labelText}, ${metric.value || ''}. ${sublabelText}`}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -81,7 +88,7 @@ function ImpactMetricCard({ metric, accentColor, isSimpleMode, currentRole }) {
           <span
             className="text-[11px] font-bold uppercase font-mono tracking-wider px-2.5 py-1 rounded-full bg-stone-100 dark:bg-[#201830] text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-white transition-colors"
           >
-            {metric.category || 'Benchmark'}
+            {categoryText}
           </span>
           <div
             className="w-9 h-9 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
@@ -105,11 +112,11 @@ function ImpactMetricCard({ metric, accentColor, isSimpleMode, currentRole }) {
         </div>
 
         <h3 className="text-sm font-bold text-stone-800 dark:text-stone-100 mb-1 group-hover:text-[#FF4D6D] dark:group-hover:text-white transition-colors">
-          {metric.label || ''}
+          {labelText}
         </h3>
 
         <p className="text-xs text-stone-600 dark:text-stone-300 font-medium leading-relaxed mb-3">
-          {metric.sublabel || ''}
+          {sublabelText}
         </p>
       </div>
 
@@ -117,10 +124,10 @@ function ImpactMetricCard({ metric, accentColor, isSimpleMode, currentRole }) {
       <div className="relative z-10 pt-4 mt-2 border-t border-[#ECE7DF] dark:border-[#2D2340] flex items-center justify-between text-[11px] text-stone-600 dark:text-stone-400 font-mono">
         <span className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" aria-hidden="true" />
-          {metric.status || 'Active'}
+          {statusText}
         </span>
-        <span className="truncate max-w-[140px] text-right" title={metric.trend || ''}>
-          {metric.trend || ''}
+        <span className="truncate max-w-[140px] text-right" title={trendText}>
+          {trendText}
         </span>
       </div>
     </div>
@@ -135,6 +142,7 @@ export default function SocialProofSection({
 }) {
   const { isSimpleMode } = useSimpleMode();
   const roleContext = useContext(RoleContext);
+  const { isHindi } = useLanguage();
 
   const activeRole = roleContext?.activeRole || 'accountant';
   const isVibe = Boolean(roleContext?.isVibeCoding || roleContext?.isVibe || activeRole === 'vibe_coding');
@@ -159,6 +167,13 @@ export default function SocialProofSection({
     }
     return DEFAULT_SOCIAL_PROOF_CONFIG.impactMetrics;
   }, [config?.impactMetrics]);
+
+  const eyebrowText = (isHindi && config?.eyebrowText_hi) ? config.eyebrowText_hi : (config?.eyebrowText || 'Key Achievements & Production Impact');
+  const titlePrefix = (isHindi && config?.titlePrefix_hi) ? config.titlePrefix_hi : (config?.titlePrefix || 'Proof-First');
+  const titleHighlight = (isHindi && config?.titleHighlight_hi) ? config.titleHighlight_hi : (config?.titleHighlight || 'Technical Impact');
+  const titleSuffix = (isHindi && config?.titleSuffix_hi) ? config.titleSuffix_hi : (config?.titleSuffix || '& Achievements.');
+  const descriptionText = (isHindi && config?.description_hi) ? config.description_hi : (config?.description || 'Key achievements and production impact metrics.');
+  const metricsHeading = (isHindi && config?.metricsHeading_hi) ? config.metricsHeading_hi : (config?.metricsHeading || 'Production Benchmarks & Technical Impact');
 
   return (
     <section
@@ -188,7 +203,7 @@ export default function SocialProofSection({
             >
               <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
               <span className="truncate sm:overflow-visible">
-                {config?.eyebrowNumber || '06'} ✦ {config?.eyebrowText || 'Key Achievements & Production Impact'}
+                {config?.eyebrowNumber || '06'} ✦ {eyebrowText}
               </span>
             </div>
 
@@ -196,26 +211,26 @@ export default function SocialProofSection({
             <h2
               id="social-proof-heading"
               tabIndex={0}
-              data-tts={`${config?.titlePrefix || 'Proof-First'} ${config?.titleHighlight || 'Technical Impact'} ${config?.titleSuffix || 'and Achievements.'}`}
+              data-tts={`${titlePrefix} ${titleHighlight} ${titleSuffix}`}
               className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem] xl:text-5xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg"
             >
-              {config?.titlePrefix || 'Proof-First'} <span className="text-[#FF4D6D]" style={{ color: accentColor }}>{config?.titleHighlight || 'Technical Impact'}</span> {config?.titleSuffix || '& Achievements.'}
+              {titlePrefix} <span className="text-[#FF4D6D]" style={{ color: accentColor }}>{titleHighlight}</span> {titleSuffix}
             </h2>
             <div className="w-12 h-1 rounded-full mb-4" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
 
             <p
               tabIndex={0}
-              data-tts={config?.description || 'Key achievements and production impact metrics.'}
+              data-tts={descriptionText}
               className="text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-2xl font-normal leading-relaxed focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg"
             >
-              {config?.description}
+              {descriptionText}
             </p>
           </div>
 
           {/* Clean Telemetry Badge (Read-only status, no toggle button) */}
           <div
             tabIndex={0}
-            data-tts="Telemetry Status: 4 Verified Production Benchmarks"
+            data-tts={`Telemetry Status: ${isHindi ? '4 सत्यापित उत्पादन बेंचमार्क' : '4 Verified Production Benchmarks'}`}
             className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none self-start md:self-auto shrink-0 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
           >
             <span className="relative flex h-2.5 w-2.5">
@@ -223,7 +238,7 @@ export default function SocialProofSection({
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
             </span>
             <span className="text-xs sm:text-sm font-mono font-bold text-stone-700 dark:text-stone-300">
-              4 Verified Production Benchmarks
+              {isHindi ? '4 सत्यापित उत्पादन बेंचमार्क' : '4 Verified Production Benchmarks'}
             </span>
           </div>
         </div>
@@ -236,11 +251,11 @@ export default function SocialProofSection({
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" style={{ color: accentColor }} aria-hidden="true" />
               <h3 className="text-sm font-extrabold font-mono uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                {config?.metricsHeading || 'Production Benchmarks & Technical Impact'}
+                {metricsHeading}
               </h3>
             </div>
             <span className="text-xs font-mono text-stone-400 dark:text-stone-500 hidden sm:inline-block">
-              ✦ Real-time cursor reactivity &amp; hover spotlight enabled
+              {isHindi ? '✦ रीयल-टाइम कर्सर प्रतिक्रियाशीलता एवं होवर स्पॉटलाइट सक्षम' : '✦ Real-time cursor reactivity & hover spotlight enabled'}
             </span>
           </div>
 
@@ -256,6 +271,7 @@ export default function SocialProofSection({
                 accentColor={accentColor}
                 isSimpleMode={isSimpleMode}
                 currentRole={activeRole}
+                isHindi={isHindi}
               />
             ))}
           </div>

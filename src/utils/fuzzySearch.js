@@ -64,7 +64,35 @@ export const ALIAS_MAP = {
   resum: 'resume',
   resme: 'resume',
   watsapp: 'whatsapp',
-  whatsap: 'whatsapp'
+  whatsap: 'whatsapp',
+  // Devanagari Hindi search normalization
+  'टैली': 'tally',
+  'जीएसटी': 'gst',
+  'आयकर': 'income tax',
+  'अकाउंटिंग': 'accounting',
+  'अकाउंटेंट': 'accountant',
+  'बायोडाटा': 'resume',
+  'रेज़्यूमे': 'resume',
+  'रिज्यूमे': 'resume',
+  'व्हाट्सएप': 'whatsapp',
+  'ईमेल': 'email',
+  'प्रोजेक्ट्स': 'projects',
+  'प्रोजेक्ट': 'projects',
+  'कौशल': 'skills',
+  'शिक्षा': 'education',
+  'अनुभव': 'experience',
+  'करियर': 'experience',
+  'संपर्क': 'contact',
+  'टैक्स': 'tax',
+  'प्रमाणपत्र': 'certificate',
+  'सर्टिफिकेट': 'certificate',
+  'एक्सेल': 'excel',
+  'एक्सल': 'excel',
+  'उपलब्धियां': 'achievements',
+  'गैलरी': 'gallery',
+  'लैब': 'physics lab',
+  'बायो-डाटा': 'biodata',
+  'योग्यता': 'qualifications'
 };
 
 /**
@@ -171,15 +199,19 @@ export function searchCatalogItems(items, query, selectedCategory = 'All') {
 
   for (const item of candidates) {
     const titleLower = (item.title || '').toLowerCase();
+    const titleHiLower = (item.title_hi || '').toLowerCase();
     const descLower = (item.description || '').toLowerCase();
+    const descHiLower = (item.description_hi || '').toLowerCase();
     const keywordsLower = (item.keywords || '').toLowerCase();
+    const keywordsHiLower = (item.keywords_hi || '').toLowerCase();
     const badgeLower = (item.badge || '').toLowerCase();
+    const badgeHiLower = (item.badge_hi || '').toLowerCase();
     const matchTypeLower = (item.matchType || '').toLowerCase();
     const categoryLower = (item.category || '').toLowerCase();
 
-    // Composite searchable corpus
-    const fullCorpus = `${titleLower} ${descLower} ${keywordsLower} ${badgeLower} ${matchTypeLower} ${categoryLower}`;
-    const words = fullCorpus.replace(/[^a-z0-9+#.\-_]/g, ' ').split(/\s+/).filter((w) => w.length >= 2);
+    // Composite searchable corpus supporting English and Devanagari Hindi
+    const fullCorpus = `${titleLower} ${titleHiLower} ${descLower} ${descHiLower} ${keywordsLower} ${keywordsHiLower} ${badgeLower} ${badgeHiLower} ${matchTypeLower} ${categoryLower}`;
+    const words = fullCorpus.replace(/[^a-z0-9+#.\-_\u0900-\u097F]/gi, ' ').split(/\s+/).filter((w) => w.length >= 2);
 
     let allTokensMatched = true;
     let itemScore = 0;

@@ -9,6 +9,7 @@ import {
   Send,
   Workflow
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const TIER_ICONS = [Database, ShieldCheck, Cpu, Send];
 
@@ -20,6 +21,8 @@ const TIER_ICONS = [Database, ShieldCheck, Cpu, Send];
  * Fully compatible with Linen Light, Obsidian Dark, High-Contrast, and Simple Mode.
  */
 export default function CaseStudyArchitecture({ architectureData, accentColor = '#FF4D6D' }) {
+  const { isHindi } = useLanguage();
+
   if (!architectureData || !architectureData.tiers) {
     return null;
   }
@@ -34,7 +37,7 @@ export default function CaseStudyArchitecture({ architectureData, accentColor = 
           <div className="flex items-center gap-2">
             <Workflow className="w-4 h-4" style={{ color: accentColor }} aria-hidden="true" />
             <h3 className="text-base sm:text-lg font-bold text-[#18181B] dark:text-white tracking-tight">
-              {title || 'System Architecture Blueprint'}
+              {title || (isHindi ? 'सिस्टम आर्किटेक्चर ब्लूप्रिंट' : 'System Architecture Blueprint')}
             </h3>
           </div>
           {description && (
@@ -51,7 +54,7 @@ export default function CaseStudyArchitecture({ architectureData, accentColor = 
             color: accentColor
           }}
         >
-          4-Tier Blueprint
+          {isHindi ? '4-स्तरीय ब्लूप्रिंट' : '4-Tier Blueprint'}
         </span>
       </div>
 
@@ -79,7 +82,7 @@ export default function CaseStudyArchitecture({ architectureData, accentColor = 
                   </div>
                   <div className="min-w-0">
                     <span className="text-[10px] font-mono uppercase tracking-wider font-bold block text-stone-500 dark:text-stone-400">
-                      Tier 0{tierIdx + 1}
+                      {isHindi ? `स्तर 0${tierIdx + 1}` : `Tier 0${tierIdx + 1}`}
                     </span>
                     <h4 className="text-xs sm:text-sm font-bold text-[#18181B] dark:text-white truncate">
                       {tier.name.replace(/^Tier\s*\d+:\s*/i, '')}

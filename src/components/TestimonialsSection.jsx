@@ -8,12 +8,26 @@ import {
 } from 'lucide-react';
 import { RoleContext } from '../context/RoleContext';
 import { useSimpleMode } from '../context/SimpleModeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { TESTIMONIALS_CONFIG } from '../data/testimonialsConfig';
+
+const CATEGORY_NAMES_HI = {
+  'All': 'सभी',
+  'Statutory Compliance': 'वैधानिक अनुपालन',
+  'Financial Auditing': 'वित्तीय ऑडिट',
+  'Direct Tax Advisory': 'प्रत्यक्ष कर परामर्श',
+  'Government MIS': 'सरकारी MIS',
+  'Operations': 'संचालन',
+  'Corporate Control': 'कॉर्पोरेट नियंत्रण',
+  'Business Intelligence': 'बिजनेस इंटेलिजेंस',
+  'AI SaaS & Prototyping': 'AI SaaS एवं प्रोटोटाइपिंग',
+  'Autonomous Systems': 'स्वायत्त सिस्टम्स'
+};
 
 /**
  * Interactive Testimonial Card with dynamic cursor-tracking radial spotlight
  */
-function TestimonialCard({ item, accentColor, isSimpleMode }) {
+function TestimonialCard({ item, accentColor, isSimpleMode, isHindi = false }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
 
@@ -36,11 +50,17 @@ function TestimonialCard({ item, accentColor, isSimpleMode }) {
 
   if (!item) return null;
 
+  const tagText = (isHindi && item.tag_hi) ? item.tag_hi : (item.tag || item.category || 'Endorsement');
+  const quoteText = (isHindi && item.quote_hi) ? item.quote_hi : item.quote;
+  const authorText = (isHindi && item.author_hi) ? item.author_hi : item.author;
+  const roleText = (isHindi && item.role_hi) ? item.role_hi : item.role;
+  const companyText = (isHindi && item.company_hi) ? item.company_hi : item.company;
+
   return (
     <article
       tabIndex={0}
       data-card="true"
-      data-tts={`Testimonial from ${item.author || 'Client'}, ${item.role || 'Partner'}: ${item.quote || ''}`}
+      data-tts={`Testimonial from ${authorText || 'Client'}, ${roleText || 'Partner'}: ${quoteText || ''}`}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -62,7 +82,7 @@ function TestimonialCard({ item, accentColor, isSimpleMode }) {
         <span
           className="text-[11px] font-bold uppercase font-mono tracking-wider px-2.5 py-1 rounded-full bg-stone-100 dark:bg-[#201830] text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-white transition-colors"
         >
-          {item.tag || item.category || 'Endorsement'}
+          {tagText}
         </span>
         <div className="flex items-center gap-1 text-amber-400">
           {[...Array(item.rating || 5)].map((_, i) => (
@@ -79,7 +99,7 @@ function TestimonialCard({ item, accentColor, isSimpleMode }) {
           aria-hidden="true"
         />
         <p className="text-sm sm:text-base text-stone-700 dark:text-stone-300 font-medium leading-relaxed italic">
-          "{item.quote}"
+          "{quoteText}"
         </p>
       </div>
 
@@ -95,10 +115,10 @@ function TestimonialCard({ item, accentColor, isSimpleMode }) {
           </div>
           <div>
             <h3 className="text-sm font-bold text-stone-900 dark:text-white group-hover:text-[#FF4D6D] dark:group-hover:text-white transition-colors leading-tight">
-              {item.author}
+              {authorText}
             </h3>
             <p className="text-xs text-stone-500 dark:text-stone-400 font-medium">
-              {item.role} • <span className="font-semibold text-stone-700 dark:text-stone-300">{item.company}</span>
+              {roleText} • <span className="font-semibold text-stone-700 dark:text-stone-300">{companyText}</span>
             </p>
           </div>
         </div>
@@ -106,10 +126,10 @@ function TestimonialCard({ item, accentColor, isSimpleMode }) {
         {item.verified && (
           <span
             className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 shrink-0"
-            title="Verified Stakeholder Endorsement"
+            title={isHindi ? 'सत्यापित हितधारक अनुशंसा' : 'Verified Stakeholder Endorsement'}
           >
             <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Verified</span>
+            <span className="hidden sm:inline">{isHindi ? 'सत्यापित' : 'Verified'}</span>
           </span>
         )}
       </div>
@@ -127,6 +147,14 @@ export default function TestimonialsSection({
   const { isSimpleMode } = useSimpleMode();
   const roleContext = useContext(RoleContext);
   const [activeCategory, setActiveCategory] = useState('All');
+  let languageContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    languageContext = useLanguage();
+  } catch {
+    // fallback
+  }
+  const isHindi = languageContext?.isHindi ?? false;
 
   const activeRole = roleContext?.activeRole || 'accountant';
   const isVibe = Boolean(roleContext?.isVibeCoding || roleContext?.isVibe || activeRole === 'vibe_coding');
@@ -160,6 +188,12 @@ export default function TestimonialsSection({
     return allTestimonials.filter((item) => item.category === activeCategory);
   }, [allTestimonials, activeCategory]);
 
+  const eyebrowText = (isHindi && config?.eyebrowText_hi) ? config.eyebrowText_hi : (config?.eyebrowText || 'Client & Peer Endorsements');
+  const titlePrefix = (isHindi && config?.titlePrefix_hi) ? config.titlePrefix_hi : (config?.titlePrefix || 'Verified');
+  const titleHighlight = (isHindi && config?.titleHighlight_hi) ? config.titleHighlight_hi : (config?.titleHighlight || 'Testimonials');
+  const titleSuffix = (isHindi && config?.titleSuffix_hi) ? config.titleSuffix_hi : (config?.titleSuffix || '& Recommendations.');
+  const descriptionText = (isHindi && config?.description_hi) ? config.description_hi : (config?.description || 'Client and peer endorsements.');
+
   return (
     <section
       id={config?.sectionId || 'testimonials'}
@@ -188,7 +222,7 @@ export default function TestimonialsSection({
             >
               <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
               <span className="truncate sm:overflow-visible">
-                {config?.eyebrowNumber || '07'} ✦ {config?.eyebrowText || 'Client & Peer Endorsements'}
+                {config?.eyebrowNumber || '07'} ✦ {eyebrowText}
               </span>
             </div>
 
@@ -196,31 +230,31 @@ export default function TestimonialsSection({
             <h2
               id="testimonials-heading"
               tabIndex={0}
-              data-tts={`${config?.titlePrefix || 'Verified'} ${config?.titleHighlight || 'Testimonials'} ${config?.titleSuffix || 'and Recommendations.'}`}
+              data-tts={`${titlePrefix} ${titleHighlight} ${titleSuffix}`}
               className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem] xl:text-5xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg"
             >
-              {config?.titlePrefix || 'Verified'} <span style={{ color: accentColor }}>{config?.titleHighlight || 'Testimonials'}</span> {config?.titleSuffix || '& Recommendations.'}
+              {titlePrefix} <span style={{ color: accentColor }}>{titleHighlight}</span> {titleSuffix}
             </h2>
             <div className="w-12 h-1 rounded-full mb-4" style={{ backgroundColor: accentColor || '#FF4D6D' }} />
 
             <p
               tabIndex={0}
-              data-tts={config?.description || 'Client and peer endorsements.'}
+              data-tts={descriptionText}
               className="text-stone-600 dark:text-stone-400 text-sm md:text-base max-w-2xl font-normal leading-relaxed focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-lg"
             >
-              {config?.description}
+              {descriptionText}
             </p>
           </div>
 
           {/* Telemetry Badge */}
           <div
             tabIndex={0}
-            data-tts={`${allTestimonials.length} Verified Reviews`}
+            data-tts={`${allTestimonials.length} ${isHindi ? 'सत्यापित समीक्षाएं' : 'Verified Reviews'}`}
             className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white dark:bg-[#161122] border border-[#E7E2D8] dark:border-[#2D2340] shadow-sm shadow-stone-900/5 dark:shadow-none self-start md:self-auto shrink-0 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
           >
             <Sparkles className="w-4 h-4 text-amber-500" aria-hidden="true" />
             <span className="text-xs sm:text-sm font-mono font-bold text-stone-700 dark:text-stone-300">
-              {allTestimonials.length} Verified Reviews
+              {allTestimonials.length} {isHindi ? 'सत्यापित समीक्षाएं' : 'Verified Reviews'}
             </span>
           </div>
         </div>
@@ -234,6 +268,7 @@ export default function TestimonialsSection({
           >
             {categories.map((cat) => {
               const isSelected = activeCategory === cat;
+              const catDisplay = (isHindi && CATEGORY_NAMES_HI[cat]) ? CATEGORY_NAMES_HI[cat] : cat;
               return (
                 <button
                   key={cat}
@@ -246,7 +281,7 @@ export default function TestimonialsSection({
                       : 'bg-white dark:bg-[#161122] text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white border border-[#E7E2D8] dark:border-[#2D2340]'
                   }`}
                 >
-                  {cat}
+                  {catDisplay}
                 </button>
               );
             })}
@@ -264,6 +299,7 @@ export default function TestimonialsSection({
               item={item}
               accentColor={accentColor}
               isSimpleMode={isSimpleMode}
+              isHindi={isHindi}
             />
           ))}
         </div>

@@ -16,11 +16,11 @@ import InteractivePlayground from './components/InteractivePlayground';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import LabStudioDrawer from './components/LabStudioDrawer';
-import FloatingWhatsAppButton from './components/FloatingWhatsAppButton';
-import FloatingSimpleModeToggle from './components/FloatingSimpleModeToggle';
+import FloatingActionHub from './components/FloatingActionHub';
 import BackToTopButton from './components/BackToTopButton';
 import TerminalCLI from './components/TerminalCLI';
 import CaseStudyDrawer from './components/CaseStudyDrawer';
+import CredentialLightboxModal from './components/CredentialLightboxModal';
 import { soundFX } from './utils/audio';
 import { useLab } from './context/LabContext';
 import { RoleProvider } from './context/RoleContext';
@@ -65,6 +65,8 @@ export default function App() {
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [isCaseStudyOpen, setIsCaseStudyOpen] = useState(false);
   const [activeCaseStudyId, setActiveCaseStudyId] = useState('01');
+  const [isCredentialOpen, setIsCredentialOpen] = useState(false);
+  const [activeCredentialId, setActiveCredentialId] = useState('edu-adca');
 
   const handleOpenCaseStudy = (id) => {
     const cleanId = String(id || '01');
@@ -137,6 +139,24 @@ export default function App() {
     return () => {
       window.removeEventListener('portfolio:toggle-terminal', handleToggle);
       window.removeEventListener('portfolio:open-terminal', handleOpen);
+    };
+  }, []);
+
+  // Global event listeners for modal (Credential Lightbox)
+  useEffect(() => {
+    const handleOpenCred = (e) => {
+      const id = e?.detail?.id || 'edu-adca';
+      setActiveCredentialId(id);
+      setIsCredentialOpen(true);
+    };
+    const handleCloseCred = () => setIsCredentialOpen(false);
+
+    window.addEventListener('portfolio:open-credential', handleOpenCred);
+    window.addEventListener('portfolio:close-credential', handleCloseCred);
+
+    return () => {
+      window.removeEventListener('portfolio:open-credential', handleOpenCred);
+      window.removeEventListener('portfolio:close-credential', handleCloseCred);
     };
   }, []);
 
@@ -338,11 +358,15 @@ export default function App() {
               onSelectProject={handleOpenCaseStudy}
             />
 
-            {/* Floating Direct WhatsApp Channel Button (Unlocked via Contact Section) */}
-            <FloatingWhatsAppButton />
+            {/* Feature 6: Verified Credential & Academic Certificate Lightbox Inspector */}
+            <CredentialLightboxModal
+              isOpen={isCredentialOpen}
+              initialCredentialId={activeCredentialId}
+              onClose={() => setIsCredentialOpen(false)}
+            />
 
-            {/* Floating Persistent Simple Mode Toggle FAB (Always Visible) */}
-            <FloatingSimpleModeToggle />
+            {/* Centralized Master Floating Action Hub (Unifies Lab Studio, Simple Mode & WhatsApp Direct) */}
+            <FloatingActionHub />
 
             {/* Floating Back-To-Top Button with Scroll Progress Indicator */}
             <BackToTopButton />

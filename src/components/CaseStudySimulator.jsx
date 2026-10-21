@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useAnnounce } from '../context/AnnouncerContext';
+import { useLanguage } from '../context/LanguageContext';
 
 /**
  * CaseStudySimulator
@@ -28,6 +29,7 @@ export default function CaseStudySimulator({
   projectTitle = ''
 }) {
   const { announce } = useAnnounce();
+  const { isHindi } = useLanguage();
 
   if (!simulatorData) {
     return null;
@@ -190,12 +192,12 @@ export default function CaseStudySimulator({
             <Activity className="w-3 h-3" aria-hidden="true" />
             <span>
               {isRunning
-                ? `EXECUTING (${currentStepIdx + 1}/${steps.length})`
+                ? (isHindi ? `निष्पादन जारी (${currentStepIdx + 1}/${steps.length})` : `EXECUTING (${currentStepIdx + 1}/${steps.length})`)
                 : isCompleted
                 ? hasAnomaly
-                  ? 'VARIANCE FLAGGED'
-                  : '100% VERIFIED'
-                : 'STANDBY'}
+                  ? (isHindi ? 'विसंगति चिह्नित' : 'VARIANCE FLAGGED')
+                  : (isHindi ? '100% सत्यापित' : '100% VERIFIED')
+                : (isHindi ? 'स्टैंडबाय' : 'STANDBY')}
             </span>
           </span>
         </div>
@@ -365,14 +367,14 @@ export default function CaseStudySimulator({
           />
           <span className="text-xs text-stone-600 dark:text-stone-400 font-medium flex items-center gap-1.5">
             <Sliders className="w-3.5 h-3.5 text-stone-400" aria-hidden="true" />
-            <span>Simulate Anomaly / Audit Variance</span>
+            <span>{isHindi ? 'विसंगति / ऑडिट विचलन अनुकरण करें' : 'Simulate Anomaly / Audit Variance'}</span>
           </span>
         </label>
 
         {/* Action Buttons & Latency Counter */}
         <div className="flex items-center gap-2.5">
           <span className="text-xs font-mono font-bold text-stone-500 dark:text-stone-400 mr-1">
-            Latency: <span className="text-[#18181B] dark:text-white">{latency}ms</span>
+            {isHindi ? 'विलंबता: ' : 'Latency: '}<span className="text-[#18181B] dark:text-white">{latency}ms</span>
           </span>
 
           {archetype === 'pipeline' ? (
@@ -385,7 +387,7 @@ export default function CaseStudySimulator({
               style={{ backgroundColor: accentColor }}
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRunning ? 'animate-spin' : ''}`} aria-hidden="true" />
-              <span>{isRunning ? 'Auditing...' : isCompleted ? 'Re-run Audit' : 'Run Audit'}</span>
+              <span>{isRunning ? (isHindi ? 'ऑडिट जारी...' : 'Auditing...') : isCompleted ? (isHindi ? 'पुनः ऑडिट चलाएं' : 'Re-run Audit') : (isHindi ? 'ऑडिट चलाएं' : 'Run Audit')}</span>
             </button>
           ) : (
             <button
@@ -399,7 +401,7 @@ export default function CaseStudySimulator({
               style={{ backgroundColor: accentColor }}
             >
               <Zap className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Cycle State</span>
+              <span>{isHindi ? 'साइकिल स्टेट' : 'Cycle State'}</span>
             </button>
           )}
 

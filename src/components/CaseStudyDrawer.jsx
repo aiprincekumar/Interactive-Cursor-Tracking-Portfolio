@@ -20,15 +20,16 @@ import { CASE_STUDIES, getCaseStudyById } from '../data/caseStudiesData';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { soundFX } from '../utils/audio';
 import { useAnnounce } from '../context/AnnouncerContext';
+import { useLanguage } from '../context/LanguageContext';
 import CaseStudySimulator from './CaseStudySimulator';
 import CaseStudyArchitecture from './CaseStudyArchitecture';
 
 const STORY_STAGES = [
-  { id: 'challenge', number: '1', title: 'The Challenge', icon: AlertCircle },
-  { id: 'solution', number: '2', title: 'The Solution', icon: Lightbulb },
-  { id: 'tech', number: '3', title: 'Tech Stack & Obstacles', icon: Cpu },
-  { id: 'results', number: '4', title: 'Results & Metrics', icon: TrendingUp },
-  { id: 'lessons', number: '5', title: 'Lessons Learned', icon: BookOpen }
+  { id: 'challenge', number: '1', title: 'The Challenge', title_hi: 'व्यावसायिक चुनौती', icon: AlertCircle },
+  { id: 'solution', number: '2', title: 'The Solution', title_hi: 'इंजीनियरिंग समाधान', icon: Lightbulb },
+  { id: 'tech', number: '3', title: 'Tech Stack & Obstacles', title_hi: 'तकनीक व अड़चनें', icon: Cpu },
+  { id: 'results', number: '4', title: 'Results & Metrics', title_hi: 'परिणाम व प्रभाव', icon: TrendingUp },
+  { id: 'lessons', number: '5', title: 'Lessons Learned', title_hi: 'मुख्य सीख एवं सिद्धांत', icon: BookOpen }
 ];
 
 /**
@@ -45,6 +46,7 @@ export default function CaseStudyDrawer({
   onSelectProject
 }) {
   const { announce } = useAnnounce();
+  const { isHindi } = useLanguage();
   const drawerRef = useRef(null);
   const closeButtonRef = useRef(null);
   const tabRefs = useRef([]);
@@ -232,23 +234,23 @@ export default function CaseStudyDrawer({
           <section className="space-y-3">
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                {currentCaseStudy.category}
+                {(isHindi && currentCaseStudy.category_hi) ? currentCaseStudy.category_hi : currentCaseStudy.category}
               </span>
             </div>
             <h2
               id="casestudy-drawer-title"
               className="text-xl sm:text-2xl font-bold tracking-tight text-[#18181B] dark:text-white leading-tight"
             >
-              {currentCaseStudy.title}
+              {(isHindi && currentCaseStudy.title_hi) ? currentCaseStudy.title_hi : currentCaseStudy.title}
             </h2>
             <p
               id="casestudy-drawer-subtitle"
               className="text-sm sm:text-base text-stone-600 dark:text-stone-300 leading-relaxed font-medium"
             >
-              {currentCaseStudy.subtitle}
+              {(isHindi && currentCaseStudy.subtitle_hi) ? currentCaseStudy.subtitle_hi : currentCaseStudy.subtitle}
             </p>
             <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 leading-relaxed">
-              {currentCaseStudy.summary}
+              {(isHindi && (currentCaseStudy.summary_hi || currentCaseStudy.executiveSummary_hi)) ? (currentCaseStudy.summary_hi || currentCaseStudy.executiveSummary_hi) : currentCaseStudy.summary}
             </p>
           </section>
 
@@ -260,7 +262,7 @@ export default function CaseStudyDrawer({
                 className="p-3 rounded-xl bg-white dark:bg-[#161122] border border-[#ECE7DF] dark:border-[#2D2340] shadow-2xs"
               >
                 <span className="text-[11px] font-mono uppercase font-bold text-stone-500 dark:text-stone-400 block truncate">
-                  {m.label}
+                  {(isHindi && m.label_hi) ? m.label_hi : m.label}
                 </span>
                 <span
                   className="text-base sm:text-lg font-bold font-mono tracking-tight mt-0.5 block truncate"
@@ -269,7 +271,7 @@ export default function CaseStudyDrawer({
                   {m.val}
                 </span>
                 <span className="text-[11px] text-stone-500 dark:text-stone-400 block truncate mt-0.5">
-                  {m.desc}
+                  {(isHindi && m.desc_hi) ? m.desc_hi : m.desc}
                 </span>
               </div>
             ))}
@@ -306,7 +308,7 @@ export default function CaseStudyDrawer({
                   >
                     <IconComponent className="w-3.5 h-3.5" aria-hidden="true" />
                     <span>
-                      {stage.number}. {stage.title}
+                      {stage.number}. {(isHindi && stage.title_hi) ? stage.title_hi : stage.title}
                     </span>
                   </button>
                 );
@@ -328,20 +330,20 @@ export default function CaseStudyDrawer({
                     <div className="flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 text-rose-500" aria-hidden="true" />
                       <h3 className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white">
-                        {currentCaseStudy.story.challenge.title}
+                        {(isHindi && currentCaseStudy.story.challenge.title_hi) ? currentCaseStudy.story.challenge.title_hi : currentCaseStudy.story.challenge.title}
                       </h3>
                     </div>
                     <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
-                      {currentCaseStudy.story.challenge.context}
+                      {(isHindi && currentCaseStudy.story.challenge.context_hi) ? currentCaseStudy.story.challenge.context_hi : currentCaseStudy.story.challenge.context}
                     </p>
                   </div>
 
                   <div className="space-y-2.5">
                     <h4 className="text-xs font-mono uppercase tracking-wider font-bold text-stone-500 dark:text-stone-400">
-                      Core Enterprise Pain Points
+                      {isHindi ? 'मुख्य कॉर्पोरेट चुनौतियां एवं बाधाएं' : 'Core Enterprise Pain Points'}
                     </h4>
                     <div className="grid grid-cols-1 gap-2.5">
-                      {currentCaseStudy.story.challenge.painPoints.map((point, idx) => (
+                      {((isHindi && currentCaseStudy.story.challenge.painPoints_hi) ? currentCaseStudy.story.challenge.painPoints_hi : currentCaseStudy.story.challenge.painPoints).map((point, idx) => (
                         <div
                           key={idx}
                           className="flex items-start gap-2.5 p-3 rounded-lg bg-stone-50/80 dark:bg-[#100C1A] border border-stone-200/80 dark:border-[#251C36]"
@@ -375,17 +377,17 @@ export default function CaseStudyDrawer({
                     <div className="flex items-center gap-2">
                       <Lightbulb className="w-4 h-4 text-amber-500" aria-hidden="true" />
                       <h3 className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white">
-                        {currentCaseStudy.story.solution.title}
+                        {(isHindi && currentCaseStudy.story.solution.title_hi) ? currentCaseStudy.story.solution.title_hi : currentCaseStudy.story.solution.title}
                       </h3>
                     </div>
                     <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
-                      {currentCaseStudy.story.solution.approach}
+                      {(isHindi && currentCaseStudy.story.solution.approach_hi) ? currentCaseStudy.story.solution.approach_hi : currentCaseStudy.story.solution.approach}
                     </p>
                   </div>
 
                   <div className="space-y-2.5">
                     <h4 className="text-xs font-mono uppercase tracking-wider font-bold text-stone-500 dark:text-stone-400">
-                      Strategic Engineering Pillars
+                      {isHindi ? 'रणनीतिक इंजीनियरिंग स्तंभ' : 'Strategic Engineering Pillars'}
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {currentCaseStudy.story.solution.keyPillars.map((pillar, idx) => (
@@ -401,13 +403,13 @@ export default function CaseStudyDrawer({
                               color: accentColor
                             }}
                           >
-                            Pillar 0{idx + 1}
+                            {isHindi ? `स्तंभ 0${idx + 1}` : `Pillar 0${idx + 1}`}
                           </span>
                           <h5 className="text-xs font-bold text-[#18181B] dark:text-stone-200 mb-1">
-                            {pillar.title}
+                            {(isHindi && pillar.title_hi) ? pillar.title_hi : pillar.title}
                           </h5>
                           <p className="text-[11px] leading-relaxed text-stone-600 dark:text-stone-400">
-                            {pillar.desc}
+                            {(isHindi && pillar.desc_hi) ? pillar.desc_hi : pillar.desc}
                           </p>
                         </div>
                       ))}
@@ -438,7 +440,7 @@ export default function CaseStudyDrawer({
                     <div className="flex items-center gap-2">
                       <Cpu className="w-4 h-4" style={{ color: accentColor }} aria-hidden="true" />
                       <h3 className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white">
-                        {currentCaseStudy.story.techAndObstacles.title}
+                        {(isHindi && currentCaseStudy.story.techAndObstacles.title_hi) ? currentCaseStudy.story.techAndObstacles.title_hi : currentCaseStudy.story.techAndObstacles.title}
                       </h3>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
@@ -461,7 +463,7 @@ export default function CaseStudyDrawer({
                   {/* Obstacles & Resolutions */}
                   <div className="space-y-2.5">
                     <h4 className="text-xs font-mono uppercase tracking-wider font-bold text-stone-500 dark:text-stone-400">
-                      Technical Hurdles & Engineering Resolutions
+                      {isHindi ? 'तकनीकी चुनौतियां एवं इंजीनियरिंग समाधान' : 'Technical Hurdles & Engineering Resolutions'}
                     </h4>
                     <div className="grid grid-cols-1 gap-3">
                       {currentCaseStudy.story.techAndObstacles.obstacles.map((obs, idx) => (
@@ -471,18 +473,18 @@ export default function CaseStudyDrawer({
                         >
                           <div className="flex items-start gap-2 text-rose-600 dark:text-rose-400">
                             <span className="text-xs font-bold font-mono uppercase tracking-wider shrink-0 mt-0.5">
-                              Hurdle:
+                              {isHindi ? 'अड़चन:' : 'Hurdle:'}
                             </span>
                             <p className="text-xs text-[#18181B] dark:text-stone-200 font-medium">
-                              {obs.hurdle}
+                              {(isHindi && obs.hurdle_hi) ? obs.hurdle_hi : obs.hurdle}
                             </p>
                           </div>
                           <div className="flex items-start gap-2 text-emerald-600 dark:text-emerald-400 pl-4 border-l-2 border-emerald-500">
                             <span className="text-xs font-bold font-mono uppercase tracking-wider shrink-0 mt-0.5">
-                              Resolution:
+                              {isHindi ? 'समाधान:' : 'Resolution:'}
                             </span>
                             <p className="text-xs text-stone-700 dark:text-stone-300">
-                              {obs.resolution}
+                              {(isHindi && obs.resolution_hi) ? obs.resolution_hi : obs.resolution}
                             </p>
                           </div>
                         </div>
@@ -514,7 +516,7 @@ export default function CaseStudyDrawer({
                     <div className="flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-emerald-500" aria-hidden="true" />
                       <h3 className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white">
-                        {currentCaseStudy.story.resultsAndMetrics.title}
+                        {(isHindi && currentCaseStudy.story.resultsAndMetrics.title_hi) ? currentCaseStudy.story.resultsAndMetrics.title_hi : currentCaseStudy.story.resultsAndMetrics.title}
                       </h3>
                     </div>
 
@@ -526,13 +528,13 @@ export default function CaseStudyDrawer({
                           className="p-3.5 rounded-xl bg-stone-50/80 dark:bg-[#100C1A] border border-stone-200/80 dark:border-[#251C36] space-y-1.5"
                         >
                           <span className="text-xs font-bold text-[#18181B] dark:text-white block">
-                            {comp.metric}
+                            {(isHindi && comp.metric_hi) ? comp.metric_hi : comp.metric}
                           </span>
                           <div className="text-[11px] text-stone-500 dark:text-stone-400">
-                            Before: <span className="line-through">{comp.before}</span>
+                            {isHindi ? 'पूर्व: ' : 'Before: '}<span className="line-through">{(isHindi && comp.before_hi) ? comp.before_hi : comp.before}</span>
                           </div>
                           <div className="text-xs font-bold font-mono text-[#18181B] dark:text-stone-200">
-                            After: <span>{comp.after}</span>
+                            {isHindi ? 'पश्चात: ' : 'After: '}<span>{(isHindi && comp.after_hi) ? comp.after_hi : comp.after}</span>
                           </div>
                           <span
                             className="inline-block text-[10px] font-mono font-bold px-2 py-0.5 rounded-full"
@@ -541,7 +543,7 @@ export default function CaseStudyDrawer({
                               color: accentColor
                             }}
                           >
-                            Delta: {comp.delta}
+                            {isHindi ? 'अंतर: ' : 'Delta: '}{(isHindi && comp.delta_hi) ? comp.delta_hi : comp.delta}
                           </span>
                         </div>
                       ))}
@@ -551,10 +553,10 @@ export default function CaseStudyDrawer({
                   {/* Highlights Bullet List */}
                   <div className="space-y-2.5">
                     <h4 className="text-xs font-mono uppercase tracking-wider font-bold text-stone-500 dark:text-stone-400">
-                      Verified Impact Highlights
+                      {isHindi ? 'सत्यापित प्रभाव एवं मुख्य परिणाम' : 'Verified Impact Highlights'}
                     </h4>
                     <div className="grid grid-cols-1 gap-2">
-                      {currentCaseStudy.story.resultsAndMetrics.highlights.map((high, idx) => (
+                      {((isHindi && currentCaseStudy.story.resultsAndMetrics.highlights_hi) ? currentCaseStudy.story.resultsAndMetrics.highlights_hi : currentCaseStudy.story.resultsAndMetrics.highlights).map((high, idx) => (
                         <div
                           key={idx}
                           className="flex items-start gap-2.5 p-3 rounded-lg bg-white dark:bg-[#161122] border border-stone-200/80 dark:border-[#2D2340]"
@@ -583,7 +585,7 @@ export default function CaseStudyDrawer({
                     <div className="flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-indigo-500" aria-hidden="true" />
                       <h3 className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white">
-                        {currentCaseStudy.story.lessonsLearned.title}
+                        {(isHindi && currentCaseStudy.story.lessonsLearned.title_hi) ? currentCaseStudy.story.lessonsLearned.title_hi : currentCaseStudy.story.lessonsLearned.title}
                       </h3>
                     </div>
                   </div>
@@ -605,11 +607,11 @@ export default function CaseStudyDrawer({
                             0{idx + 1}
                           </span>
                           <h4 className="text-xs sm:text-sm font-bold text-[#18181B] dark:text-white">
-                            {item.principle}
+                            {(isHindi && item.principle_hi) ? item.principle_hi : item.principle}
                           </h4>
                         </div>
                         <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed pl-7">
-                          {item.detail}
+                          {(isHindi && item.detail_hi) ? item.detail_hi : item.detail}
                         </p>
                       </div>
                     ))}
@@ -622,7 +624,7 @@ export default function CaseStudyDrawer({
           {/* Tech Stack Pills List */}
           <section className="pt-2">
             <span className="text-[11px] font-mono uppercase tracking-wider text-stone-500 dark:text-stone-400 block mb-2 font-bold">
-              Production Tech Stack & Tools
+              {isHindi ? 'प्रोडक्शन टेक स्टैक और टूल्स' : 'Production Tech Stack & Tools'}
             </span>
             <div className="flex flex-wrap gap-1.5">
               {currentCaseStudy.techStack.map((tech) => (
@@ -641,7 +643,7 @@ export default function CaseStudyDrawer({
         <footer className="px-5 py-4 border-t border-[#ECE7DF] dark:border-[#2D2340] bg-white/80 dark:bg-[#161122]/90 backdrop-blur-md shrink-0 flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Quick Prev / Next Labeling */}
           <div className="flex items-center gap-2 text-xs font-mono text-stone-500 dark:text-stone-400">
-            <span>Project {currentCaseStudy.id} of 09</span>
+            <span>{isHindi ? `प्रोजेक्ट ${currentCaseStudy.id} / 09` : `Project ${currentCaseStudy.id} of 09`}</span>
           </div>
 
           {/* Action Button Links */}
@@ -652,7 +654,7 @@ export default function CaseStudyDrawer({
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white shadow-xs transition-all active:scale-95 cursor-pointer"
               style={{ backgroundColor: accentColor }}
             >
-              <span>Discuss Architecture</span>
+              <span>{isHindi ? 'आर्किटेक्चर पर चर्चा करें' : 'Discuss Architecture'}</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </a>
             <button
@@ -660,7 +662,7 @@ export default function CaseStudyDrawer({
               onClick={handleClose}
               className="px-4 py-2 rounded-full text-xs font-bold border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
             >
-              Close Dossier
+              {isHindi ? 'डॉक्यूमेंट बंद करें' : 'Close Dossier'}
             </button>
           </div>
         </footer>
