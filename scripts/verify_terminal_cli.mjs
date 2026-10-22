@@ -142,19 +142,17 @@ assert(navbarCode.includes('onOpenTerminal'), 'Navbar.jsx must receive onOpenTer
 assert(navbarCode.includes('onToggleTerminal={onToggleTerminal}'), 'Navbar.jsx must pass onToggleTerminal into ExploreSubBar');
 assert(navbarCode.includes('onOpenTerminal={onOpenTerminal}'), 'Navbar.jsx must pass onOpenTerminal into ExploreSubBar');
 
-// 6. Check ExploreSubBar.jsx integration
+// 6. Check ExploreSubBar.jsx & View Mode integration (Terminal CLI moved exclusively to View Mode)
 const explorePath = path.join(projectRoot, 'src', 'components', 'ExploreSubBar.jsx');
 assert(fs.existsSync(explorePath), 'ExploreSubBar.jsx must exist');
 const exploreCode = fs.readFileSync(explorePath, 'utf-8');
-assert(exploreCode.includes('terminal-cli'), 'ExploreSubBar must include terminal-cli item');
-assert(exploreCode.includes('Terminal CLI'), 'ExploreSubBar must label terminal-cli as "Terminal CLI"');
-assert(exploreCode.includes('toggle-terminal'), 'ExploreSubBar must include toggle-terminal action');
-assert(exploreCode.includes('onOpenTerminal'), 'ExploreSubBar must support onOpenTerminal prop');
-assert(exploreCode.includes('portfolio:open-terminal'), 'ExploreSubBar must dispatch or handle portfolio:open-terminal event');
-assert(
-  !exploreCode.includes("onToggleTerminal();\n      }\n      if (typeof window !== 'undefined') {\n        window.dispatchEvent(new CustomEvent('portfolio:toggle-terminal'));"),
-  'ExploreSubBar must NOT have double-toggle glitch'
-);
+assert(!exploreCode.includes("id: 'terminal-cli'"), 'ExploreSubBar must NOT include terminal-cli item (removed in favor of View Mode)');
+
+const viewModeContextPath = path.join(projectRoot, 'src', 'context', 'ViewModeContext.jsx');
+assert(fs.existsSync(viewModeContextPath), 'ViewModeContext.jsx must exist');
+const viewModeCode = fs.readFileSync(viewModeContextPath, 'utf-8');
+assert(viewModeCode.includes('terminal'), 'ViewModeContext must include terminal mode');
+assert(viewModeCode.includes('portfolio:open-terminal'), 'ViewModeContext must trigger portfolio:open-terminal event');
 
 // 7. Check App.jsx integration
 const appPath = path.join(projectRoot, 'src', 'App.jsx');

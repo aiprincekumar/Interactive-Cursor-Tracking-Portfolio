@@ -91,7 +91,7 @@ export default function AudienceSubBar({
           </span>
         </div>
 
-        <div className="grid grid-cols-3 gap-2" role="group" aria-label="Audience view options">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="group" aria-label="Audience view options">
           {modesList.map((mode, index) => {
             const isActive = audience === mode.id;
             const Icon = mode.icon;
@@ -155,7 +155,7 @@ export default function AudienceSubBar({
         </span>
       </div>
 
-      {/* Middle: 3 Audience Mode Options */}
+      {/* Middle: Audience Mode Options */}
       <div
         role="group"
         aria-label="Audience View Options"

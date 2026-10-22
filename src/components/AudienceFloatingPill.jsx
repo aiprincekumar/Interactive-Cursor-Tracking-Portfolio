@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { GripHorizontal, RotateCcw, Check } from 'lucide-react';
+import { GripHorizontal, RotateCcw, Check, Filter } from 'lucide-react';
 import { useAudience } from '../context/AudienceContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import { soundFX } from '../utils/audio';
 
 export const AUDIENCE_CARD_POS_STORAGE_KEY = 'portfolio_audience_card_pos';
@@ -11,7 +12,7 @@ export const AUDIENCE_CARD_POS_STORAGE_KEY = 'portfolio_audience_card_pos';
  * Validate card coordinate against current viewport boundaries.
  * Returns true if position is within safe, visible bounds.
  */
-export const isValidCardPosition = (x, y, cardWidth = 320, cardHeight = 240) => {
+export const isValidCardPosition = (x, y, cardWidth = 320, cardHeight = 290) => {
   if (typeof window === 'undefined') return false;
   if (typeof x !== 'number' || typeof y !== 'number') return false;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
@@ -27,7 +28,7 @@ export const isValidCardPosition = (x, y, cardWidth = 320, cardHeight = 240) => 
 /**
  * Clamp card coordinate to viewport with 12px safety padding on all 4 sides.
  */
-export const clampCardPosition = (x, y, cardWidth = 320, cardHeight = 240) => {
+export const clampCardPosition = (x, y, cardWidth = 320, cardHeight = 290) => {
   if (typeof window === 'undefined') return { x, y };
   const minPadding = 12;
   const maxX = Math.max(minPadding, window.innerWidth - cardWidth - 12);
@@ -40,7 +41,7 @@ export const clampCardPosition = (x, y, cardWidth = 320, cardHeight = 240) => {
 /**
  * AudienceFloatingPill
  * 
- * Unified vertical glass card mounted via React Portal into document.body.
+ * Unified vertical glass card mounted via React Portal into document.body with z-[55] elevation.
  * 
  * Eliminates ancestor CSS transform containing block traps:
  * 1. DYNAMIC ANCHORED MODE (customPos === null):
@@ -61,11 +62,42 @@ export default function AudienceFloatingPill({
   isOpen = true,
   onClose,
   soundEnabled = true,
+  isDrawerOpen = false,
   className = ''
 }) {
   const { audience, setAudience, modesList } = useAudience();
   const { isHindi } = useLanguage();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const cardRef = useRef(null);
+
+  // Spotlight shine state
+  const [spotlightPos, setSpotlightPos] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleCardMouseMove = useCallback((e) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    setSpotlightPos({
+      x: Math.round(e.clientX - rect.left),
+      y: Math.round(e.clientY - rect.top)
+    });
+  }, []);
+
+  const handleCardMouseEnter = useCallback((e) => {
+    setIsHovered(true);
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      setSpotlightPos({
+        x: Math.round(e.clientX - rect.left),
+        y: Math.round(e.clientY - rect.top)
+      });
+    }
+  }, []);
+
+  const handleCardMouseLeave = useCallback(() => {
+    setIsHovered(false);
+  }, []);
 
   // Default customPos to null on fresh open so it always anchors cleanly beside the button
   const [customPos, setCustomPos] = useState(null);
@@ -74,7 +106,7 @@ export default function AudienceFloatingPill({
   const [anchoredPos, setAnchoredPos] = useState(() => {
     if (typeof window !== 'undefined') {
       const defaultW = 320;
-      const defaultH = 225;
+      const defaultH = 290;
       return {
         left: Math.max(12, window.innerWidth - defaultW - 70),
         top: Math.max(20, window.innerHeight - defaultH - 24)
@@ -85,7 +117,7 @@ export default function AudienceFloatingPill({
 
   const [isDragging, setIsDragging] = useState(false);
   const isDraggingRef = useRef(false);
-  const dragStartRef = useRef({ pointerX: 0, pointerY: 0, cardX: 0, cardY: 0, cardWidth: 320, cardHeight: 225 });
+  const dragStartRef = useRef({ pointerX: 0, pointerY: 0, cardX: 0, cardY: 0, cardWidth: 320, cardHeight: 290 });
   const hasDraggedRef = useRef(false);
   const wasOpenRef = useRef(false);
 
@@ -101,7 +133,7 @@ export default function AudienceFloatingPill({
       const triggerRect = triggerEl.getBoundingClientRect();
       const cardEl = cardRef.current;
       const cardWidth = cardEl?.offsetWidth || 320;
-      const cardHeight = cardEl?.offsetHeight || 225;
+      const cardHeight = cardEl?.offsetHeight || 290;
       const buttonHeight = triggerRect.height || 48;
 
       // Target shift to bring card top to near where button starts
@@ -123,7 +155,7 @@ export default function AudienceFloatingPill({
         safeShift = Math.min(maxShiftAllowed, safeShift + extraShift);
         cardTop = triggerRect.bottom - cardHeight + safeShift;
       }
-      cardTop = Math.max(minTopSpacing, Math.min(cardTop, viewportHeight - cardHeight - minBottomSpacing));
+      cardTop = Math.max(12, Math.min(cardTop, window.innerHeight - cardHeight - 12));
 
       // Compute left coordinate with 14px clearance to the left of the button
       let cardLeft = triggerRect.left - cardWidth - 14;
@@ -167,24 +199,57 @@ export default function AudienceFloatingPill({
     }
   }, [isOpen, updateAnchoredPosition]);
 
-  // Continuously sync anchored position on resize, scroll, and animation frames when in anchored mode
+  // Continuously sync anchored position on resize, scroll, transitions, and layout shifts when in anchored mode
   useEffect(() => {
     if (!isOpen || customPos) return;
     updateAnchoredPosition();
 
-    const animFrame = requestAnimationFrame(updateAnchoredPosition);
-    const timerId = setTimeout(updateAnchoredPosition, 60);
+    const triggerEl =
+      document.getElementById('audience-filter-trigger') ||
+      document.querySelector('[data-audience-filter-trigger]');
+    const hubEl = document.querySelector('[data-floating-action-hub]');
+
+    const handleTransition = () => {
+      updateAnchoredPosition();
+    };
+
+    triggerEl?.addEventListener('transitionend', handleTransition);
+    triggerEl?.addEventListener('transitionrun', handleTransition);
+    hubEl?.addEventListener('transitionend', handleTransition);
+    hubEl?.addEventListener('transitionrun', handleTransition);
 
     window.addEventListener('resize', updateAnchoredPosition);
     window.addEventListener('scroll', updateAnchoredPosition, true);
 
+    // RAF tracking during layout shifts/glide transitions (450ms tracking window)
+    let rafId = null;
+    const startTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const trackShift = (now) => {
+      updateAnchoredPosition();
+      const current = now || (typeof performance !== 'undefined' ? performance.now() : Date.now());
+      if (current - startTime < 450) {
+        rafId = requestAnimationFrame(trackShift);
+      }
+    };
+    rafId = requestAnimationFrame(trackShift);
+
+    const timer1 = setTimeout(updateAnchoredPosition, 100);
+    const timer2 = setTimeout(updateAnchoredPosition, 320);
+    const timer3 = setTimeout(updateAnchoredPosition, 400);
+
     return () => {
-      cancelAnimationFrame(animFrame);
-      clearTimeout(timerId);
+      if (rafId) cancelAnimationFrame(rafId);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      triggerEl?.removeEventListener('transitionend', handleTransition);
+      triggerEl?.removeEventListener('transitionrun', handleTransition);
+      hubEl?.removeEventListener('transitionend', handleTransition);
+      hubEl?.removeEventListener('transitionrun', handleTransition);
       window.removeEventListener('resize', updateAnchoredPosition);
       window.removeEventListener('scroll', updateAnchoredPosition, true);
     };
-  }, [isOpen, customPos, updateAnchoredPosition]);
+  }, [isOpen, customPos, isDrawerOpen, updateAnchoredPosition]);
 
   // Clamp custom dragged coordinate on viewport resize so card never stays offscreen
   useEffect(() => {
@@ -313,7 +378,7 @@ export default function AudienceFloatingPill({
     const currentX = customPos ? customPos.x : rect.left;
     const currentY = customPos ? customPos.y : rect.top;
     const cardW = rect.width || 320;
-    const cardH = rect.height || 225;
+    const cardH = rect.height || 290;
 
     isDraggingRef.current = true;
     hasDraggedRef.current = false;
@@ -428,122 +493,159 @@ export default function AudienceFloatingPill({
   const activeTop = isCustomDragged ? customPos.y : anchoredPos.top;
 
   const inlineStyle = {
+    position: 'fixed',
+    zIndex: 55,
     left: `${activeLeft}px`,
     top: `${activeTop}px`,
-    transition: isDragging ? 'none' : 'left 0.2s ease-out, top 0.2s ease-out'
+    touchAction: 'none',
+    transition: isDragging ? 'none' : 'left 0.25s ease-out, top 0.25s ease-out'
   };
 
   const cardElement = (
     <div
       ref={cardRef}
-      role="radiogroup"
+      role="dialog"
       aria-label={isHindi ? 'ऑडियंस मोड चुनें' : 'Select Audience View'}
       style={inlineStyle}
-      className={`fixed z-[55] rounded-2xl backdrop-blur-xl border border-white/15 dark:border-white/10 bg-slate-900/95 dark:bg-slate-950/95 shadow-2xl p-1.5 flex flex-col gap-1 w-72 sm:w-80 max-w-[calc(100vw-5.5rem)] select-none ${
-        isDragging ? 'cursor-grabbing' : ''
-      } ${className}`}
+      onMouseMove={handleCardMouseMove}
+      onMouseEnter={handleCardMouseEnter}
+      onMouseLeave={handleCardMouseLeave}
+      className={`overflow-hidden rounded-2xl p-3 border select-none backdrop-blur-xl shadow-2xl transition-shadow w-72 sm:w-80 max-w-[calc(100vw-5.5rem)] ${
+        isDragging
+          ? 'shadow-[#FF4D6D]/25 ring-2 ring-[#FF4D6D]/60 scale-[1.01] cursor-grabbing'
+          : 'shadow-black/20 dark:shadow-purple-950/40 hover:shadow-2xl'
+      } bg-[#FAF8F5]/98 dark:bg-[#161122]/98 border-[#E7E2D8] dark:border-[#2D2340] ${className}`}
       onClick={(e) => e.stopPropagation()}
     >
+      {/* Interactive Cursor-Tracking Spotlight Shine */}
+      <div
+        className={`pointer-events-none absolute inset-0 rounded-2xl transition-opacity duration-300 ${
+          isHovered ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{
+          background: isDark
+            ? `radial-gradient(circle 120px at ${spotlightPos.x}px ${spotlightPos.y}px, rgba(255, 77, 109, 0.12), transparent 80%)`
+            : `radial-gradient(circle 120px at ${spotlightPos.x}px ${spotlightPos.y}px, rgba(255, 77, 109, 0.08), transparent 80%)`
+        }}
+        aria-hidden="true"
+      />
+
       {/* Sleek Drag Handle Bar */}
       <div
+        data-drag-handle="true"
         onPointerDown={handlePointerDown}
         onDoubleClick={handleResetPosition}
         style={{ touchAction: 'none' }}
-        className="px-2 pt-1 pb-1 flex items-center justify-between border-b border-white/10 dark:border-white/5 mb-0.5 cursor-grab active:cursor-grabbing select-none group/handle rounded-t-xl hover:bg-white/5 transition-colors"
+        className="flex items-center justify-between pb-2 mb-2 border-b border-stone-200/70 dark:border-stone-800 cursor-grab active:cursor-grabbing group select-none relative z-10"
         title={isHindi ? 'खींचकर स्थिति बदलें (डबल-क्लिक से रीसेट)' : 'Drag to reposition (Double-click to reset)'}
       >
-        <div className="flex items-center gap-1.5 min-w-0 select-none">
-          <GripHorizontal className="w-3.5 h-3.5 text-stone-400 group-hover/handle:text-stone-200 transition-colors shrink-0" aria-hidden="true" />
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-stone-400 dark:text-stone-400 truncate select-none">
+        <div className="flex items-center gap-2 min-w-0 select-none">
+          <div className="p-1 rounded-lg bg-[#FF4D6D]/10 text-[#FF4D6D] shrink-0">
+            <Filter className="w-3.5 h-3.5" />
+          </div>
+          <span className="text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 truncate select-none">
             {isHindi ? 'ऑडियंस फ़िल्टर' : 'Audience View'}
           </span>
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0 select-none">
-          <span className="text-[9px] font-mono font-semibold text-emerald-400 dark:text-purple-400 select-none">
+          <span className="text-[9px] font-mono font-semibold text-[#FF4D6D] bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 px-2 py-0.5 rounded-full border border-[#FFD1DC] dark:border-[#FF4D6D]/30 select-none">
             {modesList.find((m) => m.id === audience)?.shortLabel || 'All'}
           </span>
 
-          <button
-            type="button"
-            onClick={handleResetPosition}
-            onPointerDown={(e) => e.stopPropagation()}
-            title={isHindi ? 'फ़्लोटिंग बटन पर रीसेट करें' : 'Reset position'}
-            aria-label={isHindi ? 'फ़्लोटिंग बटन पर स्थिति रीसेट करें' : 'Reset position'}
-            disabled={!isCustomDragged}
-            className={`p-1 rounded-md transition-all focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-emerald-400 ${
-              isCustomDragged
-                ? 'text-stone-400 hover:text-white hover:bg-white/10 cursor-pointer opacity-100'
-                : 'text-stone-600 cursor-default opacity-0 pointer-events-none'
-            }`}
-          >
-            <RotateCcw className="w-3 h-3" aria-hidden="true" />
-          </button>
+          {isCustomDragged && (
+            <button
+              type="button"
+              onClick={handleResetPosition}
+              onPointerDown={(e) => e.stopPropagation()}
+              title={isHindi ? 'फ़्लोटिंग बटन पर रीसेट करें' : 'Reset position'}
+              aria-label={isHindi ? 'फ़्लोटिंग बटन पर स्थिति रीसेट करें' : 'Reset position'}
+              className="p-1 rounded-md text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3 h-3" aria-hidden="true" />
+            </button>
+          )}
+
+          <div className="p-1 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300 transition-colors">
+            <GripHorizontal className="w-4 h-4" aria-hidden="true" />
+          </div>
         </div>
       </div>
 
-      {/* Vertical list of modes in order: All -> Recruiter -> Client */}
-      {modesList.map((mode) => {
-        const isActive = audience === mode.id;
-        const Icon = mode.icon;
-        const label = isHindi && mode.label_hi ? mode.label_hi : mode.label;
-        const description = isHindi && mode.description_hi ? mode.description_hi : mode.description;
+      {/* 4 Audience Mode Options */}
+      <div className="flex flex-col gap-1 space-y-0.5 relative z-10" role="radiogroup" aria-label={isHindi ? 'ऑडियंस मोड चुनें' : 'Select Audience View'}>
+        {modesList.map((mode, index) => {
+          const isActive = audience === mode.id;
+          const Icon = mode.icon;
+          const label = isHindi && mode.label_hi ? mode.label_hi : mode.label;
+          const description = isHindi && mode.description_hi ? mode.description_hi : mode.description;
+          const badge = isHindi && mode.badge_hi ? mode.badge_hi : mode.badge;
 
-        return (
-          <button
-            key={mode.id}
-            type="button"
-            role="radio"
-            aria-checked={isActive}
-            data-audience-option={mode.id}
-            onClick={(e) => handleSelect(mode.id, e)}
-            onMouseEnter={() => {
-              if (soundEnabled && soundFX?.playChipHover) soundFX.playChipHover();
-            }}
-            className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer text-left focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-400 active:scale-[0.98] select-none ${
-              isActive
-                ? 'bg-white/15 dark:bg-white/10 text-white border border-emerald-400/60 dark:border-purple-400/60 shadow-lg shadow-emerald-500/20 dark:shadow-purple-500/20 ring-1 ring-emerald-400/50 dark:ring-purple-400/50 font-semibold'
-                : 'text-stone-300 hover:text-white hover:bg-white/10 dark:hover:bg-white/5 border border-transparent'
-            }`}
-          >
-            {/* Emoji & Icon Container */}
-            <div
-              className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+          return (
+            <button
+              key={mode.id}
+              type="button"
+              role="radio"
+              aria-checked={isActive}
+              data-audience-option={mode.id}
+              style={{ animationDelay: `${index * 50}ms` }}
+              onClick={(e) => handleSelect(mode.id, e)}
+              onMouseEnter={() => {
+                if (soundEnabled && soundFX?.playChipHover) soundFX.playChipHover();
+              }}
+              className={`animate-pill-row w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all duration-200 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-400 dark:focus-visible:ring-purple-400 ${
                 isActive
-                  ? 'bg-emerald-400/25 dark:bg-purple-400/25 text-emerald-300 dark:text-purple-300'
-                  : 'bg-white/5 text-stone-300 group-hover:bg-white/10 group-hover:text-white'
+                  ? 'bg-linear-to-tr from-[#18181B] to-[#27272A] dark:from-stone-100 dark:to-white text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-md scale-[1.01] ring-1 ring-emerald-400/50 dark:ring-purple-400/50'
+                  : 'bg-white/70 dark:bg-stone-900/60 hover:bg-white dark:hover:bg-stone-800/90 border-[#E7E2D8] dark:border-stone-800 text-stone-800 dark:text-stone-200 hover:border-[#FF4D6D]/40'
               }`}
             >
-              {mode.emoji ? (
-                <span className="text-base select-none" aria-hidden="true">
-                  {mode.emoji}
-                </span>
-              ) : (
-                <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
-              )}
-            </div>
-
-            {/* Label and Description */}
-            <div className="flex flex-col min-w-0 flex-1 select-none">
-              <span className="text-xs sm:text-[13px] font-bold font-mono tracking-tight leading-tight text-white select-none">
-                {label}
-              </span>
-              <span className="text-[10px] text-stone-400 dark:text-stone-400 leading-tight mt-0.5 select-none">
-                {description}
-              </span>
-            </div>
-
-            {/* Active Checkmark Badge or Unselected Radio Ring */}
-            {isActive ? (
-              <div className="w-5 h-5 rounded-full bg-emerald-400/20 dark:bg-purple-400/20 border border-emerald-400/60 dark:border-purple-400/60 flex items-center justify-center shrink-0 shadow-xs">
-                <Check className="w-3 h-3 text-emerald-400 dark:text-purple-400" aria-hidden="true" />
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-sm transition-colors ${
+                    isActive
+                      ? 'bg-white/20 dark:bg-stone-900/15 text-white dark:text-stone-900'
+                      : 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D]'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 pr-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs">{mode.emoji}</span>
+                    <span className="text-xs font-bold font-mono tracking-tight">
+                      {label}
+                    </span>
+                    {badge && (
+                      <span
+                        className={`text-[9px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                          isActive
+                            ? 'bg-white/20 dark:bg-stone-900/20 text-white dark:text-stone-900'
+                            : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
+                        }`}
+                      >
+                        {badge}
+                      </span>
+                    )}
+                  </div>
+                  <p
+                    className={`text-[10px] leading-tight truncate mt-0.5 ${
+                      isActive ? 'text-stone-300 dark:text-stone-600' : 'text-stone-500 dark:text-stone-400'
+                    }`}
+                  >
+                    {description}
+                  </p>
+                </div>
               </div>
-            ) : (
-              <div className="w-4 h-4 rounded-full border border-stone-600/70 shrink-0 group-hover:border-stone-400 transition-colors" />
-            )}
-          </button>
-        );
-      })}
+
+              {isActive && (
+                <div className="w-5 h-5 rounded-full bg-[#FF4D6D] text-white flex items-center justify-center shrink-0 ml-1">
+                  <Check className="w-3 h-3 stroke-[2.5]" />
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 

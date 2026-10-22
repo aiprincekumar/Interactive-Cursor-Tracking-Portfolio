@@ -94,10 +94,14 @@ test('Contains Lab Studio FAB item (Sliders icon) that is hidden in Simple Mode'
   assert(hubContent.includes('<Sliders'), 'Uses Sliders icon');
 });
 
-test('Contains Simple Mode Toggle item (Eye / Sparkles icon)', () => {
-  assert(hubContent.includes("id: 'simple-mode-toggle'"), 'Has simple-mode-toggle id');
-  assert(hubContent.includes('<Sparkles'), 'Uses Sparkles icon');
+test('Contains View Mode item (Eye icon) positioned immediately after audience-filter (visually just above filter in flex-col-reverse)', () => {
+  assert(hubContent.includes("id: 'view-mode'"), 'Has view-mode id');
   assert(hubContent.includes('<Eye'), 'Uses Eye icon');
+  const filterIdx = hubContent.indexOf("id: 'audience-filter'");
+  const viewModeIdx = hubContent.indexOf("id: 'view-mode'");
+  assert(filterIdx !== -1, 'Must contain audience-filter');
+  assert(viewModeIdx !== -1, 'Must contain view-mode');
+  assert(viewModeIdx > filterIdx, 'view-mode must be positioned immediately after audience-filter in array');
 });
 
 test('Contains WhatsApp Direct Channel item (visible when unlocked)', () => {
@@ -155,6 +159,14 @@ test('handleToggleAudienceFilter is mutually exclusive with Control Center drawe
   assert(hubContent.includes('isDrawerOpen && closeDrawer'), 'Checks isDrawerOpen and closeDrawer');
   assert(hubContent.includes('closeDrawer();'), 'Must close drawer when audience filter is toggled');
   assert(hubContent.includes('setIsAudiencePillOpen((prev) =>'), 'Toggles audience pill state');
+});
+
+test('handleToggleAudienceFilter implements sequential transition timer (~320ms) when Control Center drawer is open', () => {
+  assert(hubContent.includes('filterOpenTimerRef'), 'Uses filterOpenTimerRef for managing transition timing');
+  assert(hubContent.includes('filterOpenTimerRef.current = setTimeout('), 'Sets sequential timer with setTimeout');
+  assert(hubContent.includes('320'), 'Waits ~320ms for 300ms drawer closing and hub sliding transition');
+  assert(hubContent.includes('setIsAudiencePillOpen(true)'), 'Opens audience pill after delay');
+  assert(hubContent.includes('clearTimeout(filterOpenTimerRef.current)'), 'Cleans up pending timer on unmount and cancel');
 });
 
 test('Audience Filter button explicitly suppresses all tooltips (both native title and hover tooltip span)', () => {

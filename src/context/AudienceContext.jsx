@@ -1,6 +1,6 @@
 /* oxlint-disable react/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { Globe, Briefcase, Handshake } from 'lucide-react';
+import { Globe, Briefcase, Handshake, Heart } from 'lucide-react';
 
 export const AUDIENCE_STORAGE_KEY = 'portfolio_audience_mode';
 export const DEFAULT_AUDIENCE = 'all';
@@ -47,16 +47,31 @@ export const AUDIENCE_MODES = {
     description: 'Freelance services & client work',
     description_hi: 'फ्रीलांस सेवाएं एवं क्लाइंट कार्य दृश्य',
     accent: '#10B981'
+  },
+  marriage: {
+    id: 'marriage',
+    label: 'Marriage / Matrimonial',
+    shortLabel: 'Marriage',
+    label_hi: 'विवाह / मैट्रिमोनियल',
+    shortLabel_hi: 'विवाह',
+    icon: Heart,
+    emoji: '💍',
+    badge: 'Personal & Family',
+    badge_hi: 'व्यक्तिगत एवं पारिवारिक',
+    description: 'Personal background, values & family biodata',
+    description_hi: 'व्यक्तिगत पृष्ठभूमि, संस्कार एवं पारिवारिक बायोडाटा',
+    accent: '#F43F5E'
   }
 };
 
 export const AUDIENCE_LIST = [
   AUDIENCE_MODES.all,
   AUDIENCE_MODES.recruiter,
-  AUDIENCE_MODES.client
+  AUDIENCE_MODES.client,
+  AUDIENCE_MODES.marriage
 ];
 
-const VALID_AUDIENCE_IDS = ['all', 'recruiter', 'client'];
+const VALID_AUDIENCE_IDS = ['all', 'recruiter', 'client', 'marriage'];
 
 const AudienceContext = createContext({
   audience: DEFAULT_AUDIENCE,

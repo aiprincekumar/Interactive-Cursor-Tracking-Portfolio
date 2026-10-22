@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
-import { Image, Sliders, X, Terminal, Calculator } from 'lucide-react';
+import { Image, Sliders, X, Calculator, BotMessageSquare } from 'lucide-react';
 import { soundFX } from '../utils/audio';
-import { useSimpleMode } from '../context/SimpleModeContext';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function ExploreSubBar({
@@ -16,23 +15,7 @@ export default function ExploreSubBar({
   const buttonRefs = useRef([]);
   const { isHindi } = useLanguage();
 
-  let simpleContext = null;
-  try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    simpleContext = useSimpleMode();
-  } catch {
-    // In case ExploreSubBar is mounted outside SimpleModeProvider
-  }
-  const isSimpleMode = simpleContext?.isSimpleMode ?? false;
-  const toggleSimpleMode = simpleContext?.toggleSimpleMode ?? (() => {});
-
   const items = [
-    {
-      id: 'simple-mode-toggle',
-      label: isHindi ? (isSimpleMode ? 'इंटरएक्टिव दृश्य' : 'सिंपल मोड') : (isSimpleMode ? 'Interactive View' : 'Simple Mode'),
-      action: 'toggle-simple-mode',
-      desc: isHindi ? (isSimpleMode ? 'पूर्ण 3D व FX' : 'स्वच्छ एवं तेज़') : (isSimpleMode ? 'Full 3D & FX' : 'Clean & Fast')
-    },
     {
       id: 'gallery',
       label: isHindi ? 'गैलरी' : 'Gallery',
@@ -62,20 +45,25 @@ export default function ExploreSubBar({
       desc: isHindi ? 'तत्काल कोटेशन' : 'Instant Quotation'
     },
     {
-      id: 'terminal-cli',
-      label: 'Terminal CLI',
-      label_hi: 'टर्मिनल CLI',
-      icon: Terminal,
-      desc: isHindi ? 'इंटरएक्टिव कंसोल' : 'Interactive Console',
-      action: 'toggle-terminal'
+      id: 'ai-chat',
+      label: isHindi ? 'एआई चैट' : 'AI Chat',
+      label_hi: 'एआई चैट',
+      action: 'open-ai-chat',
+      icon: BotMessageSquare,
+      desc: isHindi ? 'पोर्टफोलियो कोपायलट' : 'Portfolio Copilot'
     }
   ];
 
   const handleJump = (item) => {
     const targetItem = typeof item === 'string' ? items.find((i) => i.id === item) || { id: item } : item;
-    if (targetItem.id === 'simple-mode-toggle' || targetItem.action === 'toggle-simple-mode') {
-      if (soundEnabled) soundFX.playChipHover();
-      toggleSimpleMode();
+    if (targetItem.action === 'open-ai-chat' || targetItem.id === 'ai-chat') {
+      if (soundEnabled) {
+        if (soundFX?.playSparkle) soundFX.playSparkle();
+        else if (soundFX?.playFocusBeep) soundFX.playFocusBeep();
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('portfolio:open-ai-chat'));
+      }
       if (onClose) onClose();
       return;
     }
@@ -94,21 +82,6 @@ export default function ExploreSubBar({
           el.scrollIntoView({ behavior: 'smooth' });
         }
         window.dispatchEvent(new CustomEvent('portfolio:switch-contact-tab', { detail: { tab: 'quote' } }));
-      }
-      if (onClose) onClose();
-      return;
-    }
-    if (targetItem.action === 'toggle-terminal' || targetItem.id === 'terminal-cli') {
-      if (soundEnabled) soundFX.playFocusBeep();
-      if (onOpenTerminal) {
-        onOpenTerminal();
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('portfolio:open-terminal'));
-        }
-      } else if (onToggleTerminal) {
-        onToggleTerminal();
-      } else if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('portfolio:open-terminal'));
       }
       if (onClose) onClose();
       return;
@@ -167,47 +140,7 @@ export default function ExploreSubBar({
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2" role="group" aria-label="Showcase and Lab quick links">
           {items.map((item, index) => {
-            if (item.id === 'simple-mode-toggle') {
-              return (
-                <button
-                  key={item.id}
-                  ref={(el) => {
-                    buttonRefs.current[index] = el;
-                  }}
-                  type="button"
-                  onClick={() => handleJump(item)}
-                  onMouseEnter={() => {
-                    if (soundEnabled) soundFX.playChipHover();
-                  }}
-                  className={`flex flex-col justify-center px-2.5 py-2 rounded-xl border transition-all duration-200 cursor-pointer select-none shadow-2xs group text-left focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
-                    isSimpleMode
-                      ? 'bg-[#FF4D6D]/15 dark:bg-[#FF4D6D]/20 border-[#FF4D6D]/40 text-[#FF4D6D]'
-                      : 'border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-[#FAF8F5] dark:bg-stone-900/90 hover:bg-white dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200'
-                  }`}
-                  title={isSimpleMode ? "Switch to Interactive View" : "Switch to Simple Mode"}
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <span className="text-[11px] font-bold font-mono tracking-tight text-[#18181B] dark:text-white truncate">
-                      {item.label}
-                    </span>
-                    <span
-                      className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full font-bold transition-colors ${
-                        isSimpleMode
-                          ? 'bg-[#FF4D6D] text-white'
-                          : 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] border border-[#FFD1DC] dark:border-[#FF4D6D]/30'
-                      }`}
-                    >
-                      {isSimpleMode ? 'ON' : 'OFF'}
-                    </span>
-                  </div>
-                  <span className="text-[9px] text-stone-500 dark:text-stone-400 truncate mt-0.5">
-                    {item.desc}
-                  </span>
-                </button>
-              );
-            }
             const Icon = item.icon;
-            const isTerminal = item.id === 'terminal-cli';
             return (
               <button
                 key={item.id}
@@ -219,18 +152,10 @@ export default function ExploreSubBar({
                 onMouseEnter={() => {
                   if (soundEnabled) soundFX.playChipHover();
                 }}
-                className={`flex items-center gap-2 px-2.5 py-2 rounded-xl border ${
-                  isTerminal
-                    ? 'border-[#E7E2D8] dark:border-stone-700 hover:border-emerald-500/50 bg-[#FAF8F5] dark:bg-stone-900/90 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 text-stone-700 dark:text-stone-200 hover:text-emerald-600 dark:hover:text-emerald-400'
-                    : 'border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-[#FAF8F5] dark:bg-stone-900/90 hover:bg-white dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white'
-                } transition-all duration-200 cursor-pointer select-none shadow-2xs group text-left focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden`}
+                className="flex items-center gap-2 px-2.5 py-2 rounded-xl border border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-[#FAF8F5] dark:bg-stone-900/90 hover:bg-white dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white transition-all duration-200 cursor-pointer select-none shadow-2xs group text-left focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                 title={`Jump to ${item.label}`}
               >
-                <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
-                  isTerminal
-                    ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white'
-                    : 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white'
-                } transition-colors duration-200`}>
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white transition-colors duration-200">
                   <Icon className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex flex-col min-w-0">
@@ -279,40 +204,7 @@ export default function ExploreSubBar({
           className="flex items-center gap-2 sm:gap-3 flex-1 justify-start sm:justify-center overflow-x-auto no-scrollbar scroll-smooth px-1 sm:px-2"
         >
           {items.map((item, index) => {
-            if (item.id === 'simple-mode-toggle') {
-              return (
-                <button
-                  key={item.id}
-                  ref={(el) => {
-                    buttonRefs.current[index] = el;
-                  }}
-                  type="button"
-                  onClick={() => handleJump(item)}
-                  onMouseEnter={() => {
-                    if (soundEnabled) soundFX.playChipHover();
-                  }}
-                  className={`group relative flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer select-none shrink-0 text-xs font-bold font-mono shadow-2xs hover:shadow-xs hover:scale-[1.02] active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
-                    isSimpleMode
-                      ? 'bg-[#FF4D6D] text-white border-[#FF4D6D]'
-                      : 'border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-white/70 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white'
-                  }`}
-                  title={isSimpleMode ? "Switch to Interactive View" : "Switch to Simple Mode"}
-                >
-                  <span className="tracking-tight whitespace-nowrap">{(isHindi && item.label_hi) ? item.label_hi : item.label}</span>
-                  <span
-                    className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full font-bold transition-colors ${
-                      isSimpleMode
-                        ? 'bg-white/20 text-white'
-                        : 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/20 text-[#FF4D6D]'
-                    }`}
-                  >
-                    {isSimpleMode ? 'ON' : 'OFF'}
-                  </span>
-                </button>
-              );
-            }
             const Icon = item.icon;
-            const isTerminal = item.id === 'terminal-cli';
             return (
               <button
                 key={item.id}
@@ -324,23 +216,15 @@ export default function ExploreSubBar({
                 onMouseEnter={() => {
                   if (soundEnabled) soundFX.playChipHover();
                 }}
-                className={`group relative flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer select-none shrink-0 text-xs font-bold font-mono shadow-2xs hover:shadow-xs hover:scale-[1.02] active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
-                  isTerminal
-                    ? 'border-[#E7E2D8] dark:border-stone-700 hover:border-emerald-500/50 bg-white/70 dark:bg-stone-800/80 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 text-stone-700 dark:text-stone-200 hover:text-emerald-600 dark:hover:text-emerald-400'
-                    : 'border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-white/70 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white'
-                }`}
-                title={isTerminal ? "Open Terminal CLI" : `Jump to ${item.label}`}
+                className="group relative flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full border border-[#E7E2D8] dark:border-stone-700 hover:border-[#FF4D6D]/40 bg-white/70 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white transition-all duration-200 cursor-pointer select-none shrink-0 text-xs font-bold font-mono shadow-2xs hover:shadow-xs hover:scale-[1.02] active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+                title={`Jump to ${item.label}`}
               >
-                <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shrink-0 ${
-                  isTerminal
-                    ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white'
-                    : 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white'
-                } transition-colors duration-200`}>
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shrink-0 bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] group-hover:bg-[#FF4D6D] group-hover:text-white transition-colors duration-200">
                   <Icon className="w-3.5 h-3.5" />
                 </div>
                 <span className="tracking-tight whitespace-nowrap">{(isHindi && item.label_hi) ? item.label_hi : item.label}</span>
                 <span className="hidden md:inline text-[10px] font-normal text-stone-400 dark:text-stone-400 group-hover:text-stone-500 dark:group-hover:text-stone-300">
-                  {item.id === 'gallery' ? 'Showcase' : item.id === 'terminal-cli' ? 'Console' : 'Playground'}
+                  {item.id === 'gallery' ? 'Showcase' : item.id === 'ai-chat' ? 'Assistant' : item.id === 'fee-estimator' ? 'Estimator' : 'Playground'}
                 </span>
               </button>
             );

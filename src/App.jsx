@@ -13,6 +13,7 @@ import TestimonialsSection from './components/TestimonialsSection';
 import { TESTIMONIALS_CONFIG } from './data/testimonialsConfig';
 import CameraRollGallery from './components/CameraRollGallery';
 import InteractivePlayground from './components/InteractivePlayground';
+import FAQSection from './components/FAQSection';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import LabStudioDrawer from './components/LabStudioDrawer';
@@ -21,6 +22,7 @@ import BackToTopButton from './components/BackToTopButton';
 import TerminalCLI from './components/TerminalCLI';
 import CaseStudyDrawer from './components/CaseStudyDrawer';
 import CredentialLightboxModal from './components/CredentialLightboxModal';
+import AIChatWidget from './components/AIChatWidget';
 import { soundFX } from './utils/audio';
 import { useLab } from './context/LabContext';
 import { RoleProvider } from './context/RoleContext';
@@ -28,6 +30,7 @@ import { useSimpleMode } from './context/SimpleModeContext';
 import { HighContrastProvider } from './context/HighContrastContext';
 import { AnnouncerProvider } from './context/AnnouncerContext';
 import { AudienceProvider } from './context/AudienceContext';
+import { ViewModeProvider } from './context/ViewModeContext';
 
 export default function App() {
   const { isSimpleMode } = useSimpleMode();
@@ -246,7 +249,8 @@ export default function App() {
     <HighContrastProvider>
       <AnnouncerProvider>
         <AudienceProvider>
-          <RoleProvider soundEnabled={effectiveSoundEnabled}>
+          <ViewModeProvider>
+            <RoleProvider soundEnabled={effectiveSoundEnabled}>
           <div className="min-h-screen bg-[#FAF8F5] dark:bg-[#0B0813] text-[#18181B] dark:text-[#F5F2F8] transition-colors duration-300 relative selection:bg-[#FF4D6D] selection:text-white overflow-x-hidden">
             {/* Accessible Skip to Content Link (Pillar 1) */}
             <a
@@ -335,7 +339,10 @@ export default function App() {
               {/* 8. Portfolio Control Center - Hidden in Simple Mode */}
               {!isSimpleMode && <InteractivePlayground />}
 
-              {/* 9. Contact: "Let's build something meaningful." (Reel t=16.1s - 16.9s) */}
+              {/* 9. Frequently Asked Questions & Knowledge Base (2-Layer Tab System + Live Search) */}
+              <FAQSection />
+
+              {/* 10. Contact: "Let's build something meaningful." (Reel t=16.1s - 16.9s) */}
               <ContactSection />
             </main>
 
@@ -373,10 +380,14 @@ export default function App() {
             {/* Floating Back-To-Top Button with Scroll Progress Indicator */}
             <BackToTopButton />
 
+            {/* Global AI Chat Assistant Floating Widget */}
+            <AIChatWidget />
+
             {/* 10. Dark Plum Footer with Watermark Name (Reel t=16.8s) */}
             <Footer />
           </div>
         </RoleProvider>
+        </ViewModeProvider>
       </AudienceProvider>
     </AnnouncerProvider>
   </HighContrastProvider>

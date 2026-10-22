@@ -123,13 +123,15 @@ export default function BackToTopButton() {
   // - If 3 items: children stack up to bottom-54 -> BackToTopButton glides to bottom-72 sm:bottom-76
   // - If 4+ items: children stack up -> BackToTopButton glides to bottom-[22rem] sm:bottom-[23rem]
   const verticalPositionClass = isHubOpen
-    ? hubItemCount >= 4
-      ? 'bottom-[22rem] sm:bottom-[23rem]'
-      : hubItemCount === 3
-        ? 'bottom-72 sm:bottom-76'
-        : hubItemCount === 2
-          ? 'bottom-56 sm:bottom-60'
-          : 'bottom-40 sm:bottom-44'
+    ? hubItemCount >= 5
+      ? 'bottom-[25.5rem] sm:bottom-[26.5rem]'
+      : hubItemCount >= 4
+        ? 'bottom-[22rem] sm:bottom-[23rem]'
+        : hubItemCount === 3
+          ? 'bottom-72 sm:bottom-76'
+          : hubItemCount === 2
+            ? 'bottom-56 sm:bottom-60'
+            : 'bottom-40 sm:bottom-44'
     : 'bottom-22 sm:bottom-25';
 
   return (

@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Layers, X, Sliders, Eye, Sparkles, Filter } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { Layers, X, Sliders, Eye, BotMessageSquare, Filter } from 'lucide-react';
 import { useLab } from '../context/LabContext';
 import { useSimpleMode } from '../context/SimpleModeContext';
 import { useAudience } from '../context/AudienceContext';
+import { useViewMode } from '../context/ViewModeContext';
 import AudienceFloatingPill from './AudienceFloatingPill';
+import ViewModeFloatingPill from './ViewModeFloatingPill';
 import { soundFX } from '../utils/audio';
 
 const UNLOCK_STORAGE_KEY = 'portfolio_contact_unlocked';
@@ -18,7 +20,7 @@ const UNLOCK_STORAGE_KEY = 'portfolio_contact_unlocked';
  * - Strict explicit toggle only: does NOT close on outside clicks or page scrolling
  * - Speed-dial child items expanding vertically upwards with smooth stagger/fade:
  *   1. Lab Studio / Control Center (Sliders icon, hidden in Simple Mode)
- *   2. Simple Mode Toggle (Eye / Sparkles icon, switches mode)
+ *   2. View Mode / Simple Mode Toggle (Eye icon, switches mode)
  *   3. WhatsApp Direct Channel (Authentic WhatsApp icon, visible when contact unlocked)
  * - Highly extensible architecture for future action buttons
  * - Emits 'floating_hub_state' custom events to keep BackToTopButton perfectly synchronized
@@ -26,7 +28,20 @@ const UNLOCK_STORAGE_KEY = 'portfolio_contact_unlocked';
 export default function FloatingActionHub() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAudiencePillOpen, setIsAudiencePillOpen] = useState(false);
+  const [isViewModePillOpen, setIsViewModePillOpen] = useState(false);
+  const filterOpenTimerRef = useRef(null);
   const { isSimpleMode, toggleSimpleMode } = useSimpleMode();
+
+  // View Mode Context (safe access)
+  let viewModeContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    viewModeContext = useViewMode();
+  } catch {
+    // safe fallback
+  }
+  const viewMode = viewModeContext?.viewMode ?? 'modern';
+  const activeViewModeData = viewModeContext?.activeModeData;
 
   // Audience Context (safe access)
   let audienceContext = null;
@@ -120,12 +135,26 @@ export default function FloatingActionHub() {
     };
   }, []);
 
+  // Clean up any pending sequential open timer on unmount
+  useEffect(() => {
+    return () => {
+      if (filterOpenTimerRef.current) {
+        clearTimeout(filterOpenTimerRef.current);
+      }
+    };
+  }, []);
+
   // Handle Master Toggle click
   const handleToggle = useCallback(() => {
+    if (filterOpenTimerRef.current) {
+      clearTimeout(filterOpenTimerRef.current);
+      filterOpenTimerRef.current = null;
+    }
     setIsOpen((prev) => {
       const next = !prev;
       if (!next) {
         setIsAudiencePillOpen(false);
+        setIsViewModePillOpen(false);
       }
       if (soundEnabled) {
         if (soundFX?.playTap) {
@@ -138,33 +167,86 @@ export default function FloatingActionHub() {
     });
   }, [soundEnabled]);
 
-  // Action: Toggle Audience Filter Pill (Mutually Exclusive with Control Center Drawer)
+  // Action: Toggle Audience Filter Pill (Mutually Exclusive with Control Center Drawer & View Mode)
   const handleToggleAudienceFilter = useCallback((e) => {
     if (e && e.stopPropagation) e.stopPropagation();
-    // Mutually exclusive: Close Control Center Drawer if open
+
+    // Clear any pending sequential transition timer
+    if (filterOpenTimerRef.current) {
+      clearTimeout(filterOpenTimerRef.current);
+      filterOpenTimerRef.current = null;
+    }
+
+    // Audio feedback
+    if (soundEnabled) {
+      if (soundFX?.playFocusBeep) {
+        soundFX.playFocusBeep();
+      } else if (soundFX?.playHapticClick) {
+        soundFX.playHapticClick();
+      }
+    }
+
+    // Mutually exclusive with View Mode pill
+    setIsViewModePillOpen(false);
+
+    // Sequential Transition: If sidebar/drawer is open, smoothly close drawer and wait ~320ms for drawer close + hub glide
     if (isDrawerOpen && closeDrawer) {
       closeDrawer();
+      filterOpenTimerRef.current = setTimeout(() => {
+        setIsAudiencePillOpen(true);
+        filterOpenTimerRef.current = null;
+      }, 320);
+      return;
     }
-    setIsAudiencePillOpen((prev) => {
-      const next = !prev;
-      if (soundEnabled) {
-        if (soundFX?.playFocusBeep) {
-          soundFX.playFocusBeep();
-        } else if (soundFX?.playHapticClick) {
-          soundFX.playHapticClick();
-        }
-      }
-      return next;
-    });
+
+    // When drawer is not open, toggle immediately
+    setIsAudiencePillOpen((prev) => !prev);
   }, [soundEnabled, isDrawerOpen, closeDrawer]);
 
-  // Action: Open/Toggle Lab Studio Control Center (Mutually Exclusive with Audience Filter, Hub remains open)
+  // Action: Toggle View Mode Pill (Mutually Exclusive with Control Center Drawer & Audience Filter)
+  const handleToggleViewMode = useCallback((e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+
+    if (filterOpenTimerRef.current) {
+      clearTimeout(filterOpenTimerRef.current);
+      filterOpenTimerRef.current = null;
+    }
+
+    if (soundEnabled) {
+      if (soundFX?.playFocusBeep) {
+        soundFX.playFocusBeep();
+      } else if (soundFX?.playHapticClick) {
+        soundFX.playHapticClick();
+      }
+    }
+
+    // Mutually exclusive with Audience Filter pill
+    setIsAudiencePillOpen(false);
+
+    if (isDrawerOpen && closeDrawer) {
+      closeDrawer();
+      filterOpenTimerRef.current = setTimeout(() => {
+        setIsViewModePillOpen(true);
+        filterOpenTimerRef.current = null;
+      }, 320);
+      return;
+    }
+
+    setIsViewModePillOpen((prev) => !prev);
+  }, [soundEnabled, isDrawerOpen, closeDrawer]);
+
+  // Action: Open/Toggle Lab Studio Control Center (Mutually Exclusive with Audience Filter & View Mode, Hub remains open)
   const handleOpenLabStudio = useCallback(() => {
+    if (filterOpenTimerRef.current) {
+      clearTimeout(filterOpenTimerRef.current);
+      filterOpenTimerRef.current = null;
+    }
     if (soundEnabled && soundFX?.playFocusBeep) {
       soundFX.playFocusBeep();
     }
-    // Mutually exclusive: Close Audience Filter flyout if open
+    // Mutually exclusive: Close Audience Filter & View Mode flyouts if open
     setIsAudiencePillOpen(false);
+    setIsViewModePillOpen(false);
 
     if (toggleDrawer) {
       toggleDrawer();
@@ -181,6 +263,20 @@ export default function FloatingActionHub() {
     }
     toggleSimpleMode();
   }, [soundEnabled, toggleSimpleMode]);
+
+  // Action: Open AI Chat Assistant
+  const handleOpenAIChat = useCallback(() => {
+    if (soundEnabled) {
+      if (soundFX?.playSparkle) {
+        soundFX.playSparkle();
+      } else if (soundFX?.playFocusBeep) {
+        soundFX.playFocusBeep();
+      }
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('portfolio:open-ai-chat'));
+    }
+  }, [soundEnabled]);
 
   // Action: WhatsApp click
   const handleWhatsAppClick = useCallback(() => {
@@ -204,85 +300,25 @@ export default function FloatingActionHub() {
   const hubItems = useMemo(() => {
     const items = [];
 
-    // Item 1: Lab Studio / Control Center (Hidden in Simple Mode)
-    if (!isSimpleMode) {
-      items.push({
-        id: 'lab-studio',
-        label: 'Control Center (Audio, Cursors, Hero)',
-        ariaLabel: isDrawerOpen ? 'Close Control Center Drawer' : 'Open Control Center Drawer',
-        icon: (
-          <Sliders className={`w-5 h-5 text-[#FF4D6D] transition-transform duration-300 ${
-            isDrawerOpen ? 'rotate-90 scale-110 text-white' : 'group-hover:rotate-12'
-          }`} />
-        ),
-        onClick: handleOpenLabStudio,
-        active: isDrawerOpen,
-        badge: (
-          <span aria-hidden="true" className="absolute -top-1 -right-1 flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-[#FF4D6D]" />
-            <span className="relative inline-flex rounded-full h-3 w-3 border-2 border-white dark:border-[#120D1D] bg-[#FF4D6D]" />
-          </span>
-        ),
-        buttonClass: 'bg-[#18181B]/95 dark:bg-[#120D1D]/95 border-[#FF4D6D]/40 text-[#FF4D6D] hover:border-[#FF4D6D] hover:text-white hover:bg-[#FF4D6D]/20 shadow-lg shadow-[#FF4D6D]/15'
-      });
-    }
-
-    // Item 2: Audience Filter (All / Recruiter / Client)
+    // Item 1: AI Chat Assistant FAB (Directly above Master Show/Hide button)
     items.push({
-      id: 'audience-filter',
-      label: `Audience View: ${activeAudienceData?.label || 'All'}`,
-      ariaLabel: `Audience Filter Mode: currently ${activeAudienceData?.label || 'All'}. Click to choose All, Recruiter, or Client.`,
+      id: 'ai-chat',
+      label: 'AI Chat (असिस्टेंट)',
+      ariaLabel: 'AI Chat Assistant - Portfolio Copilot Preview (असिस्टेंट)',
       icon: (
-        <Filter className={`w-5 h-5 group-hover:scale-110 transition-transform duration-300 ${
-          isFilterActive ? 'text-white' : 'text-[#FF4D6D]'
-        }`} />
+        <BotMessageSquare className="w-5 h-5 text-purple-400 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300" />
       ),
-      onClick: handleToggleAudienceFilter,
-      active: isFilterActive,
-      badge: isFilterActive ? (
+      onClick: handleOpenAIChat,
+      badge: (
         <span aria-hidden="true" className="absolute -top-1 -right-1 flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-[#FF4D6D]" />
-          <span className="relative inline-flex rounded-full h-3 w-3 border-2 border-white dark:border-[#120D1D] bg-[#FF4D6D]" />
+          <span className="relative inline-flex rounded-full h-3 w-3 border-2 border-white dark:border-[#120D1D] bg-purple-500" />
         </span>
-      ) : null,
-      buttonClass: isFilterActive
-        ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border-[#FF4D6D] shadow-lg shadow-[#FF4D6D]/30'
-        : isAudiencePillOpen
-        ? 'bg-[#FAF8F5]/95 dark:bg-[#161122]/95 border-[#FF4D6D] ring-2 ring-[#FF4D6D]/40 text-[#FF4D6D] shadow-lg shadow-[#FF4D6D]/20'
-        : 'bg-[#FAF8F5]/95 dark:bg-[#161122]/95 border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white hover:border-[#FF4D6D]/60 shadow-lg shadow-black/10 dark:shadow-purple-950/30',
-      pill: isAudiencePillOpen ? (
-        <AudienceFloatingPill
-          isOpen={isAudiencePillOpen}
-          onClose={() => setIsAudiencePillOpen(false)}
-          soundEnabled={soundEnabled}
-        />
-      ) : null
-    });
-
-    // Item 3: Simple Mode Toggle (Always available)
-    items.push({
-      id: 'simple-mode-toggle',
-      label: isSimpleMode ? 'Exit Simple Mode (Interactive 🚀)' : 'Simple Mode (Clean 👁️)',
-      ariaLabel: isSimpleMode ? 'Exit Simple Mode (Switch to Full Interactive View)' : 'Enable Simple Mode (Clean & Fast View)',
-      icon: isSimpleMode ? (
-        <Sparkles className="w-5 h-5 text-white group-hover:rotate-12 transition-transform duration-300" />
-      ) : (
-        <Eye className="w-5 h-5 text-[#FF4D6D] group-hover:scale-110 transition-transform duration-300" />
       ),
-      onClick: handleToggleSimpleMode,
-      active: isSimpleMode,
-      badge: isSimpleMode ? (
-        <span aria-hidden="true" className="absolute -top-1 -right-1 flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-[#FF4D6D]" />
-          <span className="relative inline-flex rounded-full h-3 w-3 border-2 border-white dark:border-[#120D1D] bg-emerald-400" />
-        </span>
-      ) : null,
-      buttonClass: isSimpleMode
-        ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border-[#FF4D6D] shadow-lg shadow-[#FF4D6D]/30'
-        : 'bg-[#FAF8F5]/95 dark:bg-[#161122]/95 border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white hover:border-[#FF4D6D]/60 shadow-lg shadow-black/10 dark:shadow-purple-950/30'
+      buttonClass: 'bg-linear-to-tr from-[#FF4D6D]/20 via-[#9333EA]/25 to-[#6366F1]/20 border-purple-500/60 ring-1 ring-purple-500/30 text-purple-300 hover:text-white hover:border-[#FF4D6D] hover:shadow-purple-500/40 shadow-lg shadow-purple-500/20'
     });
 
-    // Item 3: WhatsApp Direct Channel (Visible when unlocked)
+    // Item 2: WhatsApp Direct Channel (Visible when unlocked, directly above AI Chat)
     if (isWhatsAppUnlocked) {
       items.push({
         id: 'whatsapp-direct',
@@ -310,8 +346,99 @@ export default function FloatingActionHub() {
       });
     }
 
+    // Item 3: Lab Studio / Control Center (Hidden in Simple Mode, directly above WhatsApp)
+    if (!isSimpleMode) {
+      items.push({
+        id: 'lab-studio',
+        label: 'Control Center (Audio, Cursors, Hero)',
+        ariaLabel: isDrawerOpen ? 'Close Control Center Drawer' : 'Open Control Center Drawer',
+        icon: (
+          <Sliders className={`w-5 h-5 text-[#FF4D6D] transition-transform duration-300 ${
+            isDrawerOpen ? 'rotate-90 scale-110 text-white' : 'group-hover:rotate-12'
+          }`} />
+        ),
+        onClick: handleOpenLabStudio,
+        active: isDrawerOpen,
+        badge: (
+          <span aria-hidden="true" className="absolute -top-1 -right-1 flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-[#FF4D6D]" />
+            <span className="relative inline-flex rounded-full h-3 w-3 border-2 border-white dark:border-[#120D1D] bg-[#FF4D6D]" />
+          </span>
+        ),
+        buttonClass: 'bg-[#18181B]/95 dark:bg-[#120D1D]/95 border-[#FF4D6D]/40 text-[#FF4D6D] hover:border-[#FF4D6D] hover:text-white hover:bg-[#FF4D6D]/20 shadow-lg shadow-[#FF4D6D]/15'
+      });
+    }
+
+    // Item 4: Audience Filter (All / Recruiter / Client / Marriage)
+    items.push({
+      id: 'audience-filter',
+      label: `Audience View: ${activeAudienceData?.label || 'All'}`,
+      ariaLabel: `Audience Filter Mode: currently ${activeAudienceData?.label || 'All'}. Click to choose All, Recruiter, Client, or Marriage.`,
+      icon: (
+        <Filter className={`w-5 h-5 group-hover:scale-110 transition-transform duration-300 ${
+          isFilterActive ? 'text-white' : 'text-[#FF4D6D]'
+        }`} />
+      ),
+      onClick: handleToggleAudienceFilter,
+      active: isFilterActive,
+      badge: isFilterActive ? (
+        <span aria-hidden="true" className="absolute -top-1 -right-1 flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-[#FF4D6D]" />
+          <span className="relative inline-flex rounded-full h-3 w-3 border-2 border-white dark:border-[#120D1D] bg-[#FF4D6D]" />
+        </span>
+      ) : null,
+      buttonClass: isFilterActive
+        ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border-[#FF4D6D] shadow-lg shadow-[#FF4D6D]/30'
+        : isAudiencePillOpen
+        ? 'bg-[#FAF8F5]/95 dark:bg-[#161122]/95 border-[#FF4D6D] ring-2 ring-[#FF4D6D]/40 text-[#FF4D6D] shadow-lg shadow-[#FF4D6D]/20'
+        : 'bg-[#FAF8F5]/95 dark:bg-[#161122]/95 border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white hover:border-[#FF4D6D]/60 shadow-lg shadow-black/10 dark:shadow-purple-950/30',
+      pill: isAudiencePillOpen ? (
+        <AudienceFloatingPill
+          isOpen={isAudiencePillOpen}
+          onClose={() => setIsAudiencePillOpen(false)}
+          soundEnabled={soundEnabled}
+          isDrawerOpen={isDrawerOpen}
+        />
+      ) : null
+    });
+
+    // Item 5: View Mode (Basic / Simple / Modern / Terminal)
+    const isViewModeActive = viewMode !== 'modern';
+    items.push({
+      id: 'view-mode',
+      label: `View Mode: ${activeViewModeData?.label || 'Modern'}`,
+      ariaLabel: `View Mode: currently ${activeViewModeData?.label || 'Modern'}. Click to choose Basic, Simple, Modern, or Terminal.`,
+      icon: (
+        <Eye className={`w-5 h-5 group-hover:scale-110 transition-transform duration-300 ${
+          isViewModeActive ? 'text-white' : 'text-[#FF4D6D]'
+        }`} />
+      ),
+      onClick: handleToggleViewMode,
+      active: isViewModeActive,
+      badge: isViewModeActive ? (
+        <span aria-hidden="true" className="absolute -top-1 -right-1 flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-[#FF4D6D]" />
+          <span className="relative inline-flex rounded-full h-3 w-3 border-2 border-white dark:border-[#120D1D] bg-[#FF4D6D]" />
+        </span>
+      ) : null,
+      buttonClass: isViewModeActive
+        ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border-[#FF4D6D] shadow-lg shadow-[#FF4D6D]/30'
+        : isViewModePillOpen
+        ? 'bg-[#FAF8F5]/95 dark:bg-[#161122]/95 border-[#FF4D6D] ring-2 ring-[#FF4D6D]/40 text-[#FF4D6D] shadow-lg shadow-[#FF4D6D]/20'
+        : 'bg-[#FAF8F5]/95 dark:bg-[#161122]/95 border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white hover:border-[#FF4D6D]/60 shadow-lg shadow-black/10 dark:shadow-purple-950/30',
+      pill: isViewModePillOpen ? (
+        <ViewModeFloatingPill
+          isOpen={isViewModePillOpen}
+          onClose={() => setIsViewModePillOpen(false)}
+          soundEnabled={soundEnabled}
+          isDrawerOpen={isDrawerOpen}
+        />
+      ) : null
+    });
+
     return items;
   }, [
+    handleOpenAIChat,
     isSimpleMode,
     isDrawerOpen,
     handleOpenLabStudio,
@@ -319,8 +446,11 @@ export default function FloatingActionHub() {
     handleToggleAudienceFilter,
     isAudiencePillOpen,
     isFilterActive,
+    viewMode,
+    activeViewModeData,
+    handleToggleViewMode,
+    isViewModePillOpen,
     soundEnabled,
-    handleToggleSimpleMode,
     isWhatsAppUnlocked,
     whatsAppLink,
     handleWhatsAppClick
@@ -409,11 +539,14 @@ export default function FloatingActionHub() {
         {hubItems.map((item, index) => {
           // Stagger animation timing for fluid visual hierarchy
           const transitionDelay = isOpen ? `${index * 45}ms` : '0ms';
-          const isFilterTrigger = item.id === 'audience-filter';
+          const isFilterTrigger = item.id === 'audience-filter' || item.id === 'view-mode';
+          const isAudienceTrigger = item.id === 'audience-filter';
+          const isViewModeTrigger = item.id === 'view-mode';
 
           const commonProps = {
-            id: isFilterTrigger ? 'audience-filter-trigger' : undefined,
-            'data-audience-filter-trigger': isFilterTrigger ? 'true' : undefined,
+            id: isAudienceTrigger ? 'audience-filter-trigger' : isViewModeTrigger ? 'view-mode-trigger' : undefined,
+            'data-audience-filter-trigger': isAudienceTrigger ? 'true' : undefined,
+            'data-view-mode-trigger': isViewModeTrigger ? 'true' : undefined,
             role: 'menuitem',
             tabIndex: isOpen ? 0 : -1,
             'aria-label': item.ariaLabel || item.label,

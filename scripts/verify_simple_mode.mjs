@@ -76,8 +76,8 @@ check('Navbar.jsx preserves logo/avatar, nav links, theme toggle, and resume dro
 const explorePath = path.resolve('src/components/ExploreSubBar.jsx');
 const exploreCode = fs.readFileSync(explorePath, 'utf8');
 
-check('ExploreSubBar.jsx imports useSimpleMode', exploreCode.includes("import { useSimpleMode } from '../context/SimpleModeContext'"));
-check('ExploreSubBar.jsx places Simple Mode toggle before Gallery without icon', exploreCode.includes("id: 'simple-mode-toggle'") && exploreCode.indexOf("id: 'simple-mode-toggle'") < exploreCode.indexOf("id: 'gallery'") && exploreCode.includes("item.id === 'simple-mode-toggle'"));
+check('ExploreSubBar.jsx has removed Simple Mode toggle (now exclusive to View Mode)', !exploreCode.includes('simple-mode-toggle') && !exploreCode.includes('useSimpleMode'));
+check('ExploreSubBar.jsx preserves showcase and quick drawer links', exploreCode.includes("id: 'gallery'") && exploreCode.includes("id: 'playground'") && exploreCode.includes("id: 'drawer'"));
 
 // 6. Inspect Floating Action Buttons (Centralized Master FloatingActionHub & Strict Right-Rail Alignment)
 const hubPath = path.resolve('src/components/FloatingActionHub.jsx');
@@ -95,7 +95,7 @@ const backToTopCode = backToTopExists ? fs.readFileSync(backToTopPath, 'utf8') :
 check('FloatingActionHub unifies Simple Mode toggle and imports useSimpleMode', (hubExists && hubCode.includes('useSimpleMode')) || (floatingExists && floatingCode.includes('useSimpleMode')));
 check('App.jsx mounts FloatingActionHub', appCode.includes('<FloatingActionHub') && appCode.includes('FloatingActionHub from'));
 check('FloatingActionHub enforces strict vertical right rail (bottom-6 right-6 sm:bottom-8 sm:right-8)', hubCode.includes('right-6 sm:right-8') && (hubCode.includes('bottom-6 right-6 sm:bottom-8 sm:right-8') || hubCode.includes('bottom-6 sm:bottom-8')));
-check('FloatingActionHub houses Simple Mode toggle with smooth speed-dial actions', hubExists && hubCode.includes('simple-mode-toggle') && hubCode.includes('toggleSimpleMode'));
+check('FloatingActionHub houses View Mode (with Simple Mode option) via speed-dial actions', hubExists && (hubCode.includes('view-mode') || hubCode.includes('simple-mode-toggle')));
 check('BackToTopButton enforces strict vertical right rail (right-6 sm:right-8)', backToTopExists && backToTopCode.includes('right-6 sm:right-8'));
 check('BackToTopButton dynamically stacks above FloatingActionHub (bottom-22 collapsed, bottom-56/72 expanded)', backToTopCode.includes("'bottom-22 sm:bottom-25'") && backToTopCode.includes('isHubOpen'));
 check('Master FloatingActionHub FAB sits at bottom-6 right-6 sm:bottom-8 sm:right-8', hubExists && hubCode.includes('right-6 sm:right-8') && (hubCode.includes('bottom-6 right-6 sm:bottom-8 sm:right-8') || hubCode.includes('bottom-6 sm:bottom-8')));

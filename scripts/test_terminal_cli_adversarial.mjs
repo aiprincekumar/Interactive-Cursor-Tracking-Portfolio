@@ -142,33 +142,19 @@ assert(navbarCode.includes('onToggleTerminal={onToggleTerminal}'), 'Navbar must 
 assert(navbarCode.includes('onOpenTerminal={onOpenTerminal}'), 'Navbar must forward onOpenTerminal to ExploreSubBar');
 console.log('✔ PASS: Standalone [ ~/_ ] removed from Navbar header; onOpenTerminal and onToggleTerminal cleanly wired');
 
-// Check ExploreSubBar.jsx
+// Check ExploreSubBar.jsx & View Mode exclusive residence
 const explorePath = path.join(projectRoot, 'src', 'components', 'ExploreSubBar.jsx');
 const exploreCode = fs.readFileSync(explorePath, 'utf-8');
 
-assert(exploreCode.includes("id: 'terminal-cli'"), 'ExploreSubBar items must include terminal-cli');
-assert(exploreCode.includes("label: 'Terminal CLI'"), 'ExploreSubBar terminal item must be labeled "Terminal CLI"');
-assert(exploreCode.includes("action: 'toggle-terminal'"), 'ExploreSubBar terminal item action must be "toggle-terminal"');
+assert(!exploreCode.includes("id: 'terminal-cli'"), 'ExploreSubBar must NOT include terminal-cli (exclusively moved to View Mode)');
+console.log('✔ PASS: Terminal CLI cleanly removed from ExploreSubBar per View Mode specification');
 
-// Ensure terminal-cli is at the end of the items list
-const itemsMatch = exploreCode.match(/const items = \[([\s\S]*?)\];/);
-assert(itemsMatch, 'items array must be found in ExploreSubBar.jsx');
-const itemsList = itemsMatch[1];
-const terminalPos = itemsList.indexOf("'terminal-cli'");
-const galleryPos = itemsList.indexOf("'gallery'");
-const drawerPos = itemsList.indexOf("'drawer'");
-assert(terminalPos > galleryPos && terminalPos > drawerPos, 'Terminal CLI must be placed at the end of Explore menu');
-console.log('✔ PASS: Terminal CLI is positioned at the end of ExploreSubBar items');
-
-// Verify clean open dispatch without double-toggle glitch
-assert(
-  exploreCode.includes('onOpenTerminal') || exploreCode.includes('portfolio:open-terminal'),
-  'ExploreSubBar must support explicit open action'
-);
-const hasDoubleToggleGlitch =
-  exploreCode.includes('onToggleTerminal();\n      }\n      if (typeof window !== \'undefined\') {\n        window.dispatchEvent(new CustomEvent(\'portfolio:toggle-terminal\'));');
-assert(!hasDoubleToggleGlitch, 'ExploreSubBar must not execute double-toggle on terminal item click');
-console.log('✔ PASS: ExploreSubBar handleJump cleanly triggers open without double-toggle glitch');
+const viewModeContextPath = path.join(projectRoot, 'src', 'context', 'ViewModeContext.jsx');
+assert(fs.existsSync(viewModeContextPath), 'ViewModeContext.jsx must exist');
+const viewModeCode = fs.readFileSync(viewModeContextPath, 'utf-8');
+assert(viewModeCode.includes('terminal'), 'ViewModeContext must define terminal mode');
+assert(viewModeCode.includes('portfolio:open-terminal'), 'ViewModeContext must dispatch portfolio:open-terminal');
+console.log('✔ PASS: Terminal CLI exclusively resides in View Mode with portfolio:open-terminal dispatch');
 
 // =========================================================================
 // SUITE 4: App Integration & Keyboard Accessibility

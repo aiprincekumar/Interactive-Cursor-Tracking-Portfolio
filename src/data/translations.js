@@ -18,6 +18,7 @@ export const TRANSLATIONS = {
     'nav.projects': 'Projects',
     'nav.achievements': 'Achievements',
     'nav.testimonials': 'Testimonials',
+    'nav.faq': 'FAQ',
     'nav.contact': 'Contact',
     'nav.search': 'Search',
     'nav.explore': 'Explore',
@@ -182,6 +183,13 @@ export const TRANSLATIONS = {
     'testimonials.subtitle': 'Authentic feedback and recommendations from colleagues, technical leads, and business stakeholders highlighting delivery reliability, domain precision, and problem-solving.',
     'testimonials.verifiedEndorsement': 'Verified',
 
+    // FAQ Section
+    'faq.badge': 'FAQ & Knowledge Base',
+    'faq.titlePrefix': 'Frequently Asked',
+    'faq.titleHighlight': 'Questions',
+    'faq.titleSuffix': '& Direct Answers.',
+    'faq.subtitle': 'Clear, transparent answers on technical architecture, statutory tax compliance, hiring availability, freelancing scope, and matrimonial background.',
+
     // Footer Section
     'footer.brandName': 'Atul Verma • Interactive Portfolio',
     'footer.roles': 'Accountant & Tax Consultant • Business Development & Office Administrator',
@@ -232,6 +240,7 @@ export const TRANSLATIONS = {
     'nav.projects': 'प्रोजेक्ट्स',
     'nav.achievements': 'उपलब्धियां',
     'nav.testimonials': 'प्रशंसापत्र',
+    'nav.faq': 'FAQ',
     'nav.contact': 'संपर्क',
     'nav.search': 'खोजें',
     'nav.explore': 'एक्सप्लोर',
@@ -395,6 +404,13 @@ export const TRANSLATIONS = {
     'testimonials.titleSuffix': 'एवं अनुशंसाएं।',
     'testimonials.subtitle': 'सहकर्मियों, तकनीकी प्रमुखों और व्यावसायिक सहयोगियों द्वारा कार्य विश्वसनीयता, सटीकता और समाधान क्षमता पर वास्तविक अनुशंसाएं।',
     'testimonials.verifiedEndorsement': 'सत्यापित',
+
+    // FAQ Section
+    'faq.badge': 'सामान्य प्रश्न व ज्ञानकोश',
+    'faq.titlePrefix': 'अक्सर पूछे जाने वाले',
+    'faq.titleHighlight': 'प्रश्न (FAQ)',
+    'faq.titleSuffix': 'एवं स्पष्ट उत्तर।',
+    'faq.subtitle': 'तकनीकी आर्किटेक्चर, वैधानिक कर अनुपालन, करियर उपलब्धता, फ्रीलांसिंग स्कोप और पारिवारिक पृष्ठभूमि पर पारदर्शी एवं प्रामाणिक उत्तर।',
 
     // Footer Section
     'footer.brandName': 'अतुल वर्मा • इंटरएक्टिव पोर्टफोलियो',

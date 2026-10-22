@@ -373,6 +373,22 @@ html.theme-transition *::after {
   }
 }
 
+/* Glassmorphic floating pill staggered row entry animation */
+@keyframes pillRowSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-pill-row {
+  animation: pillRowSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* Accessibility: prefers-reduced-motion and html.reduced-motion calm static fallback */
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -398,7 +414,8 @@ html.theme-transition *::after {
     animation: none !important;
   }
 
-  .animate-tab-fade {
+  .animate-tab-fade,
+  .animate-pill-row {
     animation: simpleFadeIn 0.15s ease-out forwards !important;
     transform: none !important;
   }
@@ -427,7 +444,8 @@ html.reduced-motion .animate-toast-in-left {
   animation: none !important;
 }
 
-html.reduced-motion .animate-tab-fade {
+html.reduced-motion .animate-tab-fade,
+html.reduced-motion .animate-pill-row {
   animation: simpleFadeIn 0.15s ease-out forwards !important;
   transform: none !important;
 }

@@ -36,13 +36,14 @@ test('src/context/AudienceContext.jsx exists and exports required primitives', (
   assert.ok(content.includes('portfolio_audience_mode'), 'localStorage key should be portfolio_audience_mode');
 });
 
-test('AudienceContext defines all 3 modes with finalized dual-labels, emojis, and descriptions', () => {
+test('AudienceContext defines all 4 modes with finalized dual-labels, emojis, and descriptions', () => {
   const filePath = path.join(rootDir, 'src/context/AudienceContext.jsx');
   const content = fs.readFileSync(filePath, 'utf-8');
 
   assert.ok(content.includes("all: {"), "Mode 'all' should be defined");
   assert.ok(content.includes("recruiter: {"), "Mode 'recruiter' should be defined");
   assert.ok(content.includes("client: {"), "Mode 'client' should be defined");
+  assert.ok(content.includes("marriage: {"), "Mode 'marriage' should be defined");
 
   // Dual-labels
   assert.ok(content.includes("label: 'All (No Filter)'"), "Mode 'all' label must be 'All (No Filter)'");
@@ -51,21 +52,30 @@ test('AudienceContext defines all 3 modes with finalized dual-labels, emojis, an
   assert.ok(content.includes("shortLabel: 'Recruiter / Job'"), "Mode 'recruiter' shortLabel must be 'Recruiter / Job'");
   assert.ok(content.includes("label: 'Freelancer / Client'"), "Mode 'client' label must be 'Freelancer / Client'");
   assert.ok(content.includes("shortLabel: 'Freelancer / Client'"), "Mode 'client' shortLabel must be 'Freelancer / Client'");
+  assert.ok(content.includes("label: 'Marriage / Matrimonial'"), "Mode 'marriage' label must be 'Marriage / Matrimonial'");
+  assert.ok(content.includes("shortLabel: 'Marriage'"), "Mode 'marriage' shortLabel must be 'Marriage'");
 
   // Emojis
   assert.ok(content.includes("emoji: '🌐'"), "Globe emoji for all");
   assert.ok(content.includes("emoji: '💼'"), "Briefcase emoji for recruiter");
   assert.ok(content.includes("emoji: '🤝'"), "Handshake emoji for client");
+  assert.ok(content.includes("emoji: '💍'"), "Ring emoji for marriage");
 
   // Descriptions
   assert.ok(content.includes("description: 'Default full portfolio view'"), "All description");
   assert.ok(content.includes("description: 'Hiring, HR & career oriented'"), "Recruiter description");
   assert.ok(content.includes("description: 'Freelance services & client work'"), "Client description");
+  assert.ok(content.includes("description: 'Personal background, values & family biodata'"), "Marriage description");
 
   // Icons
   assert.ok(content.includes('Globe'), 'Globe icon used for all');
   assert.ok(content.includes('Briefcase'), 'Briefcase icon used for recruiter');
   assert.ok(content.includes('Handshake'), 'Handshake icon used for client');
+  assert.ok(content.includes('Heart'), 'Heart icon used for marriage');
+
+  // List & valid IDs
+  assert.ok(content.includes('AUDIENCE_MODES.marriage'), 'AUDIENCE_LIST includes marriage mode');
+  assert.ok(content.includes("'marriage'"), 'VALID_AUDIENCE_IDS includes marriage');
 });
 
 test('AudienceContext handles URL query param and localStorage synchronization', () => {
@@ -92,6 +102,7 @@ test('src/components/AudienceSubBar.jsx exists, reflects dual-labels, and implem
   assert.ok(content.includes("All (No Filter)"), 'Reflects All (No Filter)');
   assert.ok(content.includes("Recruiter / Job"), 'Reflects Recruiter / Job');
   assert.ok(content.includes("Freelancer / Client"), 'Reflects Freelancer / Client');
+  assert.ok(content.includes("grid-cols-2 sm:grid-cols-4"), 'Mobile drawer grid reflects 4-item responsive layout');
 });
 
 // 3. AudienceFloatingPill verification (React Portal, Anchored Alignment, Drag Engine & LocalStorage Persistence)
@@ -161,6 +172,16 @@ test('AudienceFloatingPill enforces dynamic anchored alignment, text selection p
     content.includes('setTimeout('),
     'Registers pointerdown with delay to avoid premature close'
   );
+});
+
+test('AudienceFloatingPill implements live anchor tracking on transitionend, transitionrun, and continuous RAF layout shifts', () => {
+  const filePath = path.join(rootDir, 'src/components/AudienceFloatingPill.jsx');
+  const content = fs.readFileSync(filePath, 'utf-8');
+
+  assert.ok(content.includes('transitionend'), 'Listens for transitionend to track trigger/hub movement');
+  assert.ok(content.includes('transitionrun'), 'Listens for transitionrun to track trigger/hub movement');
+  assert.ok(content.includes('requestAnimationFrame'), 'Uses requestAnimationFrame loop during layout shifts');
+  assert.ok(content.includes('isDrawerOpen'), 'Observes isDrawerOpen prop/state to re-anchor during drawer toggles');
 });
 
 test('AudienceFloatingPill implements draggable engine, drag handle header, and RotateCcw reset', () => {
@@ -256,7 +277,7 @@ test('FloatingActionHub.jsx integrates Audience Filter action and AudienceFloati
   assert.ok(content.includes('!isFilterTrigger && !item.pill'), 'Suppresses hover tooltip span on audience filter button');
 });
 
-test('AudienceFloatingPill renders all 3 selectable options clearly with no tooltip interference', () => {
+test('AudienceFloatingPill renders all 4 selectable options clearly with no tooltip interference', () => {
   const filePath = path.join(rootDir, 'src/components/AudienceFloatingPill.jsx');
   const content = fs.readFileSync(filePath, 'utf-8');
 
@@ -294,6 +315,7 @@ test('App.jsx wraps with AudienceProvider with ZERO section hiding or filtering'
     // Ensure no audience === '...' condition wrapping these sections
     assert.ok(!content.includes(`audience === 'recruiter' && ${sec}`), `Section ${sec} must not be conditionally filtered`);
     assert.ok(!content.includes(`audience === 'client' && ${sec}`), `Section ${sec} must not be conditionally filtered`);
+    assert.ok(!content.includes(`audience === 'marriage' && ${sec}`), `Section ${sec} must not be conditionally filtered`);
   }
 });
 

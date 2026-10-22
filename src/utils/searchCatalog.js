@@ -267,6 +267,17 @@ export const SEARCH_ITEMS = [
     keywords: 'lab playground physics tuner butterfly speed trail scale controls kinematics physics'
   },
   {
+    id: 'sec-faq',
+    title: 'FAQ / Frequently Asked Questions',
+    category: 'Sections',
+    targetId: 'faq',
+    badge: 'Section',
+    matchType: 'Portfolio Section',
+    role: 'both',
+    description: 'Bilingual knowledge base: Hiring notice, GST compliance, remote setup, MVP turnaround & matrimonial queries',
+    keywords: 'faq questions answers help knowledge base gst notice turnaround mvp recruiter client marriage polymath'
+  },
+  {
     id: 'sec-contact',
     title: 'Contact / Office Inquiry',
     category: 'Sections',

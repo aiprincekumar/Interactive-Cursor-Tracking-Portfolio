@@ -12,7 +12,9 @@ import ScrollProgressBar from './ScrollProgressBar';
 import RoleTabsBar from './RoleTabsBar';
 import ExploreSubBar from './ExploreSubBar';
 import AudienceSubBar from './AudienceSubBar';
+import ViewModeSubBar from './ViewModeSubBar';
 import { useAudience } from '../context/AudienceContext';
+import { useViewMode } from '../context/ViewModeContext';
 import { useRoleTab, ROLE_DATA, DEFAULT_ROLE } from '../context/RoleContext';
 import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
@@ -113,10 +115,22 @@ export default function Navbar({
   const isFilterActive = audienceContext?.isFilterActive ?? (audience !== 'all');
   const activeAudienceData = audienceContext?.activeModeData;
 
+  let viewModeContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    viewModeContext = useViewMode();
+  } catch {
+    // In case Navbar is mounted outside ViewModeProvider
+  }
+  const viewMode = viewModeContext?.viewMode ?? 'modern';
+  const activeViewModeData = viewModeContext?.activeModeData;
+  const isViewModeModified = viewMode !== 'modern';
+
   const [isRibbonOpen, setIsRibbonOpen] = useState(false);
   const [isRoleBarOpen, setIsRoleBarOpen] = useState(false);
   const [isExploreOpen, setIsExploreOpen] = useState(false);
   const [isAudienceOpen, setIsAudienceOpen] = useState(false);
+  const [isViewModeOpen, setIsViewModeOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(() => {
     if (typeof window === 'undefined') return false;
     try {
@@ -184,10 +198,11 @@ export default function Navbar({
       const next = !prev;
       if (next) {
         setIsExploreOpen(false);
-        setIsAudienceOpen(false);
         setIsRibbonOpen(false);
         setMobileMenuOpen(false);
         setIsSearchOpen(false);
+        setIsAudienceOpen(false);
+        setIsViewModeOpen(false);
       }
       if (soundEnabled) soundFX.playRibbonToggle(next);
       return next;
@@ -200,6 +215,7 @@ export default function Navbar({
     if (next) {
       setIsRoleBarOpen(false);
       setIsAudienceOpen(false);
+      setIsViewModeOpen(false);
       setIsRibbonOpen(false);
       setMobileMenuOpen(false);
       if (isSearchOpen) setIsSearchOpen(false);
@@ -213,6 +229,21 @@ export default function Navbar({
     if (next) {
       setIsRoleBarOpen(false);
       setIsExploreOpen(false);
+      setIsViewModeOpen(false);
+      setIsRibbonOpen(false);
+      setMobileMenuOpen(false);
+      if (isSearchOpen) setIsSearchOpen(false);
+    }
+    if (soundEnabled) soundFX.playRibbonToggle(next);
+  };
+
+  const toggleViewModeBar = () => {
+    const next = !isViewModeOpen;
+    setIsViewModeOpen(next);
+    if (next) {
+      setIsRoleBarOpen(false);
+      setIsExploreOpen(false);
+      setIsAudienceOpen(false);
       setIsRibbonOpen(false);
       setMobileMenuOpen(false);
       if (isSearchOpen) setIsSearchOpen(false);
@@ -245,6 +276,7 @@ export default function Navbar({
       href: `#${TESTIMONIALS_CONFIG.sectionId || 'testimonials'}`,
       id: TESTIMONIALS_CONFIG.sectionId || 'testimonials'
     }] : []),
+    { label: t('nav.faq', 'FAQ'), href: '#faq', id: 'faq' },
     { label: t('nav.contact', 'Contact'), href: '#contact', id: 'contact' }
   ], [t]);
 
@@ -259,6 +291,7 @@ export default function Navbar({
     if (isRoleBarOpen) setIsRoleBarOpen(false);
     if (isExploreOpen) setIsExploreOpen(false);
     if (isAudienceOpen) setIsAudienceOpen(false);
+    if (isViewModeOpen) setIsViewModeOpen(false);
     if (isRibbonOpen) setIsRibbonOpen(false);
     if (soundEnabled) soundFX.playFocusBeep();
     if (announce) {
@@ -306,6 +339,7 @@ export default function Navbar({
           if (next) {
             setIsExploreOpen(false);
             setIsAudienceOpen(false);
+            setIsViewModeOpen(false);
             setIsRoleBarOpen(false);
             setIsRibbonOpen(false);
             setMobileMenuOpen(false);
@@ -329,9 +363,9 @@ export default function Navbar({
     }
   }, [isSimpleMode]);
 
-  // Outside click & Escape listener for ribbon, role secondary bar, explore sub-bar, audience sub-bar & mobile menu
+  // Outside click & Escape listener for ribbon, role secondary bar, explore sub-bar, audience sub-bar, view mode sub-bar & mobile menu
   useEffect(() => {
-    if (!isRibbonOpen && !isRoleBarOpen && !isExploreOpen && !isAudienceOpen && !mobileMenuOpen) return;
+    if (!isRibbonOpen && !isRoleBarOpen && !isExploreOpen && !isAudienceOpen && !isViewModeOpen && !mobileMenuOpen) return;
 
     const handleClickOutside = (event) => {
       if (navContainerRef.current && !navContainerRef.current.contains(event.target)) {
@@ -349,6 +383,10 @@ export default function Navbar({
         }
         if (isAudienceOpen) {
           setIsAudienceOpen(false);
+          if (soundEnabled) soundFX.playRibbonToggle(false);
+        }
+        if (isViewModeOpen) {
+          setIsViewModeOpen(false);
           if (soundEnabled) soundFX.playRibbonToggle(false);
         }
         if (mobileMenuOpen) {
@@ -380,6 +418,10 @@ export default function Navbar({
           setIsAudienceOpen(false);
           if (soundEnabled) soundFX.playRibbonToggle(false);
         }
+        if (isViewModeOpen) {
+          setIsViewModeOpen(false);
+          if (soundEnabled) soundFX.playRibbonToggle(false);
+        }
       }
     };
 
@@ -392,7 +434,7 @@ export default function Navbar({
       document.removeEventListener('touchstart', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isRibbonOpen, isRoleBarOpen, isExploreOpen, isAudienceOpen, mobileMenuOpen, soundEnabled]);
+  }, [isRibbonOpen, isRoleBarOpen, isExploreOpen, isAudienceOpen, isViewModeOpen, mobileMenuOpen, soundEnabled]);
 
   // ScrollSpy listener to highlight active section in Navbar
   useEffect(() => {
@@ -406,6 +448,7 @@ export default function Navbar({
       ...(TESTIMONIALS_CONFIG?.enabled ? [TESTIMONIALS_CONFIG.sectionId || 'testimonials'] : []),
       'gallery',
       'playground',
+      'faq',
       'contact'
     ];
 
@@ -666,6 +709,40 @@ export default function Navbar({
               )}
             </button>
 
+            {/* 2c. View Mode SubBar Trigger Button */}
+            <button
+              type="button"
+              onClick={toggleViewModeBar}
+              aria-label={isViewModeOpen ? 'Close View Mode' : `View Mode (${activeViewModeData?.label || 'Modern'})`}
+              aria-expanded={isViewModeOpen}
+              className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${
+                isViewModeOpen
+                  ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
+                  : isViewModeModified
+                    ? 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] border-[#FF4D6D]/40 shadow-xs'
+                    : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95'
+              }`}
+              title={isViewModeOpen ? 'Close View Mode' : `View Mode: ${activeViewModeData?.label || 'Modern'}`}
+            >
+              <Eye
+                className="w-3.5 h-3.5 transition-transform duration-200"
+                style={{
+                  color: isViewModeOpen
+                    ? (isDark ? '#18181B' : '#FFFFFF')
+                    : isViewModeModified
+                      ? '#FF4D6D'
+                      : undefined
+                }}
+              />
+              {/* Subtle active indicator dot when mode !== 'modern' */}
+              {isViewModeModified && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 pointer-events-none">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
+                </span>
+              )}
+            </button>
+
             {/* 3. Dynamic Cursor Variant Selector (Disabled in Simple Mode) */}
             {!isSimpleMode && isDesktopCursor && (
               <button
@@ -836,6 +913,19 @@ export default function Navbar({
           />
         )}
 
+        {/* Floating Secondary Horizontal Sub-Bar for View Mode */}
+        {isViewModeOpen && (
+          <ViewModeSubBar
+            variant="floating-bar"
+            isOpen={isViewModeOpen}
+            onClose={() => {
+              setIsViewModeOpen(false);
+              if (soundEnabled) soundFX.playRibbonToggle(false);
+            }}
+            soundEnabled={soundEnabled}
+          />
+        )}
+
         {/* Expandable Cursor Selector Ribbon with Smooth Animation (Disabled in Simple Mode) */}
         {!isSimpleMode && isDesktopCursor && isRibbonOpen && (
           <div className="desktop-cursor-only mt-2.5 max-w-7xl mx-auto animate-in fade-in slide-in-from-top-2 duration-200 transition-all">
@@ -915,24 +1005,12 @@ export default function Navbar({
               soundEnabled={soundEnabled}
             />
 
-            {/* Simple Mode Toggle in Mobile Drawer */}
-            <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-white dark:bg-stone-800 border border-[#E7E2D8] dark:border-stone-700 text-stone-700 dark:text-stone-200 text-xs font-semibold">
-              <span className="flex items-center gap-2">
-                <Eye className="w-4 h-4 text-[#FF4D6D]" />
-                <span>View Mode</span>
-              </span>
-              <button
-                type="button"
-                onClick={toggleSimpleMode}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-colors cursor-pointer ${
-                  isSimpleMode
-                    ? 'bg-[#FF4D6D] text-white hover:bg-[#FF3358]'
-                    : 'bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-700 dark:text-stone-200'
-                }`}
-              >
-                {isSimpleMode ? 'Simple View 👁️' : 'Interactive 🚀'}
-              </button>
-            </div>
+            {/* Mobile View Mode Selection Card */}
+            <ViewModeSubBar
+              variant="drawer-card"
+              onClose={() => setMobileMenuOpen(false)}
+              soundEnabled={soundEnabled}
+            />
 
             {/* Language Switcher in Mobile Drawer */}
             <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-white dark:bg-stone-800 border border-[#E7E2D8] dark:border-stone-700 text-stone-700 dark:text-stone-200 text-xs font-semibold">
