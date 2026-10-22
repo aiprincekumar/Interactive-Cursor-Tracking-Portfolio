@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Layers, X, Sliders, Eye, Sparkles } from 'lucide-react';
+import { Layers, X, Sliders, Eye, Sparkles, Filter } from 'lucide-react';
 import { useLab } from '../context/LabContext';
 import { useSimpleMode } from '../context/SimpleModeContext';
+import { useAudience } from '../context/AudienceContext';
+import AudienceFloatingPill from './AudienceFloatingPill';
 import { soundFX } from '../utils/audio';
 
 const UNLOCK_STORAGE_KEY = 'portfolio_contact_unlocked';
@@ -23,7 +25,20 @@ const UNLOCK_STORAGE_KEY = 'portfolio_contact_unlocked';
  */
 export default function FloatingActionHub() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAudiencePillOpen, setIsAudiencePillOpen] = useState(false);
   const { isSimpleMode, toggleSimpleMode } = useSimpleMode();
+
+  // Audience Context (safe access)
+  let audienceContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    audienceContext = useAudience();
+  } catch {
+    // safe fallback
+  }
+  const audience = audienceContext?.audience ?? 'all';
+  const isFilterActive = audienceContext?.isFilterActive ?? (audience !== 'all');
+  const activeAudienceData = audienceContext?.activeModeData;
 
   // Lab Context (safe access)
   let labContext = null;
@@ -37,6 +52,7 @@ export default function FloatingActionHub() {
   const isDrawerOpen = labContext?.isDrawerOpen ?? false;
   const toggleDrawer = labContext?.toggleDrawer;
   const openDrawer = labContext?.openDrawer;
+  const closeDrawer = labContext?.closeDrawer;
   const soundEnabled = labContext?.soundEnabled ?? true;
 
   // WhatsApp unlocked contact state
@@ -108,6 +124,9 @@ export default function FloatingActionHub() {
   const handleToggle = useCallback(() => {
     setIsOpen((prev) => {
       const next = !prev;
+      if (!next) {
+        setIsAudiencePillOpen(false);
+      }
       if (soundEnabled) {
         if (soundFX?.playTap) {
           soundFX.playTap();
@@ -119,20 +138,40 @@ export default function FloatingActionHub() {
     });
   }, [soundEnabled]);
 
-  // Action: Open Lab Studio Control Center
+  // Action: Toggle Audience Filter Pill (Mutually Exclusive with Control Center Drawer)
+  const handleToggleAudienceFilter = useCallback((e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    // Mutually exclusive: Close Control Center Drawer if open
+    if (isDrawerOpen && closeDrawer) {
+      closeDrawer();
+    }
+    setIsAudiencePillOpen((prev) => {
+      const next = !prev;
+      if (soundEnabled) {
+        if (soundFX?.playFocusBeep) {
+          soundFX.playFocusBeep();
+        } else if (soundFX?.playHapticClick) {
+          soundFX.playHapticClick();
+        }
+      }
+      return next;
+    });
+  }, [soundEnabled, isDrawerOpen, closeDrawer]);
+
+  // Action: Open/Toggle Lab Studio Control Center (Mutually Exclusive with Audience Filter, Hub remains open)
   const handleOpenLabStudio = useCallback(() => {
     if (soundEnabled && soundFX?.playFocusBeep) {
       soundFX.playFocusBeep();
     }
+    // Mutually exclusive: Close Audience Filter flyout if open
+    setIsAudiencePillOpen(false);
+
     if (toggleDrawer) {
       toggleDrawer();
     } else if (openDrawer) {
       openDrawer();
     }
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('open_lab_studio'));
-      window.dispatchEvent(new CustomEvent('toggle_lab_studio'));
-    }
+    // Keep FloatingActionHub speed-dial open so Filter and other buttons remain visible and clickable!
   }, [soundEnabled, toggleDrawer, openDrawer]);
 
   // Action: Toggle Simple Mode
@@ -188,7 +227,39 @@ export default function FloatingActionHub() {
       });
     }
 
-    // Item 2: Simple Mode Toggle (Always available)
+    // Item 2: Audience Filter (All / Recruiter / Client)
+    items.push({
+      id: 'audience-filter',
+      label: `Audience View: ${activeAudienceData?.label || 'All'}`,
+      ariaLabel: `Audience Filter Mode: currently ${activeAudienceData?.label || 'All'}. Click to choose All, Recruiter, or Client.`,
+      icon: (
+        <Filter className={`w-5 h-5 group-hover:scale-110 transition-transform duration-300 ${
+          isFilterActive ? 'text-white' : 'text-[#FF4D6D]'
+        }`} />
+      ),
+      onClick: handleToggleAudienceFilter,
+      active: isFilterActive,
+      badge: isFilterActive ? (
+        <span aria-hidden="true" className="absolute -top-1 -right-1 flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-[#FF4D6D]" />
+          <span className="relative inline-flex rounded-full h-3 w-3 border-2 border-white dark:border-[#120D1D] bg-[#FF4D6D]" />
+        </span>
+      ) : null,
+      buttonClass: isFilterActive
+        ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border-[#FF4D6D] shadow-lg shadow-[#FF4D6D]/30'
+        : isAudiencePillOpen
+        ? 'bg-[#FAF8F5]/95 dark:bg-[#161122]/95 border-[#FF4D6D] ring-2 ring-[#FF4D6D]/40 text-[#FF4D6D] shadow-lg shadow-[#FF4D6D]/20'
+        : 'bg-[#FAF8F5]/95 dark:bg-[#161122]/95 border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white hover:border-[#FF4D6D]/60 shadow-lg shadow-black/10 dark:shadow-purple-950/30',
+      pill: isAudiencePillOpen ? (
+        <AudienceFloatingPill
+          isOpen={isAudiencePillOpen}
+          onClose={() => setIsAudiencePillOpen(false)}
+          soundEnabled={soundEnabled}
+        />
+      ) : null
+    });
+
+    // Item 3: Simple Mode Toggle (Always available)
     items.push({
       id: 'simple-mode-toggle',
       label: isSimpleMode ? 'Exit Simple Mode (Interactive 🚀)' : 'Simple Mode (Clean 👁️)',
@@ -244,6 +315,11 @@ export default function FloatingActionHub() {
     isSimpleMode,
     isDrawerOpen,
     handleOpenLabStudio,
+    activeAudienceData,
+    handleToggleAudienceFilter,
+    isAudiencePillOpen,
+    isFilterActive,
+    soundEnabled,
     handleToggleSimpleMode,
     isWhatsAppUnlocked,
     whatsAppLink,
@@ -265,9 +341,12 @@ export default function FloatingActionHub() {
 
   return (
     <div
-      className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40 select-none flex flex-col-reverse items-center gap-3"
+      className={`fixed bottom-6 sm:bottom-8 z-[50] select-none flex flex-col-reverse items-center gap-3 transition-all duration-300 ease-out ${
+        isDrawerOpen ? 'sm:right-[460px] right-6' : 'right-6 sm:right-8'
+      }`}
       role="region"
       aria-label="Floating Action Hub"
+      data-floating-action-hub="true"
     >
       {/* 1. Master Toggle FAB */}
       <button
@@ -330,13 +409,15 @@ export default function FloatingActionHub() {
         {hubItems.map((item, index) => {
           // Stagger animation timing for fluid visual hierarchy
           const transitionDelay = isOpen ? `${index * 45}ms` : '0ms';
+          const isFilterTrigger = item.id === 'audience-filter';
 
           const commonProps = {
-            key: item.id,
+            id: isFilterTrigger ? 'audience-filter-trigger' : undefined,
+            'data-audience-filter-trigger': isFilterTrigger ? 'true' : undefined,
             role: 'menuitem',
             tabIndex: isOpen ? 0 : -1,
             'aria-label': item.ariaLabel || item.label,
-            title: item.label,
+            title: isFilterTrigger ? undefined : item.label,
             style: { transitionDelay },
             className: `group relative flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full border backdrop-blur-md transition-all duration-200 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D] active:scale-95 hover:scale-105 ${item.buttonClass}`
           };
@@ -345,38 +426,41 @@ export default function FloatingActionHub() {
             <>
               {item.badge}
               {item.icon}
-              {/* Speed-dial Accessible Tooltip */}
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-xl bg-stone-900/95 dark:bg-stone-950/95 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 hidden sm:block border border-stone-700/60 z-50"
-              >
-                {item.label}
-              </span>
+              {/* Speed-dial Accessible Tooltip (hidden when flyout pill is active and completely omitted for audience-filter) */}
+              {!isFilterTrigger && !item.pill && (
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-xl bg-stone-900/95 dark:bg-stone-950/95 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 hidden sm:block border border-stone-700/60 z-50"
+                >
+                  {item.label}
+                </span>
+              )}
             </>
           );
 
-          if (item.isLink) {
-            return (
-              <a
-                {...commonProps}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={item.onClick}
-              >
-                {innerContent}
-              </a>
-            );
-          }
-
           return (
-            <button
-              {...commonProps}
-              type="button"
-              onClick={item.onClick}
-            >
-              {innerContent}
-            </button>
+            <div key={item.id} className="relative flex items-center justify-center">
+              {item.pill}
+              {item.isLink ? (
+                <a
+                  {...commonProps}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={item.onClick}
+                >
+                  {innerContent}
+                </a>
+              ) : (
+                <button
+                  {...commonProps}
+                  type="button"
+                  onClick={item.onClick}
+                >
+                  {innerContent}
+                </button>
+              )}
+            </div>
           );
         })}
       </div>

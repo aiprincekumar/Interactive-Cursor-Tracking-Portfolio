@@ -138,6 +138,50 @@ test('LabStudioDrawer has openDrawer cleanly destructured and does not produce R
   assert(labDrawerContent.includes('openDrawer,'), 'openDrawer is destructured in LabStudioDrawer');
 });
 
+// 3. Control Center & Audience Filter Mutual Exclusivity and Non-Blocking Interaction
+test('FloatingActionHub has z-[50] and smooth spatial glide positioning when drawer opens', () => {
+  assert(hubContent.includes('z-[50]'), 'FloatingActionHub must have z-[50] to stay above backdrop z-[47]');
+  assert(hubContent.includes("isDrawerOpen ? 'sm:right-[460px] right-6' : 'right-6 sm:right-8'"), 'Must dynamically adjust right position when drawer is open');
+  assert(hubContent.includes('transition-all duration-300'), 'Must have smooth spatial glide transition');
+});
+
+test('handleOpenLabStudio toggles drawer, closes audience filter pill, and keeps speed-dial hub open', () => {
+  assert(hubContent.includes('toggleDrawer();'), 'Must call toggleDrawer() to toggle the drawer');
+  assert(hubContent.includes('setIsAudiencePillOpen(false);'), 'Must close audience filter flyout when lab studio opens');
+  assert(!hubContent.match(/handleOpenLabStudio[\s\S]*?setIsOpen\(false\)/), 'Must NOT forcibly close hub via setIsOpen(false) in handleOpenLabStudio');
+});
+
+test('handleToggleAudienceFilter is mutually exclusive with Control Center drawer (closes drawer when open)', () => {
+  assert(hubContent.includes('isDrawerOpen && closeDrawer'), 'Checks isDrawerOpen and closeDrawer');
+  assert(hubContent.includes('closeDrawer();'), 'Must close drawer when audience filter is toggled');
+  assert(hubContent.includes('setIsAudiencePillOpen((prev) =>'), 'Toggles audience pill state');
+});
+
+test('Audience Filter button explicitly suppresses all tooltips (both native title and hover tooltip span)', () => {
+  assert(hubContent.includes('title: isFilterTrigger ? undefined : item.label'), 'Must not render native browser title tooltip for audience filter');
+  assert(hubContent.includes('!isFilterTrigger && !item.pill'), 'Must not render hover tooltip span for audience filter');
+});
+
+test('FloatingActionHub eliminates conflicting synchronous window events causing race condition', () => {
+  assert(!hubContent.includes("dispatchEvent(new CustomEvent('open_lab_studio'))"), 'Must NOT dispatch open_lab_studio');
+  assert(!hubContent.includes("dispatchEvent(new CustomEvent('toggle_lab_studio'))"), 'Must NOT dispatch toggle_lab_studio');
+});
+
+test('LabStudioDrawer removes redundant conflicting window event listeners and relies on LabContext', () => {
+  assert(!labDrawerContent.includes("addEventListener('open_lab_studio'"), 'Must NOT listen for open_lab_studio');
+  assert(!labDrawerContent.includes("addEventListener('toggle_lab_studio'"), 'Must NOT listen for toggle_lab_studio');
+});
+
+test('FloatingActionHub decouples isFilterActive from isAudiencePillOpen to prevent false active filter indicator', () => {
+  // Pink gradient and white text must ONLY be applied when an actual filter is active (recruiter or client)
+  assert(hubContent.includes("isFilterActive\n        ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white"), 'Applies vibrant pink gradient only when filter is active');
+  assert(!hubContent.includes("(isAudiencePillOpen || isFilterActive)\n        ? 'bg-linear-to-tr"), 'Must not show active gradient when merely open');
+  // Icon must remain #FF4D6D when opened without an active filter
+  assert(hubContent.includes("isFilterActive ? 'text-white' : 'text-[#FF4D6D]'"), 'Keeps pink icon when pill is open but filter is inactive');
+  // Ping badge is strictly shown only when isFilterActive is true
+  assert(hubContent.includes('badge: isFilterActive ?'), 'Pulsing badge strictly appears only when a filter is applied');
+});
+
 console.log(`\n================================================================`);
 console.log(`TOTAL CHECKS: ${passCount} | PASSED: ${passCount} | FAILED: 0`);
 console.log(`🌟 MASTER FLOATING ACTION HUB & BACK TO TOP BUTTON VERIFIED! 🌟`);

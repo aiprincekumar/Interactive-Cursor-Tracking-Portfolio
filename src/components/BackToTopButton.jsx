@@ -32,6 +32,7 @@ export default function BackToTopButton() {
     // safe fallback
   }
   const soundEnabled = labContext?.soundEnabled ?? true;
+  const isDrawerOpen = labContext?.isDrawerOpen ?? false;
 
   let langContext = null;
   try {
@@ -119,19 +120,24 @@ export default function BackToTopButton() {
   // - Child items expand upwards.
   // - If 1 item: child is at bottom-22 sm:bottom-25 -> BackToTopButton glides to bottom-40 sm:bottom-44
   // - If 2 items: children are at bottom-22 & bottom-38 -> BackToTopButton glides to bottom-56 sm:bottom-60
-  // - If 3+ items: children stack up to bottom-54 -> BackToTopButton glides to bottom-72 sm:bottom-76
+  // - If 3 items: children stack up to bottom-54 -> BackToTopButton glides to bottom-72 sm:bottom-76
+  // - If 4+ items: children stack up -> BackToTopButton glides to bottom-[22rem] sm:bottom-[23rem]
   const verticalPositionClass = isHubOpen
-    ? hubItemCount >= 3
-      ? 'bottom-72 sm:bottom-76'
-      : hubItemCount === 2
-        ? 'bottom-56 sm:bottom-60'
-        : 'bottom-40 sm:bottom-44'
+    ? hubItemCount >= 4
+      ? 'bottom-[22rem] sm:bottom-[23rem]'
+      : hubItemCount === 3
+        ? 'bottom-72 sm:bottom-76'
+        : hubItemCount === 2
+          ? 'bottom-56 sm:bottom-60'
+          : 'bottom-40 sm:bottom-44'
     : 'bottom-22 sm:bottom-25';
 
   return (
     <div
       aria-hidden={!isVisible}
-      className={`fixed right-6 sm:right-8 z-40 select-none transition-all duration-300 ease-out ${verticalPositionClass} ${
+      className={`fixed ${
+        isDrawerOpen ? 'sm:right-[460px] right-6' : 'right-6 sm:right-8'
+      } z-40 select-none transition-all duration-300 ease-out ${verticalPositionClass} ${
         isVisible
           ? 'opacity-100 scale-100 pointer-events-auto translate-y-0'
           : 'opacity-0 scale-75 pointer-events-none translate-y-3'

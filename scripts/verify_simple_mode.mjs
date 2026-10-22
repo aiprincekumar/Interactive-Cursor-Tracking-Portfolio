@@ -94,11 +94,11 @@ const backToTopCode = backToTopExists ? fs.readFileSync(backToTopPath, 'utf8') :
 
 check('FloatingActionHub unifies Simple Mode toggle and imports useSimpleMode', (hubExists && hubCode.includes('useSimpleMode')) || (floatingExists && floatingCode.includes('useSimpleMode')));
 check('App.jsx mounts FloatingActionHub', appCode.includes('<FloatingActionHub') && appCode.includes('FloatingActionHub from'));
-check('FloatingActionHub enforces strict vertical right rail (bottom-6 right-6 sm:bottom-8 sm:right-8)', hubCode.includes('bottom-6 right-6 sm:bottom-8 sm:right-8'));
+check('FloatingActionHub enforces strict vertical right rail (bottom-6 right-6 sm:bottom-8 sm:right-8)', hubCode.includes('right-6 sm:right-8') && (hubCode.includes('bottom-6 right-6 sm:bottom-8 sm:right-8') || hubCode.includes('bottom-6 sm:bottom-8')));
 check('FloatingActionHub houses Simple Mode toggle with smooth speed-dial actions', hubExists && hubCode.includes('simple-mode-toggle') && hubCode.includes('toggleSimpleMode'));
-check('BackToTopButton enforces strict vertical right rail (right-6 sm:right-8)', backToTopExists && backToTopCode.includes('fixed right-6 sm:right-8'));
+check('BackToTopButton enforces strict vertical right rail (right-6 sm:right-8)', backToTopExists && backToTopCode.includes('right-6 sm:right-8'));
 check('BackToTopButton dynamically stacks above FloatingActionHub (bottom-22 collapsed, bottom-56/72 expanded)', backToTopCode.includes("'bottom-22 sm:bottom-25'") && backToTopCode.includes('isHubOpen'));
-check('Master FloatingActionHub FAB sits at bottom-6 right-6 sm:bottom-8 sm:right-8', hubExists && hubCode.includes('bottom-6 right-6 sm:bottom-8 sm:right-8'));
+check('Master FloatingActionHub FAB sits at bottom-6 right-6 sm:bottom-8 sm:right-8', hubExists && hubCode.includes('right-6 sm:right-8') && (hubCode.includes('bottom-6 right-6 sm:bottom-8 sm:right-8') || hubCode.includes('bottom-6 sm:bottom-8')));
 
 // 7. Inspect ResumeDropdown.jsx
 const resumePath = path.resolve('src/components/ResumeDropdown.jsx');

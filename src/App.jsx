@@ -27,6 +27,7 @@ import { RoleProvider } from './context/RoleContext';
 import { useSimpleMode } from './context/SimpleModeContext';
 import { HighContrastProvider } from './context/HighContrastContext';
 import { AnnouncerProvider } from './context/AnnouncerContext';
+import { AudienceProvider } from './context/AudienceContext';
 
 export default function App() {
   const { isSimpleMode } = useSimpleMode();
@@ -244,7 +245,8 @@ export default function App() {
   return (
     <HighContrastProvider>
       <AnnouncerProvider>
-        <RoleProvider soundEnabled={effectiveSoundEnabled}>
+        <AudienceProvider>
+          <RoleProvider soundEnabled={effectiveSoundEnabled}>
           <div className="min-h-screen bg-[#FAF8F5] dark:bg-[#0B0813] text-[#18181B] dark:text-[#F5F2F8] transition-colors duration-300 relative selection:bg-[#FF4D6D] selection:text-white overflow-x-hidden">
             {/* Accessible Skip to Content Link (Pillar 1) */}
             <a
@@ -375,7 +377,8 @@ export default function App() {
             <Footer />
           </div>
         </RoleProvider>
-      </AnnouncerProvider>
-    </HighContrastProvider>
+      </AudienceProvider>
+    </AnnouncerProvider>
+  </HighContrastProvider>
   );
 }

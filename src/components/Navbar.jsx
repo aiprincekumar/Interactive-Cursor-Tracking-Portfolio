@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, VolumeX, Menu, X, Search, LayoutGrid, Sun, Moon, Eye, Languages, Calculator } from 'lucide-react';
+import { Volume2, VolumeX, Menu, X, Search, LayoutGrid, Sun, Moon, Eye, Languages, Calculator, Filter } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useSimpleMode } from '../context/SimpleModeContext.jsx';
 import { soundFX } from '../utils/audio';
@@ -11,6 +11,8 @@ import ResumeDropdown from './ResumeDropdown';
 import ScrollProgressBar from './ScrollProgressBar';
 import RoleTabsBar from './RoleTabsBar';
 import ExploreSubBar from './ExploreSubBar';
+import AudienceSubBar from './AudienceSubBar';
+import { useAudience } from '../context/AudienceContext';
 import { useRoleTab, ROLE_DATA, DEFAULT_ROLE } from '../context/RoleContext';
 import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
@@ -99,9 +101,22 @@ export default function Navbar({
   }
   const isSimpleMode = simpleContext?.isSimpleMode ?? false;
   const toggleSimpleMode = simpleContext?.toggleSimpleMode ?? (() => {});
+
+  let audienceContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    audienceContext = useAudience();
+  } catch {
+    // In case Navbar is mounted outside AudienceProvider
+  }
+  const audience = audienceContext?.audience ?? 'all';
+  const isFilterActive = audienceContext?.isFilterActive ?? (audience !== 'all');
+  const activeAudienceData = audienceContext?.activeModeData;
+
   const [isRibbonOpen, setIsRibbonOpen] = useState(false);
   const [isRoleBarOpen, setIsRoleBarOpen] = useState(false);
   const [isExploreOpen, setIsExploreOpen] = useState(false);
+  const [isAudienceOpen, setIsAudienceOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(() => {
     if (typeof window === 'undefined') return false;
     try {
@@ -169,6 +184,7 @@ export default function Navbar({
       const next = !prev;
       if (next) {
         setIsExploreOpen(false);
+        setIsAudienceOpen(false);
         setIsRibbonOpen(false);
         setMobileMenuOpen(false);
         setIsSearchOpen(false);
@@ -183,6 +199,20 @@ export default function Navbar({
     setIsExploreOpen(next);
     if (next) {
       setIsRoleBarOpen(false);
+      setIsAudienceOpen(false);
+      setIsRibbonOpen(false);
+      setMobileMenuOpen(false);
+      if (isSearchOpen) setIsSearchOpen(false);
+    }
+    if (soundEnabled) soundFX.playRibbonToggle(next);
+  };
+
+  const toggleAudienceBar = () => {
+    const next = !isAudienceOpen;
+    setIsAudienceOpen(next);
+    if (next) {
+      setIsRoleBarOpen(false);
+      setIsExploreOpen(false);
       setIsRibbonOpen(false);
       setMobileMenuOpen(false);
       if (isSearchOpen) setIsSearchOpen(false);
@@ -228,6 +258,7 @@ export default function Navbar({
     setActiveSection(sectionId);
     if (isRoleBarOpen) setIsRoleBarOpen(false);
     if (isExploreOpen) setIsExploreOpen(false);
+    if (isAudienceOpen) setIsAudienceOpen(false);
     if (isRibbonOpen) setIsRibbonOpen(false);
     if (soundEnabled) soundFX.playFocusBeep();
     if (announce) {
@@ -274,6 +305,7 @@ export default function Navbar({
           const next = !prev;
           if (next) {
             setIsExploreOpen(false);
+            setIsAudienceOpen(false);
             setIsRoleBarOpen(false);
             setIsRibbonOpen(false);
             setMobileMenuOpen(false);
@@ -297,9 +329,9 @@ export default function Navbar({
     }
   }, [isSimpleMode]);
 
-  // Outside click & Escape listener for ribbon, role secondary bar, explore sub-bar & mobile menu
+  // Outside click & Escape listener for ribbon, role secondary bar, explore sub-bar, audience sub-bar & mobile menu
   useEffect(() => {
-    if (!isRibbonOpen && !isRoleBarOpen && !isExploreOpen && !mobileMenuOpen) return;
+    if (!isRibbonOpen && !isRoleBarOpen && !isExploreOpen && !isAudienceOpen && !mobileMenuOpen) return;
 
     const handleClickOutside = (event) => {
       if (navContainerRef.current && !navContainerRef.current.contains(event.target)) {
@@ -313,6 +345,10 @@ export default function Navbar({
         }
         if (isExploreOpen) {
           setIsExploreOpen(false);
+          if (soundEnabled) soundFX.playRibbonToggle(false);
+        }
+        if (isAudienceOpen) {
+          setIsAudienceOpen(false);
           if (soundEnabled) soundFX.playRibbonToggle(false);
         }
         if (mobileMenuOpen) {
@@ -340,6 +376,10 @@ export default function Navbar({
           setIsExploreOpen(false);
           if (soundEnabled) soundFX.playRibbonToggle(false);
         }
+        if (isAudienceOpen) {
+          setIsAudienceOpen(false);
+          if (soundEnabled) soundFX.playRibbonToggle(false);
+        }
       }
     };
 
@@ -352,7 +392,7 @@ export default function Navbar({
       document.removeEventListener('touchstart', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isRibbonOpen, isRoleBarOpen, isExploreOpen, mobileMenuOpen, soundEnabled]);
+  }, [isRibbonOpen, isRoleBarOpen, isExploreOpen, isAudienceOpen, mobileMenuOpen, soundEnabled]);
 
   // ScrollSpy listener to highlight active section in Navbar
   useEffect(() => {
@@ -592,6 +632,40 @@ export default function Navbar({
               </button>
             )}
 
+            {/* 2b. Audience Filter SubBar Trigger Button */}
+            <button
+              type="button"
+              onClick={toggleAudienceBar}
+              aria-label={isAudienceOpen ? 'Close Audience Filter' : `Audience Filter (${activeAudienceData?.label || 'All'})`}
+              aria-expanded={isAudienceOpen}
+              className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${
+                isAudienceOpen
+                  ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
+                  : isFilterActive
+                    ? 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] border-[#FF4D6D]/40 shadow-xs'
+                    : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95'
+              }`}
+              title={isAudienceOpen ? 'Close Audience Filter' : `Audience Filter: ${activeAudienceData?.label || 'All'}`}
+            >
+              <Filter
+                className="w-3.5 h-3.5 transition-transform duration-200"
+                style={{
+                  color: isAudienceOpen
+                    ? (isDark ? '#18181B' : '#FFFFFF')
+                    : isFilterActive
+                      ? '#FF4D6D'
+                      : undefined
+                }}
+              />
+              {/* Subtle active indicator dot when audience !== 'all' */}
+              {isFilterActive && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 pointer-events-none">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
+                </span>
+              )}
+            </button>
+
             {/* 3. Dynamic Cursor Variant Selector (Disabled in Simple Mode) */}
             {!isSimpleMode && isDesktopCursor && (
               <button
@@ -749,6 +823,19 @@ export default function Navbar({
           />
         )}
 
+        {/* Floating Secondary Horizontal Sub-Bar for Audience Filter */}
+        {isAudienceOpen && (
+          <AudienceSubBar
+            variant="floating-bar"
+            isOpen={isAudienceOpen}
+            onClose={() => {
+              setIsAudienceOpen(false);
+              if (soundEnabled) soundFX.playRibbonToggle(false);
+            }}
+            soundEnabled={soundEnabled}
+          />
+        )}
+
         {/* Expandable Cursor Selector Ribbon with Smooth Animation (Disabled in Simple Mode) */}
         {!isSimpleMode && isDesktopCursor && isRibbonOpen && (
           <div className="desktop-cursor-only mt-2.5 max-w-7xl mx-auto animate-in fade-in slide-in-from-top-2 duration-200 transition-all">
@@ -820,6 +907,13 @@ export default function Navbar({
                 onToggleTerminal={onToggleTerminal}
               />
             )}
+
+            {/* Mobile Audience View Filter Card */}
+            <AudienceSubBar
+              variant="drawer-card"
+              onClose={() => setMobileMenuOpen(false)}
+              soundEnabled={soundEnabled}
+            />
 
             {/* Simple Mode Toggle in Mobile Drawer */}
             <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-white dark:bg-stone-800 border border-[#E7E2D8] dark:border-stone-700 text-stone-700 dark:text-stone-200 text-xs font-semibold">

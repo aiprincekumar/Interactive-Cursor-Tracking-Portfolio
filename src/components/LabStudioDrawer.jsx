@@ -29,29 +29,7 @@ export default function LabStudioDrawer() {
     restoreFocus: true
   });
 
-  // Listen to custom events from FloatingActionHub or elsewhere
-  useEffect(() => {
-    const handleOpen = () => {
-      if (openDrawer) openDrawer();
-      else if (toggleDrawer) toggleDrawer();
-    };
-    const handleToggle = () => {
-      if (toggleDrawer) toggleDrawer();
-    };
-    const handleClose = () => {
-      if (closeDrawer) closeDrawer();
-    };
-
-    window.addEventListener('open_lab_studio', handleOpen);
-    window.addEventListener('toggle_lab_studio', handleToggle);
-    window.addEventListener('close_lab_studio', handleClose);
-
-    return () => {
-      window.removeEventListener('open_lab_studio', handleOpen);
-      window.removeEventListener('toggle_lab_studio', handleToggle);
-      window.removeEventListener('close_lab_studio', handleClose);
-    };
-  }, [openDrawer, toggleDrawer, closeDrawer]);
+  // Drawer open/close/toggle state is managed cleanly via useLab() context (and its global window listeners in LabContext)
 
   // Close on Escape key
   useEffect(() => {
