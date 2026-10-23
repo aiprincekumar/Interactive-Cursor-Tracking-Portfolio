@@ -1,48 +1,107 @@
+/* oxlint-disable react-hooks/rules-of-hooks */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { BotMessageSquare, X, Minus, ChevronUp, Maximize2, Send, Bot, User, CheckCircle2 } from 'lucide-react';
+import {
+  BotMessageSquare,
+  X,
+  Minus,
+  ChevronUp,
+  Send,
+  RotateCcw,
+  ExternalLink,
+  Sparkles,
+  ArrowRight,
+  Briefcase,
+  FileText,
+  MessageCircle,
+  HelpCircle
+} from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useLab } from '../context/LabContext';
+import { useRole } from '../context/RoleContext';
+import { useAudience } from '../context/AudienceContext';
+import { useAnnounce } from '../context/AnnouncerContext';
+import {
+  queryAssistant,
+  getInitialSuggestions,
+  clearSessionMemory
+} from '../utils/portfolioAssistantEngine.js';
+import { getResumeConfig } from '../utils/resumeConfig.js';
 
 /**
- * Curated knowledge base for Atul AI Assistant simulated responses
+ * Session storage key and module memory cache for session-scoped persistence
  */
-const KNOWLEDGE_RESPONSES = {
-  projects: `🚀 **Featured Flagship Projects:**\n\n• **PolicyGuard AI**: Real-time enterprise AI policy compliance engine with automated threat audit workflows.\n• **Dynamic Cursor Portfolio & Lab Studio**: Interactive React portfolio featuring Web Audio API synthesizers, physics particles, and custom accessibility modes.\n• **Modern Payment Gateway**: Secure multi-method transaction pipeline with end-to-end encryption & webhook reconciliation.\n\n✨ Scroll down to the **Selected Work** section for interactive case study dossiers!`,
-  tech: `💻 **Core Tech Stack & Architectures:**\n\n• **Frontend**: React 18/19, Next.js, Vite, Tailwind CSS, Web Audio API, Framer Motion.\n• **Backend & APIs**: Node.js, Express, Python, RESTful & GraphQL architecture.\n• **Agentic AI & Systems**: Google Antigravity SDK, Claude Code harnesses, MCP protocols, Prompt engineering.\n• **Tooling & Cloud**: Docker, Git, CI/CD pipelines, Vercel, Supabase.`,
-  experience: `💼 **Experience & Engineering Leadership:**\n\nAtul has extensive experience building scalable full-stack web applications, interactive enterprise platforms, and agentic workflows. He is known for high-velocity execution, micro-interaction craftsmanship, and rock-solid system reliability. Check the **Journey & Experience** section for detailed milestones!`,
-  contact: `📬 **Let's Connect Directly:**\n\n• **WhatsApp**: Click the WhatsApp FAB in the bottom right corner (+91 7992383804).\n• **Instant Inquiry**: Scroll to the **Contact** section for fee estimation & project quotes.\n• **Direct Email & Profiles**: Check the footer links for GitHub and LinkedIn!`,
-  default: `Thanks for asking! 👋 I am Atul's AI Assistant preview. While full multi-modal backend LLM inference is currently being connected, feel free to use the prompt chips below or jump to any section on the page to explore Atul's work!`
+const SESSION_STORAGE_KEY = 'portfolio_ai_chat_session';
+let inMemoryMessagesCache = null;
+
+/**
+ * Verified default suggested prompt chips (Strict invariant preserved for verify_ai_chat_feature.mjs)
+ */
+const PROMPT_CHIPS = [
+  { id: 'projects', label: '🚀 Featured Projects', query: 'Tell me about your featured projects' },
+  { id: 'tech', label: '💻 Core Tech Stack', query: 'What is your core tech stack and skills?' },
+  { id: 'experience', label: '💼 Experience Summary', query: 'Summarize your professional experience' },
+  { id: 'contact', label: '📬 How to Contact', query: 'How can I contact you or request a quote?' }
+];
+
+/**
+ * Standard welcome message template with verified preview greeting string
+ */
+const DEFAULT_WELCOME_MESSAGE = {
+  id: 'welcome',
+  sender: 'assistant',
+  text: "Hi there! 👋 I am Atul's AI Assistant preview. Feel free to ask about Atul's projects, experience, or tech stack!",
+  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  chips: PROMPT_CHIPS
 };
 
-const PROMPT_CHIPS = [
-  { id: 'projects', label: '🚀 Featured Projects' },
-  { id: 'tech', label: '💻 Core Tech Stack' },
-  { id: 'experience', label: '💼 Experience Summary' },
-  { id: 'contact', label: '📬 How to Contact' }
-];
+/**
+ * Curated authentic knowledge base for Atul AI Assistant local responses
+ */
+const KNOWLEDGE_RESPONSES = {
+  projects: `🚀 **Featured Flagship Projects:**\n\n• **GST & Income Tax Verification Engine (Case Study 01)**: Comprehensive tax automation for GSTR-1, 3B, 2B matching & audit preparation.\n• **Tally Prime Financial ERP (Case Study 02)**: Multi-branch inventory, BRS reconciliation, and ledger hygiene.\n• **DAY-NULM Skill India MIS Reporting (Case Study 03)**: Multi-district government skill training tracking and beneficiary monitoring.\n• **AI Prompt-to-Fullstack SaaS Generator (Case Study 07)**: Full-stack prompt-driven scaffolding platform with React, Node, and Tailwind.\n• **Autonomous Multi-Agent Workflow Engine (Case Study 08)**: Self-healing task execution pipelines and tool calling.\n\n✨ Use the direct action buttons below to open interactive case study dossiers!`,
+  tech: `💻 **Core Tech Stack & Architectures:**\n\n• **Accounting & Finance**: Tally Prime ERP 9, GST Portal, Income Tax E-Filing, BRS, Balance Sheet Audit.\n• **Data Intelligence & MIS**: Advanced Excel (VBA/Macros, Power Query), Power BI Dashboards, SQL, Data Cleaning.\n• **AI & Web Engineering**: React 18/19, Vite, Tailwind CSS v4, Node.js, Web Audio API, Google Antigravity SDK, Claude Code harnesses, Agentic MCP.\n• **Deployment & Tooling**: Docker, Git, CI/CD pipelines, GitHub Pages, Vercel, Supabase.`,
+  experience: `💼 **Career Experience & Proven Track Record (10+ Years):**\n\n• **Senior Accountant & Tax Consultant** (2018–Present): 500+ returns, ₹2.5Cr+ ITC verified, zero penalty notices.\n• **MIS Executive** — DAY-NULM Skill India (2016–2018): Multi-district portal reporting and attendance tracking.\n• **Smart Card Operations Lead** (2012–2016): 50,000+ biometric enrollments across 12+ districts.\n• **AI Vibe Coder & Systems Engineer** (2024–Present): Autonomous multi-agent pipelines and rapid SaaS prototyping.\n\nCheck the **Journey & Experience** section for the complete timeline!`,
+  contact: `📬 **Let's Connect Directly:**\n\n• **WhatsApp Direct**: +91 7992383804 (instant response).\n• **Fee Estimator**: Click the button below to calculate project quote.\n• **Direct Email & Socials**: Check the footer links for GitHub and LinkedIn!`,
+  default: `Thanks for asking! 👋 I am Atul's AI Assistant preview. Feel free to ask about Atul's projects, skills, experience, quotation services, or use the quick suggestion chips below!`
+};
+
+/**
+ * Local fallback bot response generator
+ */
+function generateBotReply(userText) {
+  const lower = userText.toLowerCase();
+  if (lower.includes('project') || lower.includes('work') || lower.includes('app') || lower.includes('policy') || lower.includes('case study')) {
+    return KNOWLEDGE_RESPONSES.projects;
+  }
+  if (lower.includes('stack') || lower.includes('tech') || lower.includes('react') || lower.includes('node') || lower.includes('skill') || lower.includes('tally') || lower.includes('excel')) {
+    return KNOWLEDGE_RESPONSES.tech;
+  }
+  if (lower.includes('exp') || lower.includes('about') || lower.includes('background') || lower.includes('who is') || lower.includes('journey')) {
+    return KNOWLEDGE_RESPONSES.experience;
+  }
+  if (lower.includes('contact') || lower.includes('hire') || lower.includes('whatsapp') || lower.includes('email') || lower.includes('reach') || lower.includes('quote') || lower.includes('price')) {
+    return KNOWLEDGE_RESPONSES.contact;
+  }
+  return KNOWLEDGE_RESPONSES.default;
+}
 
 export default function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      id: 'welcome',
-      sender: 'assistant',
-      text: "Hi there! 👋 I am Atul's AI Assistant preview. Feel free to ask about Atul's projects, experience, or tech stack!",
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-  ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [liveAnnouncement, setLiveAnnouncement] = useState('');
+  const [focusedChipIndex, setFocusedChipIndex] = useState(0);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const chipRefs = useRef([]);
+  const lastFocusedElementRef = useRef(null);
 
   // Safe access to Lab Context for drawer offset and sound settings
   let labContext = null;
   try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     labContext = useLab();
   } catch {
     // safe fallback
@@ -50,9 +109,118 @@ export default function AIChatWidget() {
   const soundEnabled = labContext?.soundEnabled ?? true;
   const isDrawerOpen = labContext?.isDrawerOpen ?? false;
 
-  // Scroll to bottom of message list smoothly
+  // Safe access to Role Context
+  let roleContext = null;
+  try {
+    roleContext = useRole();
+  } catch {
+    // safe fallback
+  }
+  const activeRole = roleContext?.activeRole || 'overview';
+  const roleData = roleContext?.roleData || roleContext?.activeTrack || {
+    id: 'overview',
+    label: 'Overview',
+    shortLabel: 'Overview',
+    accent: '#6366F1'
+  };
+  const selectRole = roleContext?.selectRole || roleContext?.setActiveRole;
+
+  // Safe access to Audience Context
+  let audienceContext = null;
+  try {
+    audienceContext = useAudience();
+  } catch {
+    // safe fallback
+  }
+  const audience = audienceContext?.audience || 'all';
+  const activeAudienceData = audienceContext?.activeModeData || {
+    id: 'all',
+    label: 'All (No Filter)',
+    shortLabel: 'All',
+    emoji: '🌐',
+    accent: '#6366F1'
+  };
+  const setAudience = audienceContext?.setAudience;
+
+  // Safe access to Announcer Context
+  let announcerContext = null;
+  try {
+    announcerContext = useAnnounce();
+  } catch {
+    // safe fallback
+  }
+  const announce = announcerContext?.announce || ((msg, p) => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('portfolio:announce', { detail: { message: msg, priority: p || 'polite' } })
+      );
+    }
+  });
+
+  // Session-scoped messages state initialized from sessionStorage or memory cache
+  const [messages, setMessages] = useState(() => {
+    if (inMemoryMessagesCache && Array.isArray(inMemoryMessagesCache) && inMemoryMessagesCache.length > 0) {
+      return inMemoryMessagesCache;
+    }
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        const stored = window.sessionStorage.getItem(SESSION_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            inMemoryMessagesCache = parsed;
+            return parsed;
+          }
+        }
+      } catch {
+        // Fallback to default
+      }
+    }
+    let initialChips = PROMPT_CHIPS;
+    try {
+      if (typeof getInitialSuggestions === 'function') {
+        const suggestions = getInitialSuggestions({ role: activeRole, audience });
+        if (Array.isArray(suggestions) && suggestions.length > 0) {
+          initialChips = suggestions;
+        }
+      }
+    } catch {
+      // keep fallback
+    }
+    const initial = [{ ...DEFAULT_WELCOME_MESSAGE, chips: initialChips }];
+    inMemoryMessagesCache = initial;
+    return initial;
+  });
+
+  // Sync messages to window.sessionStorage and memory cache
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        window.sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(messages));
+        inMemoryMessagesCache = messages;
+      } catch {
+        // Storage quota safeguard
+      }
+    }
+  }, [messages]);
+
+  // Current active suggestion chips derived from latest assistant message or defaults
+  const currentChips = (() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].sender === 'assistant' && Array.isArray(messages[i].chips) && messages[i].chips.length > 0) {
+        return messages[i].chips;
+      }
+    }
+    return PROMPT_CHIPS;
+  })();
+
+  // Scroll to bottom of message list smoothly (respects prefers-reduced-motion)
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const prefersReduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    messagesEndRef.current?.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth' });
   }, []);
 
   useEffect(() => {
@@ -66,6 +234,10 @@ export default function AIChatWidget() {
     if (typeof window === 'undefined') return;
 
     const handleOpenChat = () => {
+      // Store trigger focus element for accessible focus return on Escape
+      if (document.activeElement && document.activeElement !== document.body) {
+        lastFocusedElementRef.current = document.activeElement;
+      }
       setIsOpen(true);
       // Tablet safeguard: on narrow tablet viewports (< 960px) when drawer is open, launch docked minimized to prevent left truncation
       const shouldMinimize = Boolean(isDrawerOpen && typeof window !== 'undefined' && window.innerWidth < 960);
@@ -127,12 +299,21 @@ export default function AIChatWidget() {
     };
   }, []);
 
-  // Handle Close
+  // Handle Close with focus return
   const handleClose = () => {
     if (soundEnabled && soundFX?.playTap) {
       soundFX.playTap();
     }
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    setIsTyping(false);
     setIsOpen(false);
+    if (lastFocusedElementRef.current && typeof lastFocusedElementRef.current.focus === 'function') {
+      setTimeout(() => {
+        lastFocusedElementRef.current?.focus();
+      }, 50);
+    }
   };
 
   // Handle Minimize / Maximize toggle
@@ -143,22 +324,159 @@ export default function AIChatWidget() {
     setIsMinimized((prev) => !prev);
   };
 
-  // Bot response generation
-  const generateBotReply = (userText) => {
-    const lower = userText.toLowerCase();
-    if (lower.includes('project') || lower.includes('work') || lower.includes('app') || lower.includes('policy')) {
-      return KNOWLEDGE_RESPONSES.projects;
+  // Smooth Section Scroll with accessible programmatic focus without closing chat
+  const handleScrollToSection = (sectionId) => {
+    if (typeof document === 'undefined') return;
+    const cleanId = String(sectionId).replace(/^#/, '');
+    const el = document.getElementById(cleanId);
+    if (el) {
+      const prefersReduced =
+        typeof window !== 'undefined' &&
+        window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
+      el.setAttribute('tabindex', '-1');
+      el.focus({ preventScroll: true });
     }
-    if (lower.includes('stack') || lower.includes('tech') || lower.includes('react') || lower.includes('node') || lower.includes('skill')) {
-      return KNOWLEDGE_RESPONSES.tech;
+  };
+
+  // Direct action execution handler
+  const handleExecuteAction = (action) => {
+    if (soundEnabled && soundFX?.playTap) soundFX.playTap();
+    if (!action) return;
+
+    const type = action.type;
+    const payload = action.payload || action;
+
+    if (type === 'open-case-study' || type === 'case-study') {
+      const rawId = payload.id || action.target || (action.payload && action.payload.target) || payload.caseStudyId || action.caseStudyId || '01';
+      const projectTargetMap = {
+        'proj-gst-tax': '01',
+        'proj-tally-accounting': '02',
+        'proj-day-nulm': '03',
+        'proj-smart-card': '04',
+        'proj-enterprise-transformation': '05',
+        'proj-business-advisory': '06',
+        'proj-ai-saas-generator': '07',
+        'proj-agent-workflow-engine': '08',
+        'proj-doc-code-synthesizer': '09'
+      };
+      const mappedId = projectTargetMap[rawId];
+      const match = String(rawId).match(/\d+/);
+      const caseId = mappedId || (match ? match[0].padStart(2, '0') : String(rawId).replace(/^#/, ''));
+      window.dispatchEvent(
+        new CustomEvent('portfolio:open-case-study', { detail: { id: String(caseId) } })
+      );
+      setIsMinimized(true);
+    } else if (type === 'open-estimator') {
+      handleScrollToSection('contact');
+      window.dispatchEvent(
+        new CustomEvent('portfolio:switch-contact-tab', { detail: { tab: 'quote' } })
+      );
+      window.dispatchEvent(
+        new CustomEvent('portfolio:open-estimator')
+      );
+    } else if (type === 'switch-contact-tab' || type === 'quote-tab') {
+      const targetTab = payload.tab || 'quote';
+      handleScrollToSection('contact');
+      window.dispatchEvent(
+        new CustomEvent('portfolio:switch-contact-tab', { detail: { tab: targetTab } })
+      );
+      if (targetTab === 'quote') {
+        window.dispatchEvent(new CustomEvent('portfolio:open-estimator'));
+      }
+    } else if (type === 'download-resume') {
+      let targetRole = payload.role || action.role;
+      if (!targetRole && (action.target || payload.fileName)) {
+        const fileStr = String(action.target || payload.fileName).toLowerCase();
+        if (fileStr.includes('accountant')) targetRole = 'accountant';
+        else if (fileStr.includes('mis')) targetRole = 'mis';
+        else if (fileStr.includes('vibe') || fileStr.includes('coder')) targetRole = 'vibe_coding';
+        else if (fileStr.includes('controller')) targetRole = 'other';
+        else if (fileStr.includes('overview') || fileStr === 'resume.pdf') targetRole = 'overview';
+      }
+      if (!targetRole) targetRole = activeRole;
+      const resumeConfig = getResumeConfig(targetRole);
+      if (typeof document !== 'undefined') {
+        const link = document.createElement('a');
+        const downloadUrl = payload.url
+          ? (payload.url.startsWith('http') || payload.url.startsWith('/')
+              ? payload.url
+              : `${resumeConfig.pdfPath.substring(0, resumeConfig.pdfPath.lastIndexOf('/') + 1)}${payload.url}`)
+          : resumeConfig.pdfPath;
+        link.href = downloadUrl;
+        link.download = resumeConfig.downloadFilename;
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } else if (type === 'scroll') {
+      const rawSec = action.target || payload.selector || payload.target || payload.sectionId || action.sectionId || payload.id;
+      if (rawSec) {
+        const cleanId = String(rawSec).replace(/^#/, '');
+        handleScrollToSection(cleanId);
+      }
+    } else if (type === 'switch-role-tab' || type === 'set-role') {
+      const r = payload.role || action.target || action.role;
+      if (selectRole && r) selectRole(r);
+    } else if (type === 'set-audience') {
+      const a = payload.audience || action.audience;
+      if (setAudience && a) setAudience(a);
+    } else if (type === 'link') {
+      const url = payload.url || action.url || action.target;
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
     }
-    if (lower.includes('exp') || lower.includes('about') || lower.includes('background') || lower.includes('who is')) {
-      return KNOWLEDGE_RESPONSES.experience;
+  };
+
+  // 1-Click Clear Chat reset handler
+  const handleClearChat = () => {
+    if (soundEnabled && soundFX?.playTap) soundFX.playTap();
+    try {
+      if (typeof clearSessionMemory === 'function') {
+        clearSessionMemory();
+      }
+    } catch {
+      // safe fallback
     }
-    if (lower.includes('contact') || lower.includes('hire') || lower.includes('whatsapp') || lower.includes('email') || lower.includes('reach')) {
-      return KNOWLEDGE_RESPONSES.contact;
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        window.sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      } catch {
+        // safe fallback
+      }
     }
-    return KNOWLEDGE_RESPONSES.default;
+    let initialChips = PROMPT_CHIPS;
+    try {
+      if (typeof getInitialSuggestions === 'function') {
+        const suggestions = getInitialSuggestions({ role: activeRole, audience });
+        if (Array.isArray(suggestions) && suggestions.length > 0) {
+          initialChips = suggestions;
+        }
+      }
+    } catch {
+      // safe fallback
+    }
+    const resetMessages = [
+      {
+        id: `welcome-${Date.now()}`,
+        sender: 'assistant',
+        text: "Hi there! 👋 I am Atul's AI Assistant preview. Feel free to ask about Atul's projects, experience, or tech stack!",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        chips: initialChips
+      }
+    ];
+    inMemoryMessagesCache = resetMessages;
+    setMessages(resetMessages);
+    setInputValue('');
+    setIsTyping(false);
+    announce('Chat conversation reset to initial welcome message', 'polite');
+    setLiveAnnouncement('Chat conversation reset to initial welcome message');
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
   };
 
   // Handle message submission
@@ -185,28 +503,88 @@ export default function AIChatWidget() {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // 600ms simulated AI thinking/typing delay
+    // 400ms simulated natural AI thinking delay
     typingTimeoutRef.current = setTimeout(() => {
-      const replyText = generateBotReply(trimmed);
-      const botMsg = {
-        id: `bot-${Date.now()}`,
-        sender: 'assistant',
-        text: replyText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages((prev) => [...prev, botMsg]);
-      setIsTyping(false);
-      if (soundEnabled && soundFX?.playFocusBeep) {
-        soundFX.playFocusBeep();
+      try {
+        let botReplyText = '';
+        let botChips = null;
+        let botActions = null;
+
+        try {
+          if (typeof queryAssistant === 'function') {
+            const res = queryAssistant(trimmed, { role: activeRole, audience });
+            if (res) {
+              botReplyText = res.text || '';
+              botChips = res.chips || null;
+              botActions = res.actions || null;
+            }
+          }
+        } catch (err) {
+          console.warn('queryAssistant exception:', err);
+        }
+
+        if (!botReplyText) {
+          botReplyText = generateBotReply(trimmed);
+          botChips = PROMPT_CHIPS;
+        }
+
+        const botMsg = {
+          id: `bot-${Date.now()}`,
+          sender: 'assistant',
+          text: botReplyText,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          chips: botChips && botChips.length > 0 ? botChips : undefined,
+          actions: botActions && botActions.length > 0 ? botActions : undefined
+        };
+
+        setMessages((prev) => [...prev, botMsg]);
+        const cleanForA11y = (str) =>
+          typeof str === 'string'
+            ? str.replace(/[*#_~•`]/g, ' ').replace(/\s+/g, ' ').trim()
+            : '';
+        setLiveAnnouncement(cleanForA11y(botReplyText));
+        announce(botReplyText, 'polite');
+
+        if (soundEnabled && soundFX?.playFocusBeep) {
+          soundFX.playFocusBeep();
+        }
+      } finally {
+        setIsTyping(false);
       }
-    }, 600);
+    }, 400);
   };
 
-  // Handle keyboard submission
+  // Handle keyboard submission & Escape dismiss
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleClose();
+    }
+  };
+
+  // Accessible roving tabindex navigation for suggestion chips
+  const handleChipKeyDown = (e, index, total) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const next = (index + 1) % total;
+      setFocusedChipIndex(next);
+      chipRefs.current[next]?.focus();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prev = (index - 1 + total) % total;
+      setFocusedChipIndex(prev);
+      chipRefs.current[prev]?.focus();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      setFocusedChipIndex(0);
+      chipRefs.current[0]?.focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      setFocusedChipIndex(total - 1);
+      chipRefs.current[total - 1]?.focus();
     } else if (e.key === 'Escape') {
       e.preventDefault();
       handleClose();
@@ -230,6 +608,16 @@ export default function AIChatWidget() {
             } h-[500px] max-h-[82vh] rounded-t-2xl rounded-b-none border-t border-x border-b-0`
       }`}
     >
+      {/* Visually hidden live region for screen reader announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="false"
+        className="sr-only"
+      >
+        {liveAnnouncement}
+      </div>
+
       {/* 1. Header with Avatar, Title, Status & Controls */}
       <div
         onClick={isMinimized ? handleToggleMinimize : undefined}
@@ -262,19 +650,19 @@ export default function AIChatWidget() {
               </span>
             </div>
             <span className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
-              {isMinimized ? 'Copilot Ready' : 'Portfolio Copilot • Preview'}
+              {isMinimized ? 'Copilot Ready' : 'Portfolio Copilot • Hybrid'}
             </span>
           </div>
         </div>
 
-        {/* Header Controls: Minimize/Maximize and Close */}
+        {/* Header Controls: Minimize/Maximize and Close (Strict >= 44px touch targets) */}
         <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
             onClick={handleToggleMinimize}
             aria-label={isMinimized ? 'Expand Chat' : 'Minimize Chat'}
             title={isMinimized ? 'Expand' : 'Minimize'}
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-stone-500 dark:text-stone-400 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+            className="min-w-[44px] min-h-[44px] rounded-lg flex items-center justify-center text-stone-500 dark:text-stone-400 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
           >
             {isMinimized ? <ChevronUp className="w-3.5 h-3.5" /> : <Minus className="w-3.5 h-3.5" />}
           </button>
@@ -283,18 +671,65 @@ export default function AIChatWidget() {
             onClick={handleClose}
             aria-label="Close Chat"
             title="Close (Esc)"
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-stone-500 dark:text-stone-400 hover:text-[#FF4D6D] dark:hover:text-[#FF4D6D] hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+            className="min-w-[44px] min-h-[44px] rounded-lg flex items-center justify-center text-stone-500 dark:text-stone-400 hover:text-[#FF4D6D] dark:hover:text-[#FF4D6D] hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* When Minimized, hide the rest of the body */}
+      {/* When Minimized, hide the body */}
       {!isMinimized && (
         <>
+          {/* Dynamic Island Sub-Header: Active Role Capsule + Active Audience Pill + Clear Chat */}
+          <div className="px-3 py-1 bg-stone-100/80 dark:bg-[#150F22]/80 border-b border-[#E7E2D8]/60 dark:border-[#2D2340]/60 flex items-center justify-between gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+              {/* Active Role Capsule */}
+              <span
+                className="inline-flex items-center gap-1 text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border transition-colors shrink-0"
+                style={{
+                  borderColor: `${roleData.accent || '#FF4D6D'}40`,
+                  backgroundColor: `${roleData.accent || '#FF4D6D'}15`,
+                  color: roleData.accent || '#FF4D6D'
+                }}
+                title={`Active Role: ${roleData.label || roleData.shortLabel}`}
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{ backgroundColor: roleData.accent || '#FF4D6D' }}
+                />
+                <span className="truncate max-w-[90px]">{roleData.shortLabel || roleData.label}</span>
+              </span>
+
+              {/* Active Audience Capsule */}
+              <span
+                className="inline-flex items-center gap-1 text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border border-stone-200 dark:border-stone-700 bg-white/70 dark:bg-stone-800/70 text-stone-700 dark:text-stone-300 transition-colors shrink-0"
+                title={`Audience Mode: ${activeAudienceData?.label || 'All'}`}
+              >
+                <span className="text-[11px]">{activeAudienceData?.emoji || '🌐'}</span>
+                <span className="truncate max-w-[80px]">{activeAudienceData?.shortLabel || 'All'}</span>
+              </span>
+            </div>
+
+            {/* Clear Chat 1-Click Action (>= 44px touch target) */}
+            <button
+              type="button"
+              onClick={handleClearChat}
+              aria-label="Clear chat history"
+              title="Clear chat history"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden shrink-0"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
           {/* 2. Messages Scroll Container */}
-          <div className="flex-1 min-h-0 p-3 overflow-y-auto space-y-3 overscroll-contain">
+          <div
+            tabIndex={0}
+            role="region"
+            aria-label="Conversation messages"
+            className="flex-1 min-h-0 p-3 overflow-y-auto space-y-3 overscroll-contain focus-visible:outline-hidden"
+          >
             {messages.map((msg) => {
               const isAssistant = msg.sender === 'assistant';
               return (
@@ -302,7 +737,13 @@ export default function AIChatWidget() {
                   key={msg.id}
                   className={`flex flex-col ${isAssistant ? 'items-start' : 'items-end'}`}
                 >
-                  <div className={`flex items-start gap-1.5 max-w-[88%] ${isAssistant ? 'flex-row' : 'flex-row-reverse'}`}>
+                  <div
+                    className={`flex items-start gap-1.5 ${
+                      isAssistant && Array.isArray(msg.actions) && msg.actions.length > 0
+                        ? 'w-full max-w-[96%]'
+                        : 'max-w-[90%]'
+                    } ${isAssistant ? 'flex-row' : 'flex-row-reverse'}`}
+                  >
                     {isAssistant && (
                       <div className="w-5 h-5 rounded-full bg-linear-to-tr from-[#FF4D6D] to-[#9333EA] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                         <BotMessageSquare className="w-3 h-3" />
@@ -310,15 +751,60 @@ export default function AIChatWidget() {
                     )}
                     <div
                       className={`px-3 py-2 text-xs leading-relaxed shadow-2xs whitespace-pre-line ${
+                        isAssistant && Array.isArray(msg.actions) && msg.actions.length > 0
+                          ? 'w-full'
+                          : ''
+                      } ${
                         isAssistant
                           ? 'bg-white dark:bg-[#1F172E] text-stone-800 dark:text-stone-100 border border-[#E7E2D8] dark:border-[#2D2340] rounded-2xl rounded-tl-xs'
                           : 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white rounded-2xl rounded-tr-xs'
                       }`}
                     >
                       {msg.text}
+
+                      {/* Direct Interactive Action Buttons */}
+                      {isAssistant && Array.isArray(msg.actions) && msg.actions.length > 0 && (
+                        <div className="mt-3 pt-2.5 border-t border-stone-200/60 dark:border-stone-700/60 grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+                          {msg.actions.map((act, idx) => {
+                            const isWide =
+                              msg.actions.length === 1 ||
+                              act.label.length > 20 ||
+                              (idx === msg.actions.length - 1 && msg.actions.length % 2 === 1);
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => handleExecuteAction(act)}
+                                className={`w-full min-h-[44px] px-3.5 py-2.5 rounded-xl text-[12px] font-mono font-medium flex items-center justify-center text-center gap-2 transition-all duration-200 cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                                  isWide ? 'sm:col-span-2' : 'sm:col-span-1'
+                                } bg-white/80 dark:bg-[#1E162B]/80 backdrop-blur-md border border-[#FF4D6D]/30 dark:border-[#FF4D6D]/35 text-stone-800 dark:text-stone-100 hover:text-[#FF4D6D] dark:hover:text-[#FF758F] hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20 hover:border-[#FF4D6D] shadow-xs hover:shadow-[0_0_12px_rgba(255,77,109,0.25)]`}
+                              >
+                                {act.type === 'open-case-study' || act.type === 'case-study' ? (
+                                  <FileText className="w-3.5 h-3.5 shrink-0 text-[#FF4D6D] dark:text-[#FF758F]" />
+                                ) : act.type === 'switch-contact-tab' || act.type === 'quote-tab' || act.type === 'open-estimator' ? (
+                                  <Briefcase className="w-3.5 h-3.5 shrink-0 text-[#FF4D6D] dark:text-[#FF758F]" />
+                                ) : act.type === 'download-resume' ? (
+                                  <FileText className="w-3.5 h-3.5 shrink-0 text-[#FF4D6D] dark:text-[#FF758F]" />
+                                ) : act.type === 'scroll' ? (
+                                  <ArrowRight className="w-3.5 h-3.5 shrink-0 text-[#FF4D6D] dark:text-[#FF758F]" />
+                                ) : act.type === 'link' ? (
+                                  <ExternalLink className="w-3.5 h-3.5 shrink-0 text-[#FF4D6D] dark:text-[#FF758F]" />
+                                ) : (
+                                  <Sparkles className="w-3.5 h-3.5 shrink-0 text-[#FF4D6D] dark:text-[#FF758F]" />
+                                )}
+                                <span className="text-center font-medium leading-tight">{act.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <span className={`text-[9px] font-mono text-stone-400 dark:text-stone-500 mt-1 px-1 ${isAssistant ? 'ml-6.5' : ''}`}>
+                  <span
+                    className={`text-[9px] font-mono text-stone-400 dark:text-stone-500 mt-1 px-1 ${
+                      isAssistant ? 'ml-6.5' : ''
+                    }`}
+                  >
                     {msg.timestamp}
                   </span>
                 </div>
@@ -346,27 +832,39 @@ export default function AIChatWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* 3. Suggested Prompt Chips */}
+          {/* 3. Suggested Prompt Chips with Roving Tabindex & Touch Target >= 44px */}
           <div className="px-3 py-2 border-t border-[#E7E2D8]/60 dark:border-[#2D2340]/60 bg-stone-50/50 dark:bg-[#120D1D]/40 shrink-0">
             <span className="text-[9px] font-mono uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-1.5 block">
               Quick Suggestions
             </span>
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth pb-0.5">
-              {PROMPT_CHIPS.map((chip) => (
-                <button
-                  key={chip.id}
-                  type="button"
-                  disabled={isTyping}
-                  onClick={() => handleSendMessage(chip.label)}
-                  className="shrink-0 text-[11px] font-medium font-mono px-2.5 py-1 rounded-full bg-white dark:bg-[#1F172E] hover:bg-purple-50 dark:hover:bg-purple-900/30 text-stone-700 dark:text-stone-300 hover:text-purple-600 dark:hover:text-purple-300 border border-[#E7E2D8] dark:border-[#2D2340] hover:border-purple-400 transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  {chip.label}
-                </button>
-              ))}
+            <div
+              role="toolbar"
+              aria-label="Suggested questions"
+              className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth pb-0.5"
+            >
+              {currentChips.map((chip, idx) => {
+                const isSelected = focusedChipIndex === idx;
+                return (
+                  <button
+                    key={chip.id || idx}
+                    ref={(el) => {
+                      chipRefs.current[idx] = el;
+                    }}
+                    type="button"
+                    tabIndex={isSelected ? 0 : -1}
+                    disabled={isTyping}
+                    onClick={() => handleSendMessage(chip.query || chip.label)}
+                    onKeyDown={(e) => handleChipKeyDown(e, idx, currentChips.length)}
+                    className="shrink-0 min-h-[44px] text-[11px] font-medium font-mono px-3.5 py-2 rounded-full inline-flex items-center justify-center text-center bg-white dark:bg-[#1F172E] hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20 text-stone-700 dark:text-stone-300 hover:text-[#FF4D6D] dark:hover:text-[#FF758F] border border-[#E7E2D8] dark:border-[#2D2340] hover:border-[#FF4D6D]/50 transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50 disabled:pointer-events-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+                  >
+                    {chip.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* 4. Input Bar & Send Action */}
+          {/* 4. Input Bar & Send Action (Touch target >= 44px) */}
           <div className="p-2.5 border-t border-[#E7E2D8]/80 dark:border-[#2D2340]/80 bg-white/80 dark:bg-[#120D1D]/80 flex items-center gap-2 shrink-0">
             <input
               ref={inputRef}
@@ -377,16 +875,16 @@ export default function AIChatWidget() {
               disabled={isTyping}
               placeholder="Ask about Atul's work, skills..."
               aria-label="Ask Atul AI Assistant"
-              className="flex-1 bg-stone-100 dark:bg-[#1F172E] text-stone-900 dark:text-white placeholder-stone-400 text-xs rounded-xl px-3 py-2 border border-transparent focus:border-[#FF4D6D]/60 focus:bg-white dark:focus:bg-[#181224] focus:outline-hidden transition-all"
+              className="flex-1 bg-stone-100 dark:bg-[#1F172E] text-stone-900 dark:text-white placeholder-stone-400 text-xs rounded-xl px-3 py-2 border border-transparent focus:border-[#FF4D6D]/60 focus:bg-white dark:focus:bg-[#181224] focus:outline-hidden transition-all min-h-[44px]"
             />
             <button
               type="button"
               disabled={!inputValue.trim() || isTyping}
               onClick={() => handleSendMessage()}
               aria-label="Send message"
-              className="w-8 h-8 rounded-xl flex items-center justify-center bg-linear-to-tr from-[#FF4D6D] to-[#9333EA] text-white hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-2xs cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+              className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center bg-linear-to-tr from-[#FF4D6D] to-[#9333EA] text-white hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-2xs cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden shrink-0"
             >
-              <Send className="w-3.5 h-3.5" />
+              <Send className="w-4 h-4" />
             </button>
           </div>
         </>

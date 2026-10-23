@@ -35,6 +35,9 @@ export default defineConfig(({ mode: _mode } = {}) => ({
           if (normalizedId.includes('caseStudiesData.js')) {
             return 'data-case-studies'
           }
+          if (normalizedId.includes('portfolioAssistantEngine.js')) {
+            return 'portfolio-assistant-engine'
+          }
         },
       },
     },

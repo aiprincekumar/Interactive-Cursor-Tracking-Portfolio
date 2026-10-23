@@ -666,11 +666,11 @@ export default function SkillsSection() {
         <h2
           id="skills-heading"
           tabIndex={0}
-          data-tts={isHindi ? t('skills.title', 'तकनीकी उपकरण एवं व्यावसायिक महारत') : "Heading: What I work with."}
+          data-tts="Heading: What I work with."
           className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 whitespace-normal sm:whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#FF4D6D] dark:focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden rounded-xl px-1 -mx-1"
         >
           {isHindi ? (
-            <span>तकनीकी उपकरण एवं <span className="text-[#FF4D6D]" style={{ color: accentColor }}>व्यावसायिक महारत</span></span>
+            <span>तकनीकी उपकरण एवं <span className="text-[#FF4D6D]" style={{ color: accentColor }}>{t('skills.title', 'व्यावसायिक महारत')}</span></span>
           ) : (
             <span>What I <span className="text-[#FF4D6D]" style={{ color: accentColor }}>work with</span>.</span>
           )}

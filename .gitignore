@@ -45,3 +45,5 @@ extracted_character_data.json
 frame_analysis.json
 extract_frames.cjs
 
+# Playwright CLI output (may contain credentials)
+.playwright-cli/

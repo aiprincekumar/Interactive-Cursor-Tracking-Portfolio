@@ -800,6 +800,32 @@ export const FAQ_ITEMS = [
       label: 'Discuss Settlement & Plans',
       label_hi: 'निवास व योजनाओं पर चर्चा करें'
     }
+  },
+  {
+    id: 'gen-location-office',
+    question: 'Where are you located in India?',
+    question_hi: 'आप भारत में कहाँ स्थित हैं?',
+    aliases: [
+      'Kaha rehte ho? Office location kya hai?',
+      'Where are you located in India?',
+      'आप भारत में कहाँ स्थित हैं?',
+      'kaha rehte ho',
+      'office location kya hai',
+      'where are you located',
+      'office location'
+    ],
+    answer: 'Atul Verma is permanently based in Daltonganj (Medininagar), Palamau District, Jharkhand - 822101, India. He operates an industrial-grade remote engineering workstation (1 Gbps fiber + UPS power redundancy) and is fully flexible to relocate for onsite/hybrid roles in tech metropolitan hubs (Bangalore, NCR, Hyderabad, Pune).',
+    answer_hi: 'अतुल वर्मा डाल्टनगंज (मेदिनीनगर), पलामू जिला, झारखंड - 822101, भारत में स्थित हैं। वे 1 Gbps फाइबर ब्रॉडबैंड और औद्योगिक UPS पावर बैकअप से सुसज्जित एक आधुनिक रिमोट वर्कस्टेशन संचालित करते हैं तथा प्रमुख मेट्रो टेक हब्स (बैंगलोर, एनसीआर, हैदराबाद, पुणे) में ऑनसाइट/हाइब्रिड भूमिकाओं हेतु रीलोकेट होने के लिए पूरी तरह तैयार हैं।',
+    audience: ['general'],
+    role: ['all'],
+    categoryTag: 'Location & Headquarters',
+    categoryTag_hi: 'स्थान एवं मुख्यालय',
+    actionCTA: {
+      type: 'contact',
+      target: '#contact',
+      label: 'View Location on Map & Contact',
+      label_hi: 'मानचित्र पर स्थान देखें एवं संपर्क करें'
+    }
   }
 ];
 
