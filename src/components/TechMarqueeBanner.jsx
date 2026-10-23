@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { soundFX } from '../utils/audio';
 import { useRoleTab } from '../context/RoleContext';
 import { useLab } from '../context/LabContext';
@@ -313,6 +313,144 @@ const TECH_DETAILS = {
   }
 };
 
+// Hoist sequences outside component to avoid re-allocation on every render
+const TOP_SEQUENCE = Array(12).fill(TOP_ITEMS).flat();
+const BOTTOM_SEQUENCE = Array(12).fill(BOTTOM_ITEMS).flat();
+
+function areMarqueeCardPropsEqual(prevProps, nextProps) {
+  return (
+    prevProps.isTooltipOpen === nextProps.isTooltipOpen &&
+    prevProps.itemKey === nextProps.itemKey &&
+    prevProps.tech === nextProps.tech &&
+    prevProps.isBottom === nextProps.isBottom &&
+    prevProps.isDuplicate === nextProps.isDuplicate
+  );
+}
+
+export const MarqueeCard = React.memo(function MarqueeCard({
+  itemKey,
+  tech,
+  isBottom = false,
+  isDuplicate = false,
+  isTooltipOpen = false,
+  handleMouseEnter,
+  handleMouseLeave,
+  handleBlur,
+  handleItemClick,
+  handleItemNavigation,
+  setActiveTooltipKey,
+}) {
+  const details = TECH_DETAILS[tech] || {
+    title: tech,
+    categoryBadge: isBottom ? 'Core Competency' : 'Technical Skill',
+    experienceMetric: isBottom ? '7+ Years Experience' : 'Verified Expertise',
+    hint: 'Click to inspect skill →'
+  };
+
+  return (
+    <div
+      key={itemKey}
+      id={`marquee-item-${itemKey}`}
+      className="relative flex items-center gap-6 sm:gap-8 px-3 sm:px-4 shrink-0 text-white font-extrabold text-sm sm:text-base md:text-lg tracking-widest uppercase font-['Outfit',sans-serif] cursor-pointer group transition-transform duration-200 hover:scale-105 active:scale-95"
+      onMouseEnter={() => handleMouseEnter(itemKey)}
+      onMouseLeave={() => handleMouseLeave(itemKey)}
+      onFocus={() => {
+        if (!isDuplicate) setActiveTooltipKey(itemKey);
+      }}
+      onBlur={() => handleBlur(itemKey)}
+      onClick={(e) => handleItemClick(e, tech, itemKey)}
+      role="button"
+      tabIndex={-1}
+      aria-hidden="true"
+      aria-haspopup="true"
+      aria-expanded={isTooltipOpen}
+      aria-label={`Inspect ${tech}`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleItemNavigation(details);
+        }
+      }}
+    >
+      <span className={isBottom ? "hover:text-rose-100 transition-colors drop-shadow-xs" : "hover:text-rose-200 transition-colors drop-shadow-xs"}>
+        {tech}
+      </span>
+      <span
+        className={isBottom ? "text-white text-sm sm:text-base opacity-80 group-hover:scale-125 transition-transform duration-200" : "text-sm sm:text-base opacity-80 group-hover:scale-125 transition-transform duration-200"}
+        aria-hidden="true"
+      >
+        🦋
+      </span>
+
+      {/* Rich Glassmorphism Tooltip (Counter-rotated to remain horizontal 0deg) */}
+      {isTooltipOpen && (
+        <div
+          role="tooltip"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleItemNavigation(details);
+            setActiveTooltipKey(null);
+          }}
+          className={`absolute ${isBottom ? 'top-full mt-3' : 'bottom-full mb-3'} left-1/2 z-50 w-64 sm:w-72 max-w-[85vw] bg-slate-900/95 backdrop-blur-md border border-[#FF4D6D]/40 shadow-2xl rounded-xl supports-[not(backdrop-filter)]:bg-slate-950 p-3 sm:p-3.5 text-left cursor-pointer normal-case tracking-normal font-sans select-none animate-in fade-in zoom-in-95 duration-150`}
+          style={
+            isBottom
+              ? {
+                  transform: 'translateX(-50%) rotate(-2.8deg)',
+                  transformOrigin: 'top center'
+                }
+              : {
+                  transform: 'translateX(-50%) rotate(3.5deg)',
+                  transformOrigin: 'bottom center'
+                }
+          }
+        >
+          {/* Domain / Category Badge & Role Label */}
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <span className="text-[10px] font-bold font-mono uppercase tracking-wider text-[#FF4D6D] bg-[#FF4D6D]/15 px-2 py-0.5 rounded-full border border-[#FF4D6D]/30 truncate">
+              {details.categoryBadge}
+            </span>
+            {details.roleLabel && (
+              <span className="text-[10px] font-mono text-stone-400 bg-stone-800/80 px-2 py-0.5 rounded-md border border-stone-700/60 shrink-0">
+                {details.roleLabel}
+              </span>
+            )}
+          </div>
+
+          {/* Technology / Item Title */}
+          <div className="text-sm sm:text-base font-extrabold text-white tracking-tight font-['Outfit',sans-serif] leading-tight mb-1">
+            {details.title}
+          </div>
+
+          {/* Experience / Mastery Metric */}
+          <div className="text-xs font-semibold text-rose-200/90 flex items-center gap-1.5 mb-2.5">
+            <span className="text-[#FF4D6D]">✦</span>
+            <span>{details.experienceMetric}</span>
+          </div>
+
+          {/* Subtle Interaction Hint */}
+          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-stone-400 group-hover:text-stone-200">
+            <span>{details.hint || 'Click to inspect skill →'}</span>
+            <span className="text-xs font-bold text-[#FF4D6D]">↗</span>
+          </div>
+
+          {/* Directional pointer arrow */}
+          {isBottom ? (
+            <div
+              className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900/95 border-l border-t border-[#FF4D6D]/40 supports-[not(backdrop-filter)]:bg-slate-950 rotate-45 pointer-events-none"
+              aria-hidden="true"
+            />
+          ) : (
+            <div
+              className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900/95 border-r border-b border-[#FF4D6D]/40 supports-[not(backdrop-filter)]:bg-slate-950 rotate-45 pointer-events-none"
+              aria-hidden="true"
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}, areMarqueeCardPropsEqual);
+
 export default function TechMarqueeBanner() {
   const bannerRef = useRef(null);
   const [activeTooltipKey, setActiveTooltipKey] = useState(null);
@@ -328,9 +466,12 @@ export default function TechMarqueeBanner() {
   const activeRole = roleContext?.activeRole || 'accountant';
   const selectRole = roleContext?.selectRole;
 
-  // Multiply items to ensure seamless infinite looping on ultra-wide screens
-  const topSequence = Array(12).fill(TOP_ITEMS).flat();
-  const bottomSequence = Array(12).fill(BOTTOM_ITEMS).flat();
+  const activeRoleRef = useRef(activeRole);
+  activeRoleRef.current = activeRole;
+  const selectRoleRef = useRef(selectRole);
+  selectRoleRef.current = selectRole;
+  const activeTooltipKeyRef = useRef(activeTooltipKey);
+  activeTooltipKeyRef.current = activeTooltipKey;
 
   // Dismiss tooltip when tapping/clicking outside active item, pressing Escape, or window resize/orientationchange
   useEffect(() => {
@@ -366,21 +507,26 @@ export default function TechMarqueeBanner() {
   }, [activeTooltipKey]);
 
   // Execute smart contextual click and jump navigation
-  const handleItemNavigation = (details) => {
+  const handleItemNavigation = useCallback((details) => {
     if (!details) return;
 
     soundFX.playFocusBeep();
 
+    const currentRole = activeRoleRef.current || 'accountant';
+    const currentSelectRole = selectRoleRef.current;
+
     // 1. Check if role tab needs switching
     let targetRole = details.role;
     if (details.roles) {
-      targetRole = details.roles.includes(activeRole) ? activeRole : details.roles[0];
+      targetRole = details.roles.includes(currentRole) ? currentRole : details.roles[0];
     }
 
-    const roleChanged = targetRole && targetRole !== activeRole;
+    const roleChanged = targetRole && targetRole !== currentRole;
 
     if (roleChanged) {
-      if (selectRole) {
+      if (currentSelectRole) {
+        currentSelectRole(targetRole);
+      } else if (selectRole) {
         selectRole(targetRole);
       }
       if (typeof window !== 'undefined') {
@@ -434,28 +580,28 @@ export default function TechMarqueeBanner() {
     } else {
       setTimeout(scrollAndHighlight, 50);
     }
-  };
+  }, [selectRole]);
 
   // Hover handlers for mouse devices
-  const handleMouseEnter = (itemKey) => {
+  const handleMouseEnter = useCallback((itemKey) => {
     if (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches) {
       setActiveTooltipKey(itemKey);
     }
-  };
+  }, []);
 
-  const handleMouseLeave = (itemKey) => {
+  const handleMouseLeave = useCallback((itemKey) => {
     if (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches) {
       setActiveTooltipKey((current) => (itemKey ? (current === itemKey ? null : current) : null));
     }
-  };
+  }, []);
 
   // Blur handler for keyboard accessibility (independent of hover media query)
-  const handleBlur = (itemKey) => {
+  const handleBlur = useCallback((itemKey) => {
     setActiveTooltipKey((current) => (itemKey ? (current === itemKey ? null : current) : null));
-  };
+  }, []);
 
   // Touch and click handler supporting mobile two-step tap
-  const handleItemClick = (e, techName, itemKey) => {
+  const handleItemClick = useCallback((e, techName, itemKey) => {
     const isMouse = e.nativeEvent?.pointerType === 'mouse';
     const isTouchDevice =
       !isMouse &&
@@ -466,7 +612,7 @@ export default function TechMarqueeBanner() {
     const details = TECH_DETAILS[techName] || { title: techName };
 
     if (isTouchDevice) {
-      if (activeTooltipKey === itemKey) {
+      if (activeTooltipKeyRef.current === itemKey || activeTooltipKey === itemKey) {
         // Second tap on the same item -> navigate immediately
         e.preventDefault();
         handleItemNavigation(details);
@@ -482,7 +628,7 @@ export default function TechMarqueeBanner() {
       handleItemNavigation(details);
       setActiveTooltipKey(null);
     }
-  };
+  }, [handleItemNavigation, activeTooltipKey]);
 
   const isPaused = Boolean(activeTooltipKey);
   const isTopActive = activeTooltipKey?.startsWith('top-');
@@ -515,97 +661,26 @@ export default function TechMarqueeBanner() {
           className="flex w-max animate-marquee-left items-center pointer-events-auto"
           style={{ animationPlayState: isPaused ? 'paused' : undefined }}
         >
-          {topSequence.map((tech, idx) => {
+          {TOP_SEQUENCE.map((tech, idx) => {
             const isDuplicate = idx >= TOP_ITEMS.length;
             const itemKey = `top-${idx}`;
-            const details = TECH_DETAILS[tech] || {
-              title: tech,
-              categoryBadge: 'Technical Skill',
-              experienceMetric: 'Verified Expertise',
-              hint: 'Click to inspect skill →'
-            };
             const isTooltipOpen = activeTooltipKey === itemKey;
 
             return (
-              <div
+              <MarqueeCard
                 key={itemKey}
-                id={`marquee-item-${itemKey}`}
-                className="relative flex items-center gap-6 sm:gap-8 px-3 sm:px-4 shrink-0 text-white font-extrabold text-sm sm:text-base md:text-lg tracking-widest uppercase font-['Outfit',sans-serif] cursor-pointer group transition-transform duration-200 hover:scale-105 active:scale-95"
-                onMouseEnter={() => handleMouseEnter(itemKey)}
-                onMouseLeave={() => handleMouseLeave(itemKey)}
-                onFocus={() => {
-                  if (!isDuplicate) setActiveTooltipKey(itemKey);
-                }}
-                onBlur={() => handleBlur(itemKey)}
-                onClick={(e) => handleItemClick(e, tech, itemKey)}
-                role="button"
-                tabIndex={-1}
-                aria-hidden="true"
-                aria-haspopup="true"
-                aria-expanded={isTooltipOpen}
-                aria-label={`Inspect ${tech}`}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleItemNavigation(details);
-                  }
-                }}
-              >
-                <span className="hover:text-rose-200 transition-colors drop-shadow-xs">{tech}</span>
-                <span className="text-sm sm:text-base opacity-80 group-hover:scale-125 transition-transform duration-200" aria-hidden="true">🦋</span>
-
-                {/* Rich Glassmorphism Tooltip (Counter-rotated +3.5deg to remain horizontal 0deg) */}
-                {isTooltipOpen && (
-                  <div
-                    role="tooltip"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleItemNavigation(details);
-                      setActiveTooltipKey(null);
-                    }}
-                    className="absolute bottom-full mb-3 left-1/2 z-50 w-64 sm:w-72 max-w-[85vw] bg-slate-900/95 backdrop-blur-md border border-[#FF4D6D]/40 shadow-2xl rounded-xl supports-[not(backdrop-filter)]:bg-slate-950 p-3 sm:p-3.5 text-left cursor-pointer normal-case tracking-normal font-sans select-none animate-in fade-in zoom-in-95 duration-150"
-                    style={{
-                      transform: 'translateX(-50%) rotate(3.5deg)',
-                      transformOrigin: 'bottom center'
-                    }}
-                  >
-                    {/* Domain / Category Badge & Role Label */}
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className="text-[10px] font-bold font-mono uppercase tracking-wider text-[#FF4D6D] bg-[#FF4D6D]/15 px-2 py-0.5 rounded-full border border-[#FF4D6D]/30 truncate">
-                        {details.categoryBadge}
-                      </span>
-                      {details.roleLabel && (
-                        <span className="text-[10px] font-mono text-stone-400 bg-stone-800/80 px-2 py-0.5 rounded-md border border-stone-700/60 shrink-0">
-                          {details.roleLabel}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Technology / Item Title */}
-                    <div className="text-sm sm:text-base font-extrabold text-white tracking-tight font-['Outfit',sans-serif] leading-tight mb-1">
-                      {details.title}
-                    </div>
-
-                    {/* Experience / Mastery Metric */}
-                    <div className="text-xs font-semibold text-rose-200/90 flex items-center gap-1.5 mb-2.5">
-                      <span className="text-[#FF4D6D]">✦</span>
-                      <span>{details.experienceMetric}</span>
-                    </div>
-
-                    {/* Subtle Interaction Hint */}
-                    <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-stone-400 group-hover:text-stone-200">
-                      <span>{details.hint || 'Click to inspect skill →'}</span>
-                      <span className="text-xs font-bold text-[#FF4D6D]">↗</span>
-                    </div>
-
-                    {/* Directional pointer arrow pointing down towards item */}
-                    <div
-                      className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900/95 border-r border-b border-[#FF4D6D]/40 supports-[not(backdrop-filter)]:bg-slate-950 rotate-45 pointer-events-none"
-                      aria-hidden="true"
-                    />
-                  </div>
-                )}
-              </div>
+                itemKey={itemKey}
+                tech={tech}
+                isBottom={false}
+                isDuplicate={isDuplicate}
+                isTooltipOpen={isTooltipOpen}
+                handleMouseEnter={handleMouseEnter}
+                handleMouseLeave={handleMouseLeave}
+                handleBlur={handleBlur}
+                handleItemClick={handleItemClick}
+                handleItemNavigation={handleItemNavigation}
+                setActiveTooltipKey={setActiveTooltipKey}
+              />
             );
           })}
         </div>
@@ -623,97 +698,26 @@ export default function TechMarqueeBanner() {
           className="flex w-max animate-marquee-right items-center pointer-events-auto"
           style={{ animationPlayState: isPaused ? 'paused' : undefined }}
         >
-          {bottomSequence.map((skill, idx) => {
+          {BOTTOM_SEQUENCE.map((skill, idx) => {
             const isDuplicate = idx >= BOTTOM_ITEMS.length;
             const itemKey = `bottom-${idx}`;
-            const details = TECH_DETAILS[skill] || {
-              title: skill,
-              categoryBadge: 'Core Competency',
-              experienceMetric: '7+ Years Experience',
-              hint: 'Click to inspect skill →'
-            };
             const isTooltipOpen = activeTooltipKey === itemKey;
 
             return (
-              <div
+              <MarqueeCard
                 key={itemKey}
-                id={`marquee-item-${itemKey}`}
-                className="relative flex items-center gap-6 sm:gap-8 px-3 sm:px-4 shrink-0 text-white font-extrabold text-sm sm:text-base md:text-lg tracking-widest uppercase font-['Outfit',sans-serif] cursor-pointer group transition-transform duration-200 hover:scale-105 active:scale-95"
-                onMouseEnter={() => handleMouseEnter(itemKey)}
-                onMouseLeave={() => handleMouseLeave(itemKey)}
-                onFocus={() => {
-                  if (!isDuplicate) setActiveTooltipKey(itemKey);
-                }}
-                onBlur={() => handleBlur(itemKey)}
-                onClick={(e) => handleItemClick(e, skill, itemKey)}
-                role="button"
-                tabIndex={-1}
-                aria-hidden="true"
-                aria-haspopup="true"
-                aria-expanded={isTooltipOpen}
-                aria-label={`Inspect ${skill}`}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleItemNavigation(details);
-                  }
-                }}
-              >
-                <span className="hover:text-rose-100 transition-colors drop-shadow-xs">{skill}</span>
-                <span className="text-white text-sm sm:text-base opacity-80 group-hover:scale-125 transition-transform duration-200" aria-hidden="true">🦋</span>
-
-                {/* Rich Glassmorphism Tooltip (Counter-rotated -2.8deg to remain horizontal 0deg) */}
-                {isTooltipOpen && (
-                  <div
-                    role="tooltip"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleItemNavigation(details);
-                      setActiveTooltipKey(null);
-                    }}
-                    className="absolute top-full mt-3 left-1/2 z-50 w-64 sm:w-72 max-w-[85vw] bg-slate-900/95 backdrop-blur-md border border-[#FF4D6D]/40 shadow-2xl rounded-xl supports-[not(backdrop-filter)]:bg-slate-950 p-3 sm:p-3.5 text-left cursor-pointer normal-case tracking-normal font-sans select-none animate-in fade-in zoom-in-95 duration-150"
-                    style={{
-                      transform: 'translateX(-50%) rotate(-2.8deg)',
-                      transformOrigin: 'top center'
-                    }}
-                  >
-                    {/* Domain / Category Badge & Role Label */}
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className="text-[10px] font-bold font-mono uppercase tracking-wider text-[#FF4D6D] bg-[#FF4D6D]/15 px-2 py-0.5 rounded-full border border-[#FF4D6D]/30 truncate">
-                        {details.categoryBadge}
-                      </span>
-                      {details.roleLabel && (
-                        <span className="text-[10px] font-mono text-stone-400 bg-stone-800/80 px-2 py-0.5 rounded-md border border-stone-700/60 shrink-0">
-                          {details.roleLabel}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Technology / Item Title */}
-                    <div className="text-sm sm:text-base font-extrabold text-white tracking-tight font-['Outfit',sans-serif] leading-tight mb-1">
-                      {details.title}
-                    </div>
-
-                    {/* Experience / Mastery Metric */}
-                    <div className="text-xs font-semibold text-rose-200/90 flex items-center gap-1.5 mb-2.5">
-                      <span className="text-[#FF4D6D]">✦</span>
-                      <span>{details.experienceMetric}</span>
-                    </div>
-
-                    {/* Subtle Interaction Hint */}
-                    <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-stone-400 group-hover:text-stone-200">
-                      <span>{details.hint || 'Click to inspect skill →'}</span>
-                      <span className="text-xs font-bold text-[#FF4D6D]">↗</span>
-                    </div>
-
-                    {/* Directional pointer arrow pointing up towards item */}
-                    <div
-                      className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900/95 border-l border-t border-[#FF4D6D]/40 supports-[not(backdrop-filter)]:bg-slate-950 rotate-45 pointer-events-none"
-                      aria-hidden="true"
-                    />
-                  </div>
-                )}
-              </div>
+                itemKey={itemKey}
+                tech={skill}
+                isBottom={true}
+                isDuplicate={isDuplicate}
+                isTooltipOpen={isTooltipOpen}
+                handleMouseEnter={handleMouseEnter}
+                handleMouseLeave={handleMouseLeave}
+                handleBlur={handleBlur}
+                handleItemClick={handleItemClick}
+                handleItemNavigation={handleItemNavigation}
+                setActiveTooltipKey={setActiveTooltipKey}
+              />
             );
           })}
         </div>

@@ -97,8 +97,8 @@ const navbarContent = fs.readFileSync(navbarPath, 'utf-8');
 assert(navbarContent.includes('useDesktopCursorSupport'), 'Navbar must import and use useDesktopCursorSupport');
 assert(navbarContent.includes('desktop-cursor-only'), 'Navbar must include desktop-cursor-only CSS class on cursor button');
 assert(navbarContent.includes('hidden lg:flex'), 'Navbar cursor button must use hidden lg:flex for instant CLS-free hiding');
-assert(navbarContent.includes('{isDesktopCursor && ('), 'Navbar cursor button must be conditionally guarded by isDesktopCursor');
-assert(navbarContent.includes('{isDesktopCursor && isRibbonOpen && ('), 'CursorSelectorRibbon must be guarded by isDesktopCursor && isRibbonOpen');
+assert(navbarContent.includes('{isDesktopCursor && (') || navbarContent.includes('{!isSimpleMode && isDesktopCursor && ('), 'Navbar cursor button must be conditionally guarded by isDesktopCursor');
+assert(navbarContent.includes('{isDesktopCursor && isRibbonOpen && (') || navbarContent.includes('{!isSimpleMode && isDesktopCursor && isRibbonOpen && ('), 'CursorSelectorRibbon must be guarded by isDesktopCursor && isRibbonOpen');
 assert(navbarContent.includes('isDesktopCursor={isDesktopCursor}'), 'Navbar must pass isDesktopCursor to CommandPalette');
 console.log('[PASS] Navbar.jsx implements all required hybrid CSS & React guardrails for cursor selector & ribbon.');
 

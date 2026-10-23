@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo, useId } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useId, lazy, Suspense } from 'react';
 import { 
   Mail, 
   MapPin, 
@@ -49,7 +49,8 @@ import {
 } from './Icons';
 import { soundFX } from '../utils/audio';
 import { useAnnounce } from '../context/AnnouncerContext';
-import LeafletOfflineMap from './LeafletOfflineMap';
+import GISMapSkeleton from './GISMapSkeleton';
+const LeafletOfflineMap = lazy(() => import('./LeafletOfflineMap'));
 import { useSimpleMode } from '../context/SimpleModeContext';
 import { downloadVCard, DEFAULT_CONTACT_DATA } from '../utils/vcardGenerator';
 
@@ -387,8 +388,8 @@ export default function ContactSection() {
 
   // Map state
   const [zoom, setZoom] = useState(13);
+  const [resetTrigger, setResetTrigger] = useState(0);
   const [mapMode, setMapMode] = useState('osm'); // 'osm' | 'google'
-  const [manuallyToggled, setManuallyToggled] = useState(false);
   const [isOnline, setIsOnline] = useState(() => {
     if (typeof navigator !== 'undefined') {
       return navigator.onLine;
@@ -397,12 +398,13 @@ export default function ContactSection() {
   });
   const [showIframe, setShowIframe] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [isLiveLoading, setIsLiveLoading] = useState(false);
 
   const tabButtonRefs = useRef({});
   const emailTimeoutRef = useRef(null);
   const whatsappTimeoutRef = useRef(null);
   const addressTimeoutRef = useRef(null);
-  const upgradeTimerRef = useRef(null);
+  const iframeHydrationTimerRef = useRef(null);
   const toastTimeoutRef = useRef(null);
 
   const directEmail = 'Atulravi2015@gmail.com';
@@ -658,8 +660,14 @@ export default function ContactSection() {
     const handleOffline = () => {
       setIsOnline(false);
       setMapMode('osm');
+      setZoom((z) => Math.min(15, Math.max(12, z)));
       setShowIframe(false);
       setIframeLoaded(false);
+      setIsLiveLoading(false);
+      if (iframeHydrationTimerRef.current) {
+        clearTimeout(iframeHydrationTimerRef.current);
+        iframeHydrationTimerRef.current = null;
+      }
     };
 
     window.addEventListener('online', handleOnline);
@@ -675,56 +683,13 @@ export default function ContactSection() {
   useEffect(() => {
     if (isSimpleMode && !iframeLoaded) {
       setShowIframe(false);
+      setIsLiveLoading(false);
       if (mapMode === 'google') {
         setMapMode('osm');
+        setZoom((z) => Math.min(15, Math.max(12, z)));
       }
     }
   }, [isSimpleMode, iframeLoaded, mapMode]);
-
-  // Hybrid map auto-upgrade engine: after 2.5s auto-upgrades if online and not manually toggled
-  const AUTO_UPGRADE_DELAY = 2500;
-  useEffect(() => {
-    if (isSimpleMode) {
-      if (upgradeTimerRef.current) {
-        clearTimeout(upgradeTimerRef.current);
-        upgradeTimerRef.current = null;
-      }
-      return;
-    }
-
-    if (activeTab !== 'location') {
-      if (upgradeTimerRef.current) {
-        clearTimeout(upgradeTimerRef.current);
-        upgradeTimerRef.current = null;
-      }
-      return;
-    }
-
-    if (!isOnline || manuallyToggled) {
-      if (upgradeTimerRef.current) {
-        clearTimeout(upgradeTimerRef.current);
-        upgradeTimerRef.current = null;
-      }
-      return;
-    }
-
-    if (mapMode === 'google') return;
-
-    upgradeTimerRef.current = setTimeout(() => {
-      if (typeof navigator !== 'undefined' && navigator.onLine && !manuallyToggled) {
-        setMapMode('google');
-        setShowIframe(true);
-      }
-      upgradeTimerRef.current = null;
-    }, AUTO_UPGRADE_DELAY);
-
-    return () => {
-      if (upgradeTimerRef.current) {
-        clearTimeout(upgradeTimerRef.current);
-        upgradeTimerRef.current = null;
-      }
-    };
-  }, [activeTab, isOnline, manuallyToggled, mapMode, isSimpleMode]);
 
   // Cleanup all timers on unmount
   useEffect(() => {
@@ -732,7 +697,7 @@ export default function ContactSection() {
       if (emailTimeoutRef.current) clearTimeout(emailTimeoutRef.current);
       if (whatsappTimeoutRef.current) clearTimeout(whatsappTimeoutRef.current);
       if (addressTimeoutRef.current) clearTimeout(addressTimeoutRef.current);
-      if (upgradeTimerRef.current) clearTimeout(upgradeTimerRef.current);
+      if (iframeHydrationTimerRef.current) clearTimeout(iframeHydrationTimerRef.current);
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     };
   }, []);
@@ -882,11 +847,14 @@ export default function ContactSection() {
   };
 
   const handleResetZoom = () => {
+    setResetTrigger((prev) => prev + 1);
     setZoom(13);
     soundFX.playFocusBeep();
   };
 
   const handleToggleMapMode = () => {
+    if (isLiveLoading) return;
+
     if (isSimpleMode && !iframeLoaded) {
       soundFX.playPop();
       setToastMessage('Simple Mode सक्रिय है, केवल ऑफलाइन मैप उपलब्ध है');
@@ -900,14 +868,34 @@ export default function ContactSection() {
     }
 
     soundFX.playFocusBeep();
-    setManuallyToggled(true);
     if (mapMode === 'google') {
+      // Transition from online to offline: keep iframe mounted for zero-flicker
       setMapMode('osm');
-      setShowIframe(false);
       setZoom((z) => Math.min(15, Math.max(12, z)));
     } else {
-      setMapMode('google');
-      if (isOnline) {
+      // Transition from offline to online
+      if (!isOnline) {
+        soundFX.playPop();
+        setToastMessage(isHindi ? 'इंटरनेट कनेक्शन उपलब्ध नहीं है, केवल ऑफलाइन मैप सक्रिय है' : 'No internet connection, staying on Offline Map');
+        setShowToast(true);
+        if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+        toastTimeoutRef.current = setTimeout(() => {
+          setShowToast(false);
+          toastTimeoutRef.current = null;
+        }, 3000);
+        return;
+      }
+
+      if (iframeLoaded) {
+        // Iframe is already mounted and painted in DOM, switch instantly with cross-fade
+        setMapMode('google');
+      } else {
+        // On-demand silent load in background: keep Leaflet visible & interactive
+        if (iframeHydrationTimerRef.current) {
+          clearTimeout(iframeHydrationTimerRef.current);
+          iframeHydrationTimerRef.current = null;
+        }
+        setIsLiveLoading(true);
         setShowIframe(true);
       }
     }
@@ -930,9 +918,43 @@ export default function ContactSection() {
     const online = typeof navigator !== 'undefined' ? navigator.onLine : true;
     setIsOnline(online);
     if (online) {
-      setMapMode('google');
+      if (iframeHydrationTimerRef.current) {
+        clearTimeout(iframeHydrationTimerRef.current);
+        iframeHydrationTimerRef.current = null;
+      }
+      setIsLiveLoading(true);
       setShowIframe(true);
     }
+  };
+
+  const handleIframeLoad = () => {
+    if (iframeHydrationTimerRef.current) {
+      clearTimeout(iframeHydrationTimerRef.current);
+    }
+    // 350ms hydration timer so WebGL/SPA tiles paint before cross-fading
+    iframeHydrationTimerRef.current = setTimeout(() => {
+      setIframeLoaded(true);
+      setMapMode('google');
+      setIsLiveLoading(false);
+      iframeHydrationTimerRef.current = null;
+    }, 350);
+  };
+
+  const handleIframeError = () => {
+    if (iframeHydrationTimerRef.current) {
+      clearTimeout(iframeHydrationTimerRef.current);
+      iframeHydrationTimerRef.current = null;
+    }
+    setIsLiveLoading(false);
+    setMapMode('osm');
+    setZoom((z) => Math.min(15, Math.max(12, z)));
+    setToastMessage(isHindi ? 'लाइव मैप लोड करने में असमर्थ, ऑफलाइन मैप प्रदर्शित किया गया' : 'Unable to load Live Map, falling back to Offline Map');
+    setShowToast(true);
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    toastTimeoutRef.current = setTimeout(() => {
+      setShowToast(false);
+      toastTimeoutRef.current = null;
+    }, 4000);
   };
 
   const triggerCelebration = () => {
@@ -2359,7 +2381,12 @@ export default function ContactSection() {
                 <div className="absolute top-3 left-3 right-3 z-30 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
                   {/* Status Indicator Pill */}
                   <div className="pointer-events-auto">
-                    {mapMode === 'google' && iframeLoaded && isOnline ? (
+                    {isLiveLoading ? (
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-md border border-sky-200 dark:border-sky-800/80 text-sky-700 dark:text-sky-400 text-xs font-mono font-bold shadow-md select-none transition-all">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600 dark:text-sky-400 shrink-0" />
+                        <span>Downloading Live Map in background...</span>
+                      </div>
+                    ) : mapMode === 'google' && iframeLoaded && isOnline ? (
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-md border border-emerald-200 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-400 text-xs font-mono font-bold shadow-md select-none transition-all">
                         <span className="relative flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -2369,11 +2396,8 @@ export default function ContactSection() {
                       </div>
                     ) : mapMode === 'google' && isOnline ? (
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-md border border-sky-200 dark:border-sky-800/80 text-sky-700 dark:text-sky-400 text-xs font-mono font-bold shadow-md select-none transition-all">
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500 animate-pulse" />
-                        </span>
-                        <span>Loading Live Map...</span>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600 dark:text-sky-400 shrink-0" />
+                        <span>Loading Google Live Map...</span>
                       </div>
                     ) : isSimpleMode && mapMode !== 'google' ? (
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-md border border-emerald-200/80 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-mono font-bold shadow-md select-none transition-all">
@@ -2410,19 +2434,36 @@ export default function ContactSection() {
                     <button
                       type="button"
                       onClick={handleToggleMapMode}
+                      disabled={isLiveLoading}
                       aria-label="Toggle Google Maps or Offline OSM"
-                      title={mapMode === 'google' ? 'Switch to Offline Leaflet OSM map' : 'Switch to Live Google Maps'}
+                      title={
+                        isLiveLoading
+                          ? 'Downloading Live Map in background...'
+                          : mapMode === 'google'
+                          ? 'Switch to Offline Leaflet OSM map'
+                          : 'Switch to Live Google Maps'
+                      }
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer active:scale-95 border ${
-                        mapMode === 'google'
+                        isLiveLoading
+                          ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-400 border-sky-300 dark:border-sky-800 shadow-2xs'
+                          : mapMode === 'google'
                           ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 shadow-2xs'
                           : 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] dark:text-[#FF4D6D] border-[#FFD1DC] dark:border-[#FF4D6D]/30 shadow-2xs'
                       }`}
                     >
-                      <Layers className="w-3.5 h-3.5 shrink-0" />
-                      <span className="hidden sm:inline">Google Maps / Offline OSM</span>
-                      <span className="sm:hidden">{mapMode === 'google' ? 'Google' : 'OSM'}</span>
+                      {isLiveLoading ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600 dark:text-sky-400 shrink-0" />
+                      ) : (
+                        <Layers className="w-3.5 h-3.5 shrink-0" />
+                      )}
+                      <span className="hidden sm:inline">
+                        {isLiveLoading ? 'Downloading Live Map in background...' : 'Google Maps / Offline OSM'}
+                      </span>
+                      <span className="sm:hidden">
+                        {isLiveLoading ? 'Downloading...' : mapMode === 'google' ? 'Google' : 'OSM'}
+                      </span>
                       <span className="text-[10px] uppercase px-1.5 py-0.2 rounded bg-black/5 dark:bg-white/10 ml-0.5">
-                        {mapMode === 'google' ? 'Live' : 'Offline'}
+                        {isLiveLoading ? 'Loading' : mapMode === 'google' ? 'Live' : 'Offline'}
                       </span>
                     </button>
 
@@ -2469,24 +2510,27 @@ export default function ContactSection() {
                   </div>
                 </div>
 
-                {/* Instant 0ms Cached Leaflet OSM Map Layer */}
-                <LeafletOfflineMap
-                  zoom={zoom}
-                  onZoomChange={setZoom}
-                  className={`w-full min-h-[460px] sm:min-h-[500px] rounded-2xl block transition-opacity duration-700 ease-in-out ${
-                    mapMode === 'google' && iframeLoaded && isOnline
-                      ? 'opacity-0 pointer-events-none'
-                      : 'opacity-100 pointer-events-auto'
-                  }`}
-                />
+                {/* Instant 0ms Cached Leaflet OSM Map Layer with Lazy Loading & GIS Skeleton Fallback */}
+                <Suspense fallback={<GISMapSkeleton className="min-h-[460px] sm:min-h-[500px]" />}>
+                  <LeafletOfflineMap
+                    zoom={zoom}
+                    resetTrigger={resetTrigger}
+                    onZoomChange={setZoom}
+                    className={`w-full min-h-[460px] sm:min-h-[500px] rounded-2xl block transition-opacity duration-700 ease-in-out ${
+                      mapMode === 'google' && iframeLoaded && isOnline
+                        ? 'opacity-0 pointer-events-none z-0'
+                        : 'opacity-100 pointer-events-auto z-10'
+                    }`}
+                  />
+                </Suspense>
 
                 {/* Live Interactive Google Maps Iframe (Crossfaded Layer) */}
                 {showIframe && (!isSimpleMode || iframeLoaded) && (
                   <iframe
                     title="Office Location Map - Daltonganj, Medininagar, Jharkhand"
                     src={mapEmbedUrl}
-                    key={`map-zoom-${zoom}`}
-                    onLoad={() => setIframeLoaded(true)}
+                    onLoad={handleIframeLoad}
+                    onError={handleIframeError}
                     className={`absolute inset-0 w-full h-full rounded-2xl block border-0 transition-opacity duration-700 ease-in-out ${
                       mapMode === 'google' && iframeLoaded && isOnline
                         ? 'opacity-100 pointer-events-auto z-10'

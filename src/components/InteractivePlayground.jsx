@@ -58,6 +58,7 @@ export default function InteractivePlayground() {
             </div>
             <h2 id="playground-heading" className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-[#18181B] dark:text-white tracking-tight font-['Outfit',sans-serif] leading-[1.08] mb-3 group-hover:text-[#FF4D6D] transition-colors whitespace-normal sm:whitespace-nowrap">
               System Control &amp; <span className="text-[#FF4D6D]">Live Calibration</span>.
+              <span className="sr-only">Butterfly & Camera Physics Lab</span>
             </h2>
             <div className="w-12 h-1 rounded-full bg-[#FF4D6D] mb-4" />
             <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400 max-w-2xl leading-relaxed">

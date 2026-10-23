@@ -68,6 +68,28 @@ check('Presence of MEDININAGAR_BOUNDS and maxBounds config', () => {
   assert.ok(leafletCode.includes('maxBoundsViscosity: 1.0') || leafletCode.includes('maxBoundsViscosity: 1'), 'Missing maxBoundsViscosity');
 });
 
+check('LeafletOfflineMap has clean solid container styling without static background image', () => {
+  assert.ok(!leafletCode.includes('medininagar-real-light.png'), 'Static light background image should not be present');
+  assert.ok(!leafletCode.includes('medininagar-real-dark.png'), 'Static dark background image should not be present');
+  assert.ok(leafletCode.includes('.leaflet-offline-map-container.leaflet-container'), 'Missing high-res cartographic container styling');
+  assert.ok(leafletCode.includes('background-color: #f2efe9') && leafletCode.includes('background-color: #12161f'), 'Missing clean solid container background styling');
+});
+
+check('LeafletOfflineMap has keepBuffer: 6, updateWhenZooming: true, minZoom: 12, maxZoom: 15, minNativeZoom: 12', () => {
+  assert.ok(leafletCode.includes('keepBuffer: 6'), 'Missing keepBuffer: 6');
+  assert.ok(leafletCode.includes('updateWhenZooming: true'), 'Missing updateWhenZooming: true');
+  assert.ok(leafletCode.includes('minZoom: 12'), 'Missing minZoom: 12');
+  assert.ok(leafletCode.includes('maxZoom: 15'), 'Missing maxZoom: 15');
+  assert.ok(leafletCode.includes('minNativeZoom: 12'), 'Missing minNativeZoom: 12');
+  assert.ok(leafletCode.includes('maxNativeZoom: 15'), 'Missing maxNativeZoom: 15');
+});
+
+check('LeafletOfflineMap has resetTrigger prop and flyTo for smooth recentering', () => {
+  assert.ok(leafletCode.includes('resetTrigger'), 'Missing resetTrigger prop');
+  assert.ok(leafletCode.includes('flyTo'), 'Missing flyTo recentering');
+  assert.ok(leafletCode.includes('animate: true'), 'Missing animate: true for zoom');
+});
+
 // -----------------------------------------------------------------------------
 // SECTION 2: OfflineMapSnapshot.jsx Pin Absence Checks
 // -----------------------------------------------------------------------------
@@ -129,6 +151,35 @@ check('Iframe and Leaflet crossfade mechanism is intact', () => {
 check('Google Maps / Offline OSM toggle button is present', () => {
   assert.ok(contactCode.includes('handleToggleMapMode'), 'Missing handleToggleMapMode');
   assert.ok(contactCode.includes('Google Maps / Offline OSM'), 'Missing toggle label');
+});
+
+check('On-demand silent loading state with spinner in ContactSection.jsx', () => {
+  assert.ok(contactCode.includes('isLiveLoading'), 'Missing isLiveLoading state');
+  assert.ok(contactCode.includes('Downloading Live Map in background'), 'Missing background download indication');
+});
+
+check('Iframe has no key attribute to prevent flash on zoom', () => {
+  assert.ok(!contactCode.includes('key={`map-zoom-'), 'Iframe must NOT have key={`map-zoom-${zoom}`}');
+  assert.ok(!contactCode.includes('key={`google-map-${zoom}'), 'Iframe must NOT key on zoom');
+});
+
+check('Zoom controls floor 12, ceiling 15 in OSM mode', () => {
+  assert.ok(
+    contactCode.includes("disabled={mapMode === 'osm' ? zoom >= 15 : zoom >= 18}"),
+    'Zoom in must ceiling at 15 for OSM'
+  );
+  assert.ok(
+    contactCode.includes("disabled={mapMode === 'osm' ? zoom <= 12 : zoom <= 11}"),
+    'Zoom out must floor at 12 for OSM'
+  );
+  assert.ok(
+    contactCode.includes('setResetTrigger((prev) => prev + 1)') || contactCode.includes('setResetTrigger'),
+    'handleResetZoom must trigger resetTrigger'
+  );
+  assert.ok(
+    contactCode.includes('setZoom(13)'),
+    'handleResetZoom must set zoom to 13'
+  );
 });
 
 console.log('\n========================================================================');

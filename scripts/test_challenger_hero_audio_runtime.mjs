@@ -416,7 +416,8 @@ check('2.7: Verify flashConfettiEnabled === false suppresses camera flash and co
 
   // Verify in HeroSection.jsx code
   assert.ok(
-    heroSource.includes('if (!reducedMotion && flashConfettiEnabled) {'),
+    heroSource.includes('if (!reducedMotion && flashConfettiEnabled) {') ||
+    heroSource.includes('if (!reducedMotion && flashConfettiEnabledRef.current) {'),
     'HeroSection.jsx must guard flash and confetti with flashConfettiEnabled'
   );
 });

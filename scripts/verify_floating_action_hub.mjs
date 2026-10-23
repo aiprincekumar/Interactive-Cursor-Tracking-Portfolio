@@ -169,9 +169,10 @@ test('handleToggleAudienceFilter implements sequential transition timer (~320ms)
   assert(hubContent.includes('clearTimeout(filterOpenTimerRef.current)'), 'Cleans up pending timer on unmount and cancel');
 });
 
-test('Audience Filter button explicitly suppresses all tooltips (both native title and hover tooltip span)', () => {
-  assert(hubContent.includes('title: isFilterTrigger ? undefined : item.label'), 'Must not render native browser title tooltip for audience filter');
-  assert(hubContent.includes('!isFilterTrigger && !item.pill'), 'Must not render hover tooltip span for audience filter');
+test('Audience Filter and View Mode render tooltips when flyout pill is not open', () => {
+  assert(hubContent.includes('title: item.pill ? undefined : item.label'), 'Suppresses native title tooltip only when flyout pill is open');
+  assert(hubContent.includes('!item.pill && ('), 'Renders hover tooltip when flyout pill is not open');
+  assert(hubContent.includes('group-focus-visible:opacity-100'), 'Tooltip includes keyboard focus visibility (group-focus-visible:opacity-100)');
 });
 
 test('FloatingActionHub eliminates conflicting synchronous window events causing race condition', () => {

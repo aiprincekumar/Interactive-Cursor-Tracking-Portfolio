@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { Volume2, VolumeX, Menu, X, Search, LayoutGrid, Sun, Moon, Eye, Languages, Calculator, Filter } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useSimpleMode } from '../context/SimpleModeContext.jsx';
@@ -6,8 +6,40 @@ import { soundFX } from '../utils/audio';
 import { CURSOR_LIST } from '../utils/cursorConstants';
 import CursorSelectorRibbon from './CursorSelectorRibbon';
 import CursorIcon from './CursorIcon';
-import CommandPalette from './CommandPalette';
+import { lazyWithRetry } from '../utils/lazyWithRetry';
+import NavbarTooltip from './NavbarTooltip';
+// import CommandPalette from './CommandPalette';
+const CommandPalette = lazyWithRetry(() => import('./CommandPalette'), 'CommandPalette');
 import ResumeDropdown from './ResumeDropdown';
+
+const NAV_SUBTEXTS = {
+  en: {
+    hero: 'Jump to top & hero showcase',
+    about: 'Background, education & story',
+    skills: 'Accounting, ERP & software tools',
+    experience: 'Career milestones & track record',
+    projects: 'Flagship projects & live work',
+    achievements: 'Certifications & recognitions',
+    testimonials: 'Client reviews & recommendations',
+    gallery: 'Camera roll & moments',
+    playground: 'Interactive playground & tools',
+    faq: 'Frequently asked questions',
+    contact: 'Get in touch & instant quote'
+  },
+  hi: {
+    hero: 'शीर्ष और हीरो परिचय',
+    about: 'पृष्ठभूमि और शिक्षा',
+    skills: 'अकाउंटिंग व तकनीकी कौशल',
+    experience: 'कार्य अनुभव व उपलब्धियां',
+    projects: 'प्रमुख प्रोजेक्ट्स व केस स्टडीज',
+    achievements: 'प्रमाणपत्र व सम्मान',
+    testimonials: 'प्रशंसापत्र व समीक्षाएं',
+    gallery: 'कैमरा रोल व मोमेंट्स',
+    playground: 'इंटरैक्टिव प्लेग्राउंड व टूल्स',
+    faq: 'अक्सर पूछे जाने वाले सवाल',
+    contact: 'संपर्क करें और कोटेशन पाएं'
+  }
+};
 import ScrollProgressBar from './ScrollProgressBar';
 import RoleTabsBar from './RoleTabsBar';
 import ExploreSubBar from './ExploreSubBar';
@@ -22,6 +54,71 @@ import { useTheme } from '../context/ThemeContext';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { TESTIMONIALS_CONFIG } from '../data/testimonialsConfig';
 import { useAnnounce } from '../context/AnnouncerContext';
+
+export function IndiaFlag({ className = "w-[18px] h-[18px]", ...props }) {
+  return (
+    <svg
+      viewBox="0 0 30 30"
+      className={`${className} shrink-0 rounded-full shadow-2xs`}
+      aria-hidden="true"
+      {...props}
+    >
+      <defs>
+        <clipPath id="in-flag-circle">
+          <circle cx="15" cy="15" r="15" />
+        </clipPath>
+      </defs>
+      <g clipPath="url(#in-flag-circle)">
+        <rect x="0" y="0" width="30" height="10" fill="#FF9933" />
+        <rect x="0" y="10" width="30" height="10" fill="#FFFFFF" />
+        <rect x="0" y="20" width="30" height="10" fill="#138808" />
+        <circle cx="15" cy="15" r="3.8" fill="none" stroke="#000080" strokeWidth="0.75" />
+        <circle cx="15" cy="15" r="0.8" fill="#000080" />
+        {[0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345].map((deg) => {
+          const rad = (deg * Math.PI) / 180;
+          return (
+            <line
+              key={deg}
+              x1="15"
+              y1="15"
+              x2={Number((15 + 3.8 * Math.cos(rad)).toFixed(2))}
+              y2={Number((15 + 3.8 * Math.sin(rad)).toFixed(2))}
+              stroke="#000080"
+              strokeWidth="0.35"
+            />
+          );
+        })}
+      </g>
+    </svg>
+  );
+}
+
+export function UkFlag({ className = "w-[18px] h-[18px]", ...props }) {
+  return (
+    <svg
+      viewBox="0 0 30 30"
+      className={`${className} shrink-0 rounded-full shadow-2xs`}
+      aria-hidden="true"
+      {...props}
+    >
+      <defs>
+        <clipPath id="uk-flag-circle">
+          <circle cx="15" cy="15" r="15" />
+        </clipPath>
+        <clipPath id="uk-flag-diag">
+          <path d="M0,0 L15,15 H0 z M0,30 L15,15 V30 z M30,30 L15,15 H30 z M30,0 L15,15 V0 z" />
+        </clipPath>
+      </defs>
+      <g clipPath="url(#uk-flag-circle)">
+        <rect width="30" height="30" fill="#012169" />
+        <path d="M-2,-2 L32,32 M32,-2 L-2,32" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="square" />
+        <path d="M-2,-2 L32,32 M32,-2 L-2,32" stroke="#C8102E" strokeWidth="1.8" strokeLinecap="square" clipPath="url(#uk-flag-diag)" />
+        <path d="M15,-2 V32 M-2,15 H32" stroke="#FFFFFF" strokeWidth="8" />
+        <path d="M15,-2 V32 M-2,15 H32" stroke="#C8102E" strokeWidth="5" />
+      </g>
+    </svg>
+  );
+}
 
 export default function Navbar({
   soundEnabled,
@@ -126,11 +223,55 @@ export default function Navbar({
   const activeViewModeData = viewModeContext?.activeModeData;
   const isViewModeModified = viewMode !== 'modern';
 
-  const [isRibbonOpen, setIsRibbonOpen] = useState(false);
-  const [isRoleBarOpen, setIsRoleBarOpen] = useState(false);
-  const [isExploreOpen, setIsExploreOpen] = useState(false);
-  const [isAudienceOpen, setIsAudienceOpen] = useState(false);
-  const [isViewModeOpen, setIsViewModeOpen] = useState(false);
+  // Unified active state for all horizontal sub-bars enforcing strict mutual exclusivity
+  const [activeSubBar, setActiveSubBar] = useState(null); // 'role' | 'explore' | 'audience' | 'viewmode' | 'cursor' | null
+
+  const isRoleBarOpen = activeSubBar === 'role';
+  const isExploreOpen = activeSubBar === 'explore';
+  const isAudienceOpen = activeSubBar === 'audience';
+  const isViewModeOpen = activeSubBar === 'viewmode';
+  const isRibbonOpen = activeSubBar === 'cursor';
+
+  const setIsRoleBarOpen = (valOrFn) => {
+    setActiveSubBar((prev) => {
+      const prevVal = prev === 'role';
+      const nextVal = typeof valOrFn === 'function' ? valOrFn(prevVal) : valOrFn;
+      return nextVal ? 'role' : (prev === 'role' ? null : prev);
+    });
+  };
+
+  const setIsExploreOpen = (valOrFn) => {
+    setActiveSubBar((prev) => {
+      const prevVal = prev === 'explore';
+      const nextVal = typeof valOrFn === 'function' ? valOrFn(prevVal) : valOrFn;
+      return nextVal ? 'explore' : (prev === 'explore' ? null : prev);
+    });
+  };
+
+  const setIsAudienceOpen = (valOrFn) => {
+    setActiveSubBar((prev) => {
+      const prevVal = prev === 'audience';
+      const nextVal = typeof valOrFn === 'function' ? valOrFn(prevVal) : valOrFn;
+      return nextVal ? 'audience' : (prev === 'audience' ? null : prev);
+    });
+  };
+
+  const setIsViewModeOpen = (valOrFn) => {
+    setActiveSubBar((prev) => {
+      const prevVal = prev === 'viewmode';
+      const nextVal = typeof valOrFn === 'function' ? valOrFn(prevVal) : valOrFn;
+      return nextVal ? 'viewmode' : (prev === 'viewmode' ? null : prev);
+    });
+  };
+
+  const setIsRibbonOpen = (valOrFn) => {
+    setActiveSubBar((prev) => {
+      const prevVal = prev === 'cursor';
+      const nextVal = typeof valOrFn === 'function' ? valOrFn(prevVal) : valOrFn;
+      return nextVal ? 'cursor' : (prev === 'cursor' ? null : prev);
+    });
+  };
+
   const [isSearchOpen, setIsSearchOpen] = useState(() => {
     if (typeof window === 'undefined') return false;
     try {
@@ -156,10 +297,10 @@ export default function Navbar({
 
   // Auto-close cursor ribbon if screen drops below 1024px or enters touch mode
   useEffect(() => {
-    if (!isDesktopCursor && isRibbonOpen) {
-      setIsRibbonOpen(false);
+    if (!isDesktopCursor && activeSubBar === 'cursor') {
+      setActiveSubBar(null);
     }
-  }, [isDesktopCursor, isRibbonOpen]);
+  }, [isDesktopCursor, activeSubBar]);
 
   // Auto-close mobile drawer on desktop resize or orientation change
   useEffect(() => {
@@ -251,6 +392,21 @@ export default function Navbar({
     if (soundEnabled) soundFX.playRibbonToggle(next);
   };
 
+  const toggleCursorRibbon = () => {
+    if (!isDesktopCursor) return;
+    const next = !isRibbonOpen;
+    setIsRibbonOpen(next);
+    if (next) {
+      setIsRoleBarOpen(false);
+      setIsExploreOpen(false);
+      setIsAudienceOpen(false);
+      setIsViewModeOpen(false);
+      setMobileMenuOpen(false);
+      if (isSearchOpen) setIsSearchOpen(false);
+    }
+    soundFX.playRibbonToggle(next);
+  };
+
   const handleToggleLanguage = () => {
     toggleLanguage();
     if (soundEnabled) soundFX.playFocusBeep();
@@ -285,14 +441,18 @@ export default function Navbar({
     if (clickNavTimeoutRef.current) clearTimeout(clickNavTimeoutRef.current);
     clickNavTimeoutRef.current = setTimeout(() => {
       isClickNavigatingRef.current = false;
-    }, 1200);
+      clickNavTimeoutRef.current = null;
+    }, 1400);
 
     setActiveSection(sectionId);
-    if (isRoleBarOpen) setIsRoleBarOpen(false);
-    if (isExploreOpen) setIsExploreOpen(false);
-    if (isAudienceOpen) setIsAudienceOpen(false);
-    if (isViewModeOpen) setIsViewModeOpen(false);
-    if (isRibbonOpen) setIsRibbonOpen(false);
+    setActiveSubBar(null);
+    try {
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        sessionStorage.setItem('portfolio_last_active_section', sectionId);
+      }
+    } catch {
+      // Ignore sessionStorage errors
+    }
     if (soundEnabled) soundFX.playFocusBeep();
     if (announce) {
       announce(`Navigating to ${sectionLabel} section`, 'polite');
@@ -304,10 +464,19 @@ export default function Navbar({
     if (clickNavTimeoutRef.current) clearTimeout(clickNavTimeoutRef.current);
     clickNavTimeoutRef.current = setTimeout(() => {
       isClickNavigatingRef.current = false;
-    }, 1200);
+      clickNavTimeoutRef.current = null;
+    }, 1400);
 
     setActiveSection(sectionId);
+    setActiveSubBar(null);
     setMobileMenuOpen(false);
+    try {
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        sessionStorage.setItem('portfolio_last_active_section', sectionId);
+      }
+    } catch {
+      // Ignore sessionStorage errors
+    }
     if (soundEnabled) soundFX.playFocusBeep();
     if (announce) {
       announce(`Navigating to ${sectionLabel} section`, 'polite');
@@ -315,6 +484,7 @@ export default function Navbar({
   };
 
   const handleOpenEstimator = () => {
+    handleNavClick('contact', 'Contact');
     const el = document.getElementById('contact');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
     window.dispatchEvent(new CustomEvent('portfolio:switch-contact-tab', { detail: { tab: 'quote' } }));
@@ -337,11 +507,12 @@ export default function Navbar({
         setIsSearchOpen((prev) => {
           const next = !prev;
           if (next) {
+            setIsRoleBarOpen(false);
             setIsExploreOpen(false);
             setIsAudienceOpen(false);
             setIsViewModeOpen(false);
-            setIsRoleBarOpen(false);
             setIsRibbonOpen(false);
+            setActiveSubBar(null);
             setMobileMenuOpen(false);
             if (soundEnabled) soundFX.playFocusBeep();
           }
@@ -354,40 +525,23 @@ export default function Navbar({
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [isSimpleMode, soundEnabled]);
 
-  // Auto-close open popovers when entering simple mode
+  // Auto-close open sub-bars when entering simple mode
   useEffect(() => {
     if (isSimpleMode) {
       setIsSearchOpen(false);
-      setIsExploreOpen(false);
-      setIsRibbonOpen(false);
+      setActiveSubBar(null);
     }
   }, [isSimpleMode]);
 
-  // Outside click & Escape listener for ribbon, role secondary bar, explore sub-bar, audience sub-bar, view mode sub-bar & mobile menu
+  // Outside click & Escape listener for any open horizontal sub-bar & mobile menu
   useEffect(() => {
-    if (!isRibbonOpen && !isRoleBarOpen && !isExploreOpen && !isAudienceOpen && !isViewModeOpen && !mobileMenuOpen) return;
+    if (!activeSubBar && !mobileMenuOpen) return;
 
     const handleClickOutside = (event) => {
       if (navContainerRef.current && !navContainerRef.current.contains(event.target)) {
-        if (isRibbonOpen) {
-          setIsRibbonOpen(false);
-          soundFX.playRibbonToggle(false);
-        }
-        if (isRoleBarOpen) {
-          setIsRoleBarOpen(false);
+        if (activeSubBar) {
           if (soundEnabled) soundFX.playRibbonToggle(false);
-        }
-        if (isExploreOpen) {
-          setIsExploreOpen(false);
-          if (soundEnabled) soundFX.playRibbonToggle(false);
-        }
-        if (isAudienceOpen) {
-          setIsAudienceOpen(false);
-          if (soundEnabled) soundFX.playRibbonToggle(false);
-        }
-        if (isViewModeOpen) {
-          setIsViewModeOpen(false);
-          if (soundEnabled) soundFX.playRibbonToggle(false);
+          setActiveSubBar(null);
         }
         if (mobileMenuOpen) {
           setMobileMenuOpen(false);
@@ -401,14 +555,14 @@ export default function Navbar({
           setMobileMenuOpen(false);
           mobileMenuButtonRef.current?.focus();
         }
-        if (isRibbonOpen) {
-          setIsRibbonOpen(false);
-          soundFX.playRibbonToggle(false);
-        }
         if (isRoleBarOpen) {
           setIsRoleBarOpen(false);
           if (soundEnabled) soundFX.playRibbonToggle(false);
           avatarButtonRef.current?.focus();
+        }
+        if (isRibbonOpen) {
+          setIsRibbonOpen(false);
+          soundFX.playRibbonToggle(false);
         }
         if (isExploreOpen) {
           setIsExploreOpen(false);
@@ -422,6 +576,9 @@ export default function Navbar({
           setIsViewModeOpen(false);
           if (soundEnabled) soundFX.playRibbonToggle(false);
         }
+        if (activeSubBar) {
+          setActiveSubBar(null);
+        }
       }
     };
 
@@ -434,7 +591,7 @@ export default function Navbar({
       document.removeEventListener('touchstart', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isRibbonOpen, isRoleBarOpen, isExploreOpen, isAudienceOpen, isViewModeOpen, mobileMenuOpen, soundEnabled]);
+  }, [activeSubBar, mobileMenuOpen, soundEnabled]);
 
   // ScrollSpy listener to highlight active section in Navbar
   useEffect(() => {
@@ -452,28 +609,114 @@ export default function Navbar({
       'contact'
     ];
 
-    const handleScroll = () => {
+    const SECTION_TO_NAV_MAP = {
+      gallery: 'projects',
+      playground: 'projects'
+    };
+
+    let ticking = false;
+    let cachedElements = null;
+    let rafId = null;
+    let lastScanTime = 0;
+
+    const isElementConnected = (el) => {
+      if (!el) return false;
+      if (typeof el.isConnected === 'boolean') return el.isConnected;
+      if (typeof document !== 'undefined' && document.body) return document.body.contains(el);
+      return true;
+    };
+
+    const getCachedElements = () => {
+      const now = Date.now();
+      const hasDetachedElements = cachedElements && cachedElements.some((item) => !isElementConnected(item.el));
+      // Re-scan if elements haven't been cached, have detached nodes, or if lazy-loaded sections haven't all mounted yet (throttled to 250ms during scrolling)
+      if (!cachedElements || hasDetachedElements || (cachedElements.length < sectionIds.length && now - lastScanTime > 250)) {
+        lastScanTime = now;
+        cachedElements = sectionIds
+          .map((id) => ({ id, el: document.getElementById(id) }))
+          .filter((item) => item.el !== null && isElementConnected(item.el));
+      }
+      return cachedElements;
+    };
+
+    const handleResize = () => {
+      cachedElements = null;
+    };
+
+    const releaseClickLock = () => {
+      if (isClickNavigatingRef.current) {
+        isClickNavigatingRef.current = false;
+        if (clickNavTimeoutRef.current) {
+          clearTimeout(clickNavTimeoutRef.current);
+          clickNavTimeoutRef.current = null;
+        }
+      }
+    };
+
+    const handleManualScrollInterrupt = () => {
+      if (isClickNavigatingRef.current) {
+        releaseClickLock();
+      }
+    };
+
+    const updateActiveSection = () => {
+      // Guard: If navigation was triggered by a user click, lock the selection strictly until scroll arrives
+      if (isClickNavigatingRef.current) {
+        ticking = false;
+        return;
+      }
+
       if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 60) {
-        setActiveSection('contact');
+        setActiveSection((prev) => (prev !== 'contact' ? 'contact' : prev));
+        ticking = false;
         return;
       }
 
       let current = 'hero';
-      for (const id of sectionIds) {
-        const element = document.getElementById(id);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top <= 160) {
-            current = id;
-          }
+      const elements = getCachedElements();
+      for (const { id, el } of elements) {
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= 180) {
+          current = id;
         }
       }
-      setActiveSection(current);
+      current = SECTION_TO_NAV_MAP[current] || current;
+      setActiveSection((prev) => (prev !== current ? current : prev));
+      ticking = false;
     };
 
-    handleScroll();
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        rafId = window.requestAnimationFrame(updateActiveSection);
+      }
+    };
+
+    updateActiveSection();
+    // Schedule staggered updates to discover sections as React Suspense finishes mounting them
+    const timer1 = setTimeout(updateActiveSection, 400);
+    const timer2 = setTimeout(updateActiveSection, 1200);
+    const timer3 = setTimeout(updateActiveSection, 2500);
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleResize, { passive: true });
+    window.addEventListener('scrollend', releaseClickLock, { passive: true });
+    window.addEventListener('wheel', handleManualScrollInterrupt, { passive: true });
+    window.addEventListener('touchstart', handleManualScrollInterrupt, { passive: true });
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scrollend', releaseClickLock);
+      window.removeEventListener('wheel', handleManualScrollInterrupt);
+      window.removeEventListener('touchstart', handleManualScrollInterrupt);
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
   }, []);
 
   // Announce active section change during user scrolling (guarded against initial render and click navigation)
@@ -512,84 +755,79 @@ export default function Navbar({
           {/* Brand Group: Universal Role Switcher Avatar Button + Atul Verma Home Link */}
           <div className="flex items-center gap-2 shrink-0">
             {/* Universal Avatar Role-Switcher Trigger */}
-            <button
-              ref={avatarButtonRef}
-              type="button"
-              onClick={toggleRoleBar}
-              onKeyDown={(e) => {
-                if (e.key === 'ArrowDown') {
-                  e.preventDefault();
-                  if (!isRoleBarOpen) {
-                    toggleRoleBar();
-                  }
-                  requestAnimationFrame(() => {
-                    const activeTabEl = document.getElementById(`floating-role-tab-${activeRole}`) || document.querySelector('[id^="floating-role-tab-"]');
-                    activeTabEl?.focus();
-                  });
-                }
-              }}
-              onMouseEnter={() => {
-                if (soundEnabled) soundFX.playChipHover();
-              }}
-              aria-label={isRoleBarOpen ? 'Close career track switcher' : 'Switch career track'}
-              aria-expanded={isRoleBarOpen}
-              aria-haspopup="dialog"
-              aria-controls="floating-career-track-bar"
-              title={isRoleBarOpen ? 'Close career track switcher' : `${activeTrack?.label || activeRole} Profile • Atul Verma`}
-              className={`relative w-8 h-8 rounded-full overflow-hidden border-2 bg-[#18181B] dark:bg-[#201830] flex items-center justify-center shrink-0 shadow-xs hover:scale-105 active:scale-95 transition-all duration-300 ease-out cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
-                isRoleBarOpen ? 'scale-105 ring-2 ring-[#FF4D6D]/40' : ''
-              }`}
-              style={{
-                borderColor: accentColor,
-                boxShadow: isRoleBarOpen
-                  ? `0 0 14px ${accentColor}80`
-                  : `0 0 10px ${accentColor}40`
-              }}
+            <NavbarTooltip
+              title={isRoleBarOpen ? (isHindi ? 'बंद करें' : 'Close switcher') : `${activeTrack?.label || activeRole} Profile`}
+              subtext={isHindi ? 'ट्रैक बदलें' : 'Switch track'}
+              align="left"
             >
-              {/* Fallback AV Monogram (active during initial load or on image error) */}
-              <div
-                className={`absolute inset-0 flex items-center justify-center text-white text-xs font-bold transition-opacity duration-300 ease-in-out ${
-                  imageLoaded && !imageError ? 'opacity-0 pointer-events-none' : 'opacity-100'
-                }`}
-                aria-hidden="true"
+              <button
+                ref={avatarButtonRef}
+                type="button"
+                onClick={toggleRoleBar}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (!isRoleBarOpen) toggleRoleBar();
+                    requestAnimationFrame(() => {
+                      const activeTabEl = document.getElementById(`floating-role-tab-${activeRole}`) || document.querySelector('[id^="floating-role-tab-"]');
+                      activeTabEl?.focus();
+                    });
+                  }
+                }}
+                onMouseEnter={() => { if (soundEnabled) soundFX.playChipHover(); }}
+                aria-label={isRoleBarOpen ? 'Close career track switcher' : 'Switch career track'}
+                aria-expanded={isRoleBarOpen}
+                aria-haspopup="dialog"
+                aria-controls="floating-career-track-bar"
+                title={isRoleBarOpen ? 'Close career track switcher' : `${activeTrack?.label || activeRole} Profile • Atul Verma`}
+                className={`relative w-8 h-8 rounded-full overflow-hidden border-2 bg-[#18181B] dark:bg-[#201830] flex items-center justify-center shrink-0 shadow-xs hover:scale-105 active:scale-95 transition-all duration-300 ease-out cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${isRoleBarOpen ? 'scale-105 ring-2 ring-[#FF4D6D]/40' : ''}`}
+                style={{
+                  borderColor: accentColor,
+                  boxShadow: isRoleBarOpen ? `0 0 14px ${accentColor}80` : `0 0 10px ${accentColor}40`
+                }}
               >
-                <span className="font-mono text-[11px] text-[#FAF8F5] dark:text-[#F5F2F8]">AV</span>
-              </div>
+                {/* Fallback AV Monogram */}
+                <div
+                  className={`absolute inset-0 flex items-center justify-center text-white text-xs font-bold transition-opacity duration-300 ease-in-out ${imageLoaded && !imageError ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                  aria-hidden="true"
+                >
+                  <span className="font-mono text-[11px] text-[#FAF8F5] dark:text-[#F5F2F8]">AV</span>
+                </div>
 
-              {/* Dynamic Role Profile Picture with cross-dissolve & scale transition */}
-              {avatarSrc && !imageError && (
-                <img
-                  ref={avatarImgRef}
-                  key={avatarSrc}
-                  src={avatarSrc}
-                  alt={`${activeTrack?.label || activeRole} Profile • Atul Verma`}
-                  className={`w-full h-full object-cover rounded-full transition-all duration-300 ease-out ${
-                    imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-                  }`}
-                  onLoad={() => setImageLoaded(true)}
-                  onError={() => setImageError(true)}
-                  loading="eager"
-                  decoding="async"
-                />
-              )}
-            </button>
+                {avatarSrc && !imageError && (
+                  <img
+                    ref={avatarImgRef}
+                    key={avatarSrc}
+                    src={avatarSrc}
+                    alt={`${activeTrack?.label || activeRole} Profile • Atul Verma`}
+                    className={`w-full h-full object-cover rounded-full transition-all duration-300 ease-out ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+                    onLoad={() => setImageLoaded(true)}
+                    onError={() => setImageError(true)}
+                    loading="eager"
+                    decoding="async"
+                  />
+                )}
+              </button>
+            </NavbarTooltip>
 
             {/* Brand Name Link navigating to #hero */}
-            <a
-              href="#hero"
-              onClick={() => {
-                setActiveSection('hero');
-                setIsRoleBarOpen(false);
-                handleNavClick('hero', 'Home');
-              }}
-              className="hidden sm:block group"
-              title="Atul Verma"
-              aria-label="Atul Verma"
-            >
-              <span className="font-extrabold text-[#18181B] dark:text-white text-xs lg:text-sm tracking-tight font-['Outfit',sans-serif] whitespace-nowrap group-hover:text-[#FF4D6D] dark:group-hover:text-[#FF4D6D] transition-colors">
-                Atul Verma
-              </span>
-            </a>
+            <NavbarTooltip title="Atul Verma" subtext={isHindi ? 'शीर्ष पर जाएं' : 'Scroll to top'} align="left">
+              <a
+                href="#hero"
+                onClick={() => {
+                  setActiveSection('hero');
+                  setIsRoleBarOpen(false);
+                  handleNavClick('hero', 'Home');
+                }}
+                className="hidden sm:block group cursor-pointer"
+                title="Atul Verma"
+                aria-label="Atul Verma"
+              >
+                <span className="font-extrabold text-[#18181B] dark:text-white text-xs lg:text-sm tracking-tight font-['Outfit',sans-serif] whitespace-nowrap group-hover:text-[#FF4D6D] dark:group-hover:text-[#FF4D6D] transition-colors">
+                  Atul Verma
+                </span>
+              </a>
+            </NavbarTooltip>
           </div>
 
           {/* Desktop Nav Links with ScrollSpy */}
@@ -597,23 +835,25 @@ export default function Navbar({
             {navLinks.map((link) => {
               const isActive = activeSection === link.id;
               return (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  aria-label={link.label}
-                  title={link.label}
-                  onClick={() => {
-                    setIsRoleBarOpen(false);
-                    handleNavClick(link.id, link.label);
-                  }}
-                  className={`text-[11px] lg:text-xs font-semibold rounded-full px-2 lg:px-2.5 py-1 transition-all duration-200 select-none whitespace-nowrap ${
-                    isActive
-                      ? 'bg-white dark:bg-[#201830] text-[#18181B] dark:text-[#F5F2F8] shadow-xs font-bold scale-[1.02]'
-                      : 'text-stone-600 dark:text-[#A99EBA] hover:text-[#18181B] dark:hover:text-[#F5F2F8] hover:bg-white/60 dark:hover:bg-[#201830]/60'
-                  }`}
-                >
-                  {link.label}
-                </a>
+                <NavbarTooltip key={link.id} title={link.label} subtext={NAV_SUBTEXTS[language]?.[link.id]} align="center">
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    aria-label={link.label}
+                    title={link.label}
+                    onClick={() => {
+                      setIsRoleBarOpen(false);
+                      handleNavClick(link.id, link.label);
+                    }}
+                    className={`text-[11px] lg:text-xs font-semibold rounded-full px-2 lg:px-2.5 py-1 transition-all duration-200 select-none whitespace-nowrap cursor-pointer ${
+                      isActive
+                        ? 'bg-white dark:bg-[#201830] text-[#18181B] dark:text-[#F5F2F8] shadow-xs font-bold scale-[1.02]'
+                        : 'text-stone-600 dark:text-[#A99EBA] hover:text-[#18181B] dark:hover:text-[#F5F2F8] hover:bg-white/60 dark:hover:bg-[#201830]/60'
+                    }`}
+                  >
+                    {link.label}
+                  </a>
+                </NavbarTooltip>
               );
             })}
           </nav>
@@ -622,214 +862,243 @@ export default function Navbar({
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* 1. Global Search Trigger Button (Disabled in Simple Mode) */}
             {!isSimpleMode && (
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSearchOpen(true);
-                  if (isExploreOpen) setIsExploreOpen(false);
-                  if (isRoleBarOpen) setIsRoleBarOpen(false);
-                  if (isRibbonOpen) setIsRibbonOpen(false);
-                  if (mobileMenuOpen) setMobileMenuOpen(false);
-                  if (soundEnabled) soundFX.playFocusBeep();
-                }}
-                data-testid="Search portfolio (Cmd+K)"
-                aria-label="Search"
-                aria-haspopup="dialog"
-                aria-expanded={isSearchOpen}
-                className="group relative h-8 w-8 sm:w-auto sm:px-2.5 sm:py-1 rounded-full flex items-center justify-center gap-1.5 bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
-                title="Search portfolio (Cmd+K) / Ctrl+K"
+              <NavbarTooltip
+                title={isHindi ? 'पोर्टफोलियो खोजें' : 'Search Portfolio'}
+                shortcut="⌘K"
+                subtext={isHindi ? 'कौशल, प्रोजेक्ट्स व रोल्स तुरंत खोजें' : 'Quick jump to skills, projects & roles'}
+                align="center"
               >
-                <Search className="w-3.5 h-3.5 text-stone-600 dark:text-stone-300 group-hover:text-[#18181B] dark:group-hover:text-white transition-colors" />
-                <span className="hidden lg:inline-block text-[11px] font-semibold text-stone-600 dark:text-stone-300 group-hover:text-[#18181B] dark:group-hover:text-white">
-                  Search
-                </span>
-                <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono font-bold text-stone-500 dark:text-stone-400 bg-[#F0EBE1] dark:bg-stone-900 border border-[#E5DFD5] dark:border-stone-700 rounded shadow-2xs leading-none">
-                  ⌘K
-                </kbd>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSearchOpen(true);
+                    setIsRoleBarOpen(false);
+                    setActiveSubBar(null);
+                    if (mobileMenuOpen) setMobileMenuOpen(false);
+                    if (soundEnabled) soundFX.playFocusBeep();
+                  }}
+                  data-testid="Search portfolio (Cmd+K)"
+                  aria-label="Search"
+                  aria-haspopup="dialog"
+                  aria-expanded={isSearchOpen}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+                  title="Search portfolio (Cmd+K) / Ctrl+K"
+                >
+                  <Search className="w-4 h-4 transition-colors" />
+                </button>
+              </NavbarTooltip>
             )}
 
             {/* 2. Explore / Showcase & Lab SubBar Trigger Button (Disabled in Simple Mode) */}
             {!isSimpleMode && (
-              <button
-                type="button"
-                onClick={toggleExploreBar}
-                aria-label={isExploreOpen ? 'Close Explore' : 'Explore'}
-                aria-expanded={isExploreOpen}
-                className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${
-                  isExploreOpen
-                    ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
-                    : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95'
-                }`}
-                title={isExploreOpen ? 'Close Explore' : 'Explore'}
+              <NavbarTooltip
+                title={isExploreOpen ? (isHindi ? 'एक्सप्लोर बंद करें' : 'Close Explore') : (isHindi ? 'एक्सप्लोर और लैब' : 'Explore & Lab')}
+                subtext={isHindi ? 'टर्मिनल सीएलआई, गैलरी और लैब' : 'Terminal CLI, gallery & interactive lab'}
+                align="center"
               >
-                <LayoutGrid
-                  className="w-4 h-4 transition-transform duration-200"
-                  style={{ color: isExploreOpen ? (isDark ? '#18181B' : '#FFFFFF') : '#FF4D6D' }}
-                />
-                {/* Dynamic Indicator Dot with ping animation */}
-                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 pointer-events-none">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
-                </span>
-              </button>
+                <button
+                  type="button"
+                  onClick={toggleExploreBar}
+                  aria-label={isExploreOpen ? 'Close Explore' : 'Explore'}
+                  aria-expanded={isExploreOpen}
+                  className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${
+                    isExploreOpen
+                      ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
+                      : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95'
+                  }`}
+                  title={isExploreOpen ? 'Close Explore' : 'Explore'}
+                >
+                  <LayoutGrid
+                    className="w-4 h-4 transition-transform duration-200"
+                    style={{ color: isExploreOpen ? (isDark ? '#18181B' : '#FFFFFF') : '#FF4D6D' }}
+                  />
+                  {/* Dynamic Indicator Dot with ping animation */}
+                  <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 pointer-events-none">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
+                  </span>
+                </button>
+              </NavbarTooltip>
             )}
 
             {/* 2b. Audience Filter SubBar Trigger Button */}
-            <button
-              type="button"
-              onClick={toggleAudienceBar}
-              aria-label={isAudienceOpen ? 'Close Audience Filter' : `Audience Filter (${activeAudienceData?.label || 'All'})`}
-              aria-expanded={isAudienceOpen}
-              className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${
-                isAudienceOpen
-                  ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
-                  : isFilterActive
-                    ? 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] border-[#FF4D6D]/40 shadow-xs'
-                    : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95'
-              }`}
-              title={isAudienceOpen ? 'Close Audience Filter' : `Audience Filter: ${activeAudienceData?.label || 'All'}`}
+            <NavbarTooltip
+              title={isAudienceOpen ? (isHindi ? 'ऑडियंस फ़िल्टर बंद करें' : 'Close Audience Filter') : (isHindi ? 'ऑडियंस व्यू' : 'Audience View')}
+              subtext={`${activeAudienceData?.label || 'All'} • ${isHindi ? 'रिक्रूटर, क्लाइंट या सहकर्मियों अनुसार फ़िल्टर' : 'Tailor for Recruiters, Clients or Peers'}`}
+              align="center"
             >
-              <Filter
-                className="w-3.5 h-3.5 transition-transform duration-200"
-                style={{
-                  color: isAudienceOpen
-                    ? (isDark ? '#18181B' : '#FFFFFF')
+              <button
+                type="button"
+                onClick={toggleAudienceBar}
+                aria-label={isAudienceOpen ? 'Close Audience Filter' : `Audience Filter (${activeAudienceData?.label || 'All'})`}
+                aria-expanded={isAudienceOpen}
+                className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${
+                  isAudienceOpen
+                    ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
                     : isFilterActive
-                      ? '#FF4D6D'
-                      : undefined
-                }}
-              />
-              {/* Subtle active indicator dot when audience !== 'all' */}
-              {isFilterActive && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 pointer-events-none">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
-                </span>
-              )}
-            </button>
+                      ? 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] border-[#FF4D6D]/40 shadow-xs'
+                      : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95'
+                }`}
+                title={isAudienceOpen ? 'Close Audience Filter' : `Audience Filter: ${activeAudienceData?.label || 'All'}`}
+              >
+                <Filter
+                  className="w-3.5 h-3.5 transition-transform duration-200"
+                  style={{
+                    color: isAudienceOpen
+                      ? (isDark ? '#18181B' : '#FFFFFF')
+                      : isFilterActive
+                        ? '#FF4D6D'
+                        : undefined
+                  }}
+                />
+                {/* Subtle active indicator dot when audience !== 'all' */}
+                {isFilterActive && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 pointer-events-none">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
+                  </span>
+                )}
+              </button>
+            </NavbarTooltip>
 
             {/* 2c. View Mode SubBar Trigger Button */}
-            <button
-              type="button"
-              onClick={toggleViewModeBar}
-              aria-label={isViewModeOpen ? 'Close View Mode' : `View Mode (${activeViewModeData?.label || 'Modern'})`}
-              aria-expanded={isViewModeOpen}
-              className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${
-                isViewModeOpen
-                  ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
-                  : isViewModeModified
-                    ? 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] border-[#FF4D6D]/40 shadow-xs'
-                    : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95'
-              }`}
-              title={isViewModeOpen ? 'Close View Mode' : `View Mode: ${activeViewModeData?.label || 'Modern'}`}
+            <NavbarTooltip
+              title={isHindi ? 'व्यू मोड' : 'View Mode'}
+              subtext={`${activeViewModeData?.label || 'Modern'} • ${isHindi ? 'स्टाइल बदलें' : 'Toggle view style'}`}
+              align="center"
             >
-              <Eye
-                className="w-3.5 h-3.5 transition-transform duration-200"
-                style={{
-                  color: isViewModeOpen
-                    ? (isDark ? '#18181B' : '#FFFFFF')
-                    : isViewModeModified
-                      ? '#FF4D6D'
-                      : undefined
-                }}
-              />
-              {/* Subtle active indicator dot when mode !== 'modern' */}
-              {isViewModeModified && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 pointer-events-none">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
-                </span>
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={toggleViewModeBar}
+                aria-label={isViewModeOpen ? 'Close View Mode' : `View Mode (${activeViewModeData?.label || 'Modern'})`}
+                aria-expanded={isViewModeOpen}
+                className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer ${isViewModeOpen ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105' : isViewModeModified ? 'bg-[#FFF0F3] dark:bg-[#FF4D6D]/15 text-[#FF4D6D] border-[#FF4D6D]/40 shadow-xs' : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95'}`}
+                title={isViewModeOpen ? 'Close View Mode' : `View Mode: ${activeViewModeData?.label || 'Modern'}`}
+              >
+                <Eye
+                  className="w-3.5 h-3.5 transition-transform duration-200"
+                  style={{
+                    color: isViewModeOpen
+                      ? (isDark ? '#18181B' : '#FFFFFF')
+                      : isViewModeModified
+                        ? '#FF4D6D'
+                        : undefined
+                  }}
+                />
+                {/* Subtle active indicator dot when mode !== 'modern' */}
+                {isViewModeModified && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 pointer-events-none">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
+                  </span>
+                )}
+              </button>
+            </NavbarTooltip>
 
             {/* 3. Dynamic Cursor Variant Selector (Disabled in Simple Mode) */}
             {!isSimpleMode && isDesktopCursor && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (!isDesktopCursor) return;
-                  const next = !isRibbonOpen;
-                  setIsRibbonOpen(next);
-                  if (next) {
-                    setIsExploreOpen(false);
-                    setIsRoleBarOpen(false);
-                    if (mobileMenuOpen) setMobileMenuOpen(false);
-                    if (isSearchOpen) setIsSearchOpen(false);
-                  }
-                  soundFX.playRibbonToggle(next);
-                }}
-                aria-label={isRibbonOpen ? 'Close Cursor Selector' : `Cursor: ${activeCursorData.name}`}
-                aria-expanded={isRibbonOpen}
-                className={`desktop-cursor-only hidden lg:flex relative w-8 h-8 rounded-full items-center justify-center transition-all duration-200 border cursor-pointer ${
-                  isRibbonOpen
-                    ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
-                    : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105'
-                }`}
-                title={`Cursor: ${activeCursorData.name}`}
+              <NavbarTooltip
+                title={isRibbonOpen ? (isHindi ? 'कर्सर रिबन बंद करें' : 'Close Cursor Selector') : (isHindi ? 'कर्सर सुइट' : 'Cursor Suite')}
+                subtext={`${activeCursorData.name} • ${isHindi ? '35 कर्सर शैलियों में से चुनें' : 'Switch dynamic 35-cursor suite'}`}
+                align="center"
               >
-                <span className="text-sm leading-none select-none flex items-center justify-center" aria-label={activeCursorData.name}>
-                  <CursorIcon cursorId={activeCursorData.id} size={15} />
-                </span>
-                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
-                </span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isDesktopCursor) return;
+                    toggleCursorRibbon();
+                  }}
+                  aria-label={isRibbonOpen ? 'Close Cursor Selector' : `Cursor: ${activeCursorData.name}`}
+                  aria-expanded={isRibbonOpen}
+                  className={`desktop-cursor-only hidden lg:flex relative w-8 h-8 rounded-full items-center justify-center transition-all duration-200 border cursor-pointer ${
+                    isRibbonOpen
+                      ? 'bg-[#18181B] dark:bg-stone-100 text-white dark:text-stone-900 border-[#18181B] dark:border-white shadow-xs scale-105'
+                      : 'bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105'
+                  }`}
+                  title={`Cursor: ${activeCursorData.name}`}
+                >
+                  <span className="text-sm leading-none select-none flex items-center justify-center" aria-label={activeCursorData.name}>
+                    <CursorIcon cursorId={activeCursorData.id} size={15} />
+                  </span>
+                  <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF4D6D] ring-2 ring-white dark:ring-stone-900" />
+                  </span>
+                </button>
+              </NavbarTooltip>
             )}
 
-            {/* 4. Multilingual Language Switcher Pill: [EN | HI] */}
-            <button
-              type="button"
-              onClick={handleToggleLanguage}
-              aria-label={isHindi ? "Switch language to English" : "हिंदी में बदलें"}
-              title={isHindi ? "Switch to English" : "हिंदी में बदलें"}
-              className="relative h-8 px-2 sm:px-2.5 py-1 rounded-full flex items-center gap-1 bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+            {/* 4. Multilingual Language Switcher Icon Button */}
+            <NavbarTooltip
+              title={isHindi ? "Language / भाषा" : "भाषा / Language"}
+              subtext={isHindi ? "English (UK) • Tap to switch to Hindi" : "हिंदी (भारत) • अंग्रेज़ी में बदलने के लिए टैप करें"}
+              align="right"
             >
-              <Languages className="w-3.5 h-3.5 text-[#FF4D6D]" />
-              <span className="text-[10px] sm:text-[11px] font-mono font-extrabold tracking-tight">
-                {isHindi ? 'HI' : 'EN'}
-              </span>
-            </button>
-
-            {/* 5. Theme Toggle Button (Light / Dark) */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={isDark ? "Light mode" : "Dark mode"}
-              title={isDark ? "Light mode" : "Dark mode"}
-              className="p-2 rounded-full text-stone-600 dark:text-stone-300 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-all cursor-pointer relative group"
-            >
-              {isDark ? (
-                <Sun className="w-4 h-4 text-amber-400 hover:rotate-45 transition-transform duration-300" />
-              ) : (
-                <Moon className="w-4 h-4 text-stone-600 hover:-rotate-12 transition-transform duration-300" />
-              )}
-            </button>
-
-            {/* 5. Audio Toggle Button (Hidden in Simple Mode) */}
-            {!isSimpleMode && (
               <button
                 type="button"
-                onClick={() => {
-                  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-                  }
-                  const next = !soundEnabled;
-                  setSoundEnabled(next);
-                  soundFX.setEnabled(next);
-                  if (next) soundFX.playSparkle();
-                }}
-                aria-label={soundEnabled ? 'Mute Audio' : 'Enable Audio'}
-                className="p-2 rounded-full text-stone-600 dark:text-stone-400 hover:text-[#18181B] dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer"
-                title={soundEnabled ? 'Mute Audio' : 'Enable Audio'}
+                onClick={handleToggleLanguage}
+                aria-label={isHindi ? "Switch language to English" : "हिंदी में बदलें"}
+                title={isHindi ? "Switch to English" : "हिंदी में बदलें"}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
               >
-                {soundEnabled ? (
-                  <Volume2 className="w-4 h-4 text-[#FF4D6D]" />
+                {isHindi ? (
+                  <IndiaFlag className="w-[18px] h-[18px]" />
                 ) : (
-                  <VolumeX className="w-4 h-4 text-stone-400 dark:text-stone-500" />
+                  <UkFlag className="w-[18px] h-[18px]" />
                 )}
               </button>
+            </NavbarTooltip>
+
+            {/* 5. Theme Toggle Button (Light / Dark) */}
+            <NavbarTooltip
+              title={isHindi ? "थीम मोड" : "Theme Mode"}
+              subtext={isDark ? (isHindi ? "लाइट मोड • डार्क थीम में बदलें ☀️" : "Light Mode • Switch to Light Theme ☀️") : (isHindi ? "डार्क मोड • डार्क थीम में बदलें 🌙" : "Dark Mode • Switch to Dark Theme 🌙")}
+              align="right"
+            >
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={isDark ? "Light mode" : "Dark mode"}
+                title={isDark ? "Light mode" : "Dark mode"}
+                className="group w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+              >
+                {isDark ? (
+                  <Sun className="w-4 h-4 text-amber-400 group-hover:rotate-45 transition-transform duration-300" />
+                ) : (
+                  <Moon className="w-4 h-4 text-stone-600 dark:text-stone-300 group-hover:-rotate-12 transition-transform duration-300" />
+                )}
+              </button>
+            </NavbarTooltip>
+
+            {/* 6. Audio Toggle Button (Hidden in Simple Mode) */}
+            {!isSimpleMode && (
+              <NavbarTooltip
+                title={isHindi ? "परिवेशी संगीत" : "Ambient Audio"}
+                subtext={soundEnabled ? (isHindi ? "परिवेशी संगीत • म्यूट करें 🔇" : "Ambient Audio • Mute sound effects 🔇") : (isHindi ? "परिवेशी संगीत • अनम्यूट करें 🔊" : "Ambient Audio • Unmute music & sound FX 🔊")}
+                align="right"
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                      window.speechSynthesis.cancel();
+                    }
+                    const next = !soundEnabled;
+                    setSoundEnabled(next);
+                    soundFX.setEnabled(next);
+                    if (next) soundFX.playSparkle();
+                  }}
+                  aria-label={soundEnabled ? 'Mute Audio' : 'Enable Audio'}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border cursor-pointer bg-white/80 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white border-[#E7E2D8] dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 shadow-2xs hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+                  title={soundEnabled ? 'Mute Audio' : 'Enable Audio'}
+                >
+                  {soundEnabled ? (
+                    <Volume2 className="w-4 h-4 text-[#FF4D6D]" />
+                  ) : (
+                    <VolumeX className="w-4 h-4 text-stone-400 dark:text-stone-500" />
+                  )}
+                </button>
+              </NavbarTooltip>
             )}
 
             {/* 7. Smart Resume Action Dropdown */}
@@ -838,25 +1107,29 @@ export default function Navbar({
             </div>
 
             {/* 8. Mobile Menu Toggle */}
-            <button
-              ref={hamburgerButtonRef}
-              type="button"
-              onClick={() => {
-                const next = !mobileMenuOpen;
-                setMobileMenuOpen(next);
-                if (next) {
-                  setIsExploreOpen(false);
-                  setIsRoleBarOpen(false);
-                  if (isRibbonOpen) setIsRibbonOpen(false);
-                  if (isSearchOpen) setIsSearchOpen(false);
-                }
-              }}
-              aria-label={mobileMenuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
-              aria-expanded={mobileMenuOpen}
-              className="p-2 rounded-xl md:hidden text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden cursor-pointer"
+            <NavbarTooltip
+              title={isHindi ? 'नेविगेशन मेनू' : 'Navigation Menu'}
+              subtext={mobileMenuOpen ? (isHindi ? 'मेनू बंद करें' : 'Close navigation menu') : (isHindi ? 'मेनू खोलें' : 'Open mobile drawer')}
+              align="right"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+              <button
+                ref={hamburgerButtonRef}
+                type="button"
+                onClick={() => {
+                  const next = !mobileMenuOpen;
+                  setMobileMenuOpen(next);
+                  if (next) {
+                    setActiveSubBar(null);
+                    if (isSearchOpen) setIsSearchOpen(false);
+                  }
+                }}
+                aria-label={mobileMenuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
+                aria-expanded={mobileMenuOpen}
+                className="p-2 rounded-xl md:hidden text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden cursor-pointer"
+              >
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </NavbarTooltip>
           </div>
 
           {/* Isolated clipping container: preserves ResumeDropdown while perfectly clipping progress bar inside navbar capsule curvature */}
@@ -872,11 +1145,11 @@ export default function Navbar({
             activeRole={activeRole}
             onSelectRole={(role) => {
               if (onSelectRole) onSelectRole(role);
-              setIsRoleBarOpen(false);
+              setActiveSubBar(null);
               avatarButtonRef.current?.focus();
             }}
             onClose={() => {
-              setIsRoleBarOpen(false);
+              setActiveSubBar(null);
               if (soundEnabled) soundFX.playRibbonToggle(false);
               avatarButtonRef.current?.focus();
             }}
@@ -891,7 +1164,7 @@ export default function Navbar({
             variant="floating-bar"
             isOpen={isExploreOpen}
             onClose={() => {
-              setIsExploreOpen(false);
+              setActiveSubBar(null);
               if (soundEnabled) soundFX.playRibbonToggle(false);
             }}
             soundEnabled={soundEnabled}
@@ -906,7 +1179,7 @@ export default function Navbar({
             variant="floating-bar"
             isOpen={isAudienceOpen}
             onClose={() => {
-              setIsAudienceOpen(false);
+              setActiveSubBar(null);
               if (soundEnabled) soundFX.playRibbonToggle(false);
             }}
             soundEnabled={soundEnabled}
@@ -919,7 +1192,7 @@ export default function Navbar({
             variant="floating-bar"
             isOpen={isViewModeOpen}
             onClose={() => {
-              setIsViewModeOpen(false);
+              setActiveSubBar(null);
               if (soundEnabled) soundFX.playRibbonToggle(false);
             }}
             soundEnabled={soundEnabled}
@@ -938,7 +1211,7 @@ export default function Navbar({
               }}
               defaultExpanded={true}
               onClose={() => {
-                setIsRibbonOpen(false);
+                setActiveSubBar(null);
                 soundFX.playRibbonToggle(false);
               }}
               className="max-w-7xl"
@@ -1021,9 +1294,20 @@ export default function Navbar({
               <button
                 type="button"
                 onClick={handleToggleLanguage}
-                className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-[11px] font-mono text-stone-700 dark:text-stone-200 font-bold transition-colors cursor-pointer"
+                aria-label={isHindi ? "Switch language to English" : "हिंदी में बदलें"}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-[11px] font-mono text-stone-700 dark:text-stone-200 font-bold transition-colors cursor-pointer"
               >
-                {isHindi ? 'हिंदी (HI) 🇮🇳' : 'English (EN) 🌐'}
+                {isHindi ? (
+                  <>
+                    <IndiaFlag className="w-3.5 h-3.5" />
+                    <span>हिंदी (HI)</span>
+                  </>
+                ) : (
+                  <>
+                    <UkFlag className="w-3.5 h-3.5" />
+                    <span>English (EN)</span>
+                  </>
+                )}
               </button>
             </div>
 
@@ -1083,18 +1367,20 @@ export default function Navbar({
       </header>
 
       {/* R1: Global Command Palette Search Modal (⌘K) */}
-      <CommandPalette
-        isOpen={isSearchOpen}
-        onClose={() => {
-          setIsSearchOpen(false);
-          setInitialSearchQuery('');
-        }}
-        initialQuery={initialSearchQuery}
-        soundEnabled={soundEnabled}
-        activeRole={activeRole}
-        onSelectRole={onSelectRole}
-        isDesktopCursor={isDesktopCursor}
-      />
+      <Suspense fallback={null}>
+        <CommandPalette
+          isOpen={isSearchOpen}
+          onClose={() => {
+            setIsSearchOpen(false);
+            setInitialSearchQuery('');
+          }}
+          initialQuery={initialSearchQuery}
+          soundEnabled={soundEnabled}
+          activeRole={activeRole}
+          onSelectRole={onSelectRole}
+          isDesktopCursor={isDesktopCursor}
+        />
+      </Suspense>
     </>
   );
 }

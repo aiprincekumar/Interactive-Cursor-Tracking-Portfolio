@@ -76,6 +76,22 @@ const PNG_HEADER = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
 console.log('--- TEST SUITE 1: Physical Tile Asset Empirical Verification ---');
 
 const expectedGrids = {
+  10: {
+    name: 'Zoom 10 (Regional Hub Overview)',
+    cx: 751,
+    cy: 441,
+    xRange: [749, 750, 751, 752],
+    yRange: [440, 441, 442],
+    expectedCount: 12
+  },
+  11: {
+    name: 'Zoom 11 (Greater Palamu Region)',
+    cx: 1502,
+    cy: 883,
+    xRange: [1499, 1500, 1501, 1502, 1503, 1504],
+    yRange: [882, 883, 884, 885],
+    expectedCount: 24
+  },
   12: {
     name: 'Zoom 12 (7x5 City-Region Overview)',
     cx: 3004,
@@ -93,20 +109,20 @@ const expectedGrids = {
     expectedCount: 35
   },
   14: {
-    name: 'Zoom 14 (3x3 District Core Detail)',
+    name: 'Zoom 14 (7x5 District Core Detail)',
     cx: 12018,
     cy: 7064,
-    xRange: [12017, 12018, 12019],
-    yRange: [7063, 7064, 7065],
-    expectedCount: 9
+    xRange: [12015, 12016, 12017, 12018, 12019, 12020, 12021],
+    yRange: [7062, 7063, 7064, 7065, 7066],
+    expectedCount: 35
   },
   15: {
-    name: 'Zoom 15 (3x3 Street/HQ Level Detail)',
+    name: 'Zoom 15 (7x5 Street/HQ Level Detail)',
     cx: 24036,
     cy: 14128,
-    xRange: [24035, 24036, 24037],
-    yRange: [14127, 14128, 14129],
-    expectedCount: 9
+    xRange: [24033, 24034, 24035, 24036, 24037, 24038, 24039],
+    yRange: [14126, 14127, 14128, 14129, 14130],
+    expectedCount: 35
   }
 };
 
@@ -188,7 +204,7 @@ function countTilesRecursively(dir) {
 countTilesRecursively(tilesBaseDir);
 
 console.log(`\nTile Asset Summary:`);
-console.log(`  Total Tiles Expected: 88`);
+console.log(`  Total Tiles Expected: 176`);
 console.log(`  Total Physical PNGs Found: ${physicalTileCount}`);
 console.log(`  Successfully Verified Tiles: ${verifiedTileCount}`);
 console.log(`  Total Tiles Directory Size: ${(totalBytes / 1024).toFixed(2)} KB (${(totalBytes / (1024 * 1024)).toFixed(3)} MB)`);
@@ -197,9 +213,9 @@ console.log(`  Largest Tile: ${maxTile} (${maxSize} bytes)`);
 console.log(`  Average Tile Size: ${(totalBytes / verifiedTileCount).toFixed(0)} bytes`);
 
 assert.strictEqual(tileDecodeErrors.length, 0, `Tile validation errors encountered: ${tileDecodeErrors.join('; ')}`);
-assert.strictEqual(verifiedTileCount, 88, `Expected exactly 88 verified tiles, got ${verifiedTileCount}`);
-assert.strictEqual(physicalTileCount, 88, `Expected no orphaned tiles, found ${physicalTileCount}`);
-console.log('✅ SUITE 1 PASSED: All 88 tiles physically verified, intact, >5KB, and valid 256x256 PNGs.\n');
+assert.strictEqual(verifiedTileCount, 176, `Expected exactly 176 verified tiles, got ${verifiedTileCount}`);
+assert.strictEqual(physicalTileCount, 176, `Expected no orphaned tiles, found ${physicalTileCount}`);
+console.log('✅ SUITE 1 PASSED: All 176 tiles physically verified, intact, >5KB, and valid 256x256 PNGs.\n');
 
 
 // -----------------------------------------------------------------------------
@@ -207,17 +223,24 @@ console.log('✅ SUITE 1 PASSED: All 88 tiles physically verified, intact, >5KB,
 // -----------------------------------------------------------------------------
 console.log('--- TEST SUITE 2: Mathematical Bounding Box & 7x5 Grid Coverage ---');
 
-const MEDININAGAR_BOUNDS = [
+const Z12_GRID_BOUNDS = [
   [23.8054, 83.7598],
   [24.2069, 84.3750]
 ];
-const [SW, NE] = MEDININAGAR_BOUNDS;
+const EXPANDED_MEDININAGAR_BOUNDS = [
+  [23.7646, 83.6455], // Southwest (expanded Palamu district coverage)
+  [24.3186, 84.4945]  // Northeast
+];
+const [SW, NE] = Z12_GRID_BOUNDS;
 const [boundSouth, boundWest] = SW;
 const [boundNorth, boundEast] = NE;
 
-console.log(`Defined MEDININAGAR_BOUNDS in Leaflet:`);
+console.log(`Zoom 12 Physical Tile Raster Grid Envelope:`);
 console.log(`  South: ${boundSouth.toFixed(4)}° N, West: ${boundWest.toFixed(4)}° E`);
 console.log(`  North: ${boundNorth.toFixed(4)}° N, East: ${boundEast.toFixed(4)}° E`);
+console.log(`Expanded MEDININAGAR_BOUNDS in Leaflet:`);
+console.log(`  South: ${EXPANDED_MEDININAGAR_BOUNDS[0][0].toFixed(4)}° N, West: ${EXPANDED_MEDININAGAR_BOUNDS[0][1].toFixed(4)}° E`);
+console.log(`  North: ${EXPANDED_MEDININAGAR_BOUNDS[1][0].toFixed(4)}° N, East: ${EXPANDED_MEDININAGAR_BOUNDS[1][1].toFixed(4)}° E`);
 
 // Check Zoom 12 Grid
 const z12Conf = expectedGrids[12];
@@ -234,12 +257,19 @@ console.log(`  West:  ${z12Bounds.west.toFixed(4)}° (exact: ${z12Bounds.west})`
 console.log(`  North: ${z12Bounds.north.toFixed(4)}° (exact: ${z12Bounds.north})`);
 console.log(`  East:  ${z12Bounds.east.toFixed(4)}° (exact: ${z12Bounds.east})`);
 
-// Validate that Zoom 12 bounds match MEDININAGAR_BOUNDS exactly to 4 decimals
+// Validate that Zoom 12 bounds match Z12_GRID_BOUNDS exactly to 4 decimals
 assert.strictEqual(z12Bounds.south.toFixed(4), boundSouth.toFixed(4), 'Zoom 12 South bound mismatch');
 assert.strictEqual(z12Bounds.west.toFixed(4), boundWest.toFixed(4), 'Zoom 12 West bound mismatch');
 assert.strictEqual(z12Bounds.north.toFixed(4), boundNorth.toFixed(4), 'Zoom 12 North bound mismatch');
 assert.strictEqual(z12Bounds.east.toFixed(4), boundEast.toFixed(4), 'Zoom 12 East bound mismatch');
-console.log('  ✔ Zoom 12 7x5 grid mathematically matches MEDININAGAR_BOUNDS exactly (100% envelope match).');
+console.log('  ✔ Zoom 12 7x5 grid mathematically matches tile raster bounds exactly (100% envelope match).');
+
+// Validate that expanded MEDININAGAR_BOUNDS comfortably encompass the Zoom 12 grid
+assert.ok(EXPANDED_MEDININAGAR_BOUNDS[0][0] <= z12Bounds.south, 'Expanded south bound must encompass zoom 12 grid');
+assert.ok(EXPANDED_MEDININAGAR_BOUNDS[0][1] <= z12Bounds.west, 'Expanded west bound must encompass zoom 12 grid');
+assert.ok(EXPANDED_MEDININAGAR_BOUNDS[1][0] >= z12Bounds.north, 'Expanded north bound must encompass zoom 12 grid');
+assert.ok(EXPANDED_MEDININAGAR_BOUNDS[1][1] >= z12Bounds.east, 'Expanded east bound must encompass zoom 12 grid');
+console.log('  ✔ Expanded MEDININAGAR_BOUNDS fully enclose Zoom 12 grid with generous panning margins.');
 
 // Check Zoom 13 Grid
 const z13Conf = expectedGrids[13];
@@ -259,7 +289,7 @@ console.log(`  East:  ${z13Bounds.east.toFixed(4)}° (exact: ${z13Bounds.east})`
 // Center coordinate verification
 const medininagarCenter = [24.0416, 84.0700];
 console.log(`\nGeographic Center Position [${medininagarCenter[0]}, ${medininagarCenter[1]}]:`);
-for (const z of [12, 13, 14, 15]) {
+for (const z of [10, 11, 12, 13, 14, 15]) {
   const cx = lng2tile(medininagarCenter[1], z);
   const cy = lat2tile(medininagarCenter[0], z);
   assert.strictEqual(cx, expectedGrids[z].cx, `Center X tile mismatch at zoom ${z}`);
@@ -351,20 +381,35 @@ console.log('  ✔ maxBounds and maxBoundsViscosity: 1.0 strictly configured.');
 assert.ok(leafletContent.includes('bounds: MEDININAGAR_BOUNDS'), 'tileLayer must restrict tile loading with bounds');
 console.log('  ✔ tileLayer bounds restricted to MEDININAGAR_BOUNDS.');
 
-// 3. Zoom levels
+// 3. Zoom levels & Native Zoom
 assert.ok(leafletContent.includes('minZoom: 12'), 'minZoom must be 12');
 assert.ok(leafletContent.includes('maxZoom: 15'), 'maxZoom must be 15');
+assert.ok(leafletContent.includes('minNativeZoom: 12'), 'minNativeZoom must be 12');
 assert.ok(leafletContent.includes('maxNativeZoom: 15'), 'maxNativeZoom must be 15');
-console.log('  ✔ minZoom: 12, maxZoom: 15, maxNativeZoom: 15 correctly configured.');
+console.log('  ✔ minZoom: 12, maxZoom: 15, minNativeZoom: 12, maxNativeZoom: 15 correctly configured.');
 
-// 4. Absence of marker / pulsing / popups
+// 4. Expanded MEDININAGAR_BOUNDS
+assert.ok(leafletContent.includes('23.7646') && leafletContent.includes('84.4945'), 'LeafletOfflineMap must use expanded bounds [23.7646, 83.6455] to [24.3186, 84.4945]');
+console.log('  ✔ Expanded MEDININAGAR_BOUNDS [23.7646, 83.6455] to [24.3186, 84.4945] verified.');
+
+// 5. Clean Solid Container (No static backdrop image)
+assert.ok(!leafletContent.includes('medininagar-real-light.png') && !leafletContent.includes('medininagar-real-dark.png'), 'Static background images removed in favor of clean solid container');
+assert.ok(leafletContent.includes('background-color: #f2efe9') && leafletContent.includes('background-color: #12161f'), 'Clean solid container background styling configured');
+console.log('  ✔ Clean solid container background verified (no static background images).');
+
+// 6. Reset Trigger & Smooth Recenter
+assert.ok(leafletContent.includes('resetTrigger') && leafletContent.includes('flyTo'), 'resetTrigger and flyTo smooth recentering configured');
+assert.ok(leafletContent.includes('animate: true'), 'animate: true maintained for zoom changes');
+console.log('  ✔ resetTrigger, flyTo recentering, and animate: true verified.');
+
+// 7. Absence of marker / pulsing / popups
 assert.ok(!leafletContent.includes('L.marker'), 'L.marker must not be present');
 assert.ok(!leafletContent.includes('bindPopup'), 'bindPopup must not be present');
 assert.ok(!leafletContent.includes('leaflet-pulsing-marker-wrapper'), 'leaflet-pulsing-marker-wrapper must not be present');
 assert.ok(!leafletContent.includes('animate-ping'), 'animate-ping must not be present in LeafletOfflineMap');
 console.log('  ✔ Markers, popups, and pulsing radar animations completely removed.');
 
-// 5. Offline tile path
+// 8. Offline tile path
 assert.ok(leafletContent.includes('assets/tiles/{z}/{x}/{y}.png'), 'Local tile template must be used');
 console.log('  ✔ Local tile URL template correctly references pre-cached assets.');
 

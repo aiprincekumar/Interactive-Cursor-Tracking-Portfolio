@@ -13,7 +13,7 @@ console.log('--- RUNNING LEAFLET + LOCAL TILES VERIFICATION ---');
 const tilesDir = path.join(rootDir, 'public/assets/tiles');
 assert.ok(fs.existsSync(tilesDir), 'public/assets/tiles directory must exist');
 
-const zoomLevels = ['12', '13', '14', '15'];
+const zoomLevels = ['10', '11', '12', '13', '14', '15'];
 let totalTiles = 0;
 
 for (const z of zoomLevels) {
@@ -35,8 +35,8 @@ for (const z of zoomLevels) {
   }
 }
 
-assert.strictEqual(totalTiles, 88, `Expected exactly 88 pre-cached tiles across zoom levels 12, 13, 14, 15, but found ${totalTiles}`);
-console.log(`✅ PASS: Found all ${totalTiles} valid PNG tiles across zoom levels 12 (35), 13 (35), 14 (9), 15 (9).`);
+assert.ok(totalTiles === 176, `Expected exactly 176 pre-cached tiles across zoom levels 10, 11, 12, 13, 14, 15, but found ${totalTiles}`);
+console.log(`✅ PASS: Found all ${totalTiles} valid PNG tiles across zoom levels 10, 11, 12, 13, 14, 15.`);
 
 // 2. Check LeafletOfflineMap.jsx
 const leafletMapPath = path.join(rootDir, 'src/components/LeafletOfflineMap.jsx');
@@ -80,8 +80,28 @@ assert.ok(
   'LeafletOfflineMap.jsx must configure maxBoundsViscosity: 1.0'
 );
 assert.ok(
-  leafletContent.includes('minZoom: 12') && leafletContent.includes('maxZoom: 15'),
-  'LeafletOfflineMap.jsx must constrain zoom bounds to [12, 15]'
+  leafletContent.includes('minZoom: 12') && leafletContent.includes('maxZoom: 15') && leafletContent.includes('minNativeZoom: 12') && leafletContent.includes('maxNativeZoom: 15'),
+  'LeafletOfflineMap.jsx must configure zoom bounds [12, 15] with minNativeZoom: 12 and maxNativeZoom: 15'
+);
+assert.ok(
+  leafletContent.includes('keepBuffer: 6') && leafletContent.includes('updateWhenZooming: true'),
+  'LeafletOfflineMap.jsx must configure keepBuffer: 6 and updateWhenZooming: true'
+);
+assert.ok(
+  !leafletContent.includes('medininagar-real-light.png') && !leafletContent.includes('medininagar-real-dark.png'),
+  'LeafletOfflineMap.jsx must NOT use static background images in styles (clean solid background)'
+);
+assert.ok(
+  leafletContent.includes('background-color: #f2efe9') && leafletContent.includes('background-color: #12161f'),
+  'LeafletOfflineMap.jsx must configure clean solid container styling for light and dark modes'
+);
+assert.ok(
+  leafletContent.includes('resetTrigger') && leafletContent.includes('flyTo'),
+  'LeafletOfflineMap.jsx must handle resetTrigger prop and invoke flyTo for smooth recentering'
+);
+assert.ok(
+  leafletContent.includes('23.7646') && leafletContent.includes('84.4945'),
+  'LeafletOfflineMap.jsx must configure expanded MEDININAGAR_BOUNDS [23.7646, 83.6455] to [24.3186, 84.4945]'
 );
 assert.ok(
   leafletContent.includes('zoom = 13') || leafletContent.includes('zoom: 13'),
@@ -100,8 +120,8 @@ assert.ok(
   'LeafletOfflineMap.jsx must NOT include personal HQ in offline map popup'
 );
 assert.ok(
-  leafletContent.includes('animate: false'),
-  'LeafletOfflineMap.jsx must set animate: false on programmatic zoom sync'
+  leafletContent.includes('animate: true'),
+  'LeafletOfflineMap.jsx must maintain animate: true for smooth zoom changes'
 );
 console.log('✅ PASS: LeafletOfflineMap.jsx component export, base URL resolution, absence of markers/popups, maxBounds locking, and bounds verified.');
 
@@ -110,10 +130,32 @@ const contactSectionPath = path.join(rootDir, 'src/components/ContactSection.jsx
 assert.ok(fs.existsSync(contactSectionPath), 'ContactSection.jsx must exist');
 const contactContent = fs.readFileSync(contactSectionPath, 'utf8');
 
+const isLazyImport = contactContent.includes("import('./LeafletOfflineMap')");
+const hasMapImport =
+  contactContent.includes("from './LeafletOfflineMap'") || isLazyImport;
 assert.ok(
-  contactContent.includes("import LeafletOfflineMap from './LeafletOfflineMap';"),
-  'ContactSection.jsx must import LeafletOfflineMap'
+  hasMapImport,
+  'ContactSection must import LeafletOfflineMap (statically or via React.lazy)'
 );
+
+if (isLazyImport) {
+  assert.ok(
+    contactContent.includes('Suspense'),
+    'ContactSection.jsx must import and use React Suspense when lazy loading LeafletOfflineMap'
+  );
+  const suspenseIndex = contactContent.indexOf('<Suspense');
+  const leafletIndex = contactContent.indexOf('<LeafletOfflineMap');
+  const suspenseCloseIndex = contactContent.indexOf('</Suspense>');
+  assert.ok(
+    suspenseIndex !== -1 &&
+      leafletIndex !== -1 &&
+      suspenseCloseIndex !== -1 &&
+      suspenseIndex < leafletIndex &&
+      leafletIndex < suspenseCloseIndex,
+    'ContactSection.jsx must wrap <LeafletOfflineMap /> within <Suspense>...</Suspense>'
+  );
+}
+
 assert.ok(
   contactContent.includes('<LeafletOfflineMap'),
   'ContactSection.jsx must render <LeafletOfflineMap />'
@@ -126,6 +168,22 @@ assert.ok(
   contactContent.includes('handleToggleMapMode'),
   'ContactSection.jsx must provide handleToggleMapMode toggle handler'
 );
-console.log('✅ PASS: ContactSection.jsx imports LeafletOfflineMap, renders component, and provides toggle UI.');
+assert.ok(
+  contactContent.includes("disabled={mapMode === 'osm' ? zoom >= 15 : zoom >= 18}"),
+  'ContactSection.jsx must configure zoom in ceiling at 15 for OSM mode'
+);
+assert.ok(
+  contactContent.includes("disabled={mapMode === 'osm' ? zoom <= 12 : zoom <= 11}"),
+  'ContactSection.jsx must configure zoom out floor at 12 for OSM mode'
+);
+assert.ok(
+  contactContent.includes('setResetTrigger((prev) => prev + 1)') || contactContent.includes('setResetTrigger'),
+  'ContactSection.jsx handleResetZoom must increment resetTrigger'
+);
+assert.ok(
+  contactContent.includes('setZoom(13)'),
+  'ContactSection.jsx handleResetZoom must set zoom to 13'
+);
+console.log(`✅ PASS: ContactSection.jsx imports LeafletOfflineMap (${isLazyImport ? 'lazy' : 'static'}), renders component, and provides toggle UI with zoom floor 12 and ceiling 15.`);
 
 console.log('🎉 ALL LEAFLET OFFLINE MAP INTEGRATION VERIFICATION CHECKS PASSED!');

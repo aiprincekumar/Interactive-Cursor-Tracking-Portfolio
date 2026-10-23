@@ -166,6 +166,14 @@ export default function HeroSection({
 
   // Direct DOM references for 120 FPS zero-render GPU updates (10 Total: 9 Directions + 1 Idle)
   const sectionRef = useRef(null);
+  // Section bounding rect cache to eliminate forced synchronous reflow (layout thrashing) on pointermove
+  const sectionRectRef = useRef(null);
+
+  const updateSectionRect = useCallback(() => {
+    if (sectionRef.current) {
+      sectionRectRef.current = sectionRef.current.getBoundingClientRect();
+    }
+  }, []);
   const stageRef = useRef(null);
   const bgBackdropRef = useRef(null);
   const imgIdleRef = useRef(null);
@@ -180,13 +188,20 @@ export default function HeroSection({
   const imgLowerRightRef = useRef(null);
   const reticleRef = useRef(null);
 
+  // Memoized position change handler (120 FPS high-frequency position sync: animStateRef reads posRef directly)
+  const handlePositionChange = useCallback((_newPos) => {
+    // 120 FPS high-frequency position sync: animStateRef and rAF tick loop read posRef directly
+  }, []);
+
   // Character Drag-and-Drop system (physics-ready, frictionless, 60/120fps - Disabled in Simple Mode)
   const {
     posRef,
     isHolding,
     isDragging,
     liftProgress,
+    liftProgressRef: hookLiftProgressRef,
     isDisplaced,
+    hasDraggedRef,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
@@ -195,11 +210,13 @@ export default function HeroSection({
   } = useDraggableCharacter({
     heroRef: sectionRef,
     characterRef: characterInnerRef,
+    stageRef,
     userScale,
     enabled: dragEnabled && !isSimpleMode,
     dragEnabled: dragEnabled && !isSimpleMode,
     dragBoundaryConstrained,
-    dragAutoSnapBack
+    dragAutoSnapBack,
+    onPositionChange: handlePositionChange
   });
 
   // Keep characterInnerRef scale and transformOrigin in sync reactively
@@ -210,8 +227,9 @@ export default function HeroSection({
     }
   }, [effectiveScale, activeTransformOrigin]);
 
-  const liftProgressRef = useRef(liftProgress);
-  liftProgressRef.current = liftProgress;
+  const fallbackLiftProgressRef = useRef(liftProgress);
+  fallbackLiftProgressRef.current = liftProgress;
+  const liftProgressRef = hookLiftProgressRef || fallbackLiftProgressRef;
 
   // Tracking state store
   const animStateRef = useRef({
@@ -230,32 +248,47 @@ export default function HeroSection({
     rafId: null
   });
 
+  const isHeroVisibleRef = useRef(true);
+  const prevOpsRef = useRef({
+    idle: -1,
+    center: -1,
+    upCenter: -1,
+    lowCenter: -1,
+    left: -1,
+    right: -1,
+    upLeft: -1,
+    lowLeft: -1,
+    upRight: -1,
+    lowRight: -1
+  });
+
   const isInsideHeroRef = useRef(isInsideHero);
   useEffect(() => {
     isInsideHeroRef.current = isInsideHero;
   }, [isInsideHero]);
 
-  // Preload and immediately decode all assets (Background + 10 Character Poses) into GPU memory
+  // Intelligent progressive loading & warm-up of non-critical character poses after first paint (FCP)
   useEffect(() => {
-    [
-      IMG_BG_HERO,
-      IMG_REAR,
-      IMG_CENTER_FRONT,
-      IMG_CENTER_UP,
-      IMG_LOWER_CENTER,
-      IMG_CENTER_LEFT,
-      IMG_CENTER_RIGHT,
-      IMG_UPPER_LEFT,
-      IMG_LOWER_LEFT,
-      IMG_UPPER_RIGHT,
-      IMG_LOWER_RIGHT
-    ].forEach(src => {
-      const img = new Image();
-      img.src = src;
-      if (typeof img.decode === 'function') {
-        img.decode().catch(() => {});
-      }
-    });
+    const nonCriticalPoses = [
+      IMG_CENTER_UP, IMG_LOWER_CENTER, IMG_CENTER_LEFT, IMG_CENTER_RIGHT,
+      IMG_CENTER_FRONT, IMG_UPPER_LEFT, IMG_LOWER_LEFT, IMG_UPPER_RIGHT, IMG_LOWER_RIGHT
+    ];
+
+    const warmUpCache = () => {
+      nonCriticalPoses.forEach((src) => {
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = src;
+      });
+    };
+
+    if ('requestIdleCallback' in window) {
+      const handle = window.requestIdleCallback(warmUpCache, { timeout: 1500 });
+      return () => window.cancelIdleCallback(handle);
+    } else {
+      const timer = setTimeout(warmUpCache, 800);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   // Continuous frame-rate independent rAF Animation Loop with delta time
@@ -311,6 +344,12 @@ export default function HeroSection({
     const tick = (currentTime) => {
       if (!active) return;
       const state = animStateRef.current;
+
+      // Viewport culling guard: pause loop when offscreen to eliminate unnecessary GPU/CPU cycles
+      if (!isHeroVisibleRef.current) {
+        state.rafId = null;
+        return;
+      }
 
       // Delta time in seconds, clamped between 1ms and 50ms
       const dt = Math.min(Math.max((currentTime - lastTime) / 1000, 0.001), 0.05);
@@ -520,17 +559,48 @@ export default function HeroSection({
         state.activePose = domPose;
       }
 
-      // Apply opacities directly to DOM (0 React re-renders)
-      if (imgIdleRef.current) imgIdleRef.current.style.opacity = idleOp.toFixed(3);
-      if (imgCenterRef.current) imgCenterRef.current.style.opacity = centerOp.toFixed(3);
-      if (imgUpperCenterRef.current) imgUpperCenterRef.current.style.opacity = upCenterOp.toFixed(3);
-      if (imgLowerCenterRef.current) imgLowerCenterRef.current.style.opacity = lowCenterOp.toFixed(3);
-      if (imgLeftRef.current) imgLeftRef.current.style.opacity = leftOp.toFixed(3);
-      if (imgRightRef.current) imgRightRef.current.style.opacity = rightOp.toFixed(3);
-      if (imgUpperLeftRef.current) imgUpperLeftRef.current.style.opacity = upLeftOp.toFixed(3);
-      if (imgLowerLeftRef.current) imgLowerLeftRef.current.style.opacity = lowLeftOp.toFixed(3);
-      if (imgUpperRightRef.current) imgUpperRightRef.current.style.opacity = upRightOp.toFixed(3);
-      if (imgLowerRightRef.current) imgLowerRightRef.current.style.opacity = lowRightOp.toFixed(3);
+      // Apply opacities directly to DOM with dirty-check guard (0 React re-renders, 0 redundant style mutations)
+      const prevOps = prevOpsRef.current;
+      if (imgIdleRef.current && Math.abs(idleOp - prevOps.idle) > 0.005) {
+        imgIdleRef.current.style.opacity = idleOp.toFixed(3);
+        prevOps.idle = idleOp;
+      }
+      if (imgCenterRef.current && Math.abs(centerOp - prevOps.center) > 0.005) {
+        imgCenterRef.current.style.opacity = centerOp.toFixed(3);
+        prevOps.center = centerOp;
+      }
+      if (imgUpperCenterRef.current && Math.abs(upCenterOp - prevOps.upCenter) > 0.005) {
+        imgUpperCenterRef.current.style.opacity = upCenterOp.toFixed(3);
+        prevOps.upCenter = upCenterOp;
+      }
+      if (imgLowerCenterRef.current && Math.abs(lowCenterOp - prevOps.lowCenter) > 0.005) {
+        imgLowerCenterRef.current.style.opacity = lowCenterOp.toFixed(3);
+        prevOps.lowCenter = lowCenterOp;
+      }
+      if (imgLeftRef.current && Math.abs(leftOp - prevOps.left) > 0.005) {
+        imgLeftRef.current.style.opacity = leftOp.toFixed(3);
+        prevOps.left = leftOp;
+      }
+      if (imgRightRef.current && Math.abs(rightOp - prevOps.right) > 0.005) {
+        imgRightRef.current.style.opacity = rightOp.toFixed(3);
+        prevOps.right = rightOp;
+      }
+      if (imgUpperLeftRef.current && Math.abs(upLeftOp - prevOps.upLeft) > 0.005) {
+        imgUpperLeftRef.current.style.opacity = upLeftOp.toFixed(3);
+        prevOps.upLeft = upLeftOp;
+      }
+      if (imgLowerLeftRef.current && Math.abs(lowLeftOp - prevOps.lowLeft) > 0.005) {
+        imgLowerLeftRef.current.style.opacity = lowLeftOp.toFixed(3);
+        prevOps.lowLeft = lowLeftOp;
+      }
+      if (imgUpperRightRef.current && Math.abs(upRightOp - prevOps.upRight) > 0.005) {
+        imgUpperRightRef.current.style.opacity = upRightOp.toFixed(3);
+        prevOps.upRight = upRightOp;
+      }
+      if (imgLowerRightRef.current && Math.abs(lowRightOp - prevOps.lowRight) > 0.005) {
+        imgLowerRightRef.current.style.opacity = lowRightOp.toFixed(3);
+        prevOps.lowRight = lowRightOp;
+      }
 
       // 3. Smooth Viewfinder Reticle follow
       if (reticleRef.current && state.isHovered) {
@@ -541,15 +611,65 @@ export default function HeroSection({
       state.rafId = localRafId;
     };
 
-    localRafId = requestAnimationFrame(tick);
-    animStateRef.current.rafId = localRafId;
+    // Viewport Culling: Observe section visibility to eliminate offscreen rAF overdraw
+    let observer = null;
+    if (typeof IntersectionObserver !== 'undefined' && sectionRef.current) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          const [entry] = entries;
+          const isVisible = entry ? entry.isIntersecting : true;
+          isHeroVisibleRef.current = isVisible;
+          if (isVisible) {
+            if (!animStateRef.current.rafId) {
+              lastTime = performance.now();
+              localRafId = requestAnimationFrame(tick);
+              animStateRef.current.rafId = localRafId;
+            }
+          } else {
+            if (animStateRef.current.rafId) {
+              cancelAnimationFrame(animStateRef.current.rafId);
+              animStateRef.current.rafId = null;
+              localRafId = null;
+            }
+          }
+        },
+        { threshold: 0.05 }
+      );
+      observer.observe(sectionRef.current);
+    }
+
+    if (isHeroVisibleRef.current) {
+      localRafId = requestAnimationFrame(tick);
+      animStateRef.current.rafId = localRafId;
+    }
+
     return () => {
       active = false;
+      if (observer) {
+        observer.disconnect();
+      }
       if (localRafId) {
         cancelAnimationFrame(localRafId);
       }
+      if (animStateRef.current.rafId) {
+        cancelAnimationFrame(animStateRef.current.rafId);
+        animStateRef.current.rafId = null;
+      }
     };
   }, [reducedMotion, isSimpleMode, forcedState, gazeMode, poseOverride, gyro.gyroStateRef, effectiveScale, activeTransformOrigin]);
+
+  // Cache section rect and update on resize / scroll with passive listeners
+  useEffect(() => {
+    updateSectionRect();
+
+    window.addEventListener('resize', updateSectionRect, { passive: true });
+    window.addEventListener('scroll', updateSectionRect, { passive: true });
+
+    return () => {
+      window.removeEventListener('resize', updateSectionRect);
+      window.removeEventListener('scroll', updateSectionRect);
+    };
+  }, [updateSectionRect]);
 
   // High-performance passive window pointer tracking (0ms input latency, no React event queue overhead - Disabled in Simple Mode)
   useEffect(() => {
@@ -566,10 +686,13 @@ export default function HeroSection({
       state.isPointerInteracting = true;
       state.lastPointerTime = performance.now();
 
-      const section = sectionRef.current;
-      if (!section) return;
-
-      const rect = section.getBoundingClientRect();
+      let rect = sectionRectRef.current;
+      if (!rect) {
+        if (!sectionRef.current) return;
+        updateSectionRect();
+        rect = sectionRectRef.current;
+        if (!rect) return;
+      }
       const isInside = (
         clientX >= rect.left &&
         clientX <= rect.right &&
@@ -635,7 +758,7 @@ export default function HeroSection({
       window.removeEventListener('touchend', handlePointerUp);
       window.removeEventListener('touchcancel', handlePointerUp);
     };
-  }, [reducedMotion, isSimpleMode, setIsInsideHero, gyro.gyroStateRef]);
+  }, [reducedMotion, isSimpleMode, setIsInsideHero, gyro.gyroStateRef, updateSectionRect]);
 
   // Floating HUD notification trigger
   const triggerHud = useCallback((customMsg = null, duration = 1500) => {
@@ -695,7 +818,7 @@ export default function HeroSection({
     triggerHud();
   }, [triggerHud, setCharacterZoom]);
 
-  // Non-passive wheel listener (Ctrl/Meta + Wheel) and 2-finger pinch gesture (Disabled in Simple Mode)
+  // Dynamic passive/non-passive touch listener pattern (Point 12) & wheel listener (Disabled in Simple Mode)
   const isPinchingRef = useRef(false);
   const touchDistRef = useRef(null);
   const touchStartScaleRef = useRef(1.0);
@@ -707,15 +830,50 @@ export default function HeroSection({
 
     const handleWheel = (e) => {
       if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         setIsTransitioning(false);
         const delta = -e.deltaY;
         const zoomStep = Math.sign(delta) * Math.min(Math.abs(delta) * 0.002, 0.15);
         setUserScale(prev => {
           const next = Math.min(2.0, Math.max(0.5, Math.round((prev + zoomStep) * 100) / 100));
+          if (setCharacterZoom) setCharacterZoom(next);
           return next;
         });
         triggerHud();
+      }
+    };
+
+    let isTouchMoveAttached = false;
+
+    const handlePinchMove = (e) => {
+      if (e.touches.length === 2 && touchDistRef.current) {
+        if (e.cancelable) e.preventDefault();
+        setIsTransitioning(false);
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const currentDist = Math.hypot(dx, dy);
+        if (touchDistRef.current > 0) {
+          const ratio = currentDist / touchDistRef.current;
+          const targetScale = touchStartScaleRef.current * ratio;
+          const clamped = Math.min(2.0, Math.max(0.5, Math.round(targetScale * 100) / 100));
+          setUserScale(clamped);
+          if (setCharacterZoom) setCharacterZoom(clamped);
+          triggerHud();
+        }
+      }
+    };
+
+    const attachTouchMove = () => {
+      if (!isTouchMoveAttached) {
+        heroEl.addEventListener('touchmove', handlePinchMove, { passive: false });
+        isTouchMoveAttached = true;
+      }
+    };
+
+    const detachTouchMove = () => {
+      if (isTouchMoveAttached) {
+        heroEl.removeEventListener('touchmove', handlePinchMove);
+        isTouchMoveAttached = false;
       }
     };
 
@@ -726,49 +884,33 @@ export default function HeroSection({
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         touchDistRef.current = Math.hypot(dx, dy);
         touchStartScaleRef.current = userScaleRef.current;
-      }
-    };
-
-    const handleTouchMove = (e) => {
-      if (e.touches.length === 2 && touchDistRef.current) {
-        e.preventDefault();
-        setIsTransitioning(false);
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        const currentDist = Math.hypot(dx, dy);
-        if (touchDistRef.current > 0) {
-          const ratio = currentDist / touchDistRef.current;
-          const targetScale = touchStartScaleRef.current * ratio;
-          const clamped = Math.min(2.0, Math.max(0.5, Math.round(targetScale * 100) / 100));
-          setUserScale(clamped);
-          triggerHud();
-        }
+        attachTouchMove();
       }
     };
 
     const handleTouchEnd = (e) => {
       if (e.touches.length < 2) {
         touchDistRef.current = null;
+        detachTouchMove();
         setTimeout(() => {
           isPinchingRef.current = false;
         }, 300);
       }
     };
 
-    heroEl.addEventListener('wheel', handleWheel, { passive: false });
+    heroEl.addEventListener('wheel', handleWheel, { passive: true });
     heroEl.addEventListener('touchstart', handleTouchStart, { passive: true });
-    heroEl.addEventListener('touchmove', handleTouchMove, { passive: false });
     heroEl.addEventListener('touchend', handleTouchEnd, { passive: true });
     heroEl.addEventListener('touchcancel', handleTouchEnd, { passive: true });
 
     return () => {
       heroEl.removeEventListener('wheel', handleWheel);
       heroEl.removeEventListener('touchstart', handleTouchStart);
-      heroEl.removeEventListener('touchmove', handleTouchMove);
+      detachTouchMove();
       heroEl.removeEventListener('touchend', handleTouchEnd);
       heroEl.removeEventListener('touchcancel', handleTouchEnd);
     };
-  }, [isSimpleMode, triggerHud]);
+  }, [isSimpleMode, triggerHud, setCharacterZoom]);
 
   // Trigger Shutter Snap Action (Disabled in Simple Mode)
   const triggerCapture = useCallback(() => {
@@ -855,7 +997,11 @@ export default function HeroSection({
           state.targetNormY = 0;
         }
       }}
-      onClick={isSimpleMode ? undefined : () => {
+      onClick={isSimpleMode ? undefined : (e) => {
+        if (hasDraggedRef?.current) {
+          e.stopPropagation();
+          return;
+        }
         if (gyro.permissionState === 'prompt') {
           gyro.requestPermission().then((granted) => {
             if (granted) triggerHud('Gyro Enabled & Active');
@@ -868,7 +1014,7 @@ export default function HeroSection({
         isSimpleMode
           ? 'min-h-[75vh] md:min-h-[85vh] py-12 md:py-16'
           : 'h-screen min-h-screen'
-      } overflow-hidden select-none bg-[#FAF8F5] dark:bg-[#0B0813] flex items-center justify-center transition-colors duration-300 ${
+      } overflow-hidden select-none bg-[#FAF8F5] dark:bg-[#0B0813] flex items-center justify-center transition-colors duration-300 touch-pan-y ${
         !isSimpleMode && isInsideHero && !reducedMotion && customCursorEnabled ? 'cursor-none' : ''
       }`}
       style={{ touchAction: isSimpleMode ? 'auto' : 'pan-y' }}
@@ -912,6 +1058,13 @@ export default function HeroSection({
           onPointerMove={isSimpleMode ? undefined : handlePointerMove}
           onPointerUp={isSimpleMode ? undefined : handlePointerUp}
           onPointerCancel={isSimpleMode ? undefined : handlePointerUp}
+          onClick={isSimpleMode ? undefined : (e) => {
+            if (hasDraggedRef?.current) {
+              e.stopPropagation();
+              e.preventDefault();
+              return;
+            }
+          }}
           onDoubleClick={isSimpleMode ? undefined : (e) => {
             e.stopPropagation();
             resetPosition();
@@ -946,7 +1099,7 @@ export default function HeroSection({
               alt="Atul Verma"
               className="w-full h-full object-contain object-center pointer-events-none"
               loading="eager"
-              decoding="sync"
+              decoding="async"
             />
           ) : (
             <>
@@ -957,7 +1110,7 @@ export default function HeroSection({
                 className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
                 style={{ opacity: 1, willChange: 'opacity', transform: 'translateZ(0)' }}
                 loading="eager"
-                decoding="sync"
+                decoding="async"
               />
               <img
                 ref={imgCenterRef}
@@ -966,7 +1119,7 @@ export default function HeroSection({
                 className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
                 style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
                 loading="eager"
-                decoding="sync"
+                decoding="async"
               />
               <img
                 ref={imgUpperCenterRef}
@@ -975,7 +1128,7 @@ export default function HeroSection({
                 className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
                 style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
                 loading="eager"
-                decoding="sync"
+                decoding="async"
               />
               <img
                 ref={imgLowerCenterRef}
@@ -984,7 +1137,7 @@ export default function HeroSection({
                 className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
                 style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
                 loading="eager"
-                decoding="sync"
+                decoding="async"
               />
               <img
                 ref={imgLeftRef}
@@ -993,7 +1146,7 @@ export default function HeroSection({
                 className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
                 style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
                 loading="eager"
-                decoding="sync"
+                decoding="async"
               />
               <img
                 ref={imgRightRef}
@@ -1002,7 +1155,7 @@ export default function HeroSection({
                 className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
                 style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
                 loading="eager"
-                decoding="sync"
+                decoding="async"
               />
               <img
                 ref={imgUpperLeftRef}
@@ -1011,7 +1164,7 @@ export default function HeroSection({
                 className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
                 style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
                 loading="eager"
-                decoding="sync"
+                decoding="async"
               />
               <img
                 ref={imgLowerLeftRef}
@@ -1020,7 +1173,7 @@ export default function HeroSection({
                 className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
                 style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
                 loading="eager"
-                decoding="sync"
+                decoding="async"
               />
               <img
                 ref={imgUpperRightRef}
@@ -1029,7 +1182,7 @@ export default function HeroSection({
                 className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
                 style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
                 loading="eager"
-                decoding="sync"
+                decoding="async"
               />
               <img
                 ref={imgLowerRightRef}
@@ -1038,7 +1191,7 @@ export default function HeroSection({
                 className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
                 style={{ opacity: 0, willChange: 'opacity', transform: 'translateZ(0)' }}
                 loading="eager"
-                decoding="sync"
+                decoding="async"
               />
             </>
           )}

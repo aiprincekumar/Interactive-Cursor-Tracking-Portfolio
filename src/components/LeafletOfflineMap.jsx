@@ -4,13 +4,14 @@ import 'leaflet/dist/leaflet.css';
 
 const MEDININAGAR_COORDS = [24.0416, 84.0700];
 const MEDININAGAR_BOUNDS = [
-  [23.8054, 83.7598],
-  [24.2069, 84.3750]
+  [23.7646, 83.6455], // Southwest (expanded Palamu district coverage)
+  [24.3186, 84.4945]  // Northeast
 ];
 
 export default function LeafletOfflineMap({
   zoom = 13,
   onZoomChange,
+  resetTrigger,
   className = ''
 }) {
   const containerRef = useRef(null);
@@ -50,8 +51,13 @@ export default function LeafletOfflineMap({
     const tileLayer = L.tileLayer(tileUrl, {
       minZoom: 12,
       maxZoom: 15,
+      minNativeZoom: 12,
       maxNativeZoom: 15,
       bounds: MEDININAGAR_BOUNDS,
+      keepBuffer: 6,
+      updateWhenIdle: false,
+      updateWhenZooming: true,
+      errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
       attribution: '&copy; OpenStreetMap contributors'
     });
     tileLayer.addTo(map);
@@ -81,13 +87,20 @@ export default function LeafletOfflineMap({
     };
   }, []);
 
+  // Smooth Reset & Recenter to city level
+  useEffect(() => {
+    if (mapRef.current && resetTrigger > 0) {
+      mapRef.current.flyTo(MEDININAGAR_COORDS, 13, { duration: 0.6, easeLinearity: 0.25 });
+    }
+  }, [resetTrigger]);
+
   // Sync external zoom prop changes with Leaflet map
   useEffect(() => {
     if (mapRef.current) {
       const currentZoom = mapRef.current.getZoom();
       if (currentZoom !== zoom && zoom >= 12 && zoom <= 15) {
         isInternalZoomUpdate.current = true;
-        mapRef.current.setZoom(zoom, { animate: false });
+        mapRef.current.setZoom(zoom, { animate: true });
         isInternalZoomUpdate.current = false;
       }
     }
@@ -96,13 +109,23 @@ export default function LeafletOfflineMap({
   return (
     <div className={`relative w-full overflow-hidden select-none ${className}`}>
       <style>{`
+        /* Solid fallback container background to eliminate ghosting and heavy asset load */
+        .leaflet-offline-map-container.leaflet-container {
+          background-color: #f2efe9 !important;
+        }
+        .dark .leaflet-offline-map-container.leaflet-container {
+          background-color: #12161f !important;
+        }
         .dark .leaflet-tile-pane {
           filter: brightness(0.72) invert(1) contrast(2.6) hue-rotate(200deg) saturate(0.25);
+        }
+        .leaflet-tile {
+          transition: opacity 0.15s ease-in-out;
         }
       `}</style>
       <div
         ref={containerRef}
-        className="w-full h-full min-h-[460px] sm:min-h-[500px] z-0 focus:outline-none"
+        className="leaflet-offline-map-container w-full h-full min-h-[460px] sm:min-h-[500px] z-0 focus:outline-none bg-[#f2efe9] dark:bg-[#12161f]"
         tabIndex={-1}
         aria-label="Offline OpenStreetMap of Medininagar (Daltonganj), Jharkhand"
       />

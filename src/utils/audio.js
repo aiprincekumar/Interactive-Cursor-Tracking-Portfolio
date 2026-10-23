@@ -50,8 +50,6 @@ class SoundFX {
   setMasterVolume(volume) {
     let num = typeof volume === 'number' ? volume : parseFloat(volume);
     if (isNaN(num)) num = 0.8;
-    // Normalize percentage (e.g. 80 -> 0.8) if sent as > 1.0
-    if (num > 1.0) num = num / 100;
     this.masterVolume = Math.max(0.0, Math.min(1.0, parseFloat(num.toFixed(2))));
     if (this.ctx && this.masterGain) {
       const t = this.ctx.currentTime;

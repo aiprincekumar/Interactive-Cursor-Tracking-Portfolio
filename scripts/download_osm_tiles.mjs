@@ -19,7 +19,23 @@ const tilesBaseDir = path.join(rootDir, 'public', 'assets', 'tiles');
 
 const LAT = 24.0416;
 const LNG = 84.0700;
-const ZOOMS = [12, 13, 14, 15];
+
+// Explicit zoom grid specifications covering Medininagar (24.0416, 84.0700):
+// - Zoom 10: Center (750, 441), dx: -1..2 (4 cols: 749..752), dy: -1..1 (3 rows: 440..442) = 12 tiles
+// - Zoom 11: Center (1501, 883), dx: -2..3 (6 cols: 1499..1504), dy: -1..2 (4 rows: 882..885) = 24 tiles
+// - Zoom 12: Maintain existing 35 tiles (7 cols: 3001..3007, 5 rows: 1764..1768) = 35 tiles
+// - Zoom 13: Maintain existing 35 tiles (7 cols: 6006..6012, 5 rows: 3530..3534) = 35 tiles
+// - Zoom 14: Expand from 9 to 35 tiles (7 cols: 12015..12021, 5 rows: 7062..7066) = 35 tiles
+// - Zoom 15: Expand from 9 to 35 tiles (7 cols: 24033..24039, 5 rows: 14126..14130) = 35 tiles
+// Total: 176 physical PNG tiles.
+const ZOOM_CONFIGS = [
+  { zoom: 10, center: { x: 750, y: 441 }, minDx: -1, maxDx: 2, minDy: -1, maxDy: 1 },
+  { zoom: 11, center: { x: 1501, y: 883 }, minDx: -2, maxDx: 3, minDy: -1, maxDy: 2 },
+  { zoom: 12, center: { x: 3004, y: 1766 }, minDx: -3, maxDx: 3, minDy: -2, maxDy: 2 },
+  { zoom: 13, center: { x: 6009, y: 3532 }, minDx: -3, maxDx: 3, minDy: -2, maxDy: 2 },
+  { zoom: 14, center: { x: 12018, y: 7064 }, minDx: -3, maxDx: 3, minDy: -2, maxDy: 2 },
+  { zoom: 15, center: { x: 24036, y: 14128 }, minDx: -3, maxDx: 3, minDy: -2, maxDy: 2 },
+];
 
 function lon2tileFloat(lon, zoom) {
   return ((lon + 180) / 360) * Math.pow(2, zoom);
@@ -136,7 +152,7 @@ async function fetchTileWithRetry(z, x, y, maxRetries = 4) {
 async function main() {
   console.log(`=== OpenStreetMap Tile Downloader ===`);
   console.log(`Target location: Medininagar (lat: ${LAT}, lng: ${LNG})`);
-  console.log(`Zooms: ${ZOOMS.join(', ')}`);
+  console.log(`Zooms: ${ZOOM_CONFIGS.map(c => c.zoom).join(', ')}`);
   console.log(`Base directory: ${tilesBaseDir}\n`);
 
   fs.mkdirSync(tilesBaseDir, { recursive: true });
@@ -145,23 +161,21 @@ async function main() {
   let totalProcessed = 0;
   let totalBytes = 0;
 
-  for (const z of ZOOMS) {
-    const cx = Math.floor(lon2tileFloat(LNG, z));
-    const cy = Math.floor(lat2tileFloat(LAT, z));
+  const expectedTotal = ZOOM_CONFIGS.reduce(
+    (sum, cfg) => sum + (cfg.maxDx - cfg.minDx + 1) * (cfg.maxDy - cfg.minDy + 1),
+    0
+  );
+
+  for (const cfg of ZOOM_CONFIGS) {
+    const { zoom: z, center, minDx, maxDx, minDy, maxDy } = cfg;
+    const cx = center.x;
+    const cy = center.y;
     console.log(`Zoom ${z}: Center tile is (${cx}, ${cy}) [Float: x=${lon2tileFloat(LNG, z).toFixed(4)}, y=${lat2tileFloat(LAT, z).toFixed(4)}]`);
 
     const zoomDir = path.join(tilesBaseDir, String(z));
     fs.mkdirSync(zoomDir, { recursive: true });
 
     const tilesInZoom = [];
-
-    // 7x5 wide grid for z=12 and z=13 (dx: -3..3, dy: -2..2)
-    // 3x3 supporting center grid for z=14 and z=15 (dx: -1..1, dy: -1..1)
-    const isWide = (z === 12 || z === 13);
-    const minDx = isWide ? -3 : -1;
-    const maxDx = isWide ? 3 : 1;
-    const minDy = isWide ? -2 : -1;
-    const maxDy = isWide ? 2 : 1;
 
     for (let dx = minDx; dx <= maxDx; dx++) {
       const x = cx + dx;
@@ -244,14 +258,14 @@ async function main() {
   }
 
   console.log('\n=== Summary ===');
-  console.log(`Total tiles verified: ${verifiedCount}/88`);
+  console.log(`Total tiles verified: ${verifiedCount}/${expectedTotal}`);
   console.log(`Total data size: ${(totalBytes / 1024).toFixed(2)} KB`);
 
-  if (!allValid || verifiedCount !== 88) {
-    console.error('ERROR: One or more tiles failed verification!');
+  if (!allValid || verifiedCount !== expectedTotal) {
+    console.error(`ERROR: Verification failed! Expected ${expectedTotal} tiles, but got ${verifiedCount} valid tiles.`);
     process.exit(1);
   } else {
-    console.log('SUCCESS: All 88 authentic OpenStreetMap raster tiles successfully downloaded, verified (>5KB + valid PNG), and stored for offline serving!');
+    console.log(`SUCCESS: All ${expectedTotal} authentic OpenStreetMap raster tiles successfully downloaded, verified (>5KB + valid PNG), and stored for offline serving!`);
   }
 }
 

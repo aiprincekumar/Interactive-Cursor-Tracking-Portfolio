@@ -115,14 +115,14 @@ test('Brand anchor link does NOT toggle role bar and safely dismisses open sub-b
 test('Desktop nav links safely dismiss floating role bar upon section navigation', () => {
   const navMapIdx = navContent.indexOf('navLinks.map((link) => {');
   assert(navMapIdx !== -1, 'Desktop nav link loop must exist');
-  const navMapBlock = navContent.slice(navMapIdx, navMapIdx + 450);
+  const navMapBlock = navContent.slice(navMapIdx, navMapIdx + 800);
   assert(navMapBlock.includes('setIsRoleBarOpen(false)'), 'Nav links click must dismiss role bar if open');
 });
 
 test('Brand group has zero nested interactive HTML tags', () => {
   const brandGroupCommentIdx = navContent.indexOf('Brand Group: Universal Role Switcher Avatar Button + Atul Verma Home Link');
   assert(brandGroupCommentIdx !== -1, 'Brand group comment must exist');
-  const groupBlock = navContent.slice(brandGroupCommentIdx, brandGroupCommentIdx + 4500);
+  const groupBlock = navContent.slice(brandGroupCommentIdx, brandGroupCommentIdx + 6000);
   
   // Verify avatar button closes before brand anchor opens
   const buttonOpen = groupBlock.indexOf('<button');

@@ -1,4 +1,5 @@
-import JSZip from 'jszip';
+// On-demand archival library: JSZip is dynamically imported on export trigger
+// to prevent loading archival weight during initial bundle execution.
 
 /**
  * Formats a Date object, timestamp string, or epoch into:
@@ -369,6 +370,16 @@ export async function downloadSinglePolaroid(photo) {
 export async function exportAllPolaroidsZip(photos, onProgress) {
   if (!photos || photos.length === 0) {
     throw new Error('No polaroid photos to export');
+  }
+
+  // On-demand dynamic import of JSZip to prevent loading in initial bundle
+  let JSZip;
+  try {
+    const jszipModule = await import('jszip');
+    JSZip = jszipModule.default || jszipModule;
+  } catch (err) {
+    console.error('Failed to dynamically load JSZip archival library:', err);
+    throw new Error('ZIP archival library failed to load. Please check your network connection and try again.');
   }
 
   const zip = new JSZip();

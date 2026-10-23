@@ -500,6 +500,52 @@ textarea:focus-visible,
 }
 
 /* ==========================================================================
+   Universal Interactive Pointer Cursor Enforcement
+   Ensure standard cursor is pointer for all buttons, links, and clickable roles
+   both globally and when custom cursor is active or disabled.
+   ========================================================================== */
+a,
+button,
+[role="button"],
+[role="tab"],
+[role="radio"],
+[role="menuitem"],
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+input[type="range"],
+select,
+summary,
+label[for],
+label:has(input),
+.cursor-pointer,
+[data-cursor-clickable="true"] {
+  cursor: pointer !important;
+}
+
+/* Ensure all child elements inside interactive containers inherit the pointer cursor */
+a *,
+button *,
+[role="button"] *,
+[role="tab"] *,
+[role="radio"] *,
+[role="menuitem"] *,
+.cursor-pointer *,
+[data-cursor-clickable="true"] * {
+  cursor: pointer !important;
+}
+
+/* SVG icons inside buttons/links should not intercept pointer events or revert cursor */
+button svg,
+button svg *,
+[role="button"] svg,
+[role="button"] svg *,
+a svg,
+a svg * {
+  pointer-events: none;
+}
+
+/* ==========================================================================
    Custom Cursor Fallback & System Pointer Enforcement
    ========================================================================== */
 .custom-cursor-disabled,
@@ -515,7 +561,19 @@ textarea:focus-visible,
 .custom-cursor-disabled [role="menuitem"],
 .custom-cursor-disabled input[type="range"],
 .custom-cursor-disabled select,
-.custom-cursor-disabled label {
+.custom-cursor-disabled label,
+.custom-cursor-disabled .cursor-pointer,
+.custom-cursor-disabled [data-cursor-clickable="true"] {
   cursor: pointer !important;
 }
+
+.custom-cursor-disabled a *,
+.custom-cursor-disabled button *,
+.custom-cursor-disabled [role="button"] *,
+.custom-cursor-disabled [role="tab"] *,
+.custom-cursor-disabled .cursor-pointer *,
+.custom-cursor-disabled [data-cursor-clickable="true"] * {
+  cursor: pointer !important;
+}
+
 

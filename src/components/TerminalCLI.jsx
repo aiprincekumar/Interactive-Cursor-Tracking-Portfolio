@@ -767,6 +767,8 @@ export default function TerminalCLI({
 
   // Global ESC key listener (closes matrix first, or closes terminal)
   useEffect(() => {
+    if (!isOpen && !isMatrixActive) return;
+
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         if (isMatrixActive) {
@@ -831,6 +833,8 @@ export default function TerminalCLI({
   };
 
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleMove = (clientX, clientY) => {
       // 1. Resizing listener with sensible constraints
       if (isResizingRef.current) {
@@ -909,7 +913,7 @@ export default function TerminalCLI({
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleEnd);
     };
-  }, []);
+  }, [isOpen]);
 
   // Center window on initial open or screen resize
   useEffect(() => {

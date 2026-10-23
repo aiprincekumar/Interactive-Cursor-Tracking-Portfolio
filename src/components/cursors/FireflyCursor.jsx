@@ -9,6 +9,41 @@ import React, { useEffect, useRef } from 'react';
  * - Additive canvas floating ember & spore trail with warm glowing decay
  * - Hardware-accelerated GPU transforms (60-120+ FPS lock)
  */
+const MAX_PARTICLES = 60;
+
+const BURST_PALETTE = [
+  'rgb(255, 230, 100)',
+  'rgb(200, 255, 100)',
+  'rgb(255, 190, 50)',
+  'rgb(255, 255, 200)'
+];
+
+const EMBER_PALETTE = [
+  'rgb(240, 255, 80)',
+  'rgb(255, 220, 50)',
+  'rgb(180, 255, 100)',
+  'rgb(255, 245, 150)'
+];
+
+function createFireflyParticlePool() {
+  const pool = new Array(MAX_PARTICLES);
+  for (let i = 0; i < MAX_PARTICLES; i++) {
+    pool[i] = {
+      active: false,
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      size: 0,
+      alpha: 0,
+      decay: 0,
+      color: 'rgb(240, 255, 80)',
+      isEmber: true
+    };
+  }
+  return pool;
+}
+
 export default function FireflyCursor({
   heroRef,
   isInsideHero,
@@ -38,7 +73,7 @@ export default function FireflyCursor({
     isVisible: true
   });
 
-  const particlesRef = useRef([]);
+  const particlesRef = useRef(createFireflyParticlePool());
 
   useEffect(() => {
     isInsideHeroRef.current = isInsideHero;
@@ -57,6 +92,27 @@ export default function FireflyCursor({
   }, [trailEnabled]);
 
   useEffect(() => {
+    const spawnParticle = (props) => {
+      const pool = particlesRef.current;
+      for (let i = 0; i < MAX_PARTICLES; i++) {
+        const p = pool[i];
+        if (!p.active) {
+          p.active = true;
+          p.x = props.x;
+          p.y = props.y;
+          p.vx = props.vx;
+          p.vy = props.vy;
+          p.size = props.size;
+          p.alpha = props.alpha;
+          p.decay = props.decay;
+          p.color = props.color;
+          p.isEmber = props.isEmber ?? true;
+          return p;
+        }
+      }
+      return null;
+    };
+
     const handlePointerMove = (e) => {
       const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
       const clientY = e.clientY ?? (e.touches && e.touches[0]?.clientY);
@@ -80,16 +136,10 @@ export default function FireflyCursor({
     const handlePointerDown = () => {
       if (!trailEnabledRef.current) return;
       const state = posRef.current;
-      const palette = [
-        'rgba(255, 230, 100,',
-        'rgba(200, 255, 100,',
-        'rgba(255, 190, 50,',
-        'rgba(255, 255, 200,'
-      ];
       for (let i = 0; i < 9; i++) {
         const ang = Math.random() * Math.PI * 2;
         const spd = Math.random() * 65 + 30;
-        particlesRef.current.push({
+        spawnParticle({
           x: state.currentX,
           y: state.currentY,
           vx: Math.cos(ang) * spd,
@@ -97,7 +147,7 @@ export default function FireflyCursor({
           size: Math.random() * 3.2 + 1.6,
           alpha: 1.0,
           decay: Math.random() * 1.0 + 0.9,
-          color: palette[Math.floor(Math.random() * palette.length)],
+          color: BURST_PALETTE[Math.floor(Math.random() * BURST_PALETTE.length)],
           isEmber: true
         });
       }
@@ -215,65 +265,59 @@ export default function FireflyCursor({
           if (emitDist >= step) {
             const count = Math.min(Math.floor(emitDist / step), 3);
             for (let k = 1; k <= count; k++) {
-              if (particlesRef.current.length < 55) {
-                const t = k / count;
-                const px = state.lastEmitX + (renderX - state.lastEmitX) * t + (Math.random() - 0.5) * 5;
-                const py = state.lastEmitY + (renderY - state.lastEmitY) * t + (Math.random() - 0.5) * 5;
+              const t = k / count;
+              const px = state.lastEmitX + (renderX - state.lastEmitX) * t + (Math.random() - 0.5) * 5;
+              const py = state.lastEmitY + (renderY - state.lastEmitY) * t + (Math.random() - 0.5) * 5;
+              const color = EMBER_PALETTE[Math.floor(Math.random() * EMBER_PALETTE.length)];
 
-                const palette = [
-                  'rgba(240, 255, 80,',
-                  'rgba(255, 220, 50,',
-                  'rgba(180, 255, 100,',
-                  'rgba(255, 245, 150,'
-                ];
-                const color = palette[Math.floor(Math.random() * palette.length)];
-
-                particlesRef.current.push({
-                  x: px,
-                  y: py,
-                  vx: (Math.random() - 0.5) * 12 - state.vx * 0.04,
-                  vy: -Math.random() * 18 - 8, // gentle upward drift like real firefly sparks
-                  size: Math.random() * 2.8 + 1.4,
-                  alpha: 0.85,
-                  decay: Math.random() * 0.7 + 0.9,
-                  color,
-                  isEmber: true
-                });
-              }
+              spawnParticle({
+                x: px,
+                y: py,
+                vx: (Math.random() - 0.5) * 12 - state.vx * 0.04,
+                vy: -Math.random() * 18 - 8, // gentle upward drift like real firefly sparks
+                size: Math.random() * 2.8 + 1.4,
+                alpha: 0.85,
+                decay: Math.random() * 0.7 + 0.9,
+                color,
+                isEmber: true
+              });
             }
             state.lastEmitX = renderX;
             state.lastEmitY = renderY;
           }
 
           // Render embers
-          if (particlesRef.current.length > 0) {
-            ctx.save();
-            ctx.scale(dpr, dpr);
-            ctx.globalCompositeOperation = 'lighter';
+          ctx.save();
+          ctx.scale(dpr, dpr);
+          ctx.globalCompositeOperation = 'lighter';
 
-            for (let i = particlesRef.current.length - 1; i >= 0; i--) {
-              const p = particlesRef.current[i];
-              p.x += p.vx * dt;
-              p.y += p.vy * dt;
-              p.vx *= 0.96;
-              p.vy *= 0.96;
-              p.alpha -= p.decay * dt;
-              p.size = Math.max(0, p.size - dt * 0.5);
+          for (let i = 0; i < MAX_PARTICLES; i++) {
+            const p = particlesRef.current[i];
+            if (!p.active) continue;
 
-              if (p.alpha <= 0 || p.size <= 0) {
-                particlesRef.current.splice(i, 1);
-              } else {
-                ctx.fillStyle = `${p.color} ${p.alpha.toFixed(2)})`;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
-              }
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.vx *= 0.96;
+            p.vy *= 0.96;
+            p.alpha -= p.decay * dt;
+            p.size = Math.max(0, p.size - dt * 0.5);
+
+            if (p.alpha <= 0 || p.size <= 0) {
+              p.active = false;
+            } else {
+              ctx.globalAlpha = Math.max(0, p.alpha);
+              ctx.fillStyle = p.color;
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+              ctx.fill();
             }
-            ctx.restore();
           }
+          ctx.restore();
         }
       } else if (!trailEnabledRef.current && canvasRef.current) {
-        if (particlesRef.current.length > 0) particlesRef.current = [];
+        for (let i = 0; i < MAX_PARTICLES; i++) {
+          particlesRef.current[i].active = false;
+        }
         const ctx = canvasRef.current.getContext('2d');
         if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
@@ -285,6 +329,9 @@ export default function FireflyCursor({
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      for (let i = 0; i < MAX_PARTICLES; i++) {
+        particlesRef.current[i].active = false;
+      }
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('touchmove', handlePointerMove);
       window.removeEventListener('pointerdown', handlePointerDown);

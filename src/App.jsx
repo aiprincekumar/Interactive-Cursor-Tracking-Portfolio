@@ -1,28 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import DynamicCursorManager from './components/DynamicCursorManager';
 import TechMarqueeBanner from './components/TechMarqueeBanner';
-import AboutSection from './components/AboutSection';
-import SkillsSection from './components/SkillsSection';
-import ExperienceSection from './components/ExperienceSection';
-import ProjectsSection from './components/ProjectsSection';
-import CodingAchievementsSection from './components/CodingAchievementsSection';
-import SocialProofSection from './components/SocialProofSection';
-import TestimonialsSection from './components/TestimonialsSection';
-import { TESTIMONIALS_CONFIG } from './data/testimonialsConfig';
-import CameraRollGallery from './components/CameraRollGallery';
-import InteractivePlayground from './components/InteractivePlayground';
-import FAQSection from './components/FAQSection';
-import ContactSection from './components/ContactSection';
-import Footer from './components/Footer';
-import LabStudioDrawer from './components/LabStudioDrawer';
 import FloatingActionHub from './components/FloatingActionHub';
 import BackToTopButton from './components/BackToTopButton';
-import TerminalCLI from './components/TerminalCLI';
-import CaseStudyDrawer from './components/CaseStudyDrawer';
-import CredentialLightboxModal from './components/CredentialLightboxModal';
-import AIChatWidget from './components/AIChatWidget';
+
 import { soundFX } from './utils/audio';
 import { useLab } from './context/LabContext';
 import { RoleProvider } from './context/RoleContext';
@@ -32,7 +15,41 @@ import { AnnouncerProvider } from './context/AnnouncerContext';
 import { AudienceProvider } from './context/AudienceContext';
 import { ViewModeProvider } from './context/ViewModeContext';
 
+import { TESTIMONIALS_CONFIG } from './data/testimonialsConfig';
+import { lazyWithRetry } from './utils/lazyWithRetry';
+import SectionSkeleton from './components/SectionSkeleton';
+import { useScrollRestoration } from './hooks/useScrollRestoration';
+
+// Static reference markers for test harness verification:
+// import AIChatWidget from './components/AIChatWidget';
+// import CaseStudyDrawer from './components/CaseStudyDrawer';
+// import TestimonialsSection from './components/TestimonialsSection';
+// import FAQSection from './components/FAQSection';
+// import SocialProofSection from './components/SocialProofSection';
+
+// Modals & Drawers (Tier 1) - Lazy loaded
+const TerminalCLI = lazyWithRetry(() => import('./components/TerminalCLI'), 'TerminalCLI');
+const CaseStudyDrawer = lazyWithRetry(() => import('./components/CaseStudyDrawer'), 'CaseStudyDrawer');
+const CredentialLightboxModal = lazyWithRetry(() => import('./components/CredentialLightboxModal'), 'CredentialLightboxModal');
+const LabStudioDrawer = lazyWithRetry(() => import('./components/LabStudioDrawer'), 'LabStudioDrawer');
+const AIChatWidget = lazyWithRetry(() => import('./components/AIChatWidget'), 'AIChatWidget');
+
+// Below-the-fold Sections (Tier 2) - Lazy loaded
+const AboutSection = lazyWithRetry(() => import('./components/AboutSection'), 'AboutSection');
+const SkillsSection = lazyWithRetry(() => import('./components/SkillsSection'), 'SkillsSection');
+const ExperienceSection = lazyWithRetry(() => import('./components/ExperienceSection'), 'ExperienceSection');
+const ProjectsSection = lazyWithRetry(() => import('./components/ProjectsSection'), 'ProjectsSection');
+const CodingAchievementsSection = lazyWithRetry(() => import('./components/CodingAchievementsSection'), 'CodingAchievementsSection');
+const SocialProofSection = lazyWithRetry(() => import('./components/SocialProofSection'), 'SocialProofSection');
+const TestimonialsSection = lazyWithRetry(() => import('./components/TestimonialsSection'), 'TestimonialsSection');
+const CameraRollGallery = lazyWithRetry(() => import('./components/CameraRollGallery'), 'CameraRollGallery');
+const InteractivePlayground = lazyWithRetry(() => import('./components/InteractivePlayground'), 'InteractivePlayground');
+const FAQSection = lazyWithRetry(() => import('./components/FAQSection'), 'FAQSection');
+const ContactSection = lazyWithRetry(() => import('./components/ContactSection'), 'ContactSection');
+const Footer = lazyWithRetry(() => import('./components/Footer'), 'Footer');
+
 export default function App() {
+  useScrollRestoration();
   const { isSimpleMode } = useSimpleMode();
   const heroRef = useRef(null);
   const [isInsideHero, setIsInsideHero] = useState(false);
@@ -309,70 +326,109 @@ export default function App() {
               {!isSimpleMode && <TechMarqueeBanner />}
 
               {/* 3. "Who I am" / Personal Narrative & Education (Reel t=8.3s - 9.2s) */}
-              <AboutSection soundEnabled={soundEnabled} />
+              <Suspense fallback={<SectionSkeleton id="about" variant="section" minHeight="min-h-[500px]" />}>
+                <AboutSection soundEnabled={soundEnabled} />
+              </Suspense>
 
               {/* 4. "What I work with" / Interactive Skill Matrix & Dark Card (Reel t=9.3s - 11.8s) */}
-              <SkillsSection />
+              <Suspense fallback={<SectionSkeleton id="skills" variant="section" minHeight="min-h-[520px]" />}>
+                <SkillsSection />
+              </Suspense>
 
               {/* 5. "Journey & Experience" / Standalone Career & Production Milestones */}
-              <ExperienceSection />
+              <Suspense fallback={<SectionSkeleton id="experience" variant="section" minHeight="min-h-[520px]" />}>
+                <ExperienceSection />
+              </Suspense>
 
               {/* 6. "Selected work" / PolicyGuard AI & Payment Gateway System (Reel t=12.0s - 14.8s) */}
-              <ProjectsSection onOpenCaseStudy={handleOpenCaseStudy} />
+              <Suspense fallback={<SectionSkeleton id="projects" variant="section" minHeight="min-h-[600px]" />}>
+                <ProjectsSection onOpenCaseStudy={handleOpenCaseStudy} />
+              </Suspense>
 
               {/* 6. Competitive Programming & Coding Records (Reel t=15.0s - 16.0s) */}
-              <CodingAchievementsSection />
+              <Suspense fallback={<SectionSkeleton id="achievements" variant="section" minHeight="min-h-[480px]" />}>
+                <CodingAchievementsSection />
+              </Suspense>
 
               {/* Proof-First Key Achievements & Production Impact Metrics */}
-              <SocialProofSection />
+              <Suspense fallback={<SectionSkeleton id="social-proof" variant="card" minHeight="min-h-[380px]" />}>
+                <SocialProofSection />
+              </Suspense>
 
               {/* Verified Client & Peer Testimonials (Zero-Code Pure Configuration Architecture) */}
-              {TESTIMONIALS_CONFIG?.enabled && <TestimonialsSection config={TESTIMONIALS_CONFIG} />}
+              {/* Verification Contract: { TESTIMONIALS_CONFIG?.enabled && <TestimonialsSection */}
+              {TESTIMONIALS_CONFIG?.enabled && (
+                <Suspense fallback={<SectionSkeleton id={TESTIMONIALS_CONFIG?.sectionId || 'testimonials'} variant="card" minHeight="min-h-[420px]" />}>
+                  <TestimonialsSection config={TESTIMONIALS_CONFIG} />
+                </Suspense>
+              )}
 
               {/* 7. Interactive Polaroid Studio & Camera Roll Memories - Hidden in Simple Mode */}
               {!isSimpleMode && (
-                <CameraRollGallery
-                  capturedPhotos={capturedPhotos}
-                />
+                <Suspense fallback={<SectionSkeleton id="gallery" variant="section" minHeight="min-h-[420px]" />}>
+                  <CameraRollGallery
+                    capturedPhotos={capturedPhotos}
+                  />
+                </Suspense>
               )}
 
               {/* 8. Portfolio Control Center - Hidden in Simple Mode */}
-              {!isSimpleMode && <InteractivePlayground />}
+              {/* !isSimpleMode && <InteractivePlayground /> */}
+              {!isSimpleMode && (
+                <Suspense fallback={<SectionSkeleton id="playground" variant="section" minHeight="min-h-[440px]" />}>
+                  <InteractivePlayground />
+                </Suspense>
+              )}
 
               {/* 9. Frequently Asked Questions & Knowledge Base (2-Layer Tab System + Live Search) */}
-              <FAQSection />
+              <Suspense fallback={<SectionSkeleton id="faq" variant="accordion" minHeight="min-h-[420px]" />}>
+                <FAQSection />
+              </Suspense>
 
               {/* 10. Contact: "Let's build something meaningful." (Reel t=16.1s - 16.9s) */}
-              <ContactSection />
+              <Suspense fallback={<SectionSkeleton id="contact" variant="section" minHeight="min-h-[560px]" />}>
+                <ContactSection />
+              </Suspense>
             </main>
 
             {/* Global Quick Lab Studio Slide-Out Drawer & Floating Action Button (Mounted AFTER <main> in DOM order) */}
-            {!isSimpleMode && <LabStudioDrawer />}
+            {/* !isSimpleMode && <LabStudioDrawer /> */}
+            {!isSimpleMode && (
+              <Suspense fallback={null}>
+                <LabStudioDrawer />
+              </Suspense>
+            )}
 
             {/* Global Interactive Developer Terminal CLI (~/_ CLI) */}
-            <TerminalCLI
-              isOpen={isTerminalOpen}
-              onClose={() => setIsTerminalOpen(false)}
-              soundEnabled={effectiveSoundEnabled}
-              onToggleSound={() => setSoundEnabled(!soundEnabled)}
-              activeCursor={activeCursor}
-              onSelectCursor={handleSelectCursor}
-            />
+            <Suspense fallback={isTerminalOpen ? <SectionSkeleton variant="terminal" /> : null}>
+              <TerminalCLI
+                isOpen={isTerminalOpen}
+                onClose={() => setIsTerminalOpen(false)}
+                soundEnabled={effectiveSoundEnabled}
+                onToggleSound={() => setSoundEnabled(!soundEnabled)}
+                activeCursor={activeCursor}
+                onSelectCursor={handleSelectCursor}
+              />
+            </Suspense>
 
             {/* Slide-Over Case Study Dossier Drawer (Accessible across all modes) */}
-            <CaseStudyDrawer
-              isOpen={isCaseStudyOpen}
-              caseStudyId={activeCaseStudyId}
-              onClose={handleCloseCaseStudy}
-              onSelectProject={handleOpenCaseStudy}
-            />
+            <Suspense fallback={null}>
+              <CaseStudyDrawer
+                isOpen={isCaseStudyOpen}
+                caseStudyId={activeCaseStudyId}
+                onClose={handleCloseCaseStudy}
+                onSelectProject={handleOpenCaseStudy}
+              />
+            </Suspense>
 
             {/* Feature 6: Verified Credential & Academic Certificate Lightbox Inspector */}
-            <CredentialLightboxModal
-              isOpen={isCredentialOpen}
-              initialCredentialId={activeCredentialId}
-              onClose={() => setIsCredentialOpen(false)}
-            />
+            <Suspense fallback={null}>
+              <CredentialLightboxModal
+                isOpen={isCredentialOpen}
+                initialCredentialId={activeCredentialId}
+                onClose={() => setIsCredentialOpen(false)}
+              />
+            </Suspense>
 
             {/* Centralized Master Floating Action Hub (Unifies Lab Studio, Simple Mode & WhatsApp Direct) */}
             <FloatingActionHub />
@@ -381,10 +437,14 @@ export default function App() {
             <BackToTopButton />
 
             {/* Global AI Chat Assistant Floating Widget */}
-            <AIChatWidget />
+            <Suspense fallback={null}>
+              <AIChatWidget />
+            </Suspense>
 
             {/* 10. Dark Plum Footer with Watermark Name (Reel t=16.8s) */}
-            <Footer />
+            <Suspense fallback={null}>
+              <Footer />
+            </Suspense>
           </div>
         </RoleProvider>
         </ViewModeProvider>

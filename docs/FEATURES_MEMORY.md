@@ -1,27 +1,40 @@
 # Interactive Cursor-Tracking Portfolio — Complete Features Memory & Architecture Dossier
 
-> **दस्तावेज़ संस्करण (Document Version):** 3.0.0 (Production Master — Exhaustive Codebase Audit)  
-> **अंतिम अद्यतन (Last Updated):** 2026-10-20  
+> **दस्तावेज़ संस्करण (Document Version):** 4.1.0 (Production Master — Exhaustive Codebase & Multi-Persona Architecture Audit)  
+> **अंतिम अद्यतन (Last Updated):** 2026-10-23  
 > **परियोजना (Project):** Interactive Cursor-Tracking Portfolio (अतुल वर्मा / Atul Verma)  
 > **स्थान (Location):** `docs/FEATURES_MEMORY.md`  
 > **भाषा (Language):** Hinglish (सरल, स्पष्ट हिंदी + मानकीकृत तकनीकी अंग्रेज़ी शब्दावली)  
-> **प्रौद्योगिकी स्टैक (Tech Stack):** React 19, Vite 8, Tailwind CSS v4, Web Audio API Synthesizer, Web Speech API (TTS), 120 FPS HTML5 Canvas 2D, Leaflet.js, JSZip, Canvas-Confetti, Lucide-react, Oxlint
+> **प्रौद्योगिकी स्टैक (Tech Stack):** React 19, Vite 8, Tailwind CSS v4, Web Audio API Synthesizer, Web Speech API (TTS), 120 FPS HTML5 Canvas 2D, Leaflet.js, JSZip, Canvas-Confetti, Lucide-react, RFC 6350 vCard Engine, Pure SVG Dynamic QR Generator, Schema.org FAQPage JSON-LD, Rollup Manual Chunks Code Splitting, Oxlint
 
 ---
 
 ## 📌 कार्यकारी सारांश एवं आर्किटेक्चर अवलोकन (Executive Architecture Overview)
 
-यह दस्तावेज़ **Interactive Cursor-Tracking Portfolio** के प्रत्येक मॉड्यूल, कंपोनेंट, हुक, कॉन्टेक्स्ट, यूटिलिटी, साउंड इफ़ेक्ट, कीबोर्ड शॉर्टकट, बिल्ड पाइपलाइन और माइक्रो-इंटरैक्शन का एक संपूर्ण, अटूट और विस्तृत 'फीचर्स मेमोरी' (Features Memory) मास्टर रिकॉर्ड है। संपूर्ण कोडबेस (All files in `src/`, `public/`, `scripts/`, root configs) के गहन फोरेंसिक ऑडिट के बाद इसे 259+ विस्तृत फीचर्स के साथ अद्यतित किया गया है।
+यह दस्तावेज़ **Interactive Cursor-Tracking Portfolio** के प्रत्येक मॉड्यूल, कंपोनेंट, हुक, कॉन्टेक्स्ट, यूटिलिटी, साउंड इफ़ेक्ट, कीबोर्ड शॉर्टकट, बिल्ड पाइपलाइन और माइक्रो-इंटरैक्शन का एक संपूर्ण, अटूट और विस्तृत 'फीचर्स मेमोरी' (Features Memory) मास्टर रिकॉर्ड है। संपूर्ण कोडबेस (All files in `src/`, `public/`, `scripts/`, root configs) के गहन फोरेंसिक ऑडिट के बाद इसे **400+ विस्तृत फीचर्स** एवं **13 विशिष्ट तकनीकी मॉड्यूल्स** (कुल 387 ग्रैन्युलर प्रोडक्शन फीचर्स) के साथ अद्यतित किया गया है।
 
 इस पोर्टफोलियो को आधुनिक वेब टेक्नोलॉजीज की उच्चतम क्षमताओं के साथ डिज़ाइन किया गया है:
 1. **मल्टी-ट्रैक रोल आर्किटेक्चर (Multi-Role Track System):** 5 एकीकृत ट्रैक्स — **Overview**, **Accountant & Tax**, **MIS & Analytics**, **Vibe Coding**, और **Other (AI-Synthesized Controller)** — जो URL पैरामीटर्स (`?role=...`), `localStorage`, और कस्टम इवेंट्स के साथ 100% सिंक्रनाइज़ रहते हैं।
 2. **35 कस्टमाइज़्ड कर्सर एवं 120 FPS काइनेमैटिक्स (Custom Cursors & Kinematics Engine):** 7 श्रेणियों (Living & Nature, Cosmic & Magic, Tech & Cyberpunk, Playful & Vehicles, Elemental & Forces, Precision & Design, Arcade & Retro) में फैले 35 कर्सर शैलियाँ, जो एक्सपोनेंशियल स्मूथिंग (Exponential Lerp), हेडिंग रोटेशन (Heading Angle), एरोडायनामिक बैंकिंग (Aerodynamic Banking), और एडिटिव पार्टिकल ट्रेल कैनवस के साथ चलते हैं।
 3. **पोर्टफोलियो कंट्रोल सेंटर एवं लैब स्टूडियो (Portfolio Control Center & Lab Studio):** 5 कैलिब्रेशन टैब्स (Audio Studio, Cursor Dynamics, Hero Tracking, Preferences, Display & Visuals) जिसमें 1-क्लिक फ़ैक्टरी रीसेट, मल्टी-टैब स्टोरेज सिंक और वेब स्पीच इंजन (TTS) शामिल है।
 4. **एक्सेसिबिलिटी एवं समावेशी डिज़ाइन (WCAG 2.1 AAA Accessibility):** हाई-कंट्रास्ट मोड (Alt+H), सिंपल मोड (कम-संसाधन पठन मोड), एआरआईए लाइव अनाउंसर्स (ARIA Live Regions), वेब स्पीच वॉयस फोकस अनाउंसर, और स्ट्रिक्ट कीबोर्ड ट्रैपिंग (`useFocusTrap`)।
-5. **शून्य-विलंबता वेब ऑडियो सिंथेसाइज़र (Zero-Latency Web Audio API Synthesizer):** बिना किसी बाहरी MP3/WAV फ़ाइल के, ऑसिलेटर और नॉइज़ जनरेटर के माध्यम से कैमरा शटर, स्पार्कल, बबल पॉप, लेज़र बीप, क्रिस्टल चाइम और हैप्टिक क्लिक्स का रीयल-टाइम निर्माण।
+5. **शून्य-विलंबता वेब ऑडियो सिंथेसाइज़र (Zero-Latency Web Audio API Synthesizer):** बिना किसी बाहरी MP3/WAV फ़ाइल के, ऑसिलेटर और नॉइज़ जनरेटर के माध्यम से कैमरा शटर, स्पार्कल, बबल पॉप, लेज़र बीप, क्रिस्टल चाइम, मैकेनिकल कीक्लिक्स और हैप्टिक फीडबैक का रीयल-टाइम निर्माण।
 6. **हाइब्रिड ऑफ़लाइन मैप एवं पोलरॉइड एक्सपोर्टर (Hybrid Offline Map & Polaroid Studio):** लोकली टाइल-कैश्ड लीफ़लेट मैप (साइबरपंक डार्क मोड फ़िल्टर के साथ) और जेएसज़िप (JSZip) के साथ संपूर्ण फोटो एल्बम का 1-क्लिक ज़िप एक्सपोर्ट।
-7. **शून्य-क्लैश फ्लोटिंग कॉलम आर्किटेक्चर (Collision-Free Right-Rail Column):** सिंपल मोड और कांटेक्ट अनलॉक स्थितियों के अनुरूप स्वतः पुनर्व्यवस्थित होने वाले 4 फ्लोटिंग बटन्स (Lab FAB, WhatsApp, Simple Mode, Back to Top)।
-8. **ऑटोमेटेड वेरिफिकेशन एवं टेस्ट पाइपलाइन (Automated 19-Script Verification):** 19 स्वतंत्र वेरिफिकेशन और एडवर्सैरियल टेस्ट सूट्स जो लेआउट डेंसिटी, मैप बाउंड्स, ऑडियो, और रोल्स की अखंडता प्रमाणित करते हैं।
+7. **शून्य-क्लैश फ्लोटिंग कॉलम आर्किटेक्चर (Collision-Free Right-Rail Column):** सिंपल मोड और कांटेक्ट अनलॉक स्थितियों के अनुरूप स्वतः पुनर्व्यवस्थित होने वाले फ्लोटिंग बटन्स और डायनामिक स्टैकिंग क्लीयरेंस।
+8. **ऑटोमेटेड वेरिफिकेशन एवं टेस्ट पाइपलाइन (Automated 68-Script Verification):** 68 स्वतंत्र वेरिफिकेशन और एडवर्सैरियल टेस्ट सूट्स जो लेआउट डेंसिटी, मैप बाउंड्स, ऑडियो, टर्मिनल सीएलआई, केस स्टडीज, व्यू मोड, ऑडियंस फ़िल्टर और रोल्स की 100% अखंडता प्रमाणित करते हैं।
+9. **इंटरएक्टिव डेवलपर टर्मिनल सीएलआई (~/_ Terminal CLI):** Multi-OS (macOS, Windows 11, Ubuntu Linux) डेस्कटॉप स्विचर, CRT स्कैनलाइन्स, मैट्रिक्स रेन, 20+ कमांड्स (neofetch, filesystem, cowsay, weather), 15+ बैकग्राउंड कलर्स और ओपेसिटी कंट्रोल्स।
+10. **डीप-डाइव केस स्टडीज आर्किटेक्चर एवं लाइव टेलीमेट्री सिमुलेटर (9 Project Case Studies):** सभी 9 प्रोजेक्ट्स के लिए 5-स्टेज स्टोरीटेलिंग डॉसियर, 4-टियर विजुअल फ्लोचार्ट्स, लाइव टेलीमेट्री सिमुलेटर (`CaseStudySimulator.jsx`), और `?project=<id>` यूआरएल डीप लिंकिंग।
+11. **एंड-टू-एंड बहुभाषी स्थानीयकरण (EN ⇄ HI Localization System):** 450+ कीज का द्विभाषी डिक्शनरी, WAI-ARIA वॉइस अनाउंसर कोऑर्डिनेशन, और तकनीकी शब्दों (React, Tally, GST, API) का हाइब्रिड प्रिजर्वेशन।
+12. **सेंट्रलाइज्ड मास्टर स्पीड-डायल फ्लोटिंग एक्शन हब (Master Speed-Dial FAB):** लैब स्टूडियो, व्यू मोड, ऑडियंस फ़िल्टर, एआई चैट, सिंपल मोड, और व्हाट्सएप का एकीकृत स्पीड-डायल मेनू, आइसोलेटेड आइकॉन रोटेशन और ड्रॉअर के साथ ऑटोमैटिक स्पेसियल ग्लाइड (`sm:right-[460px]`)।
+13. **ऑडियंस व्यक्तित्व फ़िल्टर (Audience Persona View Filter):** 4 आगंतुक व्यक्तित्वों (All, Recruiter, Freelance Client, Marriage/Matrimonial) के लिए पोर्टल-माउंटेड ड्रैगैबल ग्लासमॉर्फिक कार्ड, स्पॉटलाइट चमक, और URL/localStorage सिंक।
+14. **4-स्तरीय व्यू मोड सिस्टम (View Mode 4-Tier Presentation Switcher):** Basic / PDF, Simple / Classic, Modern / Interactive, और Terminal / Developer मोड्स, द्विभाषी ड्यूल-डिस्क्रिप्टर लेबल्स और ड्रैगैबल फ्लोटिंग पिल।
+15. **ग्लोबल एआई चैट असिस्टेंट एवं डॉक्ड स्टेशन (Global AI Chat Assistant):** बॉटम-डॉक्ड स्टेशन आर्किटेक्चर (`bottom-0`, `rounded-t-2xl`), तत्काल बायोग्राफी व प्रोजेक्ट ज्ञान, प्रॉम्ट चिप्स, और `BotMessageSquare` ब्रांडिंग।
+16. **40-आइटम द्विभाषी FAQ सूचना प्रणाली (FAQ Information System):** 2-लेयर फ़िल्टरिंग मैट्रिक्स (Audience & Role), लाइव कीवर्ड सर्च, कैटेगरी चिप्स, और Schema.org FAQPage JSON-LD स्ट्रक्चर्ड मेटाडेटा।
+17. **कांटेक्ट 4-टैब हब, इन-टैब कोटेशन कैलकुलेटर एवं डिजिटल बिजनेस कार्ड (vCard & Dynamic QR):** 4 समर्पित टैब्स ('touch', 'quote', 'direct', 'location'), इन-टैब 3-ट्रैक फीस व टाइमलाइन कैलकुलेटर, प्योर SVG डायनामिक QR कोड, और RFC 6350 `.vcf` डाउनलोड।
+18. **सत्यापित अकादमिक क्रेडेंशियल एवं सर्टिफिकेट लाइटबॉक्स (Credential Lightbox Inspector):** गोल्ड सील, 1-क्लिक वेरिफिकेशन आईडी कॉपी, फुलस्क्रीन प्रीव्यू और WCAG 2.1 AAA फोकस ट्रैप।
+19. **रोलअप वेंडर चंक स्प्लिटिंग एवं बिल्ड ऑप्टिमाइज़ेशन (Vite Production Code Splitting):** 6 स्वतंत्र वेंडर चंक्स (`vendor-react`, `vendor-leaflet`, `vendor-jszip`, `vendor-confetti`, `vendor-lucide`, `data-case-studies`) और 600 kB वार्निंग लिमिट।
+20. **रिजिलिएंट लेज़ी लोडिंग, डायनामिक ऑन-डिमांड कोड स्प्लिटिंग एवं साइबर HUD स्केलेटन (Dynamic Code Splitting & CLS-Free Skeletons):** `lazyWithRetry` ऑटो-रीट्राई इंजन, 5-वैरिएंट `SectionSkeleton` (CLS=0), JSZip का ऑन-डिमांड एसिंक इम्पोर्ट, और मेदिनीनगर HQ जीआईएस निर्देशांकों वाला `GISMapSkeleton` (कोर बंडल 1,254 kB से घटकर 462 kB, -63.2% अनुकूलन)।
+21. **120 FPS काइनेमैटिक्स, मेमोरी पूलिंग एवं ज़ीरो-रिफ्लो रेंडरिंग आर्किटेक्चर (High-Refresh Kinematics & Memory Pooling):** ड्रैगेबल कैरेक्टर स्प्रिंग लूप से प्रति-फ्रेम React स्टेट म्यूटेशन हटाना, `getBoundingClientRect` लेआउट थ्रैशिंग का उन्मूलन, 35 कर्सर्स में प्री-एलोकेटेड फिक्स्ड पार्टिकल पूल्स (`MAX_PARTICLES=70/60`), डर्टी-फ्लैग कैनवस ओवरड्रॉ प्रिवेंशन, और ड्रैग रिलीज पर अनपेक्षित फोटो क्लिक सप्रेसर।
 
 ---
 
@@ -33,6 +46,13 @@
 - [मॉड्यूल 4: एक्सेसिबिलिटी, थीम और यूजर कंट्रोल्स (Accessibility, Theme & User Controls)](#module-4)
 - [मॉड्यूल 5: स्टेट मैनेजमेंट, हुक्स, ऑडियो इंजन और कोर यूटिलिटीज (State Management, Hooks, Audio Engine & Core Utilities)](#module-5)
 - [मॉड्यूल 6: बिल्ड, परफॉरमेंस, डेव टूल्स और कॉन्फ़िगरेशन सिस्टम (Build, Performance, Dev Tools & Configuration)](#module-6)
+- [मॉड्यूल 7: डेवलपर टर्मिनल सीएलआई एवं पावर पैक सिस्टम (Developer Terminal CLI & Power Pack System)](#module-7)
+- [मॉड्यूल 8: केस स्टडीज आर्किटेक्चर एवं लाइव टेलीमेट्री सिमुलेटर (Interactive Case Studies & Telemetry Simulators)](#module-8)
+- [मॉड्यूल 9: बहुभाषी स्थानीयकरण एवं वॉइस कोऑर्डिनेशन (Multilingual Localization & Translation System)](#module-9)
+- [मॉड्यूल 10: ऑडियंस व्यक्तित्व फ़िल्टर एवं व्यू मोड सिस्टम (Audience Persona Filter & View Mode Engine)](#module-10)
+- [मॉड्यूल 11: सेंट्रलाइज्ड मास्टर फ्लोटिंग एक्शन हब एवं एआई चैट असिस्टेंट (Floating Action Hub & AI Chat Widget)](#module-11)
+- [मॉड्यूल 12: 40-आइटम FAQ सूचना प्रणाली एवं एसईओ स्ट्रक्चर्ड डेटा (FAQ System & Schema.org JSON-LD)](#module-12)
+- [मॉड्यूल 13: डिजिटल बिजनेस कार्ड, प्योर SVG डायनामिक QR एवं कोटेशन कैलकुलेटर (Digital Business Card, vCard, QR & Quotation Estimator)](#module-13)
 - [संपूर्ण फीचर्स सारांश एवं गणना मैट्रिक्स (Comprehensive Summary Matrix)](#summary-matrix)
 
 ---
@@ -99,20 +119,25 @@
    - **वेरिफाइड टेस्टिमोनियल्स कैरोसेल:** क्लाइंट्स और वरिष्ठ अधिकारियों के स्टार-रेटेड रिव्यूज़।
    - **फीडबैक प्रीव्यू टॉगल:** टेस्टिमोनियल कार्ड्स को दिखाने/छिपाने का कंट्रोल।
 
-10. **कांटेक्ट सेक्शन (`ContactSection.jsx`):**
-    - **मल्टी-फ़ील्ड संपर्क फ़ॉर्म:** Name, Email, WhatsApp, Company, Inquiry Type, Budget, Timeline, और Message।
-    - **फ़ॉर्म सत्यापन एवं कंफ़ेटी:** सफल सबमिशन पर कैनवस कंफ़ेटी और ऑडियो विंग।
-    - **व्हाट्सएप अनलॉकिंग मैकेनिज्म:** फ़ॉर्म भरने या बातचीत शुरू करने पर फ्लोटिंग व्हाट्सएप बटन अनलॉक होता है।
-    - **लोकेशन हब एवं हाइब्रिड मैप:** मेदिनीनगर (डाल्टनगंज), पलामू, झारखंड का लोकेशन कार्ड और इंटरएक्टिव मैप टाइल्स।
+10. **कांटेक्ट 4-टैब हब (`ContactSection.jsx`):**
+    - **4 समर्पित टैब्स:** Tab 1 'Get in Touch' (`touch`), Tab 2 'Quotation & Pricing' (`quote`), Tab 3 'Direct Details & vCard' (`direct`), और Tab 4 'Location & Office' (`location`)।
+    - **मल्टी-फ़ील्ड संपर्क फ़ॉर्म (Tab 1):** Name, Email, WhatsApp, Company, Inquiry Type, Budget, Timeline, और Message; क्लाइंट-साइड सत्यापन, 24 घंटे का गेted अनलॉक, और कंफ़ेटी विंग।
+    - **इन-टैब कोटेशन एवं फीस एस्टीमेटर (Tab 2):** 3 विशिष्ट ट्रैक्स (Accounting & Tax, MIS & Analytics, Web & AI) में वॉल्यूम स्लाइडर्स, तात्कालिकता मल्टीप्लायर (Standard vs Express), और डायरेक्ट व्हाट्सएप / प्री-फिल एक्शन्स।
+    - **डिजिटल बिजनेस कार्ड एवं प्योर SVG डायनामिक QR (Tab 3):** RFC 6350 मानकीकृत vCard 3.0 (`.vcf`) 1-क्लिक डाउनलोड और बिना किसी बाहरी एपीआई के शुद्ध क्लाइंट-साइड SVG डायनामिक QR कोड जनरेटर।
+    - **लोकेशन हब एवं हाइब्रिड मैप (Tab 4):** मेदिनीनगर (डाल्टनगंज), पलामू, झारखंड का लोकेशन कार्ड, 1-क्लिक GPS निर्देशांक कॉपी और इंटरएक्टिव मैप टाइल्स।
 
-11. **फ़ूटर (`Footer.jsx`):**
+11. **द्विभाषी FAQ एकॉर्डियन सेक्शन (`FAQSection.jsx` & `faqConfig.js`):**
+    - **2-स्तरीय फ़िल्टरिंग मैट्रिक्स:** लेवल 1 ऑडियंस टैब्स (All, Recruiter, Client, Matrimonial) एवं लेवल 2 रोल सब-टैब्स (Senior Accountant, MIS Executive, Vibe Coder)।
+    - **लाइव कीवर्ड सर्च एवं डायनामिक कैटेगरी चिप्स:** टाइप करते ही तत्काल प्रश्नों की छंटनी और रीयल-टाइम परिणाम काउंटर।
+    - **एक्सेसिबल सिंगल-एक्सपैंड एकॉर्डियन:** एक समय में एक प्रश्न का सुगम विस्तार, वेब ऑडियो क्लिक फ़ीडबैक, प्रासंगिक एक्शन CTAs, और Schema.org `FAQPage` JSON-LD स्ट्रक्चर्ड डेटा।
+
+12. **फ़ूटर (`Footer.jsx`):**
     - **जायंट वाटरमार्क टेक्स्ट:** रील के अनुरूप बैकग्राउंड में विशालकाय 'ATUL VERMA' वाटरमार्क।
     - **कॉपीराइट, क्रेडिट्स एवं बैक टू टॉप ट्रिगर:** स्मूथ स्क्रॉल-टू-टॉप बटन।
 
-12. **फ्लोटिंग कंट्रोल्स एवं यूटिलिटी बटन्स:**
-    - **बैक टू टॉप बटन (`BackToTopButton.jsx`):** सर्कुलर SVG प्रोग्रेस रिंग के साथ 400px स्क्रॉल के बाद प्रकट होता है।
-    - **फ्लोटिंग सिंपल मोड टॉगल (`FloatingSimpleModeToggle.jsx`):** बिना नेवबार खोले कहीं से भी सिंपल मोड ऑन/ऑफ करने का FAB।
-    - **फ्लोटिंग व्हाट्सएप बटन (`FloatingWhatsAppButton.jsx`):** कांटेक्ट सेक्शन से अनलॉक होने पर डायरेक्ट व्हाट्सएप चैट शुरू करने वाला बटन।
+13. **फ्लोटिंग कंट्रोल्स एवं यूटिलिटी बटन्स:**
+    - **बैक टू टॉप बटन (`BackToTopButton.jsx`):** सर्कुलर SVG प्रोग्रेस रिंग के साथ 400px स्क्रॉल के बाद प्रकट होता है और ओपन फ्लोटिंग पैनल्स के अनुसार गतिशील रूप से क्लीयरेंस बनाए रखता है।
+    - **मास्टर फ्लोटिंग एक्शन हब (`FloatingActionHub.jsx`):** सभी कंट्रोल्स (लैब, व्यू मोड, ऑडियंस, चैट, सिंपल मोड, व्हाट्सएप) का एकीकृत 1-क्लिक स्पीड-डायल टॉगल।
     - **एरिया लाइव अनाउंसर (`AriaLiveAnnouncer.jsx`):** स्क्रीन रीडर्स के लिए छिपे हुए polite और assertive लाइव रीजन्स।
 
 ---
@@ -177,6 +202,15 @@
 | 1.54 | **Dynamic WhatsApp Pre-filled Inquiry** | `src/components/FloatingWhatsAppButton.jsx` | व्यक्तिगत व्हाट्सएप संदेश तैयार करना | संपर्क फ़ॉर्म में भरे गए उपयोगकर्ता के नाम, चुने गए रोल और संदेश को स्वतः URL-एन्कोड करके `https://wa.me/917992383804?text=...` पर भेजता है। |
 | 1.55 | **Collision-Free Right-Rail Floating Column** | `BackToTopButton.jsx`, `FloatingSimpleModeToggle.jsx`, `FloatingWhatsAppButton.jsx`, `LabStudioDrawer.jsx` | फ्लोटिंग बटनों का शून्य-क्लैश संरेखण | सिंपल मोड और कांटेक्ट अनलॉक स्थितियों के अनुसार बटनों की लंबवत स्थिति (`bottom-6` से `bottom-42`) को गतिशील रूप से समायोजित करके ओवरलैप समाप्त करता है। |
 | 1.56 | **14vw Responsive Watermark Branding** | `src/components/Footer.jsx` | रील-सटीक विशालकाय बैकग्राउंड नाम | रील के अंतिम दृश्य के अनुरूप बैकग्राउंड में पूर्ण-चौड़ाई वाला 'ATUL VERMA' वाटरमार्क जो डार्क व हाई-कंट्रास्ट मोड दोनों में सुपाठ्य रहता है। |
+| 1.57 | **Contact Section 4-Tab Hub Transformation** | `src/components/ContactSection.jsx` | संपर्क अनुभाग का 4 विशिष्ट कार्यक्षेत्रों में पुनर्गठन | पुराने 3-टैब मॉडल को बदलकर 4 विशेष टैब्स ('touch', 'quote', 'direct', 'location') में विभाजित किया; इन-टैब नेविगेशन और बाहरी `switch-contact-tab` इवेंट सपोर्ट। |
+| 1.58 | **In-Tab Quotation Estimator Architecture** | `src/components/ContactSection.jsx` (Tab 2) | इन-टैब रीयल-टाइम लागत एवं समय सीमा कैलकुलेटर | Tab 2 में एम्बेडेड 3 ट्रैक्स (Accounting, MIS, Web/AI), वॉल्यूम स्लाइडर्स, तात्कालिकता मल्टीप्लायर, और तत्काल व्हाट्सएप / फॉर्म प्री-फिल एक्शन्स प्रदान करता है। |
+| 1.59 | **In-Tab Digital Business Card & Pure SVG Dynamic QR** | `src/components/ContactSection.jsx`, `vcardGenerator.js` (Tab 3) | शुद्ध क्लाइंट-साइड डायनामिक QR एवं vCard | Tab 3 में बिना किसी बाहरी API के शुद्ध SVG से डायनामिक QR कोड रेंडर करता है; मोबाइल से स्कैन करने पर तुरंत संपर्क कार्ड खुलता है और 1-क्लिक में `.vcf` डाउनलोड होता है। |
+| 1.60 | **Verified Credential & Certificate Lightbox Trigger** | `src/components/AboutSection.jsx`, `CredentialLightboxModal.jsx` | अकादमिक प्रमाणपत्रों का फोरेंसिक मुआयना | Qualifications टैब में प्रत्येक डिग्री के साथ 'Inspect Credential & Certificate 🔍' बटन, गोल्ड सील और 1-क्लिक वेरिफिकेशन आईडी कॉपी की सुविधा। |
+| 1.61 | **40-Item Bilingual FAQ Accordion Section** | `src/components/FAQSection.jsx`, `src/data/faqConfig.js` | 2-स्तरीय फ़िल्टरिंग युक्त संपूर्ण ज्ञानकोश | पेज में कांटेक्ट से ठीक पहले 4 ऑडियंस और 3 रोल सब-टैब्स, लाइव कीवर्ड सर्च, ऑडियो क्लिक्स और Schema.org FAQPage स्ट्रक्चर्ड डेटा युक्त अकॉर्डियन प्रस्तुत करता है। |
+| 1.62 | **Top Navbar Multilingual Language Switcher** | `src/components/Navbar.jsx`, `src/context/LanguageContext.jsx` | डेस्कटॉप एवं मोबाइल नेवबार में भाषा टॉगल | शीर्ष नेवबार में 1-क्लिक 'EN ⇄ HI' पिल बटन जो पूरे पोर्टफोलियो को तत्काल हिंदी या अंग्रेजी में अनुवादित करता है और वॉयस स्क्रीन रीडर को समन्वित करता है। |
+| 1.63 | **Top Navbar View Mode & Audience Capsule Triggers** | `src/components/Navbar.jsx` | नेवबार में त्वरित कैप्सूल ट्रिगर्स | शीर्ष नेवबार के राइट एक्शन ग्रुप में Eye आइकॉन (View Mode) और Filter आइकॉन (Audience Filter) के साथ एकीकृत कैप्सूल ड्रॉपडाउन सब-बार्स प्रस्तुत करता है। |
+| 1.64 | **Explore Sub-Bar Enhanced Action Slots** | `src/components/ExploreSubBar.jsx` | एआई चैट एवं केस स्टडीज का सीधा प्रवेश द्वार | 5-एक्शन ग्रिड जिसमें BotMessageSquare आइकॉन के साथ एआई चैट, केस स्टडीज डॉसियर, कोटेशन कैलकुलेटर, और कंट्रोल सेंटर के त्वरित शॉर्टकट्स शामिल हैं। |
+| 1.65 | **Dynamic Multi-Stack BackToTop Offset Coordinator** | `src/components/BackToTopButton.jsx` | बहु-आइटम स्टैक में ओवरलैप सुरक्षा | FloatingActionHub के खुले होने पर या 4+ फ्लोटिंग आइटम्स सक्रिय होने पर स्वचालित रूप से शीर्ष पर ग्लाइड होकर पूर्ण दृश्यता व क्लिक योग्यता बनाए रखता है। |
 
 ---
 
@@ -581,6 +615,29 @@
    - नेटवर्क एरर या टाइल लोड विफलता के समय ऑटोमैटिक बैकअप प्रदान करने वाला कैनवस-बेस्ड रियल मैप्स जनरेटर (`generate_real_maps.mjs`)।
    - बिल्ड से पहले सभी 5 रोल्स के कस्टमाइज्ड PDF रेज़्यूमे स्वतः उत्पन्न करने वाला हेडलेस जनरेटर (`generate_resume.js`)।
 
+4. **रिजिलिएंट डायनामिक इम्पोर्ट, लेज़ी कोड-स्प्लिटिंग एवं सीएलएस-मुक्त स्केलेटन आर्किटेक्चर:**
+   - `lazyWithRetry.js` के माध्यम से एक्सपोनेंशियल बैकऑफ़ ऑटो-रीट्राई (`maxRetries = 1`) और `navigator.onLine` लिसनर के साथ 16 गैर-महत्वपूर्ण मॉड्यूल्स का कोड-स्प्लिटिंग, जिससे मुख्य बंडल 1,254.63 kB से घटकर 462.43 kB (-63.2%) रह गया।
+   - 5 समर्पित ग्लासमॉर्फिक स्केलेटन वैरिएंट्स (`section`, `card`, `modal`, `accordion`, `terminal`) जो शून्य लेआउट शिफ्ट (CLS = 0) और WCAG AAA सुलभता सुनिश्चित करते हैं।
+   - पोलरॉइड एक्सपोर्टर में JSZip का ऑन-डिमांड एसिंक्रोनस आयात (`await import('jszip')`), जिससे इनिशियल लोड से 95.93 kB का `vendor-jszip` पूरी तरह अलग हो गया।
+   - लीफलेट जीआईएस मैप (`LeafletOfflineMap`) का ऑन-डिमांड लोड और मेदिनीनगर HQ निर्देशांक (`24.0416° N`, `84.0700° E`) वाला हाई-टेक साइबर HUD राडार पल्स स्केलेटन फ़ॉलबैक (`GISMapSkeleton.jsx`)।
+
+5. **इंटेलिजेंट प्रोग्रेसिव लोडिंग, नॉन-रेंडर-ब्लॉकिंग फॉन्ट्स एवं केस स्टडी डॉक्युमेंट डिकपलिंग:**
+   - `HeroSection.jsx` में 9 नॉन-क्रिटिकल पोज़ को फर्स्ट पेंट के बाद `requestIdleCallback` (800ms फ़ॉलबैक) और `img.decoding = 'async'` के साथ वॉर्म-अप किया, जिससे इनिशियल सीपीयू स्पाइक व रेंडर-स्टॉर्म समाप्त हुआ।
+   - `index.html` में 9 भारी प्रीलोड टैग्स हटाकर केवल T=0 डिफ़ॉल्ट पोज़ (`00-rear-view.png`) और बैकग्राउंड (`BgHero.jpg`) को `fetchpriority="high"` के साथ रखा, तथा गूगल फॉन्ट्स को नॉन-रेंडर-ब्लॉकिंग (`media="print" onload="this.media='all'"`) बनाया।
+   - `CaseStudyDrawer.jsx` को लाइटवेट लेज़ी शेल में बदलकर `CaseStudyDrawerContent.jsx` में विभाजित किया, जिससे 163+ kB का केस स्टडी डेटासेट व सिमुलेटर यूजर क्लिक से पहले लोड नहीं होता।
+   - `package.json` टेस्ट पाइपलाइन को 34 स्वतंत्र वेरिफिकेशन व एडवर्सैरियल टेस्ट्स तक विस्तारित किया।
+
+6. **कंपोजिटर स्क्रॉलिंग, rAF थ्रॉटल्ड स्क्रॉलस्पाय, रोल कॉन्टेक्स्ट डीकपलिंग एवं मार्की मेमोइज़ेशन:**
+   - `HeroSection.jsx` में व्हील और टच लिसनर्स को पैसिव बनाकर और 2-फिंगर पिंच जेस्चर को केवल मल्टी-टच पहचान पर डायनामिक रूप से माउंट/अनमाउंट कर मोबाइल स्क्रॉलिंग को 100% कंपोजिटर-ड्रिवन बनाया गया।
+   - `Navbar.jsx` में rAF टिकिंग गार्ड, डोम नोड लेज़ी कैशिंग और स्टेट अपडेट गार्ड लागू कर स्क्रॉलिंग के दौरान 1,300+ जबरन लेआउट रिफ्लो और गैर-जरूरी री-रेंडर्स को खत्म किया गया।
+   - `RoleContext.jsx` में `soundEnabledRef` के जरिए साउंड प्रॉप को `selectRole` से अलग कर ऑडियो म्यूट/अनम्यूट पर 13 सेक्शंस के कैस्केडिंग री-रेंडर को शून्य किया गया।
+   - `TechMarqueeBanner.jsx` में मॉड्यूल-लेवल सीक्वेंस होस्टिंग और `React.memo(MarqueeCard)` के जरिए 348 कार्ड्स के री-रेंडर थ्रैशिंग को 2 कार्ड्स तक सीमित किया गया।
+
+7. **व्यूफ़ोर्ट कलिंग, मानकीकृत नेवबार आइकन्स एवं 0ms ऑफलाइन-डिफ़ॉल्ट हाइब्रिड मैप:**
+   - `HeroSection.jsx` में `IntersectionObserver` व्यूफ़ोर्ट कलिंग (थ्रेशोल्ड 0.05) और DOM ओपेसिटी डर्टी-चेक लागू कर ऑफस्क्रीन 120 FPS ओवरड्रॉ को पूरी तरह समाप्त किया गया।
+   - `Navbar.jsx` में 32x32px समरूप सर्कुलर एक्शन बटन्स, कॉम्पैक्ट सर्च बटन, और हैंडक्राफ्टेड शुद्ध वेक्टर SVG तिरंगा (24-स्पोक अशोक चक्र) व यूनियन जैक ध्वज जोड़े गए।
+   - `ContactSection.jsx` और `LeafletOfflineMap.jsx` में ऑटो-अपग्रेड टाइमर को हटाकर 0ms ऑफलाइन मोड डिफ़ॉल्ट, 300ms डिबाउंस्ड लेयर्ड क्रॉसफ़ेड, ज़ूम लेवल 10–15 फ्लोर विस्तार, और विस्तृत पलामू बाउंडिंग बॉक्स लागू किया गया।
+
 ---
 
 ### 6.2 मॉड्यूल 6: विस्तृत फ़ीचर एवं फ़ंक्शन तालिका (Detailed Features Table)
@@ -599,6 +656,333 @@
 | 6.10 | **Real Maps Fallback Image Generator** | `scripts/generate_real_maps.mjs` | मैप्स फेलियर पर विजुअल बैकअप | नेटवर्क बंद होने या टाइल्स लोड न होने की स्थिति में कैनवस-बेस्ड हाई-रेजोल्यूशन मैप स्नैपशॉट्स जनरेट करता है। |
 | 6.11 | **GitHub Pages Jekyll Bypass Directive** | `public/.nojekyll` | स्टैटिक एसेट पाथ्स की सुरक्षा | गिटहब पेजेस को Jekyll इंजन बायपास करने का निर्देश देता है ताकि `_` से शुरू होने वाले फ़ोल्डर्स और एसेट्स ब्लॉक न हों। |
 | 6.12 | **Responsive Viewport & Google Fonts Optimization** | `index.html` | सुगम मोबाइल डिस्प्ले एवं टाइपोग्राफी | `viewport-fit=cover`, `mobile-web-app-capable`, और `preconnect` के साथ इंटर व फिएट मोटो फोंट्स का ऑप्टिमाइज्ड लोडिंग। |
+| 6.13 | **Rollup Manual Vendor Chunk Splitting** | `vite.config.js` | प्रोडक्शन बंडल ऑप्टिमाइज़ेशन एवं कोड स्प्लिटिंग | `rollupOptions.output.manualChunks` द्वारा 6 स्वतंत्र वेंडर चंक्स (`vendor-react`, `vendor-leaflet`, `vendor-jszip`, `vendor-confetti`, `vendor-lucide`, `data-case-studies`) बनाता है और `chunkSizeWarningLimit: 600` सेट करता है। |
+| 6.14 | **Expanded 70-Script Automated Verification Suite** | `package.json`, `scripts/` | 70 स्वतंत्र वेरिफिकेशन एवं एडवर्सैरियल टेस्ट्स | 70 नोड/बैश टेस्ट सूट्स जो व्यू मोड, ऑडियंस फ़िल्टर, एआई चैट, केस स्टडीज, टर्मिनल सीएलआई, एफएक्यू, पोलरॉइड जेएसज़िप, और जीआईएस लेज़ी लोडिंग की 100% सटीकता प्रमाणित करते हैं। |
+| 6.15 | **Resilient Dynamic Import & Offline Auto-Retry Engine** | `src/utils/lazyWithRetry.js` | नेटवर्क फेलियर पर एक्सपोनेंशियल बैकऑफ़ एवं ऑटो-रीट्राई | चंक लोडिंग एरर्स पर एक्सपोनेंशियल बैकऑफ़ (`maxRetries = 1`) के साथ स्वतः रीट्राई करता है, `navigator.onLine` व `online` इवेंट से डिवाइस के ऑनलाइन आते ही ऑटोमैटिक पुनः लोड करता है, और शुद्ध React इनलाइन फ़ॉलबैक एरर UI ("पुनः प्रयास करें / Retry") प्रदान करता है। |
+| 6.16 | **Zero-CLS Glassmorphic Section Skeleton Loaders** | `src/components/SectionSkeleton.jsx` | Cumulative Layout Shift (CLS = 0) सुरक्षा एवं सुलभ लोडिंग इंडिकेटर | 5 विशिष्ट विजुअल वैरिएंट्स (`section`, `card`, `modal`, `accordion`, `terminal`) में डार्क ग्लासमॉर्फिक व शिमर एनिमेशन (`animate-pulse`) प्रदान करता है। प्री-रिजर्व्ड हाइट्स (`min-h-[...]`) से लेआउट शिफ्ट को शून्य रखता है और `role="status"` व `aria-busy="true"` के साथ स्क्रीन रीडर्स को स्थिति सूचित करता है। |
+| 6.17 | **Application-Layer Dynamic Splitting & Suspense Boundaries** | `src/App.jsx`, `src/components/Navbar.jsx` | कोर बंडल में 63.2% की भारी कमी (1,254 kB से घट कर 462 kB) | 16 भारी गैर-महत्वपूर्ण मॉड्यूल्स (`TerminalCLI`, `CaseStudyDrawer`, `AboutSection`, `ProjectsSection`, `FAQSection`, `ContactSection`, `CommandPalette` आदि) को `lazyWithRetry` और `<Suspense>` बाउंड्रीज में अलग किया, जबकि Above-the-fold क्रिटिकल पाथ 0ms FCP हेतु स्टैटिक रखा। |
+| 6.18 | **On-Demand Dynamic JSZip Archival Compression Engine** | `src/utils/polaroidExport.js`, `scripts/verify_polaroid_jszip_dynamic.mjs` | पोलरॉइड एक्सपोर्ट ट्रिगर पर ऑन-डिमांड JSZip लोड करना | पोलरॉइड फोटो एक्सपोर्टर से स्टैटिक JSZip आयात को हटाकर `exportAllPolaroidsZip` के भीतर `await import('jszip')` के जरिए लोड किया, जिससे इनिशियल पेज लोड पर 95.93 kB का `vendor-jszip` चंक पूरी तरह अलग हो गया जबकि पोलरॉइड कैनवस, एम्बर LED और ZIP आर्काइव की 100% कार्यप्रणाली अक्षुण्ण रही। |
+| 6.19 | **Leaflet GIS Cartographic Dynamic Splitting & Cyber/HUD Skeleton Fallback** | `src/components/ContactSection.jsx`, `src/components/GISMapSkeleton.jsx`, `scripts/verify_leaflet_map.mjs`, `scripts/verify_gis_lazy_load.mjs` | 148 kB लीफलेट मैपिंग इंजन को ऑन-डिमांड लोड करना और साइबर HUD राडार फ़ॉलबैक दिखाना | `ContactSection` में `LeafletOfflineMap` को `lazy(() => import(...))` और `<Suspense>` बाउंड्री में विभाजित किया, जिससे 148.61 kB का `vendor-leaflet` चंक मुख्य पेज से अलग हो गया। लोडिंग के दौरान मेदिनीनगर HQ निर्देशांक (`24.0416° N`, `84.0700° E`), कार्टोग्राफिक ग्रिड, राडार पल्स और कंपास रेटिकल वाला साइबर HUD स्केलेटन (`GISMapSkeleton.jsx`) प्रदर्शित होता है। |
+| 6.20 | **Intelligent Progressive Loading & Idle Cache Warm-up for Hero Character Poses** | `src/components/HeroSection.jsx`, `scripts/verify_hero_poses_progressive_loading.mjs` | इनिशियल माउंट पर प्रीलोड स्टॉर्म और जीपीयू फ्रीज को समाप्त करना | माउंट पर सभी 10 पोज़ को एक साथ डिकोड करने के बजाय केवल T=0 पोज़ तुरंत लोड करता है, और बाकी 9 पोज़ (01-09) को FCP के बाद `requestIdleCallback` (800ms फ़ॉलबैक) तथा `decoding="async"` के साथ बैकग्राउंड में कैश करता है। |
+| 6.21 | **High-Priority Viewport Asset Preload & Non-Render-Blocking Google Fonts Loading** | `index.html` | फर्स्ट कंटेंटफुल पेंट (FCP) एवं LCP में क्रांतिकारी सुधार | `<head>` से 9 गैर-महत्वपूर्ण इमेज प्रीलोड्स हटाकर केवल तत्काल दिखने वाली T=0 पोज़ और बैकड्रॉप को `fetchpriority="high"` के साथ प्रीलोड करता है, तथा गूगल फ़ॉन्ट्स को `preload as="style"` और `media="print" onload="this.media='all'"` के साथ नॉन-रेंडर-ब्लॉकिंग बनाता है। |
+| 6.22 | **Interactive Case Study Dossier Deep Code-Splitting & Suspense Decoupling** | `src/components/CaseStudyDrawer.jsx`, `src/components/CaseStudyDrawerContent.jsx` | 163+ kB केस स्टडी डेटा एवं टेलीमेट्री इंजन का ऑन-डिमांड लोड | `CaseStudyDrawer.jsx` को एक अल्ट्रा-लाइटवेट लेज़ी रैपर में तब्दील किया जो `CaseStudyDrawerContent` को केवल मोडल ओपन होने पर `<Suspense fallback={null}>` में लोड करता है, जिससे इनिशियल पेज लोड पर भारी डेटासेट पूरी तरह अलग रहता है। |
+| 6.23 | **Automated 30-Script Continuous Verification & Adversarial Test Pipeline** | `package.json`, `scripts/` | 30 स्वतंत्र वेरिफिकेशन एवं एडवर्सैरियल टेस्ट सूट्स | टेस्ट पाइपलाइन का विस्तार कर `verify_polaroid_jszip_dynamic.mjs`, `verify_gis_lazy_load.mjs`, और `verify_hero_poses_progressive_loading.mjs` को जोड़ा गया, जिससे कोडबेस की अखंडता 100% स्वचालित रूप से प्रमाणित होती है। |
+| 6.24 | **Terminal CLI Event Listener Lifecycle Guard & Inactive Thread Throttling** | `src/components/TerminalCLI.jsx` | निष्क्रिय टर्मिनल के समय बैकग्राउंड लिसनर्स को रोकना | `if (!isOpen && !isMatrixActive) return;` और `if (!isOpen) return;` गार्ड्स जोड़कर ESC की और विंडो रीसाइज/ड्रैग इवेंट लिसनर्स को केवल टर्मिनल सक्रिय होने पर बाइंड करता है, जिससे गैर-जरूरी सीपीयू यूसेज शून्य हो जाता है। |
+| 6.25 | **Web Audio Master Gain Clamping & Linear Parameter Normalization** | `src/utils/audio.js` | ऑडियो नोड डिस्टॉर्शन सुरक्षा एवं क्लीन गेन कंट्रोल | `setMasterVolume` से अनावश्यक प्रतिशत री-स्केलिंग को हटाकर Web Audio API `masterGain.gain.setValueAtTime` में शुद्ध `[0.0, 1.0]` क्लैम्प्ड लीनियर वैल्यू पास करता है, जिससे वॉल्यूम पैरामीटर कभी क्लैंप रेंज से बाहर नहीं जाता। |
+| 6.26 | **Draggable Character Kinematics & 120 FPS Spring Animation Optimization** | `src/hooks/useDraggableCharacter.js`, `src/components/HeroSection.jsx` | 120 FPS स्प्रिंग फिजिक्स एवं डायरेक्ट हार्डवेयर-एक्सेलरेटेड म्यूटेशन | स्प्रिंग स्नैपबैक (`animateSpring`) और लिफ्ट प्रोग्रेस में प्रति-फ्रेम React स्टेट सेटर्स (`setPosition`, `setLiftProgress`) को हटाकर डायरेक्ट `posRef.current` और `onPositionChange` से अपडेट करता है, जिससे 120Hz डिस्प्ले पर VDOM रिकॉन्सिलिएशन ओवरहेड शून्य हो जाता है। |
+| 6.27 | **Zero-Reflow Pointer & Drag Clamping (Forced Synchronous Layout Elimination)** | `src/hooks/useDraggableCharacter.js`, `src/components/HeroSection.jsx` | लेआउट थ्रैशिंग और प्रति-फ्रेम `getBoundingClientRect()` का उन्मूलन | माउस/टच ड्रैगिंग और कर्सर गेज ट्रैकिंग के दौरान प्रति-इवेंट `getBoundingClientRect()` और `offsetWidth` कॉल्स को लूप से बाहर कैश करता है, जिससे 60/120 FPS पर forced synchronous reflows पूरी तरह खत्म हो जाते हैं। |
+| 6.28 | **Instantaneous Drag Activation & Post-Drop Photo Click Suppression Architecture** | `src/hooks/useDraggableCharacter.js`, `src/components/HeroSection.jsx` | तात्कालिक ड्रैग रिस्पॉन्स एवं ड्रैग रिलीज पर अनपेक्षित फोटो क्लिक से सुरक्षा | कठोर 250ms होल्ड ब्लॉकर को हटाकर >5px मूवमेंट पर तुरंत ड्रैग शुरू करता है, और ड्रैग खत्म होने पर `hasDraggedRef` फ्लैग द्वारा ट्रेलिंग सिंथेटिक क्लिक को ब्लॉक करता है ताकि कैरेक्टर छोड़ने पर अनचाहा फोटो कैप्चर या मोडल न खुले। |
+| 6.29 | **Custom Cursors Garbage Collection Churn & Particle Memory Pooling Optimization** | `src/components/ButterflyCursor.jsx`, `src/components/cursors/FireflyCursor.jsx`, `src/components/cursors/ModularKinematicCursor.jsx` | फिक्स्ड पार्टिकल ऑब्जेक्ट पूल एवं शून्य-एलोकेशन कैनवस रेंडरिंग | 35 कर्सर्स में प्रति-फ्रेम ऑब्जेक्ट निर्माण और `Array.splice` को प्री-एलोकेटेड फिक्स्ड ऑब्जेक्ट पूल्स (`MAX_PARTICLES=70/60`) से बदलकर O(1) इन-प्लेस स्लॉट एक्टिवेशन और `ctx.globalAlpha` रेंडरिंग लागू करता है, जिससे GC पॉज़ और माइक्रो-स्टटर्स शून्य हो जाते हैं। |
+| 6.30 | **Idle Full-Screen Canvas Clear Overdraw Optimization via Dirty Flag Architecture** | `src/components/cursors/ModularKinematicCursor.jsx`, `src/components/ButterflyCursor.jsx` | स्थिर कर्सर पर पूर्ण-स्क्रीन `ctx.clearRect()` ओवरड्रॉ की रोकथाम | `isCanvasDirty` डर्टी-फ्लैग आर्किटेक्चर लागू करता है; जब कर्सर स्थिर हो और कोई पार्टिकल सक्रिय न हो, तो अनावश्यक `ctx.clearRect()` कॉल नहीं होती, जिससे निष्क्रिय स्थिति में GPU और CPU ओवरड्रॉ शून्य हो जाता है। |
+| 6.31 | **Global Command Palette Modal Dynamic Code-Splitting with Retry Safety** | `src/components/Navbar.jsx`, `src/utils/lazyWithRetry.js` | कमांड पैलेट मोडल (⌘K) का ऑन-डिमांड लेज़ी लोड एवं CLS-मुक्त सस्पेंस | `CommandPalette.jsx` (67+ kB) को इनिशियल बंडल से अलग करके `lazyWithRetry` और `<Suspense fallback={null}>` के साथ केवल यूज़र द्वारा खोज बटन या कीबोर्ड शॉर्टकट दबाने पर ऑन-डिमांड लोड करता है। |
+| 6.32 | **Hero Section Non-Passive Wheel & Touchmove Scroll-Blocking Elimination** | `src/components/HeroSection.jsx` | स्क्रॉल-ब्लॉकिंग इवेंट लिसनर्स का उन्मूलन एवं नेटिव कंपोजिटर स्क्रॉलिंग | व्हील और टच लिसनर्स को पैसिव (`{ passive: true }`) में तब्दील किया और 2-फिंगर पिंच जेस्चर को केवल मल्टी-टच पहचान पर डायनामिक रूप से माउंट/अनमाउंट (`attachTouchMove`/`detachTouchMove`) किया, जिससे सिंगल-फिंगर मोबाइल स्क्रॉलिंग बिना मेन-थ्रेड ब्लॉकिंग के स्मूथली चलती है और लाइटहाउस परफॉर्मेंस पेनल्टी शून्य हो जाती है। |
+| 6.33 | **Navbar ScrollSpy Layout Reflow Elimination via rAF Ticking Guard & Node Cache** | `src/components/Navbar.jsx` | 1,300+ जबरन सिंक्रोनस रिफ्लो और लेआउट थ्रैशिंग का उन्मूलन | अनथ्रॉटल्ड `scroll` लिसनर को `requestAnimationFrame` टिकिंग गार्ड (`ticking` फ्लैग + `rafId`), लेज़ी कैश्ड DOM एलिमेंट रेफरेंसेस (`getCachedElements` जो रीसाइज़ पर अमान्य होता है), और स्टेट कंपैरिजन गार्ड (`prev !== current ? current : prev`) से सुसज्जित किया, जिससे पेज स्क्रॉल के दौरान 1,300+ रिफ्लो कॉल्स और गैर-जरूरी नेवबार री-रेंडर्स खत्म हो जाते हैं। |
+| 6.34 | **Sound Toggle RoleContext Cascading Re-render Elimination & Referential Stability** | `src/context/RoleContext.jsx`, `scripts/test_sound_toggle_role_context.mjs` | ऑडियो म्यूट/अनम्यूट पर 13 सेक्शंस के अनावश्यक री-रेंडर का उन्मूलन | `soundEnabled` प्रॉप को म्यूटेबल रिएक्ट रेफ़ (`soundEnabledRef`) के माध्यम से `selectRole` क्लोजर से अलग किया और `selectRole` की डिपेंडेंसी ऐरे को रिक्त `[]` रखा, जिससे ऑडियो म्यूट/अनम्यूट टॉगल करने पर `selectRole` और कॉन्टेक्स्ट वैल्यू की रेफरेंशियल आइडेंटिटी स्थिर रहती है और 13 प्रमुख सेक्शंस में 50ms–150ms का यूआई लैग समाप्त हो जाता है। |
+| 6.35 | **TechMarqueeBanner 348 Cards Re-render Thrashing Elimination & Memoized Bailout** | `src/components/TechMarqueeBanner.jsx`, `scripts/test_marquee_render_optimization.mjs` | होवर/टूलपिप पर 348 कार्ड्स के री-रेंडर को घटाकर शुद्ध 2 कार्ड्स तक सीमित करना | डुअल इन्फिनिट रिबन एरेज़ (168 टॉप + 156 बॉटम = 324 DOM कार्ड्स) को कंपोनेंट से बाहर मॉड्यूल स्कोप (`TOP_SEQUENCE`, `BOTTOM_SEQUENCE`) पर होस्ट किया, कार्ड्स को `React.memo` और कस्टम इक्वैलिटी कंपैरेटर (`areMarqueeCardPropsEqual`) वाले `MarqueeCard` सब-कंपोनेंट में विभाजित किया, और सभी इवेंट हैंडलर्स को `useCallback` से स्थिर किया, जिससे टूलपिप टॉगल पर 346 कार्ड्स का 100% बेलआउट होता है और ~1,400 इनलाइन क्लोजर्स का GC लोड शून्य हो जाता है। |
+| 6.36 | **Hero Section Viewport Culling & rAF Offscreen Overdraw Elimination** | `src/components/HeroSection.jsx`, `scripts/test_hero_viewport_culling.mjs` | ऑफस्क्रीन स्थिति में 120 FPS rAF लूप को रोकना और DOM ओपेसिटी डर्टी-चेक लागू करना | हीरो सेक्शन पर `IntersectionObserver` (थ्रेशोल्ड 0.05) बाइंड कर स्क्रॉल आउट होने पर 60/120 FPS rAF लूप को पॉज़ और व्यूपोर्ट में लौटने पर सुरक्षित रिज़्यूम करता है (`isHeroVisibleRef`), साथ ही 10 कैरेक्टर पोज़ इमेजेस के लिए `prevOpsRef` डर्टी-चेक थ्रेशोल्ड (`Math.abs(op - prevOps[p]) > 0.005`) लागू करता है जिससे ऑफस्क्रीन GPU/CPU ओवरड्रॉ और पंखे की आवाज़ पूरी तरह समाप्त हो जाती है। |
+| 6.37 | **Navbar Action Group Icon Standardization, Pure SVG Vector Flags & Uniform Capsule Buttons** | `src/components/Navbar.jsx`, `scripts/verify_navbar_icons_styling.mjs`, `package.json` | 32x32px समरूप सर्कुलर एक्शन बटन्स और हैंडक्राफ्टेड SVG तिरंगा व यूनियन जैक ध्वज | नेवबार एक्शन ग्रुप के विभिन्न बटनों (Search, Language Switcher, Theme, Audio) को 32x32px (`w-8 h-8 rounded-full`) सर्कुलर कैप्सूल स्टाइल में मानकीकृत किया, शुद्ध वेक्टर SVG कम्पोनेंट्स `IndiaFlag` (24-स्पोक अशोक चक्र व सर्कुलर क्लिप-पाथ) एवं `UkFlag` (प्रामाणिक क्रॉस व साल्टायर्स) बनाए, कॉम्पैक्ट सर्च बटन लागू किया, और मोबाइल ड्रॉअर के साथ विजुअल फ्लैग्स को 100% सिंक्रनाइज़ किया। |
+| 6.38 | **Offline-by-Default Hybrid Map Architecture, Layered Zero-Flicker Crossfade & Zoom Floor 10-15 Expansion** | `src/components/ContactSection.jsx`, `src/components/LeafletOfflineMap.jsx`, `scripts/verify_leaflet_map.mjs`, `scripts/verify_map_hybrid_system.mjs`, `scripts/test_challenger_map_bounds.mjs` | ऑटो-अपग्रेड टाइमर का विलोपन, 0ms तत्काल ऑफलाइन मैप डिफ़ॉल्ट, शून्य-फ्लिकर लेयर्ड क्रॉसफ़ेड एवं ज़ूम 10-15 विस्तार | बैकग्राउंड `AUTO_UPGRADE_DELAY` टाइमर को पूरी तरह हटाकर 0ms तत्काल ऑफलाइन लीफलेट OSM को डिफ़ॉल्ट बनाया, लाइव गूगल मैप्स को विशुद्ध रूप से यूजर के टॉगल क्लिक पर ऑन-डिमांड किया, 300ms डिबाउंस्ड लेयर्ड क्रॉसफ़ेड (`iframeHydrationTimerRef`) व स्पिनर (`<Loader2 className="animate-spin" />`) लागू किया, ऑफलाइन मैप ज़ूम फ्लोर को लेवल 10 तक विस्तारित किया (`minNativeZoom: 12` रास्टर डाउनस्केलिंग के साथ), और पलामू रीजनल बाउंडिंग बॉक्स को `[[23.7646, 83.6455], [24.3186, 84.4945]]` तक विस्तृत किया। |
+| 6.39 | **Universal Accessible Navbar Floating Pill Tooltip System** | `src/components/NavbarTooltip.jsx`, `src/components/Navbar.jsx`, `scripts/verify_navbar_cursor_scrollspy_tooltips.mjs` | सुलभ फ्लोटिंग पिल टूलपिप, 120ms डिबाउंस, 400ms टच-एंड-होल्ड एवं कीबोर्ड सपोर्ट | ब्राउज़र के डिफ़ॉल्ट विलंबित टूलटिप्स को हटाकर एक एकीकृत, सुलभ और सौंदर्यपरक डार्क/लाइट फ्लोटिंग कैप्सूल टूलपिप कंपोनेंट प्रदान करता है। डेस्कटॉप पर 120ms होवर डिबाउंस, कीबोर्ड फोकस, और ब्लर/एस्केप/क्लिक पर ऑटो-डिसमिस की सुविधा देता है; टच स्क्रीन्स पर 400ms टच-एंड-होल्ड (लॉन्ग प्रेस) हैप्टिक सपोर्ट और 3.5s ऑटो-डिसमिस प्रदान करता है; इसमें हॉरिजॉन्टल अलाइनमेंट (left/center/right), केयरट पॉइंटर, टाइटल, सबटेक्स्ट और कीबोर्ड शॉर्टकट बैज (जैसे ⌘K) शामिल हैं। |
+| 6.40 | **Universal Interactive Pointer Cursor Enforcement & SVG Pointer Events Non-Interception** | `src/index.css`, `scripts/verify_navbar_cursor_scrollspy_tooltips.mjs` | सभी बटनों, लिंक्स और इंटरएक्टिव रोल्स पर पॉइंटर कर्सर का 100% प्रवर्तन | `src/index.css` में वैश्विक नियम लागू किए गए जिससे सभी लिंक्स, बटन्स, `[role="button"]`, टैब्स, रेडियो, रेंज इनपुट्स और उनके आंतरिक चाइल्ड एलिमेंट्स पर `cursor: pointer !important;` लागू होता है (कस्टम कर्सर सक्रिय होने या बंद होने दोनों स्थितियों में), तथा आंतरिक SVG आइकन्स को `pointer-events: none` दिया गया ताकि वे माउस इवेंट्स को बाधित न करें और कर्सर कभी डिफ़ॉल्ट एरो पर रिवर्ट न हो। |
+
+---
+
+<a id="module-7"></a>
+## 💻 मॉड्यूल 7: डेवलपर टर्मिनल सीएलआई एवं पावर पैक सिस्टम (Developer Terminal CLI & Power Pack System)
+
+यह मॉड्यूल पोर्टफोलियो के इंटरएक्टिव हैकर/डेवलपर टर्मिनल (`TerminalCLI.jsx`), मल्टी-ओएस स्विचर, टाइफोग्राफी इंजन, और पावर पैक कमांड्स का संपूर्ण विवरण देता है।
+
+### 7.1 घटक विवरण एवं वास्तुकला (Component Details & Architecture)
+
+1. **इंटरएक्टिव टर्मिनल शैल (`TerminalCLI.jsx`):**
+   - **ग्लोबल कीबोर्ड शॉर्टकट:** किसी भी समय बैकर्टिक/टिल्ड (`` ` `` / `~`) दबाकर या नेवबार/सब-बार आइकॉन पर क्लिक करके खोला/बंद किया जा सकता है।
+   - **मल्टी-ओएस क्रोम स्विचर:** 3 प्रामाणिक डेस्कटॉप थीम्स — **macOS** (रेड/येलो/ग्रीन ट्रैफिक लाइट्स), **Windows 11** (मिनिमाइज/मैक्सिमाइज/क्लोज बटन्स), और **Ubuntu Linux** (ऑरेंज-ऑबर्न विंडो हेडर्स)।
+   - **ड्रैग एवं रीसाइज़ इंजन:** टर्मिनल विंडो को व्यूपोर्ट की सीमाओं में कहीं भी ड्रैग किया जा सकता है; बॉटम-राइट कॉर्नर ग्रिप से न्यूनतम 360x260px से लेकर 95vw तक स्वतंत्र रीसाइज़ किया जा सकता है।
+   - **सीआरटी एवं मैट्रिक्स सिमुलेशन:** सीआरटी स्कैनलाइन्स और फॉस्फोर ग्लो इफ़ेक्ट; `matrix` कमांड चलाने पर डिजिटल ग्रीन बाइनरी रेन सिमुलेशन।
+   - **टाइपोग्राफी एवं बैकग्राउंड कस्टमाइज़ेशन:** 5 फ़ॉन्ट फ़ैमिलीज़, 10-28px डायरेक्ट फ़ॉन्ट साइज, 8 टेक्स्ट कलर्स + हेक्स वैलिडेशन, 15 बैकग्राउंड कलर्स, और 4 ओपेसिटी लेवेल्स (Solid, Default, Glass, Semi)।
+   - **पावर पैक कमांड्स (20+ Commands):** `help`, `clear`, `neofetch`, `skills`, `projects`, `exp`, `contact`, `theme`, `role`, `matrix`, `os`, `font`, `size`, `color`, `bgcolor`, `opacity`, `cat`, `ls`, `pwd`, `git log`, `ping`, `cowsay`, `weather`, `fortune`, `sudo hire`, और `reset`।
+   - **वेब ऑडियो मैकेनिकल कीक्लिक्स:** टाइपिंग करते समय मैकेनिकल कीबोर्ड के यथार्थवादी क्लिक्स और एरर/सक्सेस बीप्स।
+
+---
+
+### 7.2 मॉड्यूल 7: विस्तृत फ़ीचर एवं फ़ंक्शन तालिका (Detailed Features Table)
+
+| क्र. सं. | फ़ीचर / फ़ंक्शन का नाम | संबंधित फ़ाइल / कंपोनेंट | मुख्य कार्य (Primary Action) | विस्तृत विवरण (Detailed Description) |
+| :---: | :--- | :--- | :--- | :--- |
+| 7.1 | **Interactive Developer Terminal Shell** | `src/components/TerminalCLI.jsx` | टर्मिनल सीएलआई इंटरफ़ेस प्रस्तुत करना | विंडो कंट्रोल्स (Minimize, Maximize, Close), टास्कबार डॉक पिल और ड्रैगैबल हेडर के साथ टर्मिनल प्रस्तुत करता है। |
+| 7.2 | **Backtick / Tilde Global Shortcut** | `src/components/TerminalCLI.jsx`, `App.jsx` | `` ` `` या `~` से टर्मिनल टॉगल करना | जब यूजर किसी टेक्स्ट इनपुट में न हो, तो बैकर्टिक दबाते ही टर्मिनल खुलता है और ऑटो-फोकस होता है। |
+| 7.3 | **Multi-OS Desktop Chrome Switcher** | `src/components/TerminalCLI.jsx` | macOS, Windows 11, Ubuntu थीम्स | `os mac`, `os win`, `os ubuntu` कमांड्स से विंडो हेडर, कंट्रोल्स और कमांड प्रॉम्प्ट का रूप बदलता है। |
+| 7.4 | **CRT Scanlines & Retro Phosphor Glow** | `src/components/TerminalCLI.jsx` | सीआरटी मॉनिटर विजुअल इफ़ेक्ट | रेट्रो सीआरटी मॉनिटर की तरह स्कैनलाइन्स ओवरले और टेक्स्ट ग्लो प्रदान करता है। |
+| 7.5 | **Matrix Digital Rain Simulation** | `src/components/TerminalCLI.jsx` | मैट्रिक्स बाइनरी रेन एनिमेशन | `matrix` कमांड चलाने पर टर्मिनल में 120 FPS ग्रीन डिजिटल कैस्केड शुरू करता है; `Esc` पर बंद होता है। |
+| 7.6 | **Viewport-Bounded Window Dragging & Corner Resize** | `src/components/TerminalCLI.jsx` | विंडो को ड्रैग व रीसाइज़ करना | हेडर ड्रैग से स्क्रीन में कहीं भी ले जाएं; बॉटम-राइट ग्रिप से विंडो को छोटा या बड़ा करें। |
+| 7.7 | **Terminal Size Presets Engine** | `src/components/TerminalCLI.jsx` | `size sm`, `size md`, `size lg` | 3 मानकीकृत विंडो आकारों (`sm: 480x340`, `md: 680x440`, `lg: 880x560`) में त्वरित रीसाइज़। |
+| 7.8 | **Full Typography Engine** | `src/components/TerminalCLI.jsx` | फ़ॉन्ट फ़ैमिली और साइज बदलना | `font jetbrains`, `fira`, `source`, `courier` और `size 10`-`28px` से रीयल-टाइम में टेक्स्ट स्केल करता है। |
+| 7.9 | **Terminal Text Color Palette** | `src/components/TerminalCLI.jsx` | 8 कलर्स + कस्टम हेक्स कोड्स | `color green`, `amber`, `cyan`, `matrix`, `rose`, `white`, `purple` या `#hex` से टेक्स्ट कलर बदलना। |
+| 7.10 | **Dynamic Background Color Switcher** | `src/components/TerminalCLI.jsx` | 15 बैकग्राउंड कलर्स + हेक्स | `bgcolor dark`, `matrix`, `navy`, `oled`, `carbon` या कस्टम हेक्स से टर्मिनल का बैकग्राउंड बदलना। |
+| 7.11 | **Opacity Preset Engine** | `src/components/TerminalCLI.jsx` | सॉलिड, ग्लास व पारदर्शी लेवेल्स | `opacity solid` (1.0), `default` (0.92), `glass` (0.75), `semi` (0.50) या 0.4-1.0 क्लैम्प्ड वैल्यूज। |
+| 7.12 | **Neofetch System Information Banner** | `src/components/TerminalCLI.jsx` | सिस्टम व ओएस इंफो प्रदर्शित करना | अतुल वर्मा का ASCII लोगो, ओएस, शेल, रिज़ॉल्यूशन, अपटाइम, और टेक स्टैक का विस्तृत नियोफेच आउटपुट। |
+| 7.13 | **Virtual Filesystem Navigation** | `src/components/TerminalCLI.jsx` | `ls`, `cat`, `pwd` कमांड्स | 6 वर्चुअल फाइल्स (`about.txt`, `skills.json`, `projects.md`, `experience.log`, `contact.vcf`, `resume.pdf`) पढ़ना। |
+| 7.14 | **Developer Utility Suite** | `src/components/TerminalCLI.jsx` | `git log`, `ping`, `cowsay`, `weather` | रियल गिट कमिट हिस्ट्री, लेटेंसी पिंग सिमुलेशन, काउसै बैलून मैसेज, और लोकल वेदर प्रदर्शित करना। |
+| 7.15 | **Autonomous Hiring Protocol** | `src/components/TerminalCLI.jsx` | `sudo hire` कमांड एग्जीक्यूशन | हायरिंग प्रपोजल सक्रिय करता है, संपर्क फ़ॉर्म पर ऑटो-स्क्रॉल करता है और कंफ़ेटी ब्लास्ट उड़ाता है। |
+| 7.16 | **Contextual Command Autocomplete & History** | `src/components/TerminalCLI.jsx` | `Tab` ऑटो-कम्प्लीट व हिस्ट्री | `Tab` दबाने पर कमांड्स का स्वतः पूर्ण होना; `ArrowUp`/`ArrowDown` से पिछली कमांड्स को रिकॉल करना। |
+| 7.17 | **Procedural Mechanical Keyclick Synthesizer** | `src/components/TerminalCLI.jsx`, `src/utils/audio.js` | कीबोर्ड टाइपिंग ऑडियो फ़ीडबैक | प्रत्येक कीस्ट्रोक पर वेब ऑडियो ऑसिलेटर से क्लिक्स और बैकस्पेस/एंटर पर विशिष्ट साउंड बजाता है। |
+| 7.18 | **Minimized Taskbar Pill & Auto-Restore Sync** | `src/components/TerminalCLI.jsx` | टास्कबार में मिनिमाइज करना | टर्मिनल को बॉटम स्क्रीन पर छोटे पिल के रूप में मिनिमाइज करता है और क्लिक पर ऑटो-फोकस के साथ रीस्टोर करता है। |
+
+---
+
+<a id="module-8"></a>
+## 📂 मॉड्यूल 8: केस स्टडीज आर्किटेक्चर एवं लाइव टेलीमेट्री सिमुलेटर (Interactive Case Studies & Telemetry Simulators)
+
+यह मॉड्यूल पोर्टफोलियो के सभी 9 प्रोजेक्ट्स के विस्तृत केस स्टडी डॉसियर्स (`caseStudiesData.js`), स्लाइड-ओवर ड्रॉअर (`CaseStudyDrawer.jsx`), लाइव टेलीमेट्री सिमुलेटर (`CaseStudySimulator.jsx`), और 4-टियर सिस्टम फ्लोचार्ट्स (`CaseStudyArchitecture.jsx`) का विवरण देता है।
+
+### 8.1 घटक विवरण एवं वास्तुकला (Component Details & Architecture)
+
+1. **5-स्टेज केस स्टडी स्टोरीटेलिंग फ्रेमवर्क:**
+   - प्रत्येक केस स्टडी को 5 संरचित चरणों में प्रस्तुत किया गया है:
+     1. **The Executive Summary & Challenge:** व्यावसायिक संदर्भ, परिचालन बाधाएं और उद्देश्य।
+     2. **The Architectural Solution:** तकनीकी रणनीति, मॉड्यूलर रूपरेखा और डेटा पाइपलाइन।
+     3. **Tech Stack & Technical Obstacles Overcome:** प्रयुक्त टूल्स, लाइब्रेरीज़ और हल की गई चुनौतियाँ।
+     4. **Measurable Production Impact & Metrics:** मात्रात्मक परिणाम (उदा. 99.8% ITC रिकवरी, ₹25Cr+ वॉल्यूम)।
+     5. **Retrospective & Lessons Learned:** इंजीनियरिंग और एकाउंटिंग अंतर्दृष्टि।
+
+2. **लाइव टेलीमेट्री सिमुलेटर (`CaseStudySimulator.jsx`):**
+   - प्रत्येक प्रोजेक्ट के लिए समर्पित रीयल-टाइम सिमुलेटर इंजन।
+   - यूजर 'Run Simulation', 'Process Batch', 'Reconcile ITC' आदि बटन्स दबाकर लाइव स्टेट मशीन ट्रांज़िशन्स, प्रोग्रेस बार्स, और ऑडिट लॉग्स देख सकते हैं।
+
+3. **4-टियर विजुअल सिस्टम आर्किटेक्चर फ्लोचार्ट (`CaseStudyArchitecture.jsx`):**
+   - प्रत्येक प्रोजेक्ट की 4-लेयर संरचना — Data Ingestion -> Processing Core -> Business Rules Engine -> Output & Client Interfaces — का इंटरएक्टिव विजुअल फ्लोचार्ट।
+
+4. **यूआरएल डीप-लिंकिंग:** `?project=<id>` पैरामीटर द्वारा किसी भी केस स्टडी को सीधे शेयर या बुकमार्क करने की सुविधा।
+
+---
+
+### 8.2 मॉड्यूल 8: विस्तृत फ़ीचर एवं फ़ंक्शन तालिका (Detailed Features Table)
+
+| क्र. सं. | फ़ीचर / फ़ंक्शन का नाम | संबंधित फ़ाइल / कंपोनेंट | मुख्य कार्य (Primary Action) | विस्तृत विवरण (Detailed Description) |
+| :---: | :--- | :--- | :--- | :--- |
+| 8.1 | **Complete 9-Project Case Study Dossiers** | `src/data/caseStudiesData.js` | 9 प्रमुख परियोजनाओं का डॉसियर डेटाबेस | PolicyGuard AI, ApexPay, DAY-NULM, Smart Card Ops, Power BI, Financial Controls, SaaS Generator, Multi-Agent Engine, Document Synthesizer का संपूर्ण डेटा। |
+| 8.2 | **5-Stage Storytelling Architectural Framework** | `src/data/caseStudiesData.js`, `CaseStudyDrawer.jsx` | मानकीकृत 5-चरणीय केस स्टडी विवरण | Executive Challenge -> Architectural Solution -> Tech Stack -> Measurable Impact -> Lessons Learned के आधार पर प्रस्तुतीकरण। |
+| 8.3 | **Live Interactive Telemetry Simulators** | `src/components/CaseStudySimulator.jsx` | रीयल-टाइम प्रोजेक्ट टेलीमेट्री सिमुलेशन | लाइव एग्जीक्यूशन बटन्स, स्टेट मशीन ट्रांज़िशन्स, कलर्ड लॉग्स, और प्रोग्रेस बार्स के साथ प्रोजेक्ट का लाइव टेस्ट। |
+| 8.4 | **4-Tier Visual System Architecture Flowcharts** | `src/components/CaseStudyArchitecture.jsx` | 4-स्तरीय तकनीकी फ्लोचार्ट दिखाना | Data Source -> Processing Core -> Business Rules -> Presentation Layer का इंटरएक्टिव विजुअल सिस्टम मैप। |
+| 8.5 | **Slide-Over Case Study Drawer Shell** | `src/components/CaseStudyDrawer.jsx` | फुल-हाइट स्मूथ ड्रॉअर प्रस्तुतीकरण | बैकड्रॉप ब्लर, WAI-ARIA डायलॉग, कीबोर्ड ट्रैपिंग (`useFocusTrap`) और बॉडी स्क्रॉल लॉक के साथ दाईं ओर से ड्रॉअर खुलता है। |
+| 8.6 | **Bi-Directional URL Deep Linking** | `src/components/CaseStudyDrawer.jsx`, `App.jsx` | `?project=<id>` शेयर करने योग्य लिंक्स | किसी भी केस स्टडी को खोलने पर URL अपडेट करता है; लिंक खोलने पर सीधे वही केस स्टडी ड्रॉअर खुलता है। |
+| 8.7 | **PolicyGuard AI Tax Compliance Dossier** | `src/data/caseStudiesData.js` | जीएसटी एवं आईटीसी ऑडिट केस स्टडी | 500+ जीएसटी फाइलिंंग्स, शून्य डिफ़ॉल्ट पेनल्टी, और GSTR-2B ऑटो-मैचिंग की विस्तृत केस स्टडी और सिमुलेटर। |
+| 8.8 | **ApexPay Financial Accounting Dossier** | `src/data/caseStudiesData.js` | दोहरा लेखा एवं बीआरएस मिलान केस स्टडी | ₹25Cr+ वार्षिक टर्नओवर, 100% बीआरएस सटीकता, और टैली प्राइम वाउचर ऑटोमेशन का संपूर्ण आर्किटेक्चर। |
+| 8.9 | **DAY-NULM Skill India MIS Portal Dossier** | `src/data/caseStudiesData.js` | राष्ट्रीय शहरी आजीविका मिशन डॉसियर | 1,200+ उम्मीदवारों का ट्रैकिंग पोर्टल, सरकारी डायरेक्ट बेनिफिट ट्रांसफर (DBT) और आधार बायोमेट्रिक इंटीग्रेशन। |
+| 8.10 | **Multi-District Smart Card Operations Dossier** | `src/data/caseStudiesData.js` | बहु-जिला स्मार्ट कार्ड एवं पीवीसी डॉसियर | 50,000+ पीवीसी स्मार्ट कार्ड्स का सुरक्षित एन्क्रिप्शन, बारकोड मैपिंग और जिला-स्तरीय आपूर्ति श्रृंखला का विवरण। |
+| 8.11 | **Executive Power BI Fiscal Intelligence Dossier**| `src/data/caseStudiesData.js` | कार्यकारी वित्तीय एनालिटिक्स डैशबोर्ड | DAX फॉर्मूलास, बैलेंस शीट वेरियंस मॉडल्स, और कार्यकारी निर्णय समर्थन प्रणाली का गहन तकनीकी डॉसियर। |
+| 8.12 | **Corporate Financial Controls Governance Dossier**| `src/data/caseStudiesData.js`| आंतरिक वित्तीय नियंत्रण एवं ऑडिट डॉसियर | आईसीओएफआर अनुपालन, सोक्स-शैली नियंत्रण, आंतरिक ऑडिट चेकलिस्ट और जोखिम न्यूनीकरण का डॉसियर। |
+| 8.13 | **AI Prompt-to-Fullstack SaaS Generator Dossier** | `src/data/caseStudiesData.js` | स्वायत्त वेब ऐप निर्माण इंजन डॉसियर | प्राकृतिक भाषा प्रॉम्प्ट से संपूर्ण रिएक्ट व नोड स्टैक तैयार करने वाले स्वायत्त इंजन का विस्तृत विश्लेषण। |
+| 8.14 | **Autonomous Multi-Agent Workflow Engine Dossier**| `src/data/caseStudiesData.js` | बहु-एजेंट आर्केस्ट्रेशन सिस्टम डॉसियर | सीलिंग-रहित सब-एजेंट डेलिगेशन, पैरेलल डिस्पैच और स्वचालित वेरिफिकेशन लूप्स का तकनीकी केस स्टडी। |
+| 8.15 | **Real-Time AI Document Synthesizer Dossier** | `src/data/caseStudiesData.js` | रीयल-टाइम डॉक्युमेंट एवं कोड इंजन | पीडीएफ, मार्कडाउन और स्प्रेडशीट डेटा को स्वायत्त रूप से विश्लेषित करके सारांशित करने वाले टूल का डॉसियर। |
+
+---
+
+<a id="module-9"></a>
+## 🌐 मॉड्यूल 9: बहुभाषी स्थानीयकरण एवं वॉइस कोऑर्डिनेशन (Multilingual Localization & Translation System)
+
+यह मॉड्यूल पोर्टफोलियो के संपूर्ण द्विभाषी स्थानीयकरण (English ⇄ Hindi), ट्रांसलेशन डिक्शनरी (`translations.js`), लैंग्वेज प्रोवाइडर (`LanguageContext.jsx`), और स्क्रीन रीडर वॉयस कोऑर्डिनेशन का विवरण प्रस्तुत करता है।
+
+### 9.1 घटक विवरण एवं वास्तुकला (Component Details & Architecture)
+
+1. **लैंग्वेज कॉन्टेक्स्ट प्रोवाइडर (`LanguageContext.jsx`):**
+   - संपूर्ण पोर्टफोलियो में भाषा की स्थिति ('en' vs 'hi') का केंद्रीय प्रबंधन।
+   - `localStorage` की `'portfolio_language'` में सुरक्षित और रीलोड पर रीस्टोर।
+   - `document.documentElement.lang` को 'en' या 'hi' में तत्काल सिंक्रनाइज़ करता है।
+   - भाषा बदलने पर स्क्रीन रीडर्स के लिए द्विभाषी घोषणा ("Language switched to Hindi" / "भाषा बदलकर अंग्रेज़ी कर दी गई है") प्रसारित करता है।
+
+2. **450+ कीज का व्यापक अनुवाद शब्दकोश (`translations.js`):**
+   - **हाइब्रिड ब्रांड प्रिजर्वेशन:** तकनीकी और अंतर्राष्ट्रीय शब्दों (उदा. React, Tally Prime, GST, API, GitHub, Lucide) को अंग्रेजी लिपि में सुरक्षित रखते हुए उनके विवरणों, लेबल्स और व्याख्याओं को शुद्ध, स्पष्ट हिंदी में प्रस्तुत करता है।
+   - सेक्शन्स, नेवबार, हेरो, स्किल्स, एक्सपीरियंस, प्रोजेक्ट्स, अचीवमेंट्स, कांटेक्ट (सभी 4 टैब्स), एफएक्यू, और कमांड पैलेट का संपूर्ण 100% अनुवाद।
+
+---
+
+### 9.2 मॉड्यूल 9: विस्तृत फ़ीचर एवं फ़ंक्शन तालिका (Detailed Features Table)
+
+| क्र. सं. | फ़ीचर / फ़ंक्शन का नाम | संबंधित फ़ाइल / कंपोनेंट | मुख्य कार्य (Primary Action) | विस्तृत विवरण (Detailed Description) |
+| :---: | :--- | :--- | :--- | :--- |
+| 9.1 | **Language Context Provider & Global State** | `src/context/LanguageContext.jsx` | द्विभाषी अवस्था ('en' ⇄ 'hi') का प्रबंधन | पूरे रिएक्ट ट्री को `language`, `setLanguage`, `toggleLanguage`, और अनुवाद हेल्पर `t()` प्रदान करता है। |
+| 9.2 | **450+ Key Bilingual Translation Registry** | `src/data/translations.js` | संपूर्ण पोर्टफोलियो का ट्रांसलेशन डेटा | सभी नेविगेशन, शीर्षकों, उप-शीर्षकों, बटनों, फ़ॉर्म लेबल्स और एरर संदेशों का मानकीकृत अंग्रेजी-हिंदी शब्दकोश। |
+| 9.3 | **Hybrid Technical Term Preservation** | `src/data/translations.js` | तकनीकी शब्दों की अखंडता सुरक्षित रखना | Tally, GST, React, Vite, BRS, API जैसे तकनीकी और वित्तीय शब्दों को अंग्रेजी लिपि में रखते हुए हिंदी अनुवाद करता है। |
+| 9.4 | **Navbar & Drawer 1-Click Language Switcher** | `src/components/Navbar.jsx` | नेवबार में भाषा बदलने का पिल बटन | डेस्कटॉप और मोबाइल नेवबार में 1-क्लिक 'EN ⇄ HI' बटन; क्लिक करने पर स्पार्कल साउंड और तत्काल री-रेंडर। |
+| 9.5 | **HTML Root Attribute Synchronization** | `src/context/LanguageContext.jsx` | `<html lang="...">` टैग को अपडेट करना | भाषा बदलने पर तत्काल DOM के रूट पर `lang="hi"` या `lang="en"` सेट करता है ताकि ब्राउज़र और ट्रांसलेटर्स सही व्यवहार करें। |
+| 9.6 | **WAI-ARIA Bilingual Voice Coordination** | `src/context/LanguageContext.jsx`, `AnnouncerContext.jsx` | स्क्रीन रीडर पर भाषा घोषणा | भाषा बदलने पर दृष्टिबाधित उपयोगकर्ताओं को दोनों भाषाओं में ऑडियो घोषणा सुनाता है। |
+| 9.7 | **Full-Spectrum Section Localization** | All Section Components | मुख्य पृष्ठ के सभी सेक्शन्स का अनुवाद | Hero, About, Skills, Experience, Projects, Achievements, और Footer के प्रत्येक टेक्स्ट एलिमेंट का गतिशील अनुवाद। |
+| 9.8 | **Contact 4-Tab & Estimator Full Bilingual Support**| `src/components/ContactSection.jsx` | संपर्क व कोटेशन का पूर्ण अनुवाद | पूछताछ फ़ॉर्म, कोटेशन स्लाइडर्स, डायरेक्ट कार्ड, और मेदिनीनगर लोकेशन पैनल का संपूर्ण हिंदी रूपांतरण। |
+| 9.9 | **FAQ Section Bilingual Dynamic Rendering** | `src/components/FAQSection.jsx` | एफएक्यू प्रश्नों का द्विभाषी प्रदर्शन | सभी 40 प्रश्नों, उत्तरों, ऑडियंस टैग्स और कैटेगरी चिप्स को सक्रिय भाषा के अनुसार प्रस्तुत करता है। |
+| 9.10 | **LocalStorage Language Persistence** | `src/context/LanguageContext.jsx` | उपयोगकर्ता की भाषा पसंद को याद रखना | `'portfolio_language'` कुंजी के माध्यम से यूजर की चुनी गई भाषा को ब्राउज़र में सुरक्षित रखता है। |
+
+---
+
+<a id="module-10"></a>
+## 👥 मॉड्यूल 10: ऑडियंस व्यक्तित्व फ़िल्टर एवं व्यू मोड सिस्टम (Audience Persona Filter & View Mode Engine)
+
+यह मॉड्यूल आगंतुक व्यक्तित्व फ़िल्टर (Audience Persona View Filter) और 4-स्तरीय व्यू मोड सिस्टम (View Mode 4-Tier Switcher) का पूर्ण तकनीकी विवरण देता है।
+
+### 10.1 घटक विवरण एवं वास्तुकला (Component Details & Architecture)
+
+1. **ऑडियंस व्यक्तित्व फ़िल्टर (`AudienceContext.jsx`, `AudienceFloatingPill.jsx`, `AudienceSubBar.jsx`):**
+   - **4 आगंतुक व्यक्तित्व:**
+     1. **All (No Filter):** संपूर्ण पोर्टफोलियो का समग्र प्रदर्शन।
+     2. **Recruiter / Job:** एचआर और रिक्रूटर्स के लिए सीवी डाउनलोड, अकादमिक क्रेडेंशियल्स और अनुभव को प्राथमिकता।
+     3. **Freelance Client / SME Owner:** फ्रीलांस ग्राहकों के लिए केस स्टडीज, कोटेशन कैलकुलेटर और टेस्टिमोनियल्स को प्राथमिकता।
+     4. **Marriage / Matrimonial:** वैवाहिक प्रस्तावों के लिए परिवार, पृष्ठभूमि, मूल्यों और बायो-डेटा का गरिमापूर्ण प्रदर्शन।
+   - **पोर्टल-माउंटेड ड्रैगैबल कार्ड (`AudienceFloatingPill.jsx`):** `document.body` में रेंडर होता है, 12px स्क्रीन बाउंड्री क्लैंपिंग, रीयल-टाइम कर्सर स्पॉटलाइट चमक, और रीसेट बटन।
+   - **यूआरएल सिंक:** `?audience=recruiter` आदि के साथ पूर्ण सिंक्रनाइज़ेशन।
+
+2. **4-स्तरीय व्यू मोड सिस्टम (`ViewModeContext.jsx`, `ViewModeFloatingPill.jsx`, `ViewModeSubBar.jsx`):**
+   - **4 व्यू मोड्स:**
+     1. **Basic / PDF Mode (`basic` / `बेसिक / PDF`):** अति-सरल, उच्च-घनत्व प्रिंट और एटीएस-अनुकूल लेआउट।
+     2. **Simple / Classic Mode (`simple` / `सिंपल / क्लासिक`):** बिना 3D या पार्टिकल्स का पठन-अनुकूल क्लासिक लेआउट।
+     3. **Modern / Interactive Mode (`modern` / `मॉडर्न / इंटरैक्टिव`):** 120 FPS कर्सर काइनेमैटिक्स, 2.5D हेरो ट्रैकिंग और फुल ऑडियो।
+     4. **Terminal / Developer Mode (`terminal` / `टर्मिनल / डेवलपर`):** सीएलआई डेवलपर्स के लिए सीधे टर्मिनल लॉन्च।
+   - **ड्यूल-डिस्क्रिप्टर लेबल्स:** अंग्रेजी और हिंदी दोनों में मानकीकृत ड्यूल लेबल्स।
+   - **यूआरएल सिंक:** `?view=modern` आदि के साथ सिंक्रनाइज़ेशन।
+
+---
+
+### 10.2 मॉड्यूल 10: विस्तृत फ़ीचर एवं फ़ंक्शन तालिका (Detailed Features Table)
+
+| क्र. सं. | फ़ीचर / फ़ंक्शन का नाम | संबंधित फ़ाइल / कंपोनेंट | मुख्य कार्य (Primary Action) | विस्तृत विवरण (Detailed Description) |
+| :---: | :--- | :--- | :--- | :--- |
+| 10.1 | **4-Persona Audience Filter State** | `src/context/AudienceContext.jsx` | आगंतुक के अनुसार सामग्री छांटना | All, Recruiter, Client, और Matrimonial व्यक्तित्वों का प्रबंधन करता है; URL और लोकल स्टोरेज सिंक रखता है। |
+| 10.2 | **Draggable Glassmorphic Audience Floating Pill** | `src/components/AudienceFloatingPill.jsx` | फ्लोटिंग ऑडियंस सेलेक्टर कार्ड | स्क्रीन के बॉटम-राइट में ड्रैगैबल ग्लास कार्ड; 4 विकल्पों के सीधे चयन बटन और एक्टिव चेकमार्क्स दिखाता है। |
+| 10.3 | **React Portal Body Mounting** | `src/components/AudienceFloatingPill.jsx` | कंटेनिंग ब्लॉक इश्यू को हल करना | `createPortal(..., document.body)` का उपयोग करता है ताकि पैरेंट CSS ट्रांसफ़ॉर्म से कार्ड की पोज़ीशन विकृत न हो। |
+| 10.4 | **Pointer Capture Drag Engine & 12px Clamping** | `src/components/AudienceFloatingPill.jsx` | सुरक्षित ड्रैग और स्क्रीन सीमा सुरक्षा | `setPointerCapture` द्वारा स्मूथ ड्रैगिंग; स्क्रीन के किनारों से 12px की सुरक्षित दूरी बनाए रखता है। |
+| 10.5 | **Cursor-Tracking Spotlight Shine & Row Animation**| `src/components/AudienceFloatingPill.jsx`, `src/index.css` | इंटरएक्टिव लाइट और स्टैगर एनीमेशन | माउस कर्सर की दिशा में लाइट/डार्क रेडियल ग्रेडिएंट चमक और खुलते समय `.animate-pill-row` स्टैगर एनीमेशन। |
+| 10.6 | **Matrimonial Persona Biodata Presentation** | `src/context/AudienceContext.jsx`, `src/data/faqConfig.js` | वैवाहिक प्रोफाइल जानकारी | पारिवारिक पृष्ठभूमि, सांस्कृतिक मूल्य, और सत्यापित बायो-डेटा को प्राथमिकता से प्रस्तुत करता है। |
+| 10.7 | **Audience Persona URL Synchronization** | `src/context/AudienceContext.jsx` | `?audience=...` पैरामीटर सिंक | व्यक्तित्व बदलने पर पेज रीलोड किए बिना URL अपडेट करता है; शेयरेबल लिंक्स बनाने में सक्षम। |
+| 10.8 | **View Mode 4-Tier State Management** | `src/context/ViewModeContext.jsx` | 4 व्यू मोड्स का केंद्रीय प्रबंधन | Basic, Simple, Modern, और Terminal मोड्स का नियंत्रण, SimpleModeContext और Terminal इवेंट्स के साथ समन्वय। |
+| 10.9 | **Dual-Descriptor Aligned Bilingual Labels** | `src/context/ViewModeContext.jsx` | मानकीकृत दोहरे लेबल्स | Basic / PDF, Simple / Classic, Modern / Interactive, Terminal / Developer के स्पष्ट द्विभाषी लेबल्स। |
+| 10.10 | **Draggable View Mode Floating Pill** | `src/components/ViewModeFloatingPill.jsx` | ड्रैगैबल व्यू मोड फ्लोटिंग कार्ड | पोर्टल-माउंटेड, ड्रैगैबल हैंडल, रोटेट-रीसेट बटन, और कर्सर-ट्रैकिंग स्पॉटलाइट चमक युक्त सेलेक्टर कार्ड। |
+| 10.11 | **View Mode Sub-Bar & Drawer Variant** | `src/components/ViewModeSubBar.jsx` | नेवबार के नीचे व्यू मोड रिबन | नेवबार कैप्सूल के नीचे फ्लोटिंग बार और मोबाइल ड्रॉअर के अंदर 4-बटन कार्ड के रूप में प्रस्तुत होता है। |
+| 10.12 | **View Mode URL Synchronization** | `src/context/ViewModeContext.jsx` | `?view=...` पैरामीटर सिंक | व्यू मोड बदलने पर बिना रीफ्रेश के URL अपडेट करता है; सीधे व्यू मोड में वेबसाइट खोलने की सुविधा देता है। |
+| 10.13 | **Drawer & Floating Pills Mutual Exclusivity** | `FloatingActionHub.jsx`, `LabStudioDrawer.jsx` | पैनल्स के टकराव को रोकना | लैब ड्रॉअर खुलने पर फ्लोटिंग पिल्स बंद हो जाती हैं; पिल्स पर क्लिक करने पर लैब ड्रॉअर बंद हो जाता है। |
+| 10.14 | **Zero-Tooltip Clean UI Policy** | `AudienceFloatingPill.jsx`, `ViewModeFloatingPill.jsx` | क्लटर-मुक्त ड्रैग अनुभव | फ्लोटिंग पिल्स पर नेटिव टाइटल और होवर टूलटिप्स को पूरी तरह हटाकर एक स्वच्छ, पेशेवर स्पर्श अनुभव देता है। |
+
+---
+
+<a id="module-11"></a>
+## ⚡ मॉड्यूल 11: सेंट्रलाइज्ड मास्टर फ्लोटिंग एक्शन हब एवं एआई चैट असिस्टेंट (Floating Action Hub & AI Chat Widget)
+
+यह मॉड्यूल पोर्टफोलियो के सेंट्रलाइज्ड मास्टर स्पीड-डायल फ्लोटिंग एक्शन हब (`FloatingActionHub.jsx`) और ग्लोबल एआई चैट असिस्टेंट (`AIChatWidget.jsx`) का विवरण देता है।
+
+### 11.1 घटक विवरण एवं वास्तुकला (Component Details & Architecture)
+
+1. **सेंट्रलाइज्ड मास्टर फ्लोटिंग एक्शन हब (`FloatingActionHub.jsx`):**
+   - **स्पीड-डायल मास्टर FAB:** पुराने अलग-अलग बिखरे हुए फ्लोटिंग बटनों को एक सुरुचिपूर्ण मास्टर बटन में समेटता है।
+   - **आइसोलेटेड आइकॉन रोटेशन:** मास्टर बटन का बेस कंटेनर स्थिर रहता है, केवल आइकॉन 45° घूमता है (`Layers` -> `X`), जिससे द्विभाषी क्षैतिज टूलटिप्स कभी टेढ़ी नहीं होतीं।
+   - **रिवर्स-फ्लेक्स वर्टिकल स्टैक (`flex-col-reverse`):** मास्टर बटन के ऊपर क्रमबद्ध रूप से एक्शन बटन्स खुलते हैं: WhatsApp -> View Mode -> Audience Filter -> AI Chat -> Control Center FAB।
+   - **डायनामिक स्पेसियल ग्लाइड:** जब लैब ड्रॉअर खुलता है, तो यह बटन स्वतः स्मूथली बाईं ओर खिसक जाता है (`sm:right-[460px]`) ताकि कोई ओवरलैप न हो।
+
+2. **ग्लोबल एआई चैट असिस्टेंट (`AIChatWidget.jsx`):**
+   - **बॉटम-डॉक्ड स्टेशन आर्किटेक्चर:** स्क्रीन के बॉटम पर शून्य-गैप डॉक्ड स्टेशन (`bottom-0`, `rounded-t-2xl`, offset `sm:right-28`)।
+   - **मिनिमाइज्ड डॉक टैब:** मिनिमाइज करने पर बॉटम में 13px की स्लीक टैब बन जाता है; 1-क्लिक में रीस्टोर होता है।
+   - **तत्काल ज्ञानकोश:** अतुल वर्मा के 7+ वर्षों के एकाउंटिंग, टैक्स, एमआईएस और कोडिंग प्रोजेक्ट्स का विस्तृत ज्ञान।
+   - **प्रॉम्प्ट चिप्स एवं स्ट्रीमिंग टाइपिंग:** सुझाए गए प्रश्न चिप्स, टाइपिंग एनीमेशन, और Lucide `BotMessageSquare` ब्रांडिंग।
+   - **ड्रॉअर क्लीयरेंस ऑफसेट:** लैब ड्रॉअर खुलने पर स्वतः `sm:right-[540px]` पर खिसक कर 24px का सुरक्षित गैप बनाता है।
+
+---
+
+### 11.2 मॉड्यूल 11: विस्तृत फ़ीचर एवं फ़ंक्शन तालिका (Detailed Features Table)
+
+| क्र. सं. | फ़ीचर / फ़ंक्शन का नाम | संबंधित फ़ाइल / कंपोनेंट | मुख्य कार्य (Primary Action) | विस्तृत विवरण (Detailed Description) |
+| :---: | :--- | :--- | :--- | :--- |
+| 11.1 | **Unified Speed-Dial Master FAB Engine** | `src/components/FloatingActionHub.jsx` | सभी फ्लोटिंग टूल्स का एकीकरण | स्क्रीन के बॉटम-राइट में एक मास्टर बटन जो क्लिक करने पर सभी टूल्स का स्पीड-डायल मेनू खोलता है। |
+| 11.2 | **Unrotated Base Geometry & Isolated Icon Spin** | `src/components/FloatingActionHub.jsx` | टूलटिप के झुकाव को रोकना | मास्टर बटन का आउटर कंटेनर सीधा रहता है; केवल अंदर का आइकॉन स्मूथली घूमता है, जिससे टूलटिप्स हमेशा क्षैतिज रहती हैं। |
+| 11.3 | **Horizontal Tooltip Orientation & Bilingual Text**| `src/components/FloatingActionHub.jsx` | स्पष्ट क्षैतिज टेक्स्ट टूलटिप्स | प्रत्येक बटन के बाईं ओर अंग्रेजी और हिंदी में हॉरिजॉन्टल टूलटिप दिखाता है (`right-full mr-3.5`)। |
+| 11.4 | **Reverse-Flex Vertical Speed-Dial Stacking** | `src/components/FloatingActionHub.jsx` | बटनों का लंबवत ऊपर की ओर खुलना | `flex-col-reverse` लेआउट के साथ बटनों को नीचे से ऊपर की दिशा में करीने से प्रदर्शित करता है। |
+| 11.5 | **Drawer-Synchronized Spatial Gliding** | `src/components/FloatingActionHub.jsx` | ड्रॉअर खुलने पर ऑटो-ग्लाइडिंग | लैब कंट्रोल सेंटर ड्रॉअर खुलते ही यह बटन स्वतः `sm:right-[460px]` पर सरक जाता है ताकि ड्रॉअर के पीछे न छिपे। |
+| 11.6 | **Explicit User-Initiated Toggle Discipline** | `src/components/FloatingActionHub.jsx` | अनपेक्षित ऑटो-क्लोज से सुरक्षा | केवल उपयोगकर्ता के जानबूझकर क्लिक करने पर ही हब बंद होता है; स्क्रॉल या पेज क्लिक से बंद नहीं होता। |
+| 11.7 | **Conversational AI Portfolio Assistant Engine** | `src/components/AIChatWidget.jsx` | बुद्धिमान संवादात्मक एआई चैट | अतुल वर्मा के करियर, टैक्स नियमों, टैली, और प्रोजेक्ट्स के बारे में किसी भी सवाल का तत्काल जवाब देता है। |
+| 11.8 | **Zero-Gap Bottom-Docked Station Architecture** | `src/components/AIChatWidget.jsx` | नीचे डॉक की गई आधुनिक खिड़की | स्क्रीन के नीचे `bottom-0` पर स्थित आधुनिक डॉक्ड स्टेशन (`rounded-t-2xl`, `sm:right-28`); मोबाइल पर पूर्ण बॉटम शीट। |
+| 11.9 | **Minimized Dock Station Tab & One-Click Restore** | `src/components/AIChatWidget.jsx` | 1-क्लिक में मिनिमाइज व रीस्टोर | मिनिमाइज करने पर बॉटम में स्लीक टैब बन जाता है; क्लिक करने पर तुरंत पूरी चैट हिस्ट्री के साथ खुलता है। |
+| 11.10 | **Interactive Suggested Prompt Chips & Streamer** | `src/components/AIChatWidget.jsx` | त्वरित प्रश्न चिप्स व टाइपिंग सिमुलेशन | "Tell me about Tax experience", "Calculate project quote" जैसे चिप्स और रीयल-टाइम टाइपिंग का आभास देता है। |
+| 11.11 | **Lucide BotMessageSquare Consistent Branding** | `src/components/AIChatWidget.jsx`, `FloatingActionHub.jsx` | मानकीकृत बॉट आइकॉन | हेडर अवतार, फ्लोटिंग बटन, डॉक्ड टैब और चैट बबल में मानकीकृत `BotMessageSquare` आइकॉन प्रस्तुत करता है। |
+| 11.12 | **AIChatWidget Drawer Clearance Offset Safeguard** | `src/components/AIChatWidget.jsx` | ड्रॉअर के साथ शून्य-ओवरलैप सुरक्षा | लैब ड्रॉअर खुला होने पर यह विजेट स्वतः `sm:right-[540px]` पर शिफ्ट होकर 24px का सुरक्षित क्लीयरेंस गैप बनाए रखता है। |
+
+---
+
+<a id="module-12"></a>
+## ❓ मॉड्यूल 12: 40-आइटम FAQ सूचना प्रणाली एवं एसईओ स्ट्रक्चर्ड डेटा (FAQ System & Schema.org JSON-LD)
+
+यह मॉड्यूल 40-आइटम द्विभाषी ज्ञानकोश (`faqConfig.js`), 2-स्तरीय फ़िल्टरिंग एकॉर्डियन (`FAQSection.jsx`), और सर्च इंजन ऑप्टिमाइज़ेशन हेतु Schema.org स्ट्रक्चर्ड डेटा का विवरण देता है।
+
+### 12.1 घटक विवरण एवं वास्तुकला (Component Details & Architecture)
+
+1. **40-आइटम द्विभाषी ज्ञानकोश डेटासेट (`faqConfig.js`):**
+   - 4 ऑडियंस व्यक्तित्वों (All, Recruiter, Client, Matrimonial) और 3 व्यावसायिक रोल्स (Senior Accountant, MIS Executive, Vibe Coder) में फैले 40 अत्यधिक व्यावहारिक प्रश्न-उत्तर।
+   - प्रत्येक आइटम में अंग्रेजी और हिंदी में पूर्ण प्रश्न व उत्तर, ऑडियंस टैग, रोल टैग, और श्रेणी (Taxation, Compliance, Analytics, Development, Marriage) शामिल है।
+
+2. **2-स्तरीय फ़िल्टरिंग एवं लाइव सर्च (`FAQSection.jsx`):**
+   - **लेवल 1:** ऑडियंस व्यक्तित्व टैब्स (All, Recruiter, Client, Matrimonial)।
+   - **लेवल 2:** रोल सब-टैब्स (Senior Accountant, MIS Executive, Vibe Coder)।
+   - **लाइव कीवर्ड सर्च:** टाइप करते ही तत्काल प्रश्नों और उत्तरों में रियल-टाइम फ़िल्टरिंग।
+   - **डायनामिक टेलीमेट्री काउंटर:** वर्तमान फ़िल्टर के तहत उपलब्ध प्रश्नों की संख्या प्रदर्शित करता है।
+   - **Schema.org FAQPage JSON-LD:** गूगल और अन्य सर्च इंजनों द्वारा समृद्ध परिणाम (Rich Snippets) दिखाने हेतु वैध JSON-LD स्ट्रक्चर्ड डेटा इंजेक्ट करता है।
+
+---
+
+### 12.2 मॉड्यूल 12: विस्तृत फ़ीचर एवं फ़ंक्शन तालिका (Detailed Features Table)
+
+| क्र. सं. | फ़ीचर / फ़ंक्शन का नाम | संबंधित फ़ाइल / कंपोनेंट | मुख्य कार्य (Primary Action) | विस्तृत विवरण (Detailed Description) |
+| :---: | :--- | :--- | :--- | :--- |
+| 12.1 | **40-Item Bilingual Knowledge Base Dataset** | `src/data/faqConfig.js` | 40 व्यावहारिक प्रश्नों का डेटाबेस | टैक्स, एकाउंटिंग, एमआईएस, कोडिंग, और पारिवारिक पृष्ठभूमि से जुड़े 40 अत्यधिक प्रासंगिक प्रश्नों का द्विभाषी संग्रह। |
+| 12.2 | **2-Layer Matrix Filtering (Audience & Role)** | `src/components/FAQSection.jsx` | दोहरे स्तर पर प्रश्नों की छंटनी | लेवल 1 में आगंतुक का उद्देश्य (रिक्रूटर, क्लाइंट, मैट्रिमोनियल) और लेवल 2 में रोल चुनकर सटीक उत्तर देखना। |
+| 12.3 | **Live Real-Time Keyword Search & Counter** | `src/components/FAQSection.jsx` | टाइप करते ही प्रश्नों को खोजना | सर्च बॉक्स में टाइप करते ही तत्काल प्रश्नों में सर्च करता है और "Showing X of Y questions" लाइव काउंटर दिखाता है। |
+| 12.4 | **Dynamic Topic Category Filtering Chips** | `src/components/FAQSection.jsx` | विषय के अनुसार त्वरित फ़िल्टर | Taxation, Auditing, Power BI, Web AI आदि श्रेणी चिप्स पर क्लिक करके एक झटके में संबंधित प्रश्न देखना। |
+| 12.5 | **Accessible Single-Expand Accordion** | `src/components/FAQSection.jsx` | एक समय में एक प्रश्न का सुगम विस्तार | एक प्रश्न खोलने पर दूसरा स्वतः संकुचित होता है; WAI-ARIA `aria-expanded` और कीबोर्ड फोकस के साथ सुरक्षित। |
+| 12.6 | **Acoustic Web Audio API Interaction Feedback** | `src/components/FAQSection.jsx`, `src/utils/audio.js` | प्रश्न खोलने/बंद करने पर साउंड | एकॉर्डियन का प्रश्न खोलते समय हल्का मैकेनिकल क्लिक और बंद करते समय सूक्ष्म ऑसिलेटर डैम्पिंग साउंड बजाता है। |
+| 12.7 | **Schema.org FAQPage JSON-LD SEO Metadata** | `src/components/FAQSection.jsx` | सर्च इंजन रिच स्निपेट्स बनाना | गूगल सर्च में अक्सर पूछे जाने वाले प्रश्नों को सीधे खोज परिणामों में दिखाने हेतु `<script type="application/ld+json">` इंजेक्ट करता है। |
+| 12.8 | **Actionable Contextual CTAs per FAQ Item** | `src/components/FAQSection.jsx` | प्रश्न के आधार पर त्वरित कार्रवाई | उत्तर के नीचे "Calculate Quote", "Download Resume", "Open Case Study" जैसे सीधे नेविगेशन बटन्स प्रदान करता है। |
+| 12.9 | **Clean Zero-Result Empty State with Reset** | `src/components/FAQSection.jsx` | कोई परिणाम न मिलने पर सहायता | सर्च में कोई प्रश्न न मिलने पर "No questions found" कार्ड और 1-क्लिक "Reset All Filters" बटन प्रस्तुत करता है। |
+| 12.10 | **Bi-directional Sync with Active Persona & Role**| `src/components/FAQSection.jsx` | ग्लोबल रोल व ऑडियंस से सिंक | जब यूजर नेवबार से रोल या ऑडियंस बदलता है, तो एफएक्यू सेक्शन स्वतः संबंधित टैब पर स्विच हो जाता है। |
+
+---
+
+<a id="module-13"></a>
+## 💼 मॉड्यूल 13: डिजिटल बिजनेस कार्ड, प्योर SVG डायनामिक QR एवं कोटेशन कैलकुलेटर (Digital Business Card, vCard, QR & Quotation Estimator)
+
+यह मॉड्यूल डिजिटल बिजनेस कार्ड, प्योर SVG डायनामिक QR कोड जनरेटर, RFC 6350 मानकीकृत vCard 3.0 इंजन, और 3-ट्रैक इन-टैब कोटेशन कैलकुलेटर का विवरण देता है।
+
+### 13.1 घटक विवरण एवं वास्तुकला (Component Details & Architecture)
+
+1. **डिजिटल बिजनेस कार्ड एवं डायनामिक SVG QR कोड (`vcardGenerator.js`, Tab 3 `ContactSection.jsx`):**
+   - **प्योर SVG डायनामिक QR इंजन:** बिना किसी बाहरी API या लाइब्रेरी के, सीधे गणितीय मैट्रिक्स से शुद्ध SVG QR कोड जनरेट करता है।
+   - **RFC 6350 / vCard 3.0 मानकीकृत जनरेटर:** अतुल वर्मा का पूरा नाम, पदनाम, फोन नंबर, ईमेल, वेबसाइट, और पता युक्त `.vcf` फ़ाइल बनाता है।
+   - **मोबाइल 1-क्लिक कांटेक्ट सेवर:** फोन के कैमरे से QR स्कैन करते ही iOS/Android में 'Add to Contacts' का प्रॉम्प्ट खुलता है।
+   - **वेब शेयर एपीआई:** मोबाइल पर 1-क्लिक नेटिव शेयर शीट खोलता है; डेस्कटॉप पर क्लिपबोर्ड में लिंक कॉपी करता है।
+
+2. **इंटरएक्टिव कोटेशन एवं फीस एस्टीमेटर (Tab 2 `ContactSection.jsx`):**
+   - **3 विशेष सेवा ट्रैक्स:**
+     1. **Accounting & Taxation:** वाउचर वॉल्यूम, जीएसटी रिटर्न्स, टीडीएस, और बीआरएस।
+     2. **MIS & Fiscal Intelligence:** स्प्रेडशीट ऑटोमेशन, पावर बीआई डैशबोर्ड्स, और डेटा पाइपलाइन्स।
+     3. **Full-Stack & Vibe Coding:** रिएक्ट वेब ऐप्स, स्वायत्त एआई एजेंट्स, और ऑटोमेशन बॉट्स।
+   - **तात्कालिकता एवं जुड़ाव मॉडल:** Standard Delivery vs Express Rush (1.35x), One-Time Project vs Monthly Retainer (15% छूट)।
+   - **दोहरी त्वरित कार्रवाई:** 1-क्लिक में कोटेशन का विस्तृत ब्योरा व्हाट्सएप पर भेजना या सीधे संपर्क फ़ॉर्म में प्री-फिल करना।
+
+3. **सत्यापित अकादमिक क्रेडेंशियल एवं सर्टिफिकेट लाइटबॉक्स (`CredentialLightboxModal.jsx`):**
+   - ADCA (इन्फोसिटी), बी.कॉम, इंटरमीडिएट, और मैट्रिकुलेशन के मूल क्रेडेंशियल्स का पूर्ण-स्क्रीन लाइटबॉक्स।
+   - स्वर्ण मुहर (Golden Official Seal), जारीकर्ता मेटाडेटा, और 1-क्लिक वेरिफिकेशन आईडी कॉपी।
+
+---
+
+### 13.2 मॉड्यूल 13: विस्तृत फ़ीचर एवं फ़ंक्शन तालिका (Detailed Features Table)
+
+| क्र. सं. | फ़ीचर / फ़ंक्शन का नाम | संबंधित फ़ाइल / कंपोनेंट | मुख्य कार्य (Primary Action) | विस्तृत विवरण (Detailed Description) |
+| :---: | :--- | :--- | :--- | :--- |
+| 13.1 | **Pure SVG Dynamic QR Code Generator Engine** | `src/utils/vcardGenerator.js`, `ContactSection.jsx` | शुद्ध क्लाइंट-साइड क्यूआर कोड बनाना | बिना किसी बाहरी थर्ड-पार्टी सर्वर के, ब्राउज़र के भीतर शुद्ध गणितीय SVG एलिमेंट्स से डायनामिक QR कोड रेंडर करता है। |
+| 13.2 | **RFC 6350 / vCard 3.0 Standardized Generator** | `src/utils/vcardGenerator.js` | अंतर्राष्ट्रीय मानकीकृत vCard बनाना | नाम, पदनाम, मोबाइल, ईमेल, वेबसाइट, और पते को RFC 6350 विनिर्देश के अनुसार टेक्स्ट बफ़र में एनकोड करता है। |
+| 13.3 | **One-Click Instant Mobile vCard Contact Saver** | `src/utils/vcardGenerator.js` | मोबाइल में संपर्क सीधे सुरक्षित करना | 1-क्लिक में `Atul_Verma_Tax_and_Developer.vcf` डाउनलोड कराता है, जिससे फोन में तुरंत 'Save to Contacts' खुलता है। |
+| 13.4 | **Web Share API with Clipboard Fallback** | `src/components/ContactSection.jsx` | डिजिटल प्रोफाइल साझा करना | मोबाइल पर नेटिव शेयर डायलॉग खोलता है; डेस्कटॉप पर सीधे प्रोफ़ाइल यूआरएल को क्लिपबोर्ड में कॉपी करके चेक बैज दिखाता है। |
+| 13.5 | **3-Track Dynamic Quotation Fee Calculator** | `src/components/ContactSection.jsx` (Tab 2) | रीयल-टाइम सेवा शुल्क की गणना | Accounting & Tax, MIS & Analytics, और Full-Stack ट्रैक्स में वॉल्यूम स्लाइडर्स के आधार पर वास्तविक शुल्क की गणना। |
+| 13.6 | **Complexity Sliders & Add-On Multipliers** | `src/components/ContactSection.jsx` (Tab 2) | तात्कालिकता व जुड़ाव मॉडल चुनना | Standard vs Express Delivery (+35%) और One-Time vs Monthly Retainer (-15%) के आधार पर रीयल-टाइम मूल्य और दिन तय करना। |
+| 13.7 | **Instant WhatsApp Scope Quote Dispatcher** | `src/components/ContactSection.jsx` (Tab 2) | व्हाट्सएप पर कोटेशन भेजना | चुने गए ट्रैक, वॉल्यूम, अनुमानित शुल्क (₹) और डिलीवरी दिनों का संरचित संदेश बनाकर सीधे व्हाट्सएप पर भेजता है। |
+| 13.8 | **One-Click Quotation Pre-fill into Form** | `src/components/ContactSection.jsx` (Tab 2) | संपर्क फ़ॉर्म में कोटेशन भरना | 1-क्लिक में Tab 1 ('Get in Touch') पर स्विच करता है और बजट व मैसेज फ़ील्ड्स में कोटेशन का ब्योरा स्वतः भर देता है। |
+| 13.9 | **Verified Academic Credential Lightbox** | `src/components/CredentialLightboxModal.jsx` | प्रमाणपत्रों का फुलस्क्रीन मुआयना | ADCA, B.Com, I.Com, और 10th के प्रमाणपत्रों का हाई-रेजोल्यूशन प्रीव्यू, जारीकर्ता विवरण और दिनांक प्रदर्शित करता है। |
+| 13.10 | **Golden Official Accreditation Seal** | `src/components/CredentialLightboxModal.jsx` | आधिकारिक प्रमाणीकरण मुहर | प्रत्येक क्रेडेंशियल पर चमकती हुई स्वर्ण मुहर (Gold Stamp Seal) और '100% Verified Production Benchmark' बैज। |
+| 13.11 | **1-Click Verification ID Copy with Toast** | `src/components/CredentialLightboxModal.jsx` | सत्यापन आईडी क्लिपबोर्ड में कॉपी | आधिकारिक रजिस्ट्रेशन/सत्यापन आईडी को 1-क्लिक में कॉपी करता है और 2 सेकंड के लिए चेक मार्क व टोस्ट दिखाता है। |
+| 13.12 | **WCAG 2.1 AAA Modal Dialog Trapping** | `src/components/CredentialLightboxModal.jsx` | सुलभ कीबोर्ड फोकस ट्रैप | मोडल खुलने पर बैकग्राउंड स्क्रॉल लॉक (`useBodyScrollLock`), `Tab` की ट्रैप, और `Esc` दबाने पर बंद होने की पूर्ण सुविधा। |
 
 ---
 
@@ -607,13 +991,20 @@
 
 | मॉड्यूल (Module) | मुख्य डोमेन (Core Domain) | शामिल कंपोनेंट्स / फ़ाइलें (Files Involved) | कुल प्रलेखित फीचर्स (Total Documented Features) |
 | :---: | :--- | :--- | :---: |
-| **Module 1** | कोर लेआउट और UI सेक्शन्स (Core Layout & UI Sections) | `Navbar`, `HeroSection`, `TechMarqueeBanner`, `AboutSection`, `SkillsSection`, `ExperienceSection`, `ProjectsSection`, `CodingAchievementsSection`, `SocialProofSection`, `ContactSection`, `Footer`, `ScrollProgressBar`, `BackToTopButton`, `FloatingWhatsAppButton`, `FloatingSimpleModeToggle`, `AnimatedCounter`, `AriaLiveAnnouncer` | **56 Features** |
+| **Module 1** | कोर लेआउट और UI सेक्शन्स (Core Layout & UI Sections) | `Navbar`, `HeroSection`, `TechMarqueeBanner`, `AboutSection`, `SkillsSection`, `ExperienceSection`, `ProjectsSection`, `CodingAchievementsSection`, `SocialProofSection`, `ContactSection`, `Footer`, `ScrollProgressBar`, `BackToTopButton`, `FloatingWhatsAppButton`, `FloatingSimpleModeToggle`, `AnimatedCounter`, `AriaLiveAnnouncer` | **65 Features** |
 | **Module 2** | कस्टम कर्सर सिस्टम और डायनामिक एनिमेशन्स (Custom Cursors & Kinematics) | `DynamicCursorManager`, `ButterflyCursor`, `FireflyCursor`, `StardustCursor`, `AirplaneCursor`, `LaserCursor`, `CameraCursor`, `MinimalCursor`, `ModularKinematicCursor`, `kinematicProfiles.js`, `cursorConstants.js`, `CursorSelectorRibbon`, `CursorIcon` + **All 35 Cursors** | **35 Cursors + 18 Core Engine Features (= 53 Features)** |
 | **Module 3** | लैब स्टूडियो, डेमो मोड्स और स्पेशल फीचर्स (Lab Studio, Demo Modes & Special Features) | `LabStudioDrawer`, `ControlCenterPanel`, `InteractivePlayground`, `CameraRollGallery`, `polaroidExport.js`, `LeafletOfflineMap`, `OfflineMapSnapshot`, `ResumeDropdown`, `resumeConfig.js`, `RoleEmptyState`, `RoleTabsBar`, `ExploreSubBar` | **54 Features** |
 | **Module 4** | एक्सेसिबिलिटी, थीम और यूजर कंट्रोल्स (Accessibility, Theme & User Controls) | `CommandPalette`, `fuzzySearch.js`, `searchCatalog.js`, `ThemeContext`, `HighContrastContext`, `high-contrast.css`, `SimpleModeContext`, `simple-mode.css`, `useFocusTrap`, `useBodyScrollLock`, `useDesktopCursorSupport`, `AnnouncerContext` | **28 Core Controls + 12 Keyboard Shortcuts (= 40 Features)** |
-| **Module 5** | स्टेट मैनेजमेंट, हुक्स, ऑडियो इंजन और कोर यूटिलिटीज (State Management, Hooks, Audio Engine & Core Utilities) | `RoleContext`, `LabContext`, `useDraggableCharacter`, `useGyroscopeTracking`, `audio.js` (Web Audio Synthesizer), `cursorConstants.js`, `fuzzySearch.js`, `searchCatalog.js`, `resumeConfig.js`, `testimonialsConfig.js`, `polaroidExport.js` | **44 Core Utilities & Engine Features** |
-| **Module 6** | बिल्ड, परफॉरमेंस, डेव टूल्स और कॉन्फ़िगरेशन सिस्टम (Build, Performance, Dev Tools & Configuration System) | `vite.config.js`, `package.json`, `.oxlintrc.json`, `index.html`, `start-server.bat`, `download_osm_tiles.mjs`, `generate_real_maps.mjs`, `generate_resume.js`, `public/.nojekyll` | **12 Build, Test, Dev Tools & Deployment Features** |
-| **Total** | **Interactive Cursor-Tracking Portfolio Suite** | **Entire Codebase Analyzed & Documented** | **259+ Granular Features Documented** |
+| **Module 5** | स्टेट मैनेजमेंट, हुक्स, ऑडियो इंजन और कोर यूटिलिटीज (State Management, Hooks, Audio Engine & Core Utilities) | `RoleContext`, `LabContext`, `useDraggableCharacter`, `useGyroscopeTracking`, `audio.js` (Web Audio Synthesizer), `cursorConstants.js`, `fuzzySearch.js`, `searchCatalog.js`, `resumeConfig.js`, `testimonialsConfig.js`, `polaroidExport.js`, `soundFX.js` | **44 Core Utilities & Engine Features** |
+| **Module 6** | बिल्ड, परफॉरमेंस, डेव टूल्स और कॉन्फ़िगरेशन सिस्टम (Build, Performance, Dev Tools & Configuration System) | `vite.config.js`, `package.json`, `.oxlintrc.json`, `index.html`, `start-server.bat`, `download_osm_tiles.mjs`, `generate_real_maps.mjs`, `generate_resume.js`, `public/.nojekyll`, `scripts/` (75 Verification Suites & 35 CI Tests), `lazyWithRetry.js`, `SectionSkeleton.jsx`, `GISMapSkeleton.jsx`, `CaseStudyDrawerContent.jsx`, `verify_hero_poses_progressive_loading.mjs`, `useDraggableCharacter.js`, `HeroSection.jsx`, `ButterflyCursor.jsx`, `FireflyCursor.jsx`, `ModularKinematicCursor.jsx`, `RoleContext.jsx`, `TechMarqueeBanner.jsx`, `Navbar.jsx`, `NavbarTooltip.jsx`, `src/index.css`, `LeafletOfflineMap.jsx`, `ContactSection.jsx` | **40 Build, Test, Lazy Splitting, Kinematics, Culling, Flag SVG, Tooltip, Pointer & Performance Features** |
+| **Module 7** | डेवलपर टर्मिनल सीएलआई एवं पावर पैक सिस्टम (Developer Terminal CLI & Power Pack System) | `TerminalCLI.jsx`, `audio.js`, `Navbar.jsx`, `ExploreSubBar.jsx`, `App.jsx`, `test_terminal_cli_adversarial.mjs`, `verify_terminal_cli.mjs` | **18 Terminal CLI & Power Pack Features** |
+| **Module 8** | केस स्टडीज आर्किटेक्चर एवं लाइव टेलीमेट्री सिमुलेटर (Interactive Case Studies & Telemetry Simulators) | `caseStudiesData.js`, `CaseStudyDrawer.jsx`, `CaseStudySimulator.jsx`, `CaseStudyArchitecture.jsx`, `ProjectsSection.jsx`, `verify_case_studies.mjs` | **15 Case Study Dossier & Telemetry Features** |
+| **Module 9** | बहुभाषी स्थानीयकरण एवं वॉइस कोऑर्डिनेशन (Multilingual Localization & Translation System) | `LanguageContext.jsx`, `translations.js`, `Navbar.jsx`, `ContactSection.jsx`, `SkillsSection.jsx`, `ExperienceSection.jsx`, `ProjectsSection.jsx`, `FAQSection.jsx` | **10 Multilingual Localization Features** |
+| **Module 10** | ऑडियंस व्यक्तित्व फ़िल्टर एवं व्यू मोड सिस्टम (Audience Persona Filter & View Mode Engine) | `AudienceContext.jsx`, `AudienceFloatingPill.jsx`, `AudienceSubBar.jsx`, `ViewModeContext.jsx`, `ViewModeFloatingPill.jsx`, `ViewModeSubBar.jsx`, `verify_audience_filter.mjs`, `verify_view_mode.mjs` | **14 Audience Filter & View Mode Features** |
+| **Module 11** | सेंट्रलाइज्ड मास्टर फ्लोटिंग एक्शन हब एवं एआई चैट असिस्टेंट (Floating Action Hub & AI Chat Widget) | `FloatingActionHub.jsx`, `AIChatWidget.jsx`, `soundFX.js`, `verify_floating_action_hub.mjs`, `verify_ai_chat_feature.mjs` | **12 Centralized FAB & AI Chat Features** |
+| **Module 12** | 40-आइटम FAQ सूचना प्रणाली एवं एसईओ स्ट्रक्चर्ड डेटा (FAQ System & Schema.org JSON-LD) | `FAQSection.jsx`, `faqConfig.js`, `verify_faq_section.mjs` | **10 FAQ System & SEO Structured Features** |
+| **Module 13** | डिजिटल बिजनेस कार्ड, प्योर SVG डायनामिक QR एवं कोटेशन कैलकुलेटर (Digital Business Card, vCard, QR & Quotation Estimator) | `DigitalBusinessCardModal.jsx`, `vcardGenerator.js`, `QuotationEstimatorModal.jsx`, `CredentialLightboxModal.jsx`, `ContactSection.jsx`, `verify_fresh_features.mjs` | **12 Digital Card, QR, vCard & Estimator Features** |
+| **Total** | **Interactive Cursor-Tracking Portfolio Suite** | **Entire Codebase (176 Files Analyzed & Documented Across 13 Modules)** | **387 Granular Production Features Documented (400+ with Micro-Interactions)** |
 
 ---
 

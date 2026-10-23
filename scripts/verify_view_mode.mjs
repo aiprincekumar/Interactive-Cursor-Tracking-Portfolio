@@ -134,7 +134,7 @@ test('Navbar right action group contains View Mode button with Eye icon adjacent
   assert(viewModeBtnIdx !== -1, 'View mode trigger button must exist');
   assert(viewModeBtnIdx > audienceFilterBtnIdx, 'View mode button must be positioned immediately adjacent to Audience Filter');
 
-  const viewModeBlock = navbarCode.slice(viewModeBtnIdx, viewModeBtnIdx + 1400);
+  const viewModeBlock = navbarCode.slice(viewModeBtnIdx, viewModeBtnIdx + 2500);
   assert(viewModeBlock.includes('onClick={toggleViewModeBar}'), 'Button must trigger toggleViewModeBar');
   assert(viewModeBlock.includes('<Eye'), 'Button must use Eye icon from lucide-react');
   assert(viewModeBlock.includes("aria-label={isViewModeOpen ? 'Close View Mode' : `View Mode (${activeViewModeData?.label || 'Modern'})`}"), 'Has accessible aria-label');
@@ -166,9 +166,9 @@ test('FloatingActionHub places view-mode immediately after audience-filter in ar
   assert(viewModeIdx > filterIdx, 'view-mode must be positioned immediately after audience-filter in array');
 });
 
-test('FloatingActionHub suppresses tooltips for view-mode matching audience-filter zero-tooltip specification', () => {
-  assert(hubCode.includes("title: isFilterTrigger ? undefined : item.label"), 'Title must be undefined for filter and view-mode triggers');
-  assert(hubCode.includes("!isFilterTrigger && !item.pill"), 'Hover tooltip span must be suppressed for filter and view-mode triggers');
+test('FloatingActionHub renders tooltips for view-mode and audience-filter when flyout pill is not open', () => {
+  assert(hubCode.includes('title: item.pill ? undefined : item.label'), 'Title must be undefined only when flyout pill is open');
+  assert(hubCode.includes('!item.pill && ('), 'Hover tooltip span is rendered when flyout pill is not open');
 });
 
 test('FloatingActionHub mounts ViewModeFloatingPill with bottom anchoring and mutual exclusivity', () => {

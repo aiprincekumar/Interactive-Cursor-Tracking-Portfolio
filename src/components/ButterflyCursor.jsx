@@ -13,7 +13,7 @@ import React, { useEffect, useRef } from 'react';
  * - Zero layout thrashing (GPU composited transforms, passive pointer events)
  */
 /**
- * Generates an array of tinted rgba color prefixes from a base hex or rgb string.
+ * Generates an array of tinted rgb color strings from a base hex or rgb string.
  * Accents include radiant primary, pastel glow, cosmic warm/gold shimmer, and pure diamond sparkle.
  */
 function getTintedPalette(baseColor) {
@@ -52,11 +52,48 @@ function getTintedPalette(baseColor) {
   const warmB = Math.max(0, Math.round(b * 0.65));
 
   return [
-    `rgba(${r}, ${g}, ${b},`,
-    `rgba(${tintR}, ${tintG}, ${tintB},`,
-    `rgba(${warmR}, ${warmG}, ${warmB},`,
-    'rgba(255, 255, 255,'
+    `rgb(${r}, ${g}, ${b})`,
+    `rgb(${tintR}, ${tintG}, ${tintB})`,
+    `rgb(${warmR}, ${warmG}, ${warmB})`,
+    'rgb(255, 255, 255)'
   ];
+}
+
+const MAX_PARTICLES = 70;
+
+const DEFAULT_BURST_PALETTE = [
+  'rgb(255, 77, 109)',
+  'rgb(255, 105, 180)',
+  'rgb(255, 215, 0)',
+  'rgb(255, 255, 255)'
+];
+
+const DEFAULT_TRAIL_PALETTE = [
+  'rgb(255, 63, 108)',
+  'rgb(255, 105, 180)',
+  'rgb(255, 215, 0)',
+  'rgb(255, 182, 193)'
+];
+
+function createParticlePool() {
+  const pool = new Array(MAX_PARTICLES);
+  for (let i = 0; i < MAX_PARTICLES; i++) {
+    pool[i] = {
+      active: false,
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      size: 0,
+      alpha: 0,
+      decay: 0,
+      color: 'rgb(255, 77, 109)',
+      isStar: false,
+      rot: 0,
+      rotSpeed: 0
+    };
+  }
+  return pool;
 }
 
 export default function ButterflyCursor({
@@ -71,6 +108,8 @@ export default function ButterflyCursor({
 }) {
   const butterflyRef = useRef(null);
   const canvasRef = useRef(null);
+  const ctxRef = useRef(null);
+  const isCanvasDirtyRef = useRef(false);
   const isInsideHeroRef = useRef(isInsideHero);
   const speedRef = useRef(speed);
   const scaleRef = useRef(scale);
@@ -99,7 +138,7 @@ export default function ButterflyCursor({
     isVisible: true
   });
 
-  const particlesRef = useRef([]);
+  const particlesRef = useRef(createParticlePool());
 
   // Sync controls into refs to allow seamless 120 FPS dynamic tuning without restarting rAF loop
   useEffect(() => {
@@ -131,6 +170,29 @@ export default function ButterflyCursor({
   }, [wingDynamics]);
 
   useEffect(() => {
+    const spawnParticle = (props) => {
+      const pool = particlesRef.current;
+      for (let i = 0; i < MAX_PARTICLES; i++) {
+        const p = pool[i];
+        if (!p.active) {
+          p.active = true;
+          p.x = props.x;
+          p.y = props.y;
+          p.vx = props.vx;
+          p.vy = props.vy;
+          p.size = props.size;
+          p.alpha = props.alpha;
+          p.decay = props.decay;
+          p.color = props.color;
+          p.isStar = props.isStar;
+          p.rot = props.rot;
+          p.rotSpeed = props.rotSpeed;
+          return p;
+        }
+      }
+      return null;
+    };
+
     // Passive pointer tracking
     const handlePointerMove = (e) => {
       const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
@@ -154,18 +216,13 @@ export default function ButterflyCursor({
     // Burst sparkles on any click across the page
     const handlePointerDown = () => {
       if (!trailEnabledRef.current) return;
+      isCanvasDirtyRef.current = true;
       const state = posRef.current;
-      const defaultBurstPalette = [
-        'rgba(255, 77, 109,',
-        'rgba(255, 105, 180,',
-        'rgba(255, 215, 0,',
-        'rgba(255, 255, 255,'
-      ];
-      const burstPalette = getTintedPalette(particleColorRef.current) || defaultBurstPalette;
+      const burstPalette = getTintedPalette(particleColorRef.current) || DEFAULT_BURST_PALETTE;
       for (let i = 0; i < 7; i++) {
         const angle = Math.random() * Math.PI * 2;
         const spd = Math.random() * 55 + 25;
-        particlesRef.current.push({
+        spawnParticle({
           x: state.currentX,
           y: state.currentY,
           vx: Math.cos(angle) * spd,
@@ -202,6 +259,13 @@ export default function ButterflyCursor({
         canvas.width = width * dpr;
         canvas.height = height * dpr;
       }
+      if (!ctxRef.current) {
+        ctxRef.current = canvas.getContext('2d', { alpha: true });
+      }
+      if (ctxRef.current) {
+        ctxRef.current.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      isCanvasDirtyRef.current = true;
     };
     updateCanvasDimensions();
     window.addEventListener('resize', updateCanvasDimensions, { passive: true });
@@ -299,13 +363,20 @@ export default function ButterflyCursor({
       // 6. High-Performance Stardust Particle Trail Emitter (Active across full page)
       if (trailEnabledRef.current && canvasRef.current) {
         const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
+        const ctx = ctxRef.current || (ctxRef.current = canvas.getContext('2d', { alpha: true }));
 
         if (ctx) {
-          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          const hasActiveParticles = particlesRef.current.some(p => p.active !== false && p.alpha > 0);
+          const isMoving = distance > 2.0;
 
-          // Clear previous canvas frame
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          if (hasActiveParticles || isMoving) isCanvasDirtyRef.current = true;
+
+          if (isCanvasDirtyRef.current) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (!hasActiveParticles && !isMoving) {
+              isCanvasDirtyRef.current = false;
+            }
+          }
 
           // Sub-step particle emission along path across entire page
           if (distance > 2.0) {
@@ -314,36 +385,26 @@ export default function ButterflyCursor({
 
             if (emitDist >= step) {
               const count = Math.min(Math.floor(emitDist / step), 4);
+              const palette = getTintedPalette(particleColorRef.current) || DEFAULT_TRAIL_PALETTE;
               for (let k = 1; k <= count; k++) {
-                if (particlesRef.current.length < 65) {
-                  const t = k / count;
-                  const px = state.lastEmitX + (renderX - state.lastEmitX) * t + (Math.random() - 0.5) * 6;
-                  const py = state.lastEmitY + (renderY - state.lastEmitY) * t + (Math.random() - 0.5) * 6;
-                  
-                  // Palette: Hot Pink, Radiant Salmon, Stardust Gold, Pure Rose Pearl (or dynamic tinted shades)
-                  const defaultPalette = [
-                    'rgba(255, 63, 108,',
-                    'rgba(255, 105, 180,',
-                    'rgba(255, 215, 0,',
-                    'rgba(255, 182, 193,'
-                  ];
-                  const palette = getTintedPalette(particleColorRef.current) || defaultPalette;
-                  const color = palette[Math.floor(Math.random() * palette.length)];
+                const t = k / count;
+                const px = state.lastEmitX + (renderX - state.lastEmitX) * t + (Math.random() - 0.5) * 6;
+                const py = state.lastEmitY + (renderY - state.lastEmitY) * t + (Math.random() - 0.5) * 6;
+                const color = palette[Math.floor(Math.random() * palette.length)];
 
-                  particlesRef.current.push({
-                    x: px,
-                    y: py,
-                    vx: (Math.random() - 0.5) * 16 - state.vx * 0.05,
-                    vy: (Math.random() - 0.5) * 14 + 12 - state.vy * 0.05,
-                    size: Math.random() * 2.6 + 1.2,
-                    alpha: 0.9,
-                    decay: Math.random() * 0.8 + 1.1,
-                    color,
-                    isStar: Math.random() > 0.45,
-                    rot: Math.random() * Math.PI,
-                    rotSpeed: (Math.random() - 0.5) * 6
-                  });
-                }
+                spawnParticle({
+                  x: px,
+                  y: py,
+                  vx: (Math.random() - 0.5) * 16 - state.vx * 0.05,
+                  vy: (Math.random() - 0.5) * 14 + 12 - state.vy * 0.05,
+                  size: Math.random() * 2.6 + 1.2,
+                  alpha: 0.9,
+                  decay: Math.random() * 0.8 + 1.1,
+                  color,
+                  isStar: Math.random() > 0.45,
+                  rot: Math.random() * Math.PI,
+                  rotSpeed: (Math.random() - 0.5) * 6
+                });
               }
               state.lastEmitX = renderX;
               state.lastEmitY = renderY;
@@ -354,13 +415,13 @@ export default function ButterflyCursor({
           }
 
           // Render active particles with hardware-accelerated additive blending
-          if (particlesRef.current.length > 0) {
-            ctx.save();
-            ctx.scale(dpr, dpr);
+          if (hasActiveParticles || isMoving) {
             ctx.globalCompositeOperation = 'lighter';
 
-            for (let i = particlesRef.current.length - 1; i >= 0; i--) {
+            for (let i = 0; i < MAX_PARTICLES; i++) {
               const p = particlesRef.current[i];
+              if (!p.active) continue;
+
               p.vy += (gravityRef.current || 0) * dt;
               p.x += p.vx * dt;
               p.y += p.vy * dt;
@@ -371,9 +432,10 @@ export default function ButterflyCursor({
               p.size = Math.max(0, p.size - dt * 0.6);
 
               if (p.alpha <= 0 || p.size <= 0) {
-                particlesRef.current.splice(i, 1);
+                p.active = false;
               } else {
-                ctx.fillStyle = `${p.color} ${p.alpha.toFixed(2)})`;
+                ctx.globalAlpha = Math.max(0, p.alpha);
+                ctx.fillStyle = p.color;
 
                 if (p.isStar) {
                   // 4-point diamond sparkle star
@@ -397,13 +459,17 @@ export default function ButterflyCursor({
                 }
               }
             }
-            ctx.restore();
           }
         }
       } else if (!trailEnabledRef.current && canvasRef.current) {
-        if (particlesRef.current.length > 0) particlesRef.current = [];
-        const ctx = canvasRef.current.getContext('2d');
-        if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        for (let i = 0; i < MAX_PARTICLES; i++) {
+          particlesRef.current[i].active = false;
+        }
+        const ctx = ctxRef.current || (ctxRef.current = canvasRef.current.getContext('2d', { alpha: true }));
+        if (ctx && isCanvasDirtyRef.current) {
+          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+          isCanvasDirtyRef.current = false;
+        }
       }
 
       animationFrameId = requestAnimationFrame(loop);
@@ -413,6 +479,11 @@ export default function ButterflyCursor({
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      for (let i = 0; i < MAX_PARTICLES; i++) {
+        particlesRef.current[i].active = false;
+      }
+      ctxRef.current = null;
+      isCanvasDirtyRef.current = false;
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('touchmove', handlePointerMove);
       window.removeEventListener('pointerdown', handlePointerDown);

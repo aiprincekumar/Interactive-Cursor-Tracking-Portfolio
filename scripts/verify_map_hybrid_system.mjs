@@ -10,7 +10,7 @@
  * 3. Presence and valid export of OfflineMapSnapshot component
  * 4. ContactSection.jsx implementation:
  *    - Instant 0ms cached snapshot layer rendered
- *    - Preloader / auto-upgrade logic with network idle delay (AUTO_UPGRADE_DELAY = 2000ms)
+ *    - Manual on-demand live map toggle with offline default (no auto-upgrade timer)
  *    - navigator.onLine and online/offline event listeners with cleanup
  *    - Sleek offline / live status indicator pill
  *    - Smooth crossfade transition classes
@@ -323,33 +323,38 @@ test('ContactSection renders an instant 0ms cached snapshot layer', () => {
   );
 });
 
-test('ContactSection contains preloader / auto-upgrade logic with AUTO_UPGRADE_DELAY matching 2000ms or 2500ms', () => {
+test('ContactSection implements manual on-demand toggle with offline default (no auto-upgrade timer)', () => {
   const content = fs.readFileSync(contactSectionPath, 'utf8');
 
-  // Verify delay timer is configured to 2000ms or 2500ms
-  const hasDelay = (
-    /AUTO_UPGRADE_DELAY\s*=\s*(?:2000|2500)\b/.test(content) ||
-    (/AUTO_UPGRADE_DELAY/.test(content) && /(?:2000|2500)/.test(content)) ||
-    /setTimeout\([^,]+,\s*(?:AUTO_UPGRADE_DELAY|2000|2500)\b/.test(content)
+  // Verify offline is default mapMode
+  const hasOfflineDefault = (
+    /useState\(\s*['"]osm['"]\s*\)/.test(content) ||
+    /mapMode === 'osm'/.test(content)
   );
   assert.ok(
-    hasDelay,
-    'ContactSection must configure auto-upgrade delay (expected AUTO_UPGRADE_DELAY = 2500 or 2000)'
+    hasOfflineDefault,
+    'ContactSection must default mapMode to offline OSM'
+  );
+
+  // Verify manual toggle handler exists and no auto-upgrade timer for map
+  assert.ok(
+    content.includes('handleToggleMapMode'),
+    'ContactSection must provide handleToggleMapMode for manual on-demand live map toggling'
+  );
+  assert.ok(
+    !content.includes('AUTO_UPGRADE_DELAY'),
+    'ContactSection must not contain automatic AUTO_UPGRADE_DELAY timer (manual on-demand toggle approved contract)'
   );
 
   // Verify state tracking for live/upgraded map
   const tracksUpgradeState = (
-    content.includes('isLoaded') ||
-    content.includes('isLive') ||
-    content.includes('isUpgraded') ||
-    content.includes('mapLoaded') ||
-    content.includes('iframeLoaded') ||
-    content.includes('showIframe') ||
-    content.includes('onLoad')
+    content.includes('mapMode') &&
+    content.includes('iframeLoaded') &&
+    content.includes('showIframe')
   );
   assert.ok(
     tracksUpgradeState,
-    'ContactSection must manage state to upgrade from snapshot to interactive live iframe'
+    'ContactSection must manage manual toggle state between offline OSM and interactive live iframe'
   );
 });
 
@@ -488,6 +493,43 @@ test('Map preload trigger is declared in index.html or src/App.jsx', () => {
     indexHasPreload || appHasPreload,
     'Map preload trigger must be configured in index.html (<link rel="preload">) or in src/App.jsx'
   );
+});
+
+// ============================================================================
+// SUITE 5: LEAFLET OFFLINE MAP & ZOOM CONTROLS CONTRACTS
+// ============================================================================
+suite('5. Leaflet Offline Map & Zoom Controls Contracts');
+
+const leafletComponentPath = path.join(rootDir, 'src/components/LeafletOfflineMap.jsx');
+
+test('LeafletOfflineMap configures minZoom: 12, maxZoom: 15, minNativeZoom: 12, and maxNativeZoom: 15', () => {
+  const content = fs.readFileSync(leafletComponentPath, 'utf8');
+  assert.ok(content.includes('minZoom: 12'), 'minZoom must be 12');
+  assert.ok(content.includes('maxZoom: 15'), 'maxZoom must be 15');
+  assert.ok(content.includes('minNativeZoom: 12'), 'minNativeZoom must be 12');
+  assert.ok(content.includes('maxNativeZoom: 15'), 'maxNativeZoom must be 15');
+});
+
+test('LeafletOfflineMap maintains clean solid container styling without static background image', () => {
+  const content = fs.readFileSync(leafletComponentPath, 'utf8');
+  assert.ok(!content.includes('medininagar-real-light.png'), 'medininagar-real-light.png should not be in LeafletOfflineMap styles');
+  assert.ok(!content.includes('medininagar-real-dark.png'), 'medininagar-real-dark.png should not be in LeafletOfflineMap styles');
+  assert.ok(content.includes('background-color: #f2efe9'), 'Solid light background color missing');
+  assert.ok(content.includes('background-color: #12161f'), 'Solid dark background color missing');
+});
+
+test('LeafletOfflineMap supports resetTrigger prop, flyTo recentering, and animate: true', () => {
+  const content = fs.readFileSync(leafletComponentPath, 'utf8');
+  assert.ok(content.includes('resetTrigger'), 'Missing resetTrigger prop');
+  assert.ok(content.includes('flyTo'), 'Missing flyTo recentering call');
+  assert.ok(content.includes('animate: true'), 'Missing animate: true for zoom changes');
+});
+
+test('ContactSection.jsx enforces zoom controls floor 12 and ceiling 15 for OSM mode', () => {
+  const content = fs.readFileSync(contactSectionPath, 'utf8');
+  assert.ok(content.includes("disabled={mapMode === 'osm' ? zoom >= 15 : zoom >= 18}"), 'Zoom in must ceiling at 15 for OSM');
+  assert.ok(content.includes("disabled={mapMode === 'osm' ? zoom <= 12 : zoom <= 11}"), 'Zoom out must floor at 12 for OSM');
+  assert.ok(content.includes('setResetTrigger') && content.includes('setZoom(13)'), 'handleResetZoom must increment resetTrigger and set zoom to 13');
 });
 
 // ============================================================================

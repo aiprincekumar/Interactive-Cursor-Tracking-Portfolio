@@ -61,6 +61,37 @@ function getTintedPalette(baseColor) {
   ];
 }
 
+const MAX_PARTICLES = 70;
+
+const resolveBaseColor = (colorStr) => {
+  if (!colorStr) return '#FF4D6D';
+  if (colorStr.endsWith(',')) {
+    return colorStr.slice(0, -1).replace('rgba', 'rgb') + ')';
+  }
+  return colorStr;
+};
+
+function createModularParticlePool() {
+  const pool = new Array(MAX_PARTICLES);
+  for (let i = 0; i < MAX_PARTICLES; i++) {
+    pool[i] = {
+      active: false,
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      size: 0,
+      alpha: 0,
+      decay: 0,
+      color: 'rgba(255, 77, 109,',
+      baseColor: 'rgb(255, 77, 109)',
+      type: 'spark',
+      glyph: '1'
+    };
+  }
+  return pool;
+}
+
 export default function ModularKinematicCursor({
   cursorId = 'butterfly',
   heroRef: _heroRef,
@@ -94,10 +125,41 @@ export default function ModularKinematicCursor({
     angle: profile.rotationMode === 'fixed_tilt' ? (profile.tiltAngle || 0) : 0,
     bankAngle: 0,
     animTime: 0,
-    isVisible: true
+    isVisible: true,
+    isCanvasDirty: true,
+    particles: []
   });
 
-  const particlesRef = useRef([]);
+  const particlesRef = useRef(createModularParticlePool());
+
+  const spawnParticle = (props) => {
+    const pool = particlesRef.current;
+    for (let i = 0; i < MAX_PARTICLES; i++) {
+      const p = pool[i];
+      if (!p.active) {
+        p.active = true;
+        p.x = props.x;
+        p.y = props.y;
+        p.vx = props.vx;
+        p.vy = props.vy;
+        p.size = props.size;
+        p.alpha = props.alpha;
+        p.decay = props.decay;
+        p.color = props.color;
+        p.baseColor = resolveBaseColor(props.color);
+        p.type = props.type;
+        p.glyph = props.glyph || '1';
+        if (posRef.current) {
+          posRef.current.isCanvasDirty = true;
+          if (posRef.current.particles) {
+            posRef.current.particles.length = Math.min(MAX_PARTICLES, (posRef.current.particles.length || 0) + 1);
+          }
+        }
+        return p;
+      }
+    }
+    return null;
+  };
 
   useEffect(() => {
     isInsideHeroRef.current = isInsideHero;
@@ -157,7 +219,7 @@ export default function ModularKinematicCursor({
         const spd = (Math.random() * 0.7 + 0.3) * burstConfig.speed;
         const color = palette[Math.floor(Math.random() * palette.length)];
 
-        particlesRef.current.push({
+        spawnParticle({
           x: state.currentX,
           y: state.currentY,
           vx: Math.cos(ang) * spd,
@@ -197,6 +259,9 @@ export default function ModularKinematicCursor({
       canvas.style.height = `${window.innerHeight}px`;
       const ctx = canvas.getContext('2d');
       if (ctx) ctx.scale(dpr, dpr);
+      if (posRef.current) {
+        posRef.current.isCanvasDirty = true;
+      }
     };
 
     handleResize();
@@ -209,6 +274,7 @@ export default function ModularKinematicCursor({
     let animId;
     let lastTime = performance.now();
     const canvasEl = canvasRef.current;
+    let ctx = canvasEl ? canvasEl.getContext('2d') : null;
 
     const loop = (now) => {
       const dt = Math.min((now - lastTime) / 1000, 0.08);
@@ -321,12 +387,20 @@ export default function ModularKinematicCursor({
 
       // Render Particle Canvas Trail
       if (canvasEl) {
-        const ctx = canvasEl.getContext('2d');
+        if (!ctx) ctx = canvasEl.getContext('2d');
 
-        if (ctx) {
+        // Check active particles
+        const hasActiveParticles = state.particles && state.particles.length > 0;
+        if (hasActiveParticles || distance > 1.5) state.isCanvasDirty = true;
+
+        if (state.isCanvasDirty && ctx) {
           ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+          if (!hasActiveParticles && distance <= 1.5) {
+            state.isCanvasDirty = false;
+          }
+        }
 
-          if (trailEnabledRef.current) {
+        if (trailEnabledRef.current && ctx) {
             ctx.globalCompositeOperation = profile.trail.composite || 'lighter';
 
             // Spawn particles along motion path
@@ -337,52 +411,56 @@ export default function ModularKinematicCursor({
               state.lastEmitX = state.currentX;
               state.lastEmitY = state.currentY;
 
-              const maxLimit = profile.trail.maxParticles || 45;
-              if (particlesRef.current.length < maxLimit) {
-                const customPalette = particleColorRef.current ? getTintedPalette(particleColorRef.current) : null;
-                const palette = customPalette || profile.trail.colors;
-                const color = palette[Math.floor(Math.random() * palette.length)];
-                const sizeRange = profile.trail.size || [1.5, 3.5];
-                const size = Math.random() * (sizeRange[1] - sizeRange[0]) + sizeRange[0];
+              const customPalette = particleColorRef.current ? getTintedPalette(particleColorRef.current) : null;
+              const palette = customPalette || profile.trail.colors;
+              const color = palette[Math.floor(Math.random() * palette.length)];
+              const sizeRange = profile.trail.size || [1.5, 3.5];
+              const size = Math.random() * (sizeRange[1] - sizeRange[0]) + sizeRange[0];
 
-                let pVx = -state.vx * 0.08 + (Math.random() - 0.5) * 12;
-                let pVy = -state.vy * 0.08 + (Math.random() - 0.5) * 12;
+              let pVx = -state.vx * 0.08 + (Math.random() - 0.5) * 12;
+              let pVy = -state.vy * 0.08 + (Math.random() - 0.5) * 12;
 
-                // Special handling for upward flames
-                if (profile.trail.type === 'rising_flames') {
-                  pVy -= Math.random() * 45 + 25;
-                }
-
-                particlesRef.current.push({
-                  x: state.currentX,
-                  y: state.currentY,
-                  vx: pVx,
-                  vy: pVy,
-                  size,
-                  alpha: 1.0,
-                  decay: profile.trail.decay || 1.2,
-                  color,
-                  type: profile.trail.type,
-                  glyph: Math.random() > 0.5 ? '1' : '0'
-                });
+              // Special handling for upward flames
+              if (profile.trail.type === 'rising_flames') {
+                pVy -= Math.random() * 45 + 25;
               }
+
+              spawnParticle({
+                x: state.currentX,
+                y: state.currentY,
+                vx: pVx,
+                vy: pVy,
+                size,
+                alpha: 1.0,
+                decay: profile.trail.decay || 1.2,
+                color,
+                type: profile.trail.type,
+                glyph: Math.random() > 0.5 ? '1' : '0'
+              });
             }
 
             // Update & draw active particles
-            for (let i = particlesRef.current.length - 1; i >= 0; i--) {
+            ctx.save();
+            let activeCount = 0;
+            for (let i = 0; i < MAX_PARTICLES; i++) {
               const p = particlesRef.current[i];
+              if (!p.active) continue;
+
               p.vy += (gravityRef.current || 0) * dt;
               p.x += p.vx * dt;
               p.y += p.vy * dt;
               p.alpha -= p.decay * dt;
 
               if (p.alpha <= 0) {
-                particlesRef.current.splice(i, 1);
+                p.active = false;
                 continue;
               }
 
-              // Draw particle by type
-              ctx.fillStyle = `${p.color}${Math.max(0, p.alpha).toFixed(2)})`;
+              activeCount++;
+
+              // Draw particle by type with zero string allocations
+              ctx.globalAlpha = Math.max(0, p.alpha);
+              ctx.fillStyle = p.baseColor;
 
               if (p.type === 'matrix_glyphs') {
                 ctx.font = `${p.size}px monospace`;
@@ -407,25 +485,36 @@ export default function ModularKinematicCursor({
                 ctx.fill();
               }
             }
+            ctx.restore();
+            if (state.particles) {
+              state.particles.length = activeCount;
+            }
           } else {
-            if (particlesRef.current.length > 0) {
-              particlesRef.current = [];
+            for (let i = 0; i < MAX_PARTICLES; i++) {
+              particlesRef.current[i].active = false;
+            }
+            if (state.particles) {
+              state.particles.length = 0;
             }
           }
         }
-      }
 
-      animId = requestAnimationFrame(loop);
-    };
+        animId = requestAnimationFrame(loop);
+      };
 
     animId = requestAnimationFrame(loop);
 
     return () => {
       cancelAnimationFrame(animId);
-      particlesRef.current = [];
+      for (let i = 0; i < MAX_PARTICLES; i++) {
+        particlesRef.current[i].active = false;
+      }
+      if (posRef.current && posRef.current.particles) {
+        posRef.current.particles.length = 0;
+      }
       if (canvasEl) {
-        const ctx = canvasEl.getContext('2d');
-        if (ctx) ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        const cleanupCtx = ctx || canvasEl.getContext('2d');
+        if (cleanupCtx) cleanupCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       }
     };
   }, [profile]);

@@ -204,6 +204,12 @@ export function RoleProvider({ children, soundEnabled = true }) {
     activeRoleRef.current = activeRole;
   }, [activeRole]);
 
+  // Decouple soundEnabled from selectRole to prevent re-creating selectRole and triggering cascading re-renders across all 13 sections on sound toggle
+  const soundEnabledRef = useRef(soundEnabled);
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
+
   // 2. Core selectRole Handler with Synchronization
   const selectRole = useCallback((newRole, options = {}) => {
     const opts = typeof options === 'string' ? { source: options } : options || {};
@@ -246,7 +252,8 @@ export function RoleProvider({ children, soundEnabled = true }) {
     }
 
     // Audio feedback
-    if (playSound && soundEnabled) {
+    const isAudioActive = soundEnabledRef.current ?? soundFX.isEnabled();
+    if (playSound && isAudioActive) {
       soundFX.playFocusBeep();
     }
 
@@ -267,7 +274,7 @@ export function RoleProvider({ children, soundEnabled = true }) {
         );
       }
     }
-  }, [soundEnabled]);
+  }, []);
 
   // 3. Browser History Navigation: Listen to popstate events
   useEffect(() => {

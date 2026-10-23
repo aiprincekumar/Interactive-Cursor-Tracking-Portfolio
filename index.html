@@ -7,7 +7,8 @@
     <title>Atul Verma • Accountant &amp; Tax Consultant | Interactive Portfolio</title>
     <meta name="description" content="Official interactive portfolio of Atul Verma — Accountant &amp; Tax Consultant, Business Development &amp; Office Administrator featuring real-time interactive tracking." />
     <meta name="theme-color" content="#FF4D6D" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <script>
       (function() {
         try {
@@ -23,19 +24,27 @@
         } catch (e) {}
       })();
     </script>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Outfit:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
-    <!-- Immediate Preload of Hero Character Gaze Assets for Zero-Latency Tracking -->
-    <link rel="preload" as="image" href="%BASE_URL%assets/hero_poses/00-rear-view.png" />
-    <link rel="preload" as="image" href="%BASE_URL%assets/hero_poses/01-center-up.png" />
-    <link rel="preload" as="image" href="%BASE_URL%assets/hero_poses/02-lower-center.png" />
-    <link rel="preload" as="image" href="%BASE_URL%assets/hero_poses/03-center-left.png" />
-    <link rel="preload" as="image" href="%BASE_URL%assets/hero_poses/04-center-right.png" />
-    <link rel="preload" as="image" href="%BASE_URL%assets/hero_poses/05-center-front.png" />
-    <link rel="preload" as="image" href="%BASE_URL%assets/hero_poses/06-upper-left.png" />
-    <link rel="preload" as="image" href="%BASE_URL%assets/hero_poses/07-lower-left.png" />
-    <link rel="preload" as="image" href="%BASE_URL%assets/hero_poses/08-upper-right.png" />
-    <link rel="preload" as="image" href="%BASE_URL%assets/hero_poses/09-lower-right.png" />
+    <!-- Asynchronous Non-Render-Blocking Google Fonts Loading -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Outfit:wght@600;700&family=Caveat:wght@600;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Outfit:wght@600;700&family=Caveat:wght@600;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Outfit:wght@600;700&family=Caveat:wght@600;700&display=swap"
+      />
+    </noscript>
+    <!-- Preload ONLY the immediately visible T=0 Hero Pose and Backdrop with High Priority -->
+    <link rel="preload" as="image" href="%BASE_URL%assets/hero_poses/00-rear-view.png" fetchpriority="high" />
+    <link rel="preload" as="image" href="%BASE_URL%assets/hero_poses/BgHero.jpg" fetchpriority="high" />
   </head>
   <body class="bg-[#FAF8F5] dark:bg-[#0B0813] text-[#18181B] dark:text-[#F5F2F8] antialiased selection:bg-[#FF4D6D] selection:text-white overflow-x-hidden font-['Plus_Jakarta_Sans',sans-serif]">
     <div id="root"></div>

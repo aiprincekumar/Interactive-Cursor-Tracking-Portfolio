@@ -306,7 +306,7 @@ export default function FloatingActionHub() {
       label: 'AI Chat (असिस्टेंट)',
       ariaLabel: 'AI Chat Assistant - Portfolio Copilot Preview (असिस्टेंट)',
       icon: (
-        <BotMessageSquare className="w-5 h-5 text-purple-400 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300" />
+        <BotMessageSquare className="w-5 h-5 text-purple-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300" />
       ),
       onClick: handleOpenAIChat,
       badge: (
@@ -315,7 +315,7 @@ export default function FloatingActionHub() {
           <span className="relative inline-flex rounded-full h-3 w-3 border-2 border-white dark:border-[#120D1D] bg-purple-500" />
         </span>
       ),
-      buttonClass: 'bg-linear-to-tr from-[#FF4D6D]/20 via-[#9333EA]/25 to-[#6366F1]/20 border-purple-500/60 ring-1 ring-purple-500/30 text-purple-300 hover:text-white hover:border-[#FF4D6D] hover:shadow-purple-500/40 shadow-lg shadow-purple-500/20'
+      buttonClass: 'bg-linear-to-tr from-[#FF4D6D]/40 via-[#9333EA]/60 to-[#6366F1]/50 border border-purple-300/40 dark:border-purple-400/50 text-white shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.7),inset_0_-3.5px_6px_0_rgba(0,0,0,0.4),0_6px_16px_-1px_rgba(147,51,234,0.45),0_3px_6px_rgba(0,0,0,0.25)] hover:-translate-y-1 hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.85),inset_0_-3.5px_6px_0_rgba(0,0,0,0.4),0_10px_24px_-1px_rgba(168,85,247,0.6)] active:translate-y-0.5 active:scale-95'
     });
 
     // Item 2: WhatsApp Direct Channel (Visible when unlocked, directly above AI Chat)
@@ -328,7 +328,7 @@ export default function FloatingActionHub() {
         href: whatsAppLink,
         icon: (
           <svg
-            className="w-5 h-5 sm:w-5.5 sm:h-5.5 fill-current group-hover:scale-110 transition-transform duration-300"
+            className="w-5 h-5 sm:w-5.5 sm:h-5.5 fill-current drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] group-hover:scale-110 transition-transform duration-300"
             viewBox="0 0 24 24"
             aria-hidden="true"
           >
@@ -342,7 +342,7 @@ export default function FloatingActionHub() {
             <span className="relative inline-flex rounded-full h-3 w-3 border-2 border-white dark:border-[#120D1D] bg-[#25D366]" />
           </span>
         ),
-        buttonClass: 'bg-linear-to-tr from-[#25D366] to-[#128C7E] text-white border-[#25D366] shadow-lg shadow-[#25D366]/30 hover:shadow-xl hover:shadow-[#25D366]/50'
+        buttonClass: 'bg-linear-to-tr from-[#128C7E] to-[#25D366] text-white border border-emerald-300/40 dark:border-emerald-200/50 shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.7),inset_0_-3.5px_6px_0_rgba(0,0,0,0.4),0_6px_16px_-1px_rgba(37,211,102,0.45),0_3px_6px_rgba(0,0,0,0.25)] hover:-translate-y-1 hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.85),inset_0_-3.5px_6px_0_rgba(0,0,0,0.4),0_10px_24px_-1px_rgba(37,211,102,0.6)] active:translate-y-0.5 active:scale-95'
       });
     }
 
@@ -353,8 +353,8 @@ export default function FloatingActionHub() {
         label: 'Control Center (Audio, Cursors, Hero)',
         ariaLabel: isDrawerOpen ? 'Close Control Center Drawer' : 'Open Control Center Drawer',
         icon: (
-          <Sliders className={`w-5 h-5 text-[#FF4D6D] transition-transform duration-300 ${
-            isDrawerOpen ? 'rotate-90 scale-110 text-white' : 'group-hover:rotate-12'
+          <Sliders className={`w-5 h-5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] transition-transform duration-300 ${
+            isDrawerOpen ? 'rotate-90 scale-110 text-white' : 'text-[#FF4D6D] group-hover:rotate-12'
           }`} />
         ),
         onClick: handleOpenLabStudio,
@@ -365,7 +365,9 @@ export default function FloatingActionHub() {
             <span className="relative inline-flex rounded-full h-3 w-3 border-2 border-white dark:border-[#120D1D] bg-[#FF4D6D]" />
           </span>
         ),
-        buttonClass: 'bg-[#18181B]/95 dark:bg-[#120D1D]/95 border-[#FF4D6D]/40 text-[#FF4D6D] hover:border-[#FF4D6D] hover:text-white hover:bg-[#FF4D6D]/20 shadow-lg shadow-[#FF4D6D]/15'
+        buttonClass: isDrawerOpen
+          ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border border-white/50 shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.7),inset_0_-3.5px_6px_0_rgba(0,0,0,0.4),0_8px_20px_-1px_rgba(255,77,109,0.5),0_3px_6px_rgba(0,0,0,0.3)] hover:-translate-y-1 hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.85),inset_0_-3.5px_6px_0_rgba(0,0,0,0.4),0_12px_28px_-1px_rgba(255,77,109,0.65)] active:translate-y-0.5 active:scale-95'
+          : 'bg-linear-to-tr from-[#161122]/95 via-[#231A35]/95 to-[#382650]/95 border border-[#FF4D6D]/40 text-[#FF4D6D] shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.6),inset_0_-3.5px_6px_0_rgba(0,0,0,0.5),0_6px_16px_-1px_rgba(255,77,109,0.3),0_3px_6px_rgba(0,0,0,0.3)] hover:-translate-y-1 hover:border-[#FF4D6D] hover:text-white hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.75),inset_0_-3.5px_6px_0_rgba(0,0,0,0.5),0_10px_24px_-1px_rgba(255,77,109,0.5)] active:translate-y-0.5 active:scale-95'
       });
     }
 
@@ -375,7 +377,7 @@ export default function FloatingActionHub() {
       label: `Audience View: ${activeAudienceData?.label || 'All'}`,
       ariaLabel: `Audience Filter Mode: currently ${activeAudienceData?.label || 'All'}. Click to choose All, Recruiter, Client, or Marriage.`,
       icon: (
-        <Filter className={`w-5 h-5 group-hover:scale-110 transition-transform duration-300 ${
+        <Filter className={`w-5 h-5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] group-hover:scale-110 transition-transform duration-300 ${
           isFilterActive ? 'text-white' : 'text-[#FF4D6D]'
         }`} />
       ),
@@ -388,10 +390,10 @@ export default function FloatingActionHub() {
         </span>
       ) : null,
       buttonClass: isFilterActive
-        ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border-[#FF4D6D] shadow-lg shadow-[#FF4D6D]/30'
+        ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border border-white/40 shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_6px_18px_-1px_rgba(255,77,109,0.5),0_3px_6px_rgba(0,0,0,0.25)] hover:-translate-y-1 hover:shadow-[0_10px_24px_-1px_rgba(255,77,109,0.65)] active:translate-y-0.5 active:scale-95'
         : isAudiencePillOpen
-        ? 'bg-[#FAF8F5]/95 dark:bg-[#161122]/95 border-[#FF4D6D] ring-2 ring-[#FF4D6D]/40 text-[#FF4D6D] shadow-lg shadow-[#FF4D6D]/20'
-        : 'bg-[#FAF8F5]/95 dark:bg-[#161122]/95 border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white hover:border-[#FF4D6D]/60 shadow-lg shadow-black/10 dark:shadow-purple-950/30',
+        ? 'bg-linear-to-tr from-[#FAF8F5]/95 to-[#EDE8E1]/95 dark:from-[#161122]/95 dark:to-[#251A38]/95 border border-[#FF4D6D] ring-2 ring-[#FF4D6D]/40 text-[#FF4D6D] shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.6),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_6px_16px_-1px_rgba(255,77,109,0.35)] hover:-translate-y-1 active:translate-y-0.5 active:scale-95'
+        : 'bg-linear-to-tr from-[#FAF8F5]/95 to-[#EDE8E1]/95 dark:from-[#161122]/95 dark:to-[#221832]/95 border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white hover:border-[#FF4D6D]/60 shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.6),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_5px_14px_-1px_rgba(0,0,0,0.15)] dark:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.45),inset_0_-3px_5px_0_rgba(0,0,0,0.5),0_6px_16px_-1px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_8px_20px_-1px_rgba(0,0,0,0.2)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.55),inset_0_-3px_5px_0_rgba(0,0,0,0.5),0_8px_20px_-1px_rgba(255,77,109,0.3)] active:translate-y-0.5 active:scale-95',
       pill: isAudiencePillOpen ? (
         <AudienceFloatingPill
           isOpen={isAudiencePillOpen}
@@ -409,7 +411,7 @@ export default function FloatingActionHub() {
       label: `View Mode: ${activeViewModeData?.label || 'Modern'}`,
       ariaLabel: `View Mode: currently ${activeViewModeData?.label || 'Modern'}. Click to choose Basic, Simple, Modern, or Terminal.`,
       icon: (
-        <Eye className={`w-5 h-5 group-hover:scale-110 transition-transform duration-300 ${
+        <Eye className={`w-5 h-5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] group-hover:scale-110 transition-transform duration-300 ${
           isViewModeActive ? 'text-white' : 'text-[#FF4D6D]'
         }`} />
       ),
@@ -422,10 +424,10 @@ export default function FloatingActionHub() {
         </span>
       ) : null,
       buttonClass: isViewModeActive
-        ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border-[#FF4D6D] shadow-lg shadow-[#FF4D6D]/30'
+        ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border border-white/40 shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_6px_18px_-1px_rgba(255,77,109,0.5),0_3px_6px_rgba(0,0,0,0.25)] hover:-translate-y-1 hover:shadow-[0_10px_24px_-1px_rgba(255,77,109,0.65)] active:translate-y-0.5 active:scale-95'
         : isViewModePillOpen
-        ? 'bg-[#FAF8F5]/95 dark:bg-[#161122]/95 border-[#FF4D6D] ring-2 ring-[#FF4D6D]/40 text-[#FF4D6D] shadow-lg shadow-[#FF4D6D]/20'
-        : 'bg-[#FAF8F5]/95 dark:bg-[#161122]/95 border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white hover:border-[#FF4D6D]/60 shadow-lg shadow-black/10 dark:shadow-purple-950/30',
+        ? 'bg-linear-to-tr from-[#FAF8F5]/95 to-[#EDE8E1]/95 dark:from-[#161122]/95 dark:to-[#251A38]/95 border border-[#FF4D6D] ring-2 ring-[#FF4D6D]/40 text-[#FF4D6D] shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.6),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_6px_16px_-1px_rgba(255,77,109,0.35)] hover:-translate-y-1 active:translate-y-0.5 active:scale-95'
+        : 'bg-linear-to-tr from-[#FAF8F5]/95 to-[#EDE8E1]/95 dark:from-[#161122]/95 dark:to-[#221832]/95 border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white hover:border-[#FF4D6D]/60 shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.6),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_5px_14px_-1px_rgba(0,0,0,0.15)] dark:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.45),inset_0_-3px_5px_0_rgba(0,0,0,0.5),0_6px_16px_-1px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_8px_20px_-1px_rgba(0,0,0,0.2)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.55),inset_0_-3px_5px_0_rgba(0,0,0,0.5),0_8px_20px_-1px_rgba(255,77,109,0.3)] active:translate-y-0.5 active:scale-95',
       pill: isViewModePillOpen ? (
         <ViewModeFloatingPill
           isOpen={isViewModePillOpen}
@@ -486,10 +488,10 @@ export default function FloatingActionHub() {
         aria-expanded={isOpen}
         aria-haspopup="true"
         title={isOpen ? 'सभी बटन छुपाएं (Hide All Buttons)' : 'सभी बटन दिखाएं (Show All Buttons)'}
-        className={`group relative flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 rounded-full transition-all duration-300 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D] active:scale-95 hover:scale-105 border ${
+        className={`group relative flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 rounded-full transition-all duration-300 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D] border backdrop-blur-md hover:-translate-y-1 active:translate-y-0.5 active:scale-95 ${
           isOpen
-            ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border-[#FF4D6D] shadow-2xl shadow-[#FF4D6D]/40'
-            : 'bg-[#18181B]/95 dark:bg-[#120D1D]/95 text-[#FF4D6D] border-[#FF4D6D]/40 shadow-2xl shadow-[#FF4D6D]/25 hover:border-[#FF4D6D]'
+            ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border-[#FF4D6D] shadow-[inset_0_2.5px_4px_0_rgba(255,255,255,0.75),inset_0_-4px_8px_0_rgba(0,0,0,0.4),0_8px_20px_-2px_rgba(255,77,109,0.5),0_4px_8px_rgba(0,0,0,0.3)] hover:shadow-[inset_0_2.5px_4px_0_rgba(255,255,255,0.85),inset_0_-4px_8px_0_rgba(0,0,0,0.4),0_12px_28px_-2px_rgba(255,77,109,0.65),0_6px_10px_rgba(0,0,0,0.35)]'
+            : 'bg-linear-to-tr from-[#120D1D]/95 via-[#1E1229]/95 to-[#2E1838]/95 dark:from-[#120D1D]/95 dark:via-[#1E1229]/95 dark:to-[#2E1838]/95 text-[#FF4D6D] border-[#FF4D6D]/50 hover:border-[#FF4D6D] shadow-[inset_0_2.5px_4px_0_rgba(255,255,255,0.75),inset_0_-4px_8px_0_rgba(0,0,0,0.4),0_8px_20px_-2px_rgba(255,77,109,0.35),0_4px_8px_rgba(0,0,0,0.3)] hover:shadow-[inset_0_2.5px_4px_0_rgba(255,255,255,0.85),inset_0_-4px_8px_0_rgba(0,0,0,0.4),0_12px_28px_-2px_rgba(255,77,109,0.55),0_6px_10px_rgba(0,0,0,0.35)]'
         }`}
       >
         {/* Subtle Pulse Beacon indicator when collapsed to signal interactivity */}
@@ -539,7 +541,6 @@ export default function FloatingActionHub() {
         {hubItems.map((item, index) => {
           // Stagger animation timing for fluid visual hierarchy
           const transitionDelay = isOpen ? `${index * 45}ms` : '0ms';
-          const isFilterTrigger = item.id === 'audience-filter' || item.id === 'view-mode';
           const isAudienceTrigger = item.id === 'audience-filter';
           const isViewModeTrigger = item.id === 'view-mode';
 
@@ -550,20 +551,20 @@ export default function FloatingActionHub() {
             role: 'menuitem',
             tabIndex: isOpen ? 0 : -1,
             'aria-label': item.ariaLabel || item.label,
-            title: isFilterTrigger ? undefined : item.label,
+            title: item.pill ? undefined : item.label,
             style: { transitionDelay },
-            className: `group relative flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full border backdrop-blur-md transition-all duration-200 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D] active:scale-95 hover:scale-105 ${item.buttonClass}`
+            className: `group relative flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full backdrop-blur-md transition-all duration-300 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D] ${item.buttonClass}`
           };
 
           const innerContent = (
             <>
               {item.badge}
               {item.icon}
-              {/* Speed-dial Accessible Tooltip (hidden when flyout pill is active and completely omitted for audience-filter) */}
-              {!isFilterTrigger && !item.pill && (
+              {/* Speed-dial Accessible Tooltip (hidden when flyout pill is active) */}
+              {!item.pill && (
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-xl bg-stone-900/95 dark:bg-stone-950/95 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 hidden sm:block border border-stone-700/60 z-50"
+                  className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-xl bg-stone-900/95 dark:bg-stone-950/95 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 hidden sm:block border border-stone-700/60 z-50"
                 >
                   {item.label}
                 </span>
