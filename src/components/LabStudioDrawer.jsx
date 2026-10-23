@@ -94,7 +94,7 @@ export default function LabStudioDrawer() {
                 </span>
               </div>
               <p className="text-[11px] text-stone-500 dark:text-stone-400 font-medium">
-                Audio, Cursors, Hero, Preferences & Visuals
+                Audio, Cursors, Hero, 3D, Preferences & Visuals
               </p>
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function LabStudioDrawer() {
           </div>
         </div>
 
-        {/* Scrollable Drawer Body with 5-Tab Control Center */}
+        {/* Scrollable Drawer Body with 6-Tab Control Center */}
         <div className="flex-1 overflow-y-auto px-4 py-4 no-scrollbar">
           <ControlCenterPanel variant="drawer" />
         </div>

@@ -60,12 +60,12 @@ test('AIChatWidget header contains minimize/maximize and close buttons with dock
   assert(widgetContent.includes('h-13 rounded-t-xl rounded-b-none border-t border-x border-b-0'), 'Must have docked minimized tab styling');
 });
 
-test('AIChatWidget displays welcome message and 4 suggested prompt chips', () => {
+test('AIChatWidget displays welcome message and suggested prompt chips', () => {
   assert(widgetContent.includes("Hi there! 👋 I am Atul's AI Assistant preview"), 'Must include welcome message');
-  assert(widgetContent.includes('🚀 Featured Projects'), 'Must include Projects chip');
-  assert(widgetContent.includes('💻 Core Tech Stack'), 'Must include Tech Stack chip');
-  assert(widgetContent.includes('💼 Experience Summary'), 'Must include Experience chip');
-  assert(widgetContent.includes('📬 How to Contact'), 'Must include Contact chip');
+  assert(widgetContent.includes('🚀 Projects') || widgetContent.includes('🚀 Featured Projects'), 'Must include Projects chip');
+  assert(widgetContent.includes('⚡ Tech Stack') || widgetContent.includes('💻 Core Tech Stack'), 'Must include Tech Stack chip');
+  assert(widgetContent.includes('💼 Experience') || widgetContent.includes('💼 Experience Summary'), 'Must include Experience chip');
+  assert(widgetContent.includes('📬 Contact') || widgetContent.includes('📬 How to Contact'), 'Must include Contact chip');
 });
 
 test('AIChatWidget listens to portfolio:open-ai-chat event and dispatches state', () => {

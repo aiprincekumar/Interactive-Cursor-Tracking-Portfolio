@@ -19,6 +19,7 @@ import { TESTIMONIALS_CONFIG } from './data/testimonialsConfig';
 import { lazyWithRetry } from './utils/lazyWithRetry';
 import SectionSkeleton from './components/SectionSkeleton';
 import { useScrollRestoration } from './hooks/useScrollRestoration';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Static reference markers for test harness verification:
 // import AIChatWidget from './components/AIChatWidget';
@@ -394,41 +395,49 @@ export default function App() {
             {/* Global Quick Lab Studio Slide-Out Drawer & Floating Action Button (Mounted AFTER <main> in DOM order) */}
             {/* !isSimpleMode && <LabStudioDrawer /> */}
             {!isSimpleMode && (
-              <Suspense fallback={null}>
-                <LabStudioDrawer />
-              </Suspense>
+              <ErrorBoundary fallback={null} name="LabStudioDrawer">
+                <Suspense fallback={null}>
+                  <LabStudioDrawer />
+                </Suspense>
+              </ErrorBoundary>
             )}
 
             {/* Global Interactive Developer Terminal CLI (~/_ CLI) */}
-            <Suspense fallback={isTerminalOpen ? <SectionSkeleton variant="terminal" /> : null}>
-              <TerminalCLI
-                isOpen={isTerminalOpen}
-                onClose={() => setIsTerminalOpen(false)}
-                soundEnabled={effectiveSoundEnabled}
-                onToggleSound={() => setSoundEnabled(!soundEnabled)}
-                activeCursor={activeCursor}
-                onSelectCursor={handleSelectCursor}
-              />
-            </Suspense>
+            <ErrorBoundary fallback={null} name="TerminalCLI">
+              <Suspense fallback={isTerminalOpen ? <SectionSkeleton variant="terminal" /> : null}>
+                <TerminalCLI
+                  isOpen={isTerminalOpen}
+                  onClose={() => setIsTerminalOpen(false)}
+                  soundEnabled={effectiveSoundEnabled}
+                  onToggleSound={() => setSoundEnabled(!soundEnabled)}
+                  activeCursor={activeCursor}
+                  onSelectCursor={handleSelectCursor}
+                />
+              </Suspense>
+            </ErrorBoundary>
 
             {/* Slide-Over Case Study Dossier Drawer (Accessible across all modes) */}
-            <Suspense fallback={null}>
-              <CaseStudyDrawer
-                isOpen={isCaseStudyOpen}
-                caseStudyId={activeCaseStudyId}
-                onClose={handleCloseCaseStudy}
-                onSelectProject={handleOpenCaseStudy}
-              />
-            </Suspense>
+            <ErrorBoundary fallback={null} name="CaseStudyDrawer">
+              <Suspense fallback={null}>
+                <CaseStudyDrawer
+                  isOpen={isCaseStudyOpen}
+                  caseStudyId={activeCaseStudyId}
+                  onClose={handleCloseCaseStudy}
+                  onSelectProject={handleOpenCaseStudy}
+                />
+              </Suspense>
+            </ErrorBoundary>
 
             {/* Feature 6: Verified Credential & Academic Certificate Lightbox Inspector */}
-            <Suspense fallback={null}>
-              <CredentialLightboxModal
-                isOpen={isCredentialOpen}
-                initialCredentialId={activeCredentialId}
-                onClose={() => setIsCredentialOpen(false)}
-              />
-            </Suspense>
+            <ErrorBoundary fallback={null} name="CredentialLightboxModal">
+              <Suspense fallback={null}>
+                <CredentialLightboxModal
+                  isOpen={isCredentialOpen}
+                  initialCredentialId={activeCredentialId}
+                  onClose={() => setIsCredentialOpen(false)}
+                />
+              </Suspense>
+            </ErrorBoundary>
 
             {/* Centralized Master Floating Action Hub (Unifies Lab Studio, Simple Mode & WhatsApp Direct) */}
             <FloatingActionHub />
@@ -437,14 +446,18 @@ export default function App() {
             <BackToTopButton />
 
             {/* Global AI Chat Assistant Floating Widget */}
-            <Suspense fallback={null}>
-              <AIChatWidget />
-            </Suspense>
+            <ErrorBoundary fallback={null} name="AIChatWidget">
+              <Suspense fallback={null}>
+                <AIChatWidget />
+              </Suspense>
+            </ErrorBoundary>
 
             {/* 10. Dark Plum Footer with Watermark Name (Reel t=16.8s) */}
-            <Suspense fallback={null}>
-              <Footer />
-            </Suspense>
+            <ErrorBoundary fallback={null} name="Footer">
+              <Suspense fallback={null}>
+                <Footer />
+              </Suspense>
+            </ErrorBoundary>
           </div>
         </RoleProvider>
         </ViewModeProvider>

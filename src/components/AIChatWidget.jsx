@@ -13,7 +13,9 @@ import {
   Briefcase,
   FileText,
   MessageCircle,
-  HelpCircle
+  HelpCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useLab } from '../context/LabContext';
@@ -23,7 +25,10 @@ import { useAnnounce } from '../context/AnnouncerContext';
 import {
   queryAssistant,
   getInitialSuggestions,
-  clearSessionMemory
+  clearSessionMemory,
+  cleanMarkdownAsterisks,
+  tuneResponseEmojis,
+  getOnboardingDecisionTree
 } from '../utils/portfolioAssistantEngine.js';
 import { getResumeConfig } from '../utils/resumeConfig.js';
 
@@ -34,13 +39,21 @@ const SESSION_STORAGE_KEY = 'portfolio_ai_chat_session';
 let inMemoryMessagesCache = null;
 
 /**
- * Verified default suggested prompt chips (Strict invariant preserved for verify_ai_chat_feature.mjs)
+ * Verified default suggested prompt chips (10 rich compact suggestions in 2-row grid)
  */
 const PROMPT_CHIPS = [
-  { id: 'projects', label: '🚀 Featured Projects', query: 'Tell me about your featured projects' },
-  { id: 'tech', label: '💻 Core Tech Stack', query: 'What is your core tech stack and skills?' },
-  { id: 'experience', label: '💼 Experience Summary', query: 'Summarize your professional experience' },
-  { id: 'contact', label: '📬 How to Contact', query: 'How can I contact you or request a quote?' }
+  { id: 'projects', label: '🚀 Projects', query: 'Tell me about your featured projects' },
+  { id: 'tech', label: '⚡ Tech Stack', query: 'What is your core tech stack and skills?' },
+  { id: 'experience', label: '💼 Experience', query: 'Summarize your professional experience' },
+  { id: 'pricing', label: '💰 Pricing', query: 'Estimate quotation and service fees' },
+  { id: 'resume', label: '📄 Resume', query: 'Download verified professional resume' },
+  { id: 'gst', label: '📊 GST & Tax', query: 'Tell me about GST, ITR, and accounting practice' },
+  { id: 'itc', label: '📑 ITC & GSTR-2B', query: 'Explain GST ITC matching and GSTR-2B reconciliation' },
+  { id: 'tally', label: '📈 Tally Prime & BRS', query: 'Tell me about Tally Prime and bank reconciliation' },
+  { id: 'audit', label: '🔍 Audit & Ledgers', query: 'Tell me about balance sheet audit and financial controls' },
+  { id: 'powerbi', label: '📉 Power BI', query: 'Tell me about Power BI and Excel automation' },
+  { id: 'ai', label: '🤖 AI & SaaS', query: 'Tell me about AI prompt-to-SaaS and multi-agent workflows' },
+  { id: 'contact', label: '📬 Contact', query: 'How can I get in touch or hire you?' }
 ];
 
 /**
@@ -51,7 +64,19 @@ const DEFAULT_WELCOME_MESSAGE = {
   sender: 'assistant',
   text: "Hi there! 👋 I am Atul's AI Assistant preview. Feel free to ask about Atul's projects, experience, or tech stack!",
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-  chips: PROMPT_CHIPS
+  chips: PROMPT_CHIPS,
+  decisionTree: {
+    step: 'audience',
+    title: "Welcome! Who are you viewing Atul's portfolio as?",
+    options: [
+      { id: 'recruiter', label: '💼 Recruiter / Hiring', audience: 'recruiter' },
+      { id: 'client', label: '🤝 Client / Projects', audience: 'client' },
+      { id: 'marriage', label: '💍 Matrimonial Biodata', audience: 'marriage' },
+      { id: 'all', label: '🚀 General Explorer', audience: 'all' },
+      { id: 'skip', label: '⏩ Skip', isSkip: true },
+      { id: 'other', label: '✏️ Other / Specify', isOther: true }
+    ]
+  }
 };
 
 /**
@@ -90,6 +115,10 @@ export default function AIChatWidget() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [emojiEnabled, setEmojiEnabled] = useState(true);
+  const [inlineSpecifyMsgId, setInlineSpecifyMsgId] = useState(null);
+  const [inlineSpecifyText, setInlineSpecifyText] = useState('');
+  const [skippedDecisionTreeMsgIds, setSkippedDecisionTreeMsgIds] = useState(new Set());
   const [liveAnnouncement, setLiveAnnouncement] = useState('');
   const [focusedChipIndex, setFocusedChipIndex] = useState(0);
 
@@ -98,6 +127,61 @@ export default function AIChatWidget() {
   const typingTimeoutRef = useRef(null);
   const chipRefs = useRef([]);
   const lastFocusedElementRef = useRef(null);
+  const chipsScrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [isDraggingChips, setIsDraggingChips] = useState(false);
+  const dragStartRef = useRef({ x: 0, scrollLeft: 0, hasMoved: false });
+
+  const updateScrollBoundaries = useCallback(() => {
+    const el = chipsScrollRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 4);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 4);
+  }, []);
+
+  const handleScrollChips = (direction) => {
+    const el = chipsScrollRef.current;
+    if (!el) return;
+    const delta = direction === 'left' ? -180 : 180;
+    el.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+
+  const handleChipsMouseDown = (e) => {
+    const el = chipsScrollRef.current;
+    if (!el) return;
+    setIsDraggingChips(true);
+    dragStartRef.current = {
+      x: e.pageX - el.offsetLeft,
+      scrollLeft: el.scrollLeft,
+      hasMoved: false
+    };
+  };
+
+  const handleChipsMouseMove = (e) => {
+    if (!isDraggingChips) return;
+    const el = chipsScrollRef.current;
+    if (!el) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - dragStartRef.current.x) * 1.5;
+    if (Math.abs(x - dragStartRef.current.x) > 5) {
+      dragStartRef.current.hasMoved = true;
+    }
+    el.scrollLeft = dragStartRef.current.scrollLeft - walk;
+    updateScrollBoundaries();
+  };
+
+  const handleChipsMouseUp = () => {
+    setIsDraggingChips(false);
+    updateScrollBoundaries();
+  };
+
+  const handleChipsMouseLeave = () => {
+    setIsDraggingChips(false);
+    updateScrollBoundaries();
+  };
 
   // Safe access to Lab Context for drawer offset and sound settings
   let labContext = null;
@@ -187,7 +271,14 @@ export default function AIChatWidget() {
     } catch {
       // keep fallback
     }
-    const initial = [{ ...DEFAULT_WELCOME_MESSAGE, chips: initialChips }];
+    const baseWelcome = { ...DEFAULT_WELCOME_MESSAGE, chips: initialChips };
+    if (!baseWelcome.decisionTree && typeof getOnboardingDecisionTree === 'function') {
+      const dt = getOnboardingDecisionTree(audience, activeRole);
+      if (dt && dt.audienceStep) {
+        baseWelcome.decisionTree = dt.audienceStep;
+      }
+    }
+    const initial = [baseWelcome];
     inMemoryMessagesCache = initial;
     return initial;
   });
@@ -432,6 +523,48 @@ export default function AIChatWidget() {
   };
 
   // 1-Click Clear Chat reset handler
+  const handleAudienceDecisionSelect = (aud, label) => {
+    setAudience(aud);
+    const userMsg = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      text: `Selected Audience: ${label}`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    const followUpMsg = {
+      id: `assistant-role-${Date.now()}`,
+      sender: 'assistant',
+      text: "Great! Next, which professional track / role would you like to explore?",
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      decisionTree: {
+        step: 'role',
+        title: "Select Job Role / Professional Track:",
+        options: [
+          { id: 'accountant', label: '📊 Corporate Accountant', role: 'accountant' },
+          { id: 'mis', label: '📑 MIS Operations Lead', role: 'mis' },
+          { id: 'vibe_coding', label: '💻 AI Vibe Coder & Engineer', role: 'vibe_coding' },
+          { id: 'other', label: '✨ BI & Controller', role: 'other' },
+          { id: 'overview', label: '🎯 Executive Overview', role: 'overview' },
+          { id: 'skip', label: '⏩ Skip', isSkip: true },
+          { id: 'other', label: '✏️ Other / Specify', isOther: true }
+        ]
+      }
+    };
+    setMessages((prev) => [...prev, userMsg, followUpMsg]);
+  };
+
+  const handleRoleDecisionSelect = (r, label) => {
+    if (typeof selectRole === 'function') selectRole(r);
+    const userMsg = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      text: `Selected Role: ${label}`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    setMessages((prev) => [...prev, userMsg]);
+    handleSendMessage(`Tell me about your ${label} background and experience`);
+  };
+
   const handleClearChat = () => {
     if (soundEnabled && soundFX?.playTap) soundFX.playTap();
     try {
@@ -459,15 +592,14 @@ export default function AIChatWidget() {
     } catch {
       // safe fallback
     }
-    const resetMessages = [
-      {
-        id: `welcome-${Date.now()}`,
-        sender: 'assistant',
-        text: "Hi there! 👋 I am Atul's AI Assistant preview. Feel free to ask about Atul's projects, experience, or tech stack!",
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        chips: initialChips
+    const welcomeMsg = { ...DEFAULT_WELCOME_MESSAGE, id: `welcome-${Date.now()}`, chips: initialChips };
+    if (!welcomeMsg.decisionTree && typeof getOnboardingDecisionTree === 'function') {
+      const dt = getOnboardingDecisionTree(audience, activeRole);
+      if (dt && dt.audienceStep) {
+        welcomeMsg.decisionTree = dt.audienceStep;
       }
-    ];
+    }
+    const resetMessages = [welcomeMsg];
     inMemoryMessagesCache = resetMessages;
     setMessages(resetMessages);
     setInputValue('');
@@ -506,17 +638,17 @@ export default function AIChatWidget() {
     // 400ms simulated natural AI thinking delay
     typingTimeoutRef.current = setTimeout(() => {
       try {
+        let response = null;
         let botReplyText = '';
         let botChips = null;
         let botActions = null;
-
         try {
           if (typeof queryAssistant === 'function') {
-            const res = queryAssistant(trimmed, { role: activeRole, audience });
-            if (res) {
-              botReplyText = res.text || '';
-              botChips = res.chips || null;
-              botActions = res.actions || null;
+            response = queryAssistant(trimmed, { role: activeRole, audience });
+            if (response) {
+              botReplyText = response.text || '';
+              botChips = response.chips || null;
+              botActions = response.actions || null;
             }
           }
         } catch (err) {
@@ -528,16 +660,17 @@ export default function AIChatWidget() {
           botChips = PROMPT_CHIPS;
         }
 
-        const botMsg = {
-          id: `bot-${Date.now()}`,
+        const assistantMessage = {
+          id: (response && response.id) || `assistant-${Date.now()}`,
           sender: 'assistant',
-          text: botReplyText,
+          text: (response && response.text) || botReplyText,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          chips: botChips && botChips.length > 0 ? botChips : undefined,
-          actions: botActions && botActions.length > 0 ? botActions : undefined
+          chips: (response && response.chips) || botChips || PROMPT_CHIPS,
+          actions: (response && response.actions) || botActions || [],
+          decisionTree: (response && response.decisionTree) || null
         };
 
-        setMessages((prev) => [...prev, botMsg]);
+        setMessages((prev) => [...prev, assistantMessage]);
         const cleanForA11y = (str) =>
           typeof str === 'string'
             ? str.replace(/[*#_~•`]/g, ' ').replace(/\s+/g, ' ').trim()
@@ -590,6 +723,16 @@ export default function AIChatWidget() {
       handleClose();
     }
   };
+
+  // Update suggestions scroll boundaries
+  useEffect(() => {
+    updateScrollBoundaries();
+    const el = chipsScrollRef.current;
+    if (el) {
+      el.addEventListener('scroll', updateScrollBoundaries, { passive: true });
+      return () => el.removeEventListener('scroll', updateScrollBoundaries);
+    }
+  }, [currentChips, updateScrollBoundaries]);
 
   if (!isOpen) return null;
 
@@ -711,16 +854,30 @@ export default function AIChatWidget() {
               </span>
             </div>
 
-            {/* Clear Chat 1-Click Action (>= 44px touch target) */}
-            <button
-              type="button"
-              onClick={handleClearChat}
-              aria-label="Clear chat history"
-              title="Clear chat history"
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden shrink-0"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
+            {/* Clear Chat 1-Click Action & Emoji Toggle Button */}
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={() => setEmojiEnabled((prev) => !prev)}
+                className={`px-2 py-0.5 rounded-full text-[10px] font-sans font-medium flex items-center gap-1 border transition-colors cursor-pointer ${
+                  emojiEnabled
+                    ? 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                    : 'bg-stone-100 dark:bg-stone-800 border-stone-300 dark:border-stone-700 text-stone-500'
+                }`}
+                title="Toggle Emojis (On/Off)"
+              >
+                😊 {emojiEnabled ? 'On' : 'Off'}
+              </button>
+              <button
+                type="button"
+                onClick={handleClearChat}
+                aria-label="Clear chat history"
+                title="Clear chat history"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden shrink-0"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
           {/* 2. Messages Scroll Container */}
@@ -760,24 +917,150 @@ export default function AIChatWidget() {
                           : 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white rounded-2xl rounded-tr-xs'
                       }`}
                     >
-                      {msg.text}
+                      {cleanMarkdownAsterisks(!emojiEnabled ? tuneResponseEmojis(msg.text, audience, { enabled: false }) : msg.text)}
+
+                      {/* Decision Tree Rendering */}
+                      {isAssistant && msg.decisionTree && !skippedDecisionTreeMsgIds.has(msg.id) && (
+                        <div className="mt-2.5 pt-2 border-t border-stone-200/60 dark:border-stone-700/60 w-full">
+                          {msg.decisionTree.title && (
+                            <p className="text-[11px] font-semibold text-stone-700 dark:text-stone-300 mb-2">
+                              {msg.decisionTree.title}
+                            </p>
+                          )}
+                          <div className="flex flex-wrap gap-1.5 w-full">
+                            {msg.decisionTree.options?.map((chip) => {
+                              const isAudienceCurrent = chip.audience && chip.audience === audience;
+                              const isRoleCurrent = chip.role && chip.role === activeRole;
+                              const isSelected = isAudienceCurrent || isRoleCurrent;
+
+                              if (chip.isSkip) {
+                                return (
+                                  <button
+                                    key={chip.id || 'skip'}
+                                    type="button"
+                                    onClick={() => {
+                                      setSkippedDecisionTreeMsgIds((prev) => new Set([...prev, msg.id]));
+                                      inputRef.current?.focus();
+                                    }}
+                                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 border border-stone-300/80 dark:border-stone-700 transition-colors cursor-pointer"
+                                  >
+                                    ⏩ Skip
+                                  </button>
+                                );
+                              }
+
+                              if (chip.isOther) {
+                                return (
+                                  <button
+                                    key={chip.id || 'other'}
+                                    type="button"
+                                    onClick={() => {
+                                      setInlineSpecifyMsgId((prev) => (prev === msg.id ? null : msg.id));
+                                    }}
+                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer border ${
+                                      inlineSpecifyMsgId === msg.id
+                                        ? 'bg-blue-600 text-white border-blue-600'
+                                        : 'bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 border-stone-300/80 dark:border-stone-700'
+                                    }`}
+                                  >
+                                    ✏️ Other / Specify
+                                  </button>
+                                );
+                              }
+
+                              if (chip.audience) {
+                                return (
+                                  <button
+                                    key={chip.id}
+                                    type="button"
+                                    onClick={() => handleAudienceDecisionSelect(chip.audience, chip.label)}
+                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer border ${
+                                      isSelected
+                                        ? 'bg-[#FF4D6D] text-white border-[#FF4D6D] shadow-xs'
+                                        : 'bg-white dark:bg-[#1E162B] text-stone-800 dark:text-stone-200 border-stone-300 dark:border-stone-700 hover:border-[#FF4D6D] hover:text-[#FF4D6D]'
+                                    }`}
+                                  >
+                                    {chip.label} {isSelected ? '✓ (Current)' : ''}
+                                  </button>
+                                );
+                              }
+
+                              if (chip.role) {
+                                return (
+                                  <button
+                                    key={chip.id}
+                                    type="button"
+                                    onClick={() => handleRoleDecisionSelect(chip.role, chip.label)}
+                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer border ${
+                                      isSelected
+                                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                                        : 'bg-white dark:bg-[#1E162B] text-stone-800 dark:text-stone-200 border-stone-300 dark:border-stone-700 hover:border-emerald-500 hover:text-emerald-500'
+                                    }`}
+                                  >
+                                    {chip.label} {isSelected ? '✓ (Current)' : ''}
+                                  </button>
+                                );
+                              }
+
+                              return (
+                                <button
+                                  key={chip.id || chip.label}
+                                  type="button"
+                                  onClick={() => handleSendMessage(chip.query || chip.label)}
+                                  className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white dark:bg-[#1E162B] text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700 hover:border-[#FF4D6D] hover:text-[#FF4D6D] transition-all cursor-pointer"
+                                >
+                                  {chip.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {inlineSpecifyMsgId === msg.id && (
+                            <form
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                if (inlineSpecifyText.trim()) {
+                                  handleSendMessage(inlineSpecifyText.trim());
+                                  setInlineSpecifyText('');
+                                  setInlineSpecifyMsgId(null);
+                                }
+                              }}
+                              className="mt-2.5 flex items-center gap-1.5 p-1.5 rounded-xl bg-stone-50 dark:bg-stone-900 border border-[#FF4D6D]/40"
+                            >
+                              <input
+                                type="text"
+                                value={inlineSpecifyText}
+                                onChange={(e) => setInlineSpecifyText(e.target.value)}
+                                placeholder="Type your query here..."
+                                className="flex-1 bg-transparent text-xs text-stone-800 dark:text-stone-100 placeholder-stone-400 px-2 py-1 outline-hidden"
+                                autoFocus
+                              />
+                              <button
+                                type="submit"
+                                className="px-2.5 py-1 bg-linear-to-r from-[#FF4D6D] to-[#9333EA] text-white rounded-lg text-xs font-medium flex items-center gap-1 shrink-0 hover:opacity-90 transition-opacity cursor-pointer"
+                              >
+                                <Send className="w-3 h-3" /> Send
+                              </button>
+                            </form>
+                          )}
+                        </div>
+                      )}
 
                       {/* Direct Interactive Action Buttons */}
                       {isAssistant && Array.isArray(msg.actions) && msg.actions.length > 0 && (
-                        <div className="mt-3 pt-2.5 border-t border-stone-200/60 dark:border-stone-700/60 grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+                        <div className="mt-2.5 pt-2 border-t border-stone-200/60 dark:border-stone-700/60 grid grid-cols-2 gap-1.5 w-full">
                           {msg.actions.map((act, idx) => {
-                            const isWide =
+                            const isFullWidth =
                               msg.actions.length === 1 ||
-                              act.label.length > 20 ||
                               (idx === msg.actions.length - 1 && msg.actions.length % 2 === 1);
                             return (
                               <button
                                 key={idx}
                                 type="button"
                                 onClick={() => handleExecuteAction(act)}
-                                className={`w-full min-h-[44px] px-3.5 py-2.5 rounded-xl text-[12px] font-mono font-medium flex items-center justify-center text-center gap-2 transition-all duration-200 cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
-                                  isWide ? 'sm:col-span-2' : 'sm:col-span-1'
-                                } bg-white/80 dark:bg-[#1E162B]/80 backdrop-blur-md border border-[#FF4D6D]/30 dark:border-[#FF4D6D]/35 text-stone-800 dark:text-stone-100 hover:text-[#FF4D6D] dark:hover:text-[#FF758F] hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20 hover:border-[#FF4D6D] shadow-xs hover:shadow-[0_0_12px_rgba(255,77,109,0.25)]`}
+                                className={`w-full min-h-[38px] px-2 py-1.5 rounded-xl text-[11px] font-sans font-medium flex items-center justify-center text-center gap-1.5 transition-all duration-200 cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                                  isFullWidth ? 'col-span-2' : 'col-span-1'
+                                } bg-white/80 dark:bg-[#1E162B]/80 backdrop-blur-md border border-[#FF4D6D]/30 dark:border-[#FF4D6D]/35 text-stone-800 dark:text-stone-100 hover:text-[#FF4D6D] dark:hover:text-[#FF758F] hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20 hover:border-[#FF4D6D] shadow-xs hover:shadow-[0_0_10px_rgba(255,77,109,0.2)]`}
                               >
                                 {act.type === 'open-case-study' || act.type === 'case-study' ? (
                                   <FileText className="w-3.5 h-3.5 shrink-0 text-[#FF4D6D] dark:text-[#FF758F]" />
@@ -792,7 +1075,7 @@ export default function AIChatWidget() {
                                 ) : (
                                   <Sparkles className="w-3.5 h-3.5 shrink-0 text-[#FF4D6D] dark:text-[#FF758F]" />
                                 )}
-                                <span className="text-center font-medium leading-tight">{act.label}</span>
+                                <span className="text-center font-medium leading-tight line-clamp-2 break-words">{act.label}</span>
                               </button>
                             );
                           })}
@@ -832,35 +1115,78 @@ export default function AIChatWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* 3. Suggested Prompt Chips with Roving Tabindex & Touch Target >= 44px */}
-          <div className="px-3 py-2 border-t border-[#E7E2D8]/60 dark:border-[#2D2340]/60 bg-stone-50/50 dark:bg-[#120D1D]/40 shrink-0">
-            <span className="text-[9px] font-mono uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-1.5 block">
+          {/* 3. Suggested Prompt Chips with Visible Arrow Keys & Hold-and-Drag */}
+          <div className="px-2.5 py-1.5 border-t border-[#E7E2D8]/60 dark:border-[#2D2340]/60 bg-stone-50/70 dark:bg-[#120D1D]/60 shrink-0 select-none">
+            <span className="text-[9px] font-mono uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-1 px-1 block">
               Quick Suggestions
             </span>
-            <div
-              role="toolbar"
-              aria-label="Suggested questions"
-              className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth pb-0.5"
-            >
-              {currentChips.map((chip, idx) => {
-                const isSelected = focusedChipIndex === idx;
-                return (
-                  <button
-                    key={chip.id || idx}
-                    ref={(el) => {
-                      chipRefs.current[idx] = el;
-                    }}
-                    type="button"
-                    tabIndex={isSelected ? 0 : -1}
-                    disabled={isTyping}
-                    onClick={() => handleSendMessage(chip.query || chip.label)}
-                    onKeyDown={(e) => handleChipKeyDown(e, idx, currentChips.length)}
-                    className="shrink-0 min-h-[44px] text-[11px] font-medium font-mono px-3.5 py-2 rounded-full inline-flex items-center justify-center text-center bg-white dark:bg-[#1F172E] hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20 text-stone-700 dark:text-stone-300 hover:text-[#FF4D6D] dark:hover:text-[#FF758F] border border-[#E7E2D8] dark:border-[#2D2340] hover:border-[#FF4D6D]/50 transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50 disabled:pointer-events-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
-                  >
-                    {chip.label}
-                  </button>
-                );
-              })}
+            <div className="relative flex items-center w-full">
+              {/* Visible Left Arrow Button */}
+              <button
+                type="button"
+                onClick={() => handleScrollChips('left')}
+                disabled={!canScrollLeft}
+                aria-label="Scroll suggestions left"
+                className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 z-10 mr-1 cursor-pointer bg-white dark:bg-[#251B38] border border-[#FF4D6D]/40 text-[#FF4D6D] shadow-xs active:scale-90 ${
+                  canScrollLeft ? 'opacity-100 hover:bg-[#FF4D6D] hover:text-white' : 'opacity-25 pointer-events-none'
+                }`}
+              >
+                <ChevronLeft size={14} />
+              </button>
+
+              {/* Draggable & Horizontally Scrollable Suggestions Track */}
+              <div
+                ref={chipsScrollRef}
+                role="toolbar"
+                aria-label="Suggested questions"
+                onMouseDown={handleChipsMouseDown}
+                onMouseMove={handleChipsMouseMove}
+                onMouseUp={handleChipsMouseUp}
+                onMouseLeave={handleChipsMouseLeave}
+                className={`flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-1 w-full ${
+                  isDraggingChips ? 'cursor-grabbing select-none' : 'cursor-grab'
+                }`}
+              >
+                {currentChips.map((chip, idx) => {
+                  const isSelected = focusedChipIndex === idx;
+                  return (
+                    <button
+                      key={chip.id || idx}
+                      ref={(el) => {
+                        chipRefs.current[idx] = el;
+                      }}
+                      type="button"
+                      tabIndex={isSelected ? 0 : -1}
+                      disabled={isTyping}
+                      onClick={() => {
+                        if (dragStartRef.current.hasMoved) return; // Prevent click while dragging
+                        handleSendMessage(chip.query || chip.label);
+                      }}
+                      onKeyDown={(e) => handleChipKeyDown(e, idx, currentChips.length)}
+                      className={`shrink-0 h-[26px] min-h-[26px] px-2.5 py-0.5 rounded-lg text-[10.5px] font-sans font-medium inline-flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer shadow-2xs whitespace-nowrap active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                        isTyping
+                          ? 'opacity-40 pointer-events-none'
+                          : 'bg-white/90 dark:bg-[#1E162B]/90 backdrop-blur-xs border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 hover:text-[#FF4D6D] dark:hover:text-[#FF758F] hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20 hover:border-[#FF4D6D]/60'
+                      }`}
+                    >
+                      {chip.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Visible Right Arrow Button */}
+              <button
+                type="button"
+                onClick={() => handleScrollChips('right')}
+                disabled={!canScrollRight}
+                aria-label="Scroll suggestions right"
+                className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 z-10 ml-1 cursor-pointer bg-white dark:bg-[#251B38] border border-[#FF4D6D]/40 text-[#FF4D6D] shadow-xs active:scale-90 ${
+                  canScrollRight ? 'opacity-100 hover:bg-[#FF4D6D] hover:text-white' : 'opacity-25 pointer-events-none'
+                }`}
+              >
+                <ChevronRight size={14} />
+              </button>
             </div>
           </div>
 

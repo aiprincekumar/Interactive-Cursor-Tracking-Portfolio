@@ -25,7 +25,7 @@ export const SECTION_IDS = [
  *
  * 1. Sets history.scrollRestoration = 'manual' to prevent premature browser jumping.
  * 2. Checks window.location.hash or sessionStorage('portfolio_last_active_section').
- * 3. Smoothly animates scrolling down from top to the target section.
+ * 3. Smoothly animates scrolling down from top to the target section once layout expands.
  * 4. Retries/re-anchors for up to 2.5s as lazy-loaded components finish expanding the layout.
  * 5. Instantly cancels auto-scroll if the user manually touches, scrolls, or interacts.
  * 6. Persists the active section to sessionStorage during normal browsing.
@@ -69,6 +69,13 @@ export function useScrollRestoration() {
       return;
     }
 
+    // Guard against invalid or unrecognized section anchors
+    const isValidTarget = SECTION_IDS.includes(target) || !!document.getElementById(target);
+    if (!isValidTarget) {
+      isSettledRef.current = true;
+      return;
+    }
+
     targetSectionRef.current = target;
     isRestoringRef.current = true;
     userInterruptedRef.current = false;
@@ -77,6 +84,7 @@ export function useScrollRestoration() {
     const cancelRestoration = () => {
       userInterruptedRef.current = true;
       isRestoringRef.current = false;
+      isSettledRef.current = true;
     };
 
     const cancelEvents = ['wheel', 'touchstart', 'pointerdown'];
@@ -96,6 +104,7 @@ export function useScrollRestoration() {
     const startTime = Date.now();
     let lastTargetY = -1;
     let observer = null;
+    let rafSchedule = null;
 
     const performScroll = () => {
       if (userInterruptedRef.current) return;
@@ -109,11 +118,28 @@ export function useScrollRestoration() {
       const currentScrollY = window.scrollY || window.pageYOffset || 0;
       const absoluteTop = rect.top + currentScrollY;
 
+      // Anti-clamping safeguard: Ensure document has enough scrollable space before scrolling.
+      // If layout hasn't expanded past viewport, wait for lazy chunks/images to render.
+      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const targetIndex = SECTION_IDS.indexOf(targetId);
+      if (targetIndex > 2 && scrollableHeight < 200) {
+        // Layout hasn't expanded sufficiently yet; defer scroll until content loads
+        return;
+      }
+
       // Only re-scroll if position drifted by more than 16px (e.g. lazy content above mounted)
       if (Math.abs(absoluteTop - lastTargetY) > 16) {
         lastTargetY = absoluteTop;
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
+    };
+
+    const scheduleScroll = () => {
+      if (userInterruptedRef.current || !isRestoringRef.current) return;
+      if (rafSchedule) cancelAnimationFrame(rafSchedule);
+      rafSchedule = requestAnimationFrame(() => {
+        performScroll();
+      });
     };
 
     // Initial smooth scroll after brief layout paint
@@ -128,7 +154,7 @@ export function useScrollRestoration() {
       observer = new ResizeObserver(() => {
         if (!userInterruptedRef.current && isRestoringRef.current) {
           if (Date.now() - startTime <= MAX_SETTLE_MS) {
-            performScroll();
+            scheduleScroll();
           }
         }
       });
@@ -156,6 +182,7 @@ export function useScrollRestoration() {
       clearTimeout(initialTimer);
       clearTimeout(endTimer);
       clearInterval(pollInterval);
+      if (rafSchedule) cancelAnimationFrame(rafSchedule);
       if (observer) observer.disconnect();
       cancelEvents.forEach((evt) => {
         window.removeEventListener(evt, cancelRestoration);
@@ -170,15 +197,27 @@ export function useScrollRestoration() {
 
     let ticking = false;
     const handleScroll = () => {
-      // Don't overwrite during initial restoration
-      if (isRestoringRef.current) return;
+      // Don't overwrite during initial restoration or before layout has settled
+      if (isRestoringRef.current || !isSettledRef.current) return;
 
       if (!ticking) {
         ticking = true;
         window.requestAnimationFrame(() => {
           try {
-            if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 60) {
+            const scrollY = window.scrollY || window.pageYOffset || 0;
+            const scrollHeight = document.documentElement.scrollHeight || 0;
+            const innerHeight = window.innerHeight || 0;
+
+            // Only capture bottom 'contact' if user has genuinely scrolled down and page is scrollable
+            if (scrollY > 300 && innerHeight + scrollY >= scrollHeight - 60) {
               sessionStorage.setItem(RESTORATION_STORAGE_KEY, 'contact');
+              ticking = false;
+              return;
+            }
+
+            // Top of page safeguard
+            if (scrollY < 80) {
+              sessionStorage.setItem(RESTORATION_STORAGE_KEY, 'hero');
               ticking = false;
               return;
             }

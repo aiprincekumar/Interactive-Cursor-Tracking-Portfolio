@@ -46,6 +46,81 @@ export const FACTORY_DEFAULTS = {
     motionSpeed: 1.0,      // 0.7 (snappy), 1.0 (natural), 1.4 (cinematic)
     accentColor: '#FF4D6D', // '#FF4D6D' (Electric Rose), '#F59E0B' (Amber Gold), '#06B6D4' (Neon Cyan), '#10B981' (Emerald)
     layoutDensity: 'comfortable' // 'compact' | 'comfortable' | 'spacious'
+  },
+  threeD: {
+    master3D: false,
+    depthIntensity: 1.0, // slider 0.2 to 2.5
+    stylePreset: 'subtle', // 'subtle' | 'isometric' | 'deep'
+    masterTheme: 'apple-glass', // 'apple-glass' | 'cyber-neon' | 'studio-matte' | 'floating-hologram'
+    showSandboxPreview: true, // boolean toggle for mini 3D preview card
+    clusterFilter: 'all', // 'all' | 'design' | 'physics' | 'system'
+    elements: {
+      floatingButton: false,
+      navbarItems: false,
+      navbarIcons: false,
+      resumeButton: false,
+      profilePic: false,
+      header: false,
+      subHeader: false,
+      description: false,
+      container: false,
+      containerContent: false,
+    },
+    lighting: {
+      preset: 'studio-soft', // 'studio-soft' | 'sunset' | 'cyber-neon'
+      angle: 45, // 0 to 360 degrees
+      cursorLight: true,
+      shadowSoftness: 0.7, // 0.1 to 1.0
+    },
+    camera: {
+      anglePreset: 'isometric', // 'isometric' | 'top-down' | 'eye-level' | 'cinematic'
+      perspectiveFOV: 1000, // 400 to 2000 px
+      tiltSensitivity: 15, // 0 to 40 degrees
+      autoOrbit: false,
+      orbitSpeed: 1.0, // 0.2 to 3.0
+    },
+    materials: {
+      preset: 'glass-acrylic', // 'glass-acrylic' | 'metallic-gloss' | 'neumorphic-clay' | 'cyber-wireframe'
+      specularGlow: 0.6, // 0 to 1.0
+      bevelExtrusion: 3, // 1 to 8 px
+    },
+    physics: {
+      hoverPop: 12, // 4 to 32 px
+      clickDepression: true,
+      elasticity: 'snappy', // 'rigid' | 'snappy' | 'bouncy'
+      magneticPull: false,
+    },
+    // NEW SECTION 6: Exploded View & CAD Blueprint
+    exploded: {
+      enabled: false,
+      separationDistance: 45, // 0 to 120 px
+      blueprintMode: false,
+      layerStagger: 15, // 0 to 30 px
+      ghostOpacity: 0.4, // 0.1 to 1.0
+    },
+    // NEW SECTION 7: Atmosphere, Environment & Fog
+    environment: {
+      skybox: 'dark-studio', // 'dark-studio' | 'cyber-city' | 'cosmic-nebula' | 'sunset-horizon'
+      fogDensity: 30, // 0 to 100%
+      stardustParticles: true,
+      particleCount: 50, // 10 to 150
+      depthOfFieldBlur: 0, // 0 to 10 px
+    },
+    // NEW SECTION 8: 3D Spatial Audio & Acoustics
+    spatialAudio: {
+      binauralPanning: true,
+      roomSize: 'studio', // 'booth' | 'studio' | 'cathedral'
+      reverbIntensity: 0.5, // 0 to 1.0
+      materialHaptics: true,
+      dopplerShift: false,
+    },
+    // NEW SECTION 9: Performance & GPU Profiles
+    performance: {
+      fpsTarget: 60, // 30 | 60 | 120
+      autoThrottleIdle: true,
+      gpuAcceleration: 'standard', // 'standard' | 'webgl-boost'
+      lowPowerThreshold: true,
+    }
   }
 };
 
@@ -186,6 +261,226 @@ export function normalizeLayoutDensity(val) {
   return 'comfortable';
 }
 
+export function clampDepthIntensity(val) {
+  const num = typeof val === 'number' ? val : parseFloat(val);
+  if (isNaN(num)) return 1.0;
+  return parseFloat(clamp(num, 0.2, 2.5, 1.0).toFixed(2));
+}
+
+export function normalizeStylePreset(val) {
+  if (typeof val === 'string') {
+    const s = val.trim().toLowerCase();
+    if (s === 'subtle' || s === 'isometric' || s === 'deep') return s;
+  }
+  return 'subtle';
+}
+
+export function normalizeThreeDElements(rawElements) {
+  const defaults = FACTORY_DEFAULTS.threeD.elements;
+  if (!rawElements || typeof rawElements !== 'object') {
+    return { ...defaults };
+  }
+  const result = {};
+  for (const key of Object.keys(defaults)) {
+    result[key] = typeof rawElements[key] === 'boolean' ? rawElements[key] : defaults[key];
+  }
+  return result;
+}
+
+export function normalize3DMasterTheme(val) {
+  if (typeof val === 'string') {
+    const s = val.trim().toLowerCase();
+    if (s === 'apple-glass' || s === 'cyber-neon' || s === 'studio-matte' || s === 'floating-hologram') {
+      return s;
+    }
+  }
+  return FACTORY_DEFAULTS.threeD.masterTheme;
+}
+
+export function normalize3DLighting(raw) {
+  const defaults = FACTORY_DEFAULTS.threeD.lighting;
+  if (!raw || typeof raw !== 'object') return { ...defaults };
+  const preset = (raw.preset === 'sunset' || raw.preset === 'cyber-neon' || raw.preset === 'studio-soft')
+    ? raw.preset
+    : defaults.preset;
+  const angle = typeof raw.angle === 'number' && !isNaN(raw.angle) ? clamp(raw.angle, 0, 360, defaults.angle) : defaults.angle;
+  const cursorLight = typeof raw.cursorLight === 'boolean' ? raw.cursorLight : defaults.cursorLight;
+  const shadowSoftness = typeof raw.shadowSoftness === 'number' && !isNaN(raw.shadowSoftness) ? clamp(raw.shadowSoftness, 0.1, 1.0, defaults.shadowSoftness) : defaults.shadowSoftness;
+  return { preset, angle: Math.round(angle), cursorLight, shadowSoftness: parseFloat(shadowSoftness.toFixed(2)) };
+}
+
+export function normalize3DCamera(raw) {
+  const defaults = FACTORY_DEFAULTS.threeD.camera;
+  if (!raw || typeof raw !== 'object') return { ...defaults };
+  const anglePreset = (raw.anglePreset === 'top-down' || raw.anglePreset === 'eye-level' || raw.anglePreset === 'cinematic' || raw.anglePreset === 'isometric')
+    ? raw.anglePreset
+    : defaults.anglePreset;
+  const perspectiveFOV = typeof raw.perspectiveFOV === 'number' && !isNaN(raw.perspectiveFOV) ? clamp(raw.perspectiveFOV, 400, 2000, defaults.perspectiveFOV) : defaults.perspectiveFOV;
+  const tiltSensitivity = typeof raw.tiltSensitivity === 'number' && !isNaN(raw.tiltSensitivity) ? clamp(raw.tiltSensitivity, 0, 40, defaults.tiltSensitivity) : defaults.tiltSensitivity;
+  const autoOrbit = typeof raw.autoOrbit === 'boolean' ? raw.autoOrbit : defaults.autoOrbit;
+  const orbitSpeed = typeof raw.orbitSpeed === 'number' && !isNaN(raw.orbitSpeed) ? clamp(raw.orbitSpeed, 0.2, 3.0, defaults.orbitSpeed) : defaults.orbitSpeed;
+  return {
+    anglePreset,
+    perspectiveFOV: Math.round(perspectiveFOV),
+    tiltSensitivity: Math.round(tiltSensitivity),
+    autoOrbit,
+    orbitSpeed: parseFloat(orbitSpeed.toFixed(1))
+  };
+}
+
+export function normalize3DMaterials(raw) {
+  const defaults = FACTORY_DEFAULTS.threeD.materials;
+  if (!raw || typeof raw !== 'object') return { ...defaults };
+  const preset = (raw.preset === 'metallic-gloss' || raw.preset === 'neumorphic-clay' || raw.preset === 'cyber-wireframe' || raw.preset === 'glass-acrylic')
+    ? raw.preset
+    : defaults.preset;
+  const specularGlow = typeof raw.specularGlow === 'number' && !isNaN(raw.specularGlow) ? clamp(raw.specularGlow, 0.0, 1.0, defaults.specularGlow) : defaults.specularGlow;
+  const bevelExtrusion = typeof raw.bevelExtrusion === 'number' && !isNaN(raw.bevelExtrusion) ? clamp(raw.bevelExtrusion, 1, 8, defaults.bevelExtrusion) : defaults.bevelExtrusion;
+  return {
+    preset,
+    specularGlow: parseFloat(specularGlow.toFixed(2)),
+    bevelExtrusion: Math.round(bevelExtrusion)
+  };
+}
+
+export function normalize3DPhysics(raw) {
+  const defaults = FACTORY_DEFAULTS.threeD.physics;
+  if (!raw || typeof raw !== 'object') return { ...defaults };
+  const hoverPop = typeof raw.hoverPop === 'number' && !isNaN(raw.hoverPop) ? clamp(raw.hoverPop, 4, 32, defaults.hoverPop) : defaults.hoverPop;
+  const clickDepression = typeof raw.clickDepression === 'boolean' ? raw.clickDepression : defaults.clickDepression;
+  const elasticity = (raw.elasticity === 'rigid' || raw.elasticity === 'bouncy' || raw.elasticity === 'snappy')
+    ? raw.elasticity
+    : defaults.elasticity;
+  const magneticPull = typeof raw.magneticPull === 'boolean' ? raw.magneticPull : defaults.magneticPull;
+  return {
+    hoverPop: Math.round(hoverPop),
+    clickDepression,
+    elasticity,
+    magneticPull
+  };
+}
+
+export function normalize3DClusterFilter(val) {
+  if (typeof val === 'string') {
+    const s = val.trim().toLowerCase();
+    if (s === 'all' || s === 'design' || s === 'physics' || s === 'system') {
+      return s;
+    }
+  }
+  return FACTORY_DEFAULTS.threeD.clusterFilter;
+}
+
+export function normalize3DExploded(raw) {
+  const defaults = FACTORY_DEFAULTS.threeD.exploded;
+  if (!raw || typeof raw !== 'object') return { ...defaults };
+  const enabled = typeof raw.enabled === 'boolean' ? raw.enabled : defaults.enabled;
+  const separationDistance = typeof raw.separationDistance === 'number' && !isNaN(raw.separationDistance)
+    ? clamp(raw.separationDistance, 0, 120, defaults.separationDistance)
+    : defaults.separationDistance;
+  const blueprintMode = typeof raw.blueprintMode === 'boolean' ? raw.blueprintMode : defaults.blueprintMode;
+  const layerStagger = typeof raw.layerStagger === 'number' && !isNaN(raw.layerStagger)
+    ? clamp(raw.layerStagger, 0, 30, defaults.layerStagger)
+    : defaults.layerStagger;
+  const ghostOpacity = typeof raw.ghostOpacity === 'number' && !isNaN(raw.ghostOpacity)
+    ? clamp(raw.ghostOpacity, 0.1, 1.0, defaults.ghostOpacity)
+    : defaults.ghostOpacity;
+  return {
+    enabled,
+    separationDistance: Math.round(separationDistance),
+    blueprintMode,
+    layerStagger: Math.round(layerStagger),
+    ghostOpacity: parseFloat(ghostOpacity.toFixed(2))
+  };
+}
+
+export function normalize3DEnvironment(raw) {
+  const defaults = FACTORY_DEFAULTS.threeD.environment;
+  if (!raw || typeof raw !== 'object') return { ...defaults };
+  const validSkyboxes = ['dark-studio', 'cyber-city', 'cosmic-nebula', 'sunset-horizon'];
+  const skybox = (typeof raw.skybox === 'string' && validSkyboxes.includes(raw.skybox.trim().toLowerCase()))
+    ? raw.skybox.trim().toLowerCase()
+    : defaults.skybox;
+  const fogDensity = typeof raw.fogDensity === 'number' && !isNaN(raw.fogDensity)
+    ? clamp(raw.fogDensity, 0, 100, defaults.fogDensity)
+    : defaults.fogDensity;
+  const stardustParticles = typeof raw.stardustParticles === 'boolean' ? raw.stardustParticles : defaults.stardustParticles;
+  const particleCount = typeof raw.particleCount === 'number' && !isNaN(raw.particleCount)
+    ? clamp(raw.particleCount, 10, 150, defaults.particleCount)
+    : defaults.particleCount;
+  const depthOfFieldBlur = typeof raw.depthOfFieldBlur === 'number' && !isNaN(raw.depthOfFieldBlur)
+    ? clamp(raw.depthOfFieldBlur, 0, 10, defaults.depthOfFieldBlur)
+    : defaults.depthOfFieldBlur;
+  return {
+    skybox,
+    fogDensity: Math.round(fogDensity),
+    stardustParticles,
+    particleCount: Math.round(particleCount),
+    depthOfFieldBlur: parseFloat(depthOfFieldBlur.toFixed(1))
+  };
+}
+
+export function normalize3DSpatialAudio(raw) {
+  const defaults = FACTORY_DEFAULTS.threeD.spatialAudio;
+  if (!raw || typeof raw !== 'object') return { ...defaults };
+  const binauralPanning = typeof raw.binauralPanning === 'boolean' ? raw.binauralPanning : defaults.binauralPanning;
+  const validRoomSizes = ['booth', 'studio', 'cathedral'];
+  const roomSize = (typeof raw.roomSize === 'string' && validRoomSizes.includes(raw.roomSize.trim().toLowerCase()))
+    ? raw.roomSize.trim().toLowerCase()
+    : defaults.roomSize;
+  const reverbIntensity = typeof raw.reverbIntensity === 'number' && !isNaN(raw.reverbIntensity)
+    ? clamp(raw.reverbIntensity, 0.0, 1.0, defaults.reverbIntensity)
+    : defaults.reverbIntensity;
+  const materialHaptics = typeof raw.materialHaptics === 'boolean' ? raw.materialHaptics : defaults.materialHaptics;
+  const dopplerShift = typeof raw.dopplerShift === 'boolean' ? raw.dopplerShift : defaults.dopplerShift;
+  return {
+    binauralPanning,
+    roomSize,
+    reverbIntensity: parseFloat(reverbIntensity.toFixed(2)),
+    materialHaptics,
+    dopplerShift
+  };
+}
+
+export function normalize3DPerformance(raw) {
+  const defaults = FACTORY_DEFAULTS.threeD.performance;
+  if (!raw || typeof raw !== 'object') return { ...defaults };
+  const validFps = [30, 60, 120];
+  const fpsTarget = validFps.includes(Number(raw.fpsTarget)) ? Number(raw.fpsTarget) : defaults.fpsTarget;
+  const autoThrottleIdle = typeof raw.autoThrottleIdle === 'boolean' ? raw.autoThrottleIdle : defaults.autoThrottleIdle;
+  const gpuAcceleration = (raw.gpuAcceleration === 'webgl-boost' || raw.gpuAcceleration === 'standard')
+    ? raw.gpuAcceleration
+    : defaults.gpuAcceleration;
+  const lowPowerThreshold = typeof raw.lowPowerThreshold === 'boolean' ? raw.lowPowerThreshold : defaults.lowPowerThreshold;
+  return {
+    fpsTarget,
+    autoThrottleIdle,
+    gpuAcceleration,
+    lowPowerThreshold
+  };
+}
+
+export function normalizeThreeD(raw) {
+  if (!raw || typeof raw !== 'object') {
+    return JSON.parse(JSON.stringify(FACTORY_DEFAULTS.threeD));
+  }
+  return {
+    master3D: typeof raw.master3D === 'boolean' ? raw.master3D : FACTORY_DEFAULTS.threeD.master3D,
+    depthIntensity: clampDepthIntensity(raw.depthIntensity ?? FACTORY_DEFAULTS.threeD.depthIntensity),
+    stylePreset: normalizeStylePreset(raw.stylePreset ?? FACTORY_DEFAULTS.threeD.stylePreset),
+    masterTheme: normalize3DMasterTheme(raw.masterTheme ?? FACTORY_DEFAULTS.threeD.masterTheme),
+    showSandboxPreview: typeof raw.showSandboxPreview === 'boolean' ? raw.showSandboxPreview : FACTORY_DEFAULTS.threeD.showSandboxPreview,
+    clusterFilter: normalize3DClusterFilter(raw.clusterFilter),
+    elements: normalizeThreeDElements(raw.elements),
+    lighting: normalize3DLighting(raw.lighting),
+    camera: normalize3DCamera(raw.camera),
+    materials: normalize3DMaterials(raw.materials),
+    physics: normalize3DPhysics(raw.physics),
+    exploded: normalize3DExploded(raw.exploded),
+    environment: normalize3DEnvironment(raw.environment),
+    spatialAudio: normalize3DSpatialAudio(raw.spatialAudio),
+    performance: normalize3DPerformance(raw.performance)
+  };
+}
 
 export function loadSavedControlCenterConfig() {
   if (typeof window === 'undefined') {
@@ -202,6 +497,7 @@ export function loadSavedControlCenterConfig() {
         const cursor = parsed.cursor || {};
         const hero = parsed.hero || {};
         const preferences = parsed.preferences || {};
+        const threeDRaw = parsed.threeD || {};
 
         return {
           version: 2,
@@ -273,6 +569,23 @@ export function loadSavedControlCenterConfig() {
             motionSpeed: normalizeMotionSpeed(parsed.visuals?.motionSpeed ?? parsed.motionSpeed ?? FACTORY_DEFAULTS.visuals.motionSpeed),
             accentColor: validateColor(parsed.visuals?.accentColor ?? parsed.accentColor ?? FACTORY_DEFAULTS.visuals.accentColor),
             layoutDensity: normalizeLayoutDensity(parsed.visuals?.layoutDensity ?? parsed.layoutDensity ?? FACTORY_DEFAULTS.visuals.layoutDensity)
+          },
+          threeD: {
+            master3D: typeof threeDRaw.master3D === 'boolean' ? threeDRaw.master3D : FACTORY_DEFAULTS.threeD.master3D,
+            depthIntensity: clampDepthIntensity(threeDRaw.depthIntensity ?? FACTORY_DEFAULTS.threeD.depthIntensity),
+            stylePreset: normalizeStylePreset(threeDRaw.stylePreset ?? FACTORY_DEFAULTS.threeD.stylePreset),
+            masterTheme: normalize3DMasterTheme(threeDRaw.masterTheme ?? FACTORY_DEFAULTS.threeD.masterTheme),
+            showSandboxPreview: typeof threeDRaw.showSandboxPreview === 'boolean' ? threeDRaw.showSandboxPreview : FACTORY_DEFAULTS.threeD.showSandboxPreview,
+            clusterFilter: normalize3DClusterFilter(threeDRaw.clusterFilter),
+            elements: normalizeThreeDElements(threeDRaw.elements),
+            lighting: normalize3DLighting(threeDRaw.lighting),
+            camera: normalize3DCamera(threeDRaw.camera),
+            materials: normalize3DMaterials(threeDRaw.materials),
+            physics: normalize3DPhysics(threeDRaw.physics),
+            exploded: normalize3DExploded(threeDRaw.exploded),
+            environment: normalize3DEnvironment(threeDRaw.environment),
+            spatialAudio: normalize3DSpatialAudio(threeDRaw.spatialAudio),
+            performance: normalize3DPerformance(threeDRaw.performance)
           }
         };
       }
@@ -585,7 +898,8 @@ export function loadSavedControlCenterConfig() {
           (typeof window !== 'undefined' ? localStorage.getItem('portfolio_layout_density') : null) ??
           FACTORY_DEFAULTS.visuals.layoutDensity
         )
-      }
+      },
+      threeD: JSON.parse(JSON.stringify(FACTORY_DEFAULTS.threeD))
     };
   } catch {
     return JSON.parse(JSON.stringify(FACTORY_DEFAULTS));
@@ -672,11 +986,60 @@ export function LabProvider({ children, initialSoundEnabled }) {
   const [accentColor, setAccentColorState] = useState(initialConfig.visuals.accentColor);
   const [layoutDensity, setLayoutDensityState] = useState(initialConfig.visuals.layoutDensity);
 
+  // Tab 6: 3D State
+  const [threeD, setThreeDState] = useState(() => {
+    if (initialConfig.threeD) {
+      return normalizeThreeD(initialConfig.threeD);
+    }
+    return JSON.parse(JSON.stringify(FACTORY_DEFAULTS.threeD));
+  });
+
   // Runtime UI State
   const [activeTab, setActiveTab] = useState('audio');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const isInitialMount = useRef(true);
+
+  // Inject Root CSS Custom Properties & data attributes for 3D state
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    root.style.setProperty('--3d-depth-intensity', `${threeD.depthIntensity}`);
+    root.style.setProperty('--3d-style-preset', threeD.stylePreset);
+    root.style.setProperty('--3d-master-theme', threeD.masterTheme || 'apple-glass');
+    root.style.setProperty('--3d-light-preset', threeD.lighting?.preset || 'studio-soft');
+    root.style.setProperty('--3d-light-angle', `${threeD.lighting?.angle ?? 45}deg`);
+    root.style.setProperty('--3d-shadow-softness', `${threeD.lighting?.shadowSoftness ?? 0.7}`);
+    root.style.setProperty('--3d-cursor-light', threeD.lighting?.cursorLight ? '1' : '0');
+    root.style.setProperty('--3d-camera-angle', threeD.camera?.anglePreset || 'isometric');
+    root.style.setProperty('--3d-perspective', `${threeD.camera?.perspectiveFOV ?? 1000}px`);
+    root.style.setProperty('--3d-tilt-sensitivity', `${threeD.camera?.tiltSensitivity ?? 15}deg`);
+    root.style.setProperty('--3d-orbit-speed', `${threeD.camera?.orbitSpeed ?? 1.0}s`);
+    root.style.setProperty('--3d-material-preset', threeD.materials?.preset || 'glass-acrylic');
+    root.style.setProperty('--3d-specular-glow', `${threeD.materials?.specularGlow ?? 0.6}`);
+    root.style.setProperty('--3d-bevel-extrusion', `${threeD.materials?.bevelExtrusion ?? 3}px`);
+    root.style.setProperty('--3d-hover-pop', `${threeD.physics?.hoverPop ?? 12}px`);
+    root.style.setProperty('--3d-elasticity', threeD.physics?.elasticity || 'snappy');
+
+    // Exploded CAD, Atmosphere, Audio & Performance CSS custom properties
+    const explodeZ = threeD.exploded?.enabled ? (threeD.exploded?.separationDistance ?? 45) : 0;
+    root.style.setProperty('--3d-explode-z', `${explodeZ}px`);
+    root.style.setProperty('--3d-blueprint-mode', threeD.exploded?.blueprintMode ? '1' : '0');
+    root.style.setProperty('--3d-fog-density', `${(threeD.environment?.fogDensity ?? 30) / 100}`);
+    root.style.setProperty('--3d-dof-blur', `${threeD.environment?.depthOfFieldBlur ?? 0}px`);
+    root.style.setProperty('--3d-room-reverb', `${threeD.spatialAudio?.reverbIntensity ?? 0.5}`);
+    root.style.setProperty('--3d-target-fps', `${threeD.performance?.fpsTarget ?? 60}`);
+    root.style.setProperty('--3d-skybox', threeD.environment?.skybox || 'dark-studio');
+    root.style.setProperty('--3d-gpu-accel', threeD.performance?.gpuAcceleration || 'standard');
+
+    root.dataset.threedMaster = threeD.master3D ? 'true' : 'false';
+    root.dataset.threedPreset = threeD.stylePreset;
+    root.dataset.threedTheme = threeD.masterTheme || 'apple-glass';
+    root.dataset.threedMaterial = threeD.materials?.preset || 'glass-acrylic';
+    root.dataset.threedExploded = threeD.exploded?.enabled ? 'true' : 'false';
+    root.dataset.threedBlueprint = threeD.exploded?.blueprintMode ? 'true' : 'false';
+    root.classList.toggle('threed-enabled', Boolean(threeD.master3D));
+  }, [threeD]);
 
   // Inject Root CSS Custom Properties for Display & Visuals
   useEffect(() => {
@@ -859,6 +1222,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
         accentColor,
         layoutDensity
       },
+      threeD,
       updatedAt: new Date().toISOString()
     };
 
@@ -924,7 +1288,8 @@ export function LabProvider({ children, initialSoundEnabled }) {
     glassBlur,
     motionSpeed,
     accentColor,
-    layoutDensity
+    layoutDensity,
+    threeD
   ]);
 
   // --- Audio Setters ---
@@ -1123,6 +1488,319 @@ export function LabProvider({ children, initialSoundEnabled }) {
     setLayoutDensityState((prev) => (prev === next ? prev : next));
   }, []);
 
+  // --- 3D Tab Setters ---
+  const setMaster3D = useCallback((enabled) => {
+    const isEn = Boolean(enabled);
+    setThreeDState((prev) => {
+      const updatedElements = {};
+      for (const key of Object.keys(prev.elements)) {
+        updatedElements[key] = isEn;
+      }
+      return {
+        ...prev,
+        master3D: isEn,
+        elements: updatedElements
+      };
+    });
+  }, []);
+
+  const toggle3DElement = useCallback((elementKey) => {
+    setThreeDState((prev) => {
+      if (!prev.elements || !(elementKey in prev.elements)) return prev;
+      const nextVal = !prev.elements[elementKey];
+      const updatedElements = {
+        ...prev.elements,
+        [elementKey]: nextVal
+      };
+      const anyActive = Object.values(updatedElements).some(Boolean);
+      return {
+        ...prev,
+        master3D: anyActive,
+        elements: updatedElements
+      };
+    });
+  }, []);
+
+  const enableAll3D = useCallback(() => {
+    setThreeDState((prev) => {
+      const updatedElements = {};
+      for (const key of Object.keys(prev.elements)) {
+        updatedElements[key] = true;
+      }
+      return {
+        ...prev,
+        master3D: true,
+        elements: updatedElements
+      };
+    });
+  }, []);
+
+  const disableAll3D = useCallback(() => {
+    setThreeDState((prev) => {
+      const updatedElements = {};
+      for (const key of Object.keys(prev.elements)) {
+        updatedElements[key] = false;
+      }
+      return {
+        ...prev,
+        master3D: false,
+        elements: updatedElements
+      };
+    });
+  }, []);
+
+  const reset3DDefaults = useCallback(() => {
+    setThreeDState(JSON.parse(JSON.stringify(FACTORY_DEFAULTS.threeD)));
+  }, []);
+
+  const set3DDepthIntensity = useCallback((val) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      depthIntensity: clampDepthIntensity(val)
+    }));
+  }, []);
+
+  const set3DStylePreset = useCallback((preset) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      stylePreset: normalizeStylePreset(preset)
+    }));
+  }, []);
+
+  const set3DTheme = useCallback((themeKey) => {
+    const validTheme = normalize3DMasterTheme(themeKey);
+    setThreeDState((prev) => {
+      let matchingMaterials = { ...prev.materials };
+      let matchingLighting = { ...prev.lighting };
+      let matchingCamera = { ...prev.camera };
+      let matchingStylePreset = prev.stylePreset;
+
+      if (validTheme === 'apple-glass') {
+        matchingMaterials = { ...prev.materials, preset: 'glass-acrylic', specularGlow: 0.8, bevelExtrusion: 3 };
+        matchingLighting = { ...prev.lighting, preset: 'studio-soft', shadowSoftness: 0.8 };
+        matchingCamera = { ...prev.camera, anglePreset: 'isometric' };
+        matchingStylePreset = 'subtle';
+      } else if (validTheme === 'cyber-neon') {
+        matchingMaterials = { ...prev.materials, preset: 'cyber-wireframe', specularGlow: 1.0, bevelExtrusion: 4 };
+        matchingLighting = { ...prev.lighting, preset: 'cyber-neon', shadowSoftness: 0.5 };
+        matchingCamera = { ...prev.camera, anglePreset: 'cinematic' };
+        matchingStylePreset = 'isometric';
+      } else if (validTheme === 'studio-matte') {
+        matchingMaterials = { ...prev.materials, preset: 'neumorphic-clay', specularGlow: 0.2, bevelExtrusion: 5 };
+        matchingLighting = { ...prev.lighting, preset: 'studio-soft', shadowSoftness: 0.9 };
+        matchingCamera = { ...prev.camera, anglePreset: 'top-down' };
+        matchingStylePreset = 'subtle';
+      } else if (validTheme === 'floating-hologram') {
+        matchingMaterials = { ...prev.materials, preset: 'glass-acrylic', specularGlow: 0.9, bevelExtrusion: 2 };
+        matchingLighting = { ...prev.lighting, preset: 'sunset', shadowSoftness: 0.6 };
+        matchingCamera = { ...prev.camera, anglePreset: 'eye-level' };
+        matchingStylePreset = 'deep';
+      }
+
+      return {
+        ...prev,
+        masterTheme: validTheme,
+        stylePreset: matchingStylePreset,
+        materials: matchingMaterials,
+        lighting: matchingLighting,
+        camera: matchingCamera
+      };
+    });
+  }, []);
+
+  const setShow3DSandbox = useCallback((show) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      showSandboxPreview: typeof show === 'function' ? show(prev.showSandboxPreview) : Boolean(show)
+    }));
+  }, []);
+
+  const set3DLighting = useCallback((patch) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      lighting: normalize3DLighting(typeof patch === 'function' ? patch(prev.lighting) : { ...prev.lighting, ...patch })
+    }));
+  }, []);
+
+  const set3DLightingPreset = useCallback((preset) => {
+    set3DLighting({ preset });
+  }, [set3DLighting]);
+
+  const set3DLightingAngle = useCallback((angle) => {
+    set3DLighting({ angle });
+  }, [set3DLighting]);
+
+  const set3DCursorLight = useCallback((cursorLight) => {
+    set3DLighting({ cursorLight: Boolean(cursorLight) });
+  }, [set3DLighting]);
+
+  const set3DShadowSoftness = useCallback((shadowSoftness) => {
+    set3DLighting({ shadowSoftness });
+  }, [set3DLighting]);
+
+  const set3DCamera = useCallback((patch) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      camera: normalize3DCamera(typeof patch === 'function' ? patch(prev.camera) : { ...prev.camera, ...patch })
+    }));
+  }, []);
+
+  const set3DCameraAnglePreset = useCallback((anglePreset) => {
+    set3DCamera({ anglePreset });
+  }, [set3DCamera]);
+
+  const set3DPerspectiveFOV = useCallback((perspectiveFOV) => {
+    set3DCamera({ perspectiveFOV });
+  }, [set3DCamera]);
+
+  const set3DTiltSensitivity = useCallback((tiltSensitivity) => {
+    set3DCamera({ tiltSensitivity });
+  }, [set3DCamera]);
+
+  const set3DAutoOrbit = useCallback((autoOrbit) => {
+    set3DCamera({ autoOrbit: Boolean(autoOrbit) });
+  }, [set3DCamera]);
+
+  const set3DOrbitSpeed = useCallback((orbitSpeed) => {
+    set3DCamera({ orbitSpeed });
+  }, [set3DCamera]);
+
+  const set3DMaterials = useCallback((patch) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      materials: normalize3DMaterials(typeof patch === 'function' ? patch(prev.materials) : { ...prev.materials, ...patch })
+    }));
+  }, []);
+
+  const set3DMaterialPreset = useCallback((preset) => {
+    set3DMaterials({ preset });
+  }, [set3DMaterials]);
+
+  const set3DSpecularGlow = useCallback((specularGlow) => {
+    set3DMaterials({ specularGlow });
+  }, [set3DMaterials]);
+
+  const set3DBevelExtrusion = useCallback((bevelExtrusion) => {
+    set3DMaterials({ bevelExtrusion });
+  }, [set3DMaterials]);
+
+  const set3DPhysics = useCallback((patch) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      physics: normalize3DPhysics(typeof patch === 'function' ? patch(prev.physics) : { ...prev.physics, ...patch })
+    }));
+  }, []);
+
+  const set3DPhysicsHoverPop = useCallback((hoverPop) => {
+    set3DPhysics({ hoverPop });
+  }, [set3DPhysics]);
+
+  const set3DClickDepression = useCallback((clickDepression) => {
+    set3DPhysics({ clickDepression: Boolean(clickDepression) });
+  }, [set3DPhysics]);
+
+  const set3DElasticity = useCallback((elasticity) => {
+    set3DPhysics({ elasticity });
+  }, [set3DPhysics]);
+
+  const set3DMagneticPull = useCallback((magneticPull) => {
+    set3DPhysics({ magneticPull: Boolean(magneticPull) });
+  }, [set3DPhysics]);
+
+  const set3DClusterFilter = useCallback((clusterFilter) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      clusterFilter: normalize3DClusterFilter(clusterFilter)
+    }));
+  }, []);
+
+  const set3DExploded = useCallback((patch) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      exploded: normalize3DExploded(
+        typeof patch === 'function' ? patch(prev.exploded) : { ...prev.exploded, ...patch }
+      )
+    }));
+  }, []);
+
+  const set3DEnvironment = useCallback((patch) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      environment: normalize3DEnvironment(
+        typeof patch === 'function' ? patch(prev.environment) : { ...prev.environment, ...patch }
+      )
+    }));
+  }, []);
+
+  const set3DSpatialAudio = useCallback((patch) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      spatialAudio: normalize3DSpatialAudio(
+        typeof patch === 'function' ? patch(prev.spatialAudio) : { ...prev.spatialAudio, ...patch }
+      )
+    }));
+  }, []);
+
+  const set3DPerformance = useCallback((patch) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      performance: normalize3DPerformance(
+        typeof patch === 'function' ? patch(prev.performance) : { ...prev.performance, ...patch }
+      )
+    }));
+  }, []);
+
+  const import3DConfig = useCallback((jsonConfig) => {
+    try {
+      const parsed = typeof jsonConfig === 'string' ? JSON.parse(jsonConfig) : jsonConfig;
+      if (!parsed || typeof parsed !== 'object') {
+        return { success: false, message: 'Invalid 3D configuration data.' };
+      }
+      const target = parsed.threeD ? parsed.threeD : parsed;
+      const normalized = normalizeThreeD(target);
+      setThreeDState(normalized);
+      return { success: true, message: '3D configuration imported successfully!' };
+    } catch (err) {
+      return { success: false, message: err.message || 'Failed to parse JSON.' };
+    }
+  }, []);
+
+  const export3DConfig = useCallback(() => {
+    return JSON.stringify(threeD, null, 2);
+  }, [threeD]);
+
+  const copy3DCSSVariables = useCallback(() => {
+    const explodeZ = threeD.exploded?.enabled ? (threeD.exploded?.separationDistance ?? 45) : 0;
+    const vars = [
+      `--3d-master: ${threeD.master3D ? '1' : '0'};`,
+      `--3d-depth-intensity: ${threeD.depthIntensity};`,
+      `--3d-style-preset: ${threeD.stylePreset};`,
+      `--3d-master-theme: ${threeD.masterTheme || 'apple-glass'};`,
+      `--3d-light-preset: ${threeD.lighting?.preset || 'studio-soft'};`,
+      `--3d-light-angle: ${threeD.lighting?.angle ?? 45}deg;`,
+      `--3d-shadow-softness: ${threeD.lighting?.shadowSoftness ?? 0.7};`,
+      `--3d-cursor-light: ${threeD.lighting?.cursorLight ? '1' : '0'};`,
+      `--3d-camera-angle: ${threeD.camera?.anglePreset || 'isometric'};`,
+      `--3d-perspective: ${threeD.camera?.perspectiveFOV ?? 1000}px;`,
+      `--3d-tilt-sensitivity: ${threeD.camera?.tiltSensitivity ?? 15}deg;`,
+      `--3d-orbit-speed: ${threeD.camera?.orbitSpeed ?? 1.0}s;`,
+      `--3d-material-preset: ${threeD.materials?.preset || 'glass-acrylic'};`,
+      `--3d-specular-glow: ${threeD.materials?.specularGlow ?? 0.6};`,
+      `--3d-bevel-extrusion: ${threeD.materials?.bevelExtrusion ?? 3}px;`,
+      `--3d-hover-pop: ${threeD.physics?.hoverPop ?? 12}px;`,
+      `--3d-elasticity: ${threeD.physics?.elasticity || 'snappy'};`,
+      `--3d-explode-z: ${explodeZ}px;`,
+      `--3d-blueprint-mode: ${threeD.exploded?.blueprintMode ? '1' : '0'};`,
+      `--3d-fog-density: ${(threeD.environment?.fogDensity ?? 30) / 100};`,
+      `--3d-dof-blur: ${threeD.environment?.depthOfFieldBlur ?? 0}px;`,
+      `--3d-room-reverb: ${threeD.spatialAudio?.reverbIntensity ?? 0.5};`,
+      `--3d-target-fps: ${threeD.performance?.fpsTarget ?? 60};`,
+      `--3d-skybox: ${threeD.environment?.skybox || 'dark-studio'};`,
+      `--3d-gpu-accel: ${threeD.performance?.gpuAcceleration || 'standard'};`
+    ];
+    return vars.join('\n');
+  }, [threeD]);
+
   // --- 1-Click Factory Reset ---
   const resetDefaults = useCallback(() => {
     const f = FACTORY_DEFAULTS;
@@ -1177,6 +1855,9 @@ export function LabProvider({ children, initialSoundEnabled }) {
     setMotionSpeedState(f.visuals.motionSpeed);
     setAccentColorState(f.visuals.accentColor);
     setLayoutDensityState(f.visuals.layoutDensity);
+
+    // 3D
+    setThreeDState(JSON.parse(JSON.stringify(f.threeD)));
 
     // Sync Audio Engine
     try {
@@ -1317,6 +1998,9 @@ export function LabProvider({ children, initialSoundEnabled }) {
               const next = normalizeLayoutDensity(inc.layoutDensity);
               setLayoutDensityState((prev) => (prev === next ? prev : next));
             }
+            if (inc.threeD) {
+              setThreeDState(normalizeThreeD(inc.threeD));
+            }
           }
         } catch {
           // Ignore parse errors from other tabs
@@ -1417,6 +2101,62 @@ export function LabProvider({ children, initialSoundEnabled }) {
     setAccentColor,
     setLayoutDensity,
 
+    // Tab 6: 3D Controls
+    threeD,
+    threeDConfig: threeD,
+    master3D: threeD.master3D,
+    depthIntensity: threeD.depthIntensity,
+    stylePreset: threeD.stylePreset,
+    masterTheme: threeD.masterTheme,
+    showSandboxPreview: threeD.showSandboxPreview,
+    threeDClusterFilter: threeD.clusterFilter,
+    threeDElements: threeD.elements,
+    threeDLighting: threeD.lighting,
+    threeDCamera: threeD.camera,
+    threeDMaterials: threeD.materials,
+    threeDPhysics: threeD.physics,
+    threeDExploded: threeD.exploded,
+    threeDEnvironment: threeD.environment,
+    threeDSpatialAudio: threeD.spatialAudio,
+    threeDPerformance: threeD.performance,
+    setMaster3D,
+    toggle3DElement,
+    enableAll3D,
+    disableAll3D,
+    reset3DDefaults,
+    set3DDepthIntensity,
+    set3DStylePreset,
+    set3DTheme,
+    setShow3DSandbox,
+    set3DLighting,
+    set3DLightingPreset,
+    set3DLightingAngle,
+    set3DCursorLight,
+    set3DShadowSoftness,
+    set3DCamera,
+    set3DCameraAnglePreset,
+    set3DPerspectiveFOV,
+    set3DTiltSensitivity,
+    set3DAutoOrbit,
+    set3DOrbitSpeed,
+    set3DMaterials,
+    set3DMaterialPreset,
+    set3DSpecularGlow,
+    set3DBevelExtrusion,
+    set3DPhysics,
+    set3DPhysicsHoverPop,
+    set3DClickDepression,
+    set3DElasticity,
+    set3DMagneticPull,
+    set3DClusterFilter,
+    set3DExploded,
+    set3DEnvironment,
+    set3DSpatialAudio,
+    set3DPerformance,
+    import3DConfig,
+    export3DConfig,
+    copy3DCSSVariables,
+
     // Runtime UI State & Actions
     activeTab,
     setActiveTab,
@@ -1432,6 +2172,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
     audioPitch: pitchMultiplier,
     setAudioPitch: setPitchMultiplier,
     setAudioVolume: setMasterVolume,
+    setCursorSpeed: setFlightLerpSpeed,
     trailEnabled: stardustTrailEnabled,
     setTrailEnabled: setStardustTrailEnabled,
     characterScale: characterZoom,
@@ -1459,7 +2200,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
     isHeavyGravity: false,
     wingDynamics: 1.0,
     setWingDynamics: () => {},
-    activePreset: 'custom',
+    activePreset: 'default',
     applyPreset: () => false,
     presets: LAB_PRESETS,
     LAB_PRESETS,
@@ -1525,6 +2266,44 @@ export function LabProvider({ children, initialSoundEnabled }) {
     setMotionSpeed,
     setAccentColor,
     setLayoutDensity,
+    threeD,
+    setMaster3D,
+    toggle3DElement,
+    enableAll3D,
+    disableAll3D,
+    reset3DDefaults,
+    set3DDepthIntensity,
+    set3DStylePreset,
+    set3DTheme,
+    setShow3DSandbox,
+    set3DLighting,
+    set3DLightingPreset,
+    set3DLightingAngle,
+    set3DCursorLight,
+    set3DShadowSoftness,
+    set3DCamera,
+    set3DCameraAnglePreset,
+    set3DPerspectiveFOV,
+    set3DTiltSensitivity,
+    set3DAutoOrbit,
+    set3DOrbitSpeed,
+    set3DMaterials,
+    set3DMaterialPreset,
+    set3DSpecularGlow,
+    set3DBevelExtrusion,
+    set3DPhysics,
+    set3DPhysicsHoverPop,
+    set3DClickDepression,
+    set3DElasticity,
+    set3DMagneticPull,
+    set3DClusterFilter,
+    set3DExploded,
+    set3DEnvironment,
+    set3DSpatialAudio,
+    set3DPerformance,
+    import3DConfig,
+    export3DConfig,
+    copy3DCSSVariables,
     activeTab,
     setActiveTab,
     isDrawerOpen,
