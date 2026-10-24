@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Layers, X, Sliders, Eye, BotMessageSquare, Filter } from 'lucide-react';
+import { Layers, X, Sliders, Eye, BotMessageSquare, Filter, Briefcase } from 'lucide-react';
 import { useLab } from '../context/LabContext';
 import { useSimpleMode } from '../context/SimpleModeContext';
 import { useAudience } from '../context/AudienceContext';
 import { useViewMode } from '../context/ViewModeContext';
+import { useLanguage } from '../context/LanguageContext';
+import { useRoleTab } from '../context/RoleContext';
 import AudienceFloatingPill from './AudienceFloatingPill';
 import ViewModeFloatingPill from './ViewModeFloatingPill';
+import RoleFloatingPill from './RoleFloatingPill';
 import { soundFX } from '../utils/audio';
 
 const UNLOCK_STORAGE_KEY = 'portfolio_contact_unlocked';
@@ -29,8 +32,21 @@ export default function FloatingActionHub() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAudiencePillOpen, setIsAudiencePillOpen] = useState(false);
   const [isViewModePillOpen, setIsViewModePillOpen] = useState(false);
+  const [isRolePillOpen, setIsRolePillOpen] = useState(false);
   const filterOpenTimerRef = useRef(null);
   const { isSimpleMode, toggleSimpleMode } = useSimpleMode();
+  const { isHindi } = useLanguage();
+
+  // Role Context (safe access)
+  let roleContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    roleContext = useRoleTab();
+  } catch {
+    // safe fallback
+  }
+  const activeRole = roleContext?.activeRole ?? 'accountant';
+  const activeRoleData = roleContext?.roleData;
 
   // View Mode Context (safe access)
   let viewModeContext = null;
@@ -40,8 +56,10 @@ export default function FloatingActionHub() {
   } catch {
     // safe fallback
   }
-  const viewMode = viewModeContext?.viewMode ?? 'modern';
+  const { viewMode: hookViewMode } = useViewMode?.() || {};
+  const viewMode = viewModeContext?.viewMode ?? hookViewMode ?? 'modern';
   const activeViewModeData = viewModeContext?.activeModeData;
+  const isBasicView = viewMode === 'basic';
 
   // Audience Context (safe access)
   let audienceContext = null;
@@ -155,6 +173,7 @@ export default function FloatingActionHub() {
       if (!next) {
         setIsAudiencePillOpen(false);
         setIsViewModePillOpen(false);
+        setIsRolePillOpen(false);
       }
       if (soundEnabled) {
         if (soundFX?.playTap) {
@@ -167,7 +186,7 @@ export default function FloatingActionHub() {
     });
   }, [soundEnabled]);
 
-  // Action: Toggle Audience Filter Pill (Mutually Exclusive with Control Center Drawer & View Mode)
+  // Action: Toggle Audience Filter Pill (Mutually Exclusive with Control Center Drawer, View Mode & Role Filter)
   const handleToggleAudienceFilter = useCallback((e) => {
     if (e && e.stopPropagation) e.stopPropagation();
 
@@ -186,8 +205,9 @@ export default function FloatingActionHub() {
       }
     }
 
-    // Mutually exclusive with View Mode pill
+    // Mutually exclusive with View Mode & Role Filter pills
     setIsViewModePillOpen(false);
+    setIsRolePillOpen(false);
 
     // Sequential Transition: If sidebar/drawer is open, smoothly close drawer and wait ~320ms for drawer close + hub glide
     if (isDrawerOpen && closeDrawer) {
@@ -203,7 +223,7 @@ export default function FloatingActionHub() {
     setIsAudiencePillOpen((prev) => !prev);
   }, [soundEnabled, isDrawerOpen, closeDrawer]);
 
-  // Action: Toggle View Mode Pill (Mutually Exclusive with Control Center Drawer & Audience Filter)
+  // Action: Toggle View Mode Pill (Mutually Exclusive with Control Center Drawer, Audience Filter & Role Filter)
   const handleToggleViewMode = useCallback((e) => {
     if (e && e.stopPropagation) e.stopPropagation();
 
@@ -220,8 +240,9 @@ export default function FloatingActionHub() {
       }
     }
 
-    // Mutually exclusive with Audience Filter pill
+    // Mutually exclusive with Audience Filter & Role Filter pills
     setIsAudiencePillOpen(false);
+    setIsRolePillOpen(false);
 
     if (isDrawerOpen && closeDrawer) {
       closeDrawer();
@@ -233,6 +254,38 @@ export default function FloatingActionHub() {
     }
 
     setIsViewModePillOpen((prev) => !prev);
+  }, [soundEnabled, isDrawerOpen, closeDrawer]);
+
+  // Action: Toggle Job Role Filter Pill (Mutually Exclusive with Control Center Drawer, Audience Filter & View Mode)
+  const handleToggleRoleFilter = useCallback((e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+
+    if (filterOpenTimerRef.current) {
+      clearTimeout(filterOpenTimerRef.current);
+      filterOpenTimerRef.current = null;
+    }
+
+    if (soundEnabled) {
+      if (soundFX?.playFocusBeep) {
+        soundFX.playFocusBeep();
+      } else if (soundFX?.playHapticClick) {
+        soundFX.playHapticClick();
+      }
+    }
+
+    setIsAudiencePillOpen(false);
+    setIsViewModePillOpen(false);
+
+    if (isDrawerOpen && closeDrawer) {
+      closeDrawer();
+      filterOpenTimerRef.current = setTimeout(() => {
+        setIsRolePillOpen(true);
+        filterOpenTimerRef.current = null;
+      }, 320);
+      return;
+    }
+
+    setIsRolePillOpen((prev) => !prev);
   }, [soundEnabled, isDrawerOpen, closeDrawer]);
 
   // Action: Open/Toggle Lab Studio Control Center (Mutually Exclusive with Audience Filter & View Mode, Hub remains open)
@@ -371,37 +424,63 @@ export default function FloatingActionHub() {
       });
     }
 
-    // Item 4: Audience Filter (All / Recruiter / Client / Marriage)
-    items.push({
-      id: 'audience-filter',
-      label: `Audience View: ${activeAudienceData?.label || 'All'}`,
-      ariaLabel: `Audience Filter Mode: currently ${activeAudienceData?.label || 'All'}. Click to choose All, Recruiter, Client, or Marriage.`,
-      icon: (
-        <Filter className={`w-5 h-5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] group-hover:scale-110 transition-transform duration-300 ${
-          isFilterActive ? 'text-white' : 'text-[#FF4D6D]'
-        }`} />
-      ),
-      onClick: handleToggleAudienceFilter,
-      active: isFilterActive,
-      badge: isFilterActive ? (
-        <span aria-hidden="true" className="absolute -top-1 -right-1 flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-[#FF4D6D]" />
-          <span className="relative inline-flex rounded-full h-3 w-3 border-2 border-white dark:border-[#120D1D] bg-[#FF4D6D]" />
-        </span>
-      ) : null,
-      buttonClass: isFilterActive
+    // Item 4: Audience Filter (All / Recruiter / Client / Marriage) - Hidden in Basic View
+    if (!isBasicView) {
+      items.push({
+        id: 'audience-filter',
+        label: `Audience View: ${activeAudienceData?.label || 'All'}`,
+        ariaLabel: `Audience Filter Mode: currently ${activeAudienceData?.label || 'All'}. Click to choose All, Recruiter, Client, or Marriage.`,
+        icon: (
+          <Filter className={`w-5 h-5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] group-hover:scale-110 transition-transform duration-300 ${
+            isFilterActive ? 'text-white' : 'text-[#FF4D6D]'
+          }`} />
+        ),
+        onClick: handleToggleAudienceFilter,
+        active: isFilterActive,
+        badge: isFilterActive ? (
+          <span aria-hidden="true" className="absolute -top-1 -right-1 flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-[#FF4D6D]" />
+            <span className="relative inline-flex rounded-full h-3 w-3 border-2 border-white dark:border-[#120D1D] bg-[#FF4D6D]" />
+          </span>
+        ) : null,
+        buttonClass: isFilterActive
         ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border border-white/40 shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_6px_18px_-1px_rgba(255,77,109,0.5),0_3px_6px_rgba(0,0,0,0.25)] hover:-translate-y-1 hover:shadow-[0_10px_24px_-1px_rgba(255,77,109,0.65)] active:translate-y-0.5 active:scale-95'
-        : isAudiencePillOpen
-        ? 'bg-linear-to-tr from-[#FAF8F5]/95 to-[#EDE8E1]/95 dark:from-[#161122]/95 dark:to-[#251A38]/95 border border-[#FF4D6D] ring-2 ring-[#FF4D6D]/40 text-[#FF4D6D] shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.6),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_6px_16px_-1px_rgba(255,77,109,0.35)] hover:-translate-y-1 active:translate-y-0.5 active:scale-95'
-        : 'bg-linear-to-tr from-[#FAF8F5]/95 to-[#EDE8E1]/95 dark:from-[#161122]/95 dark:to-[#221832]/95 border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white hover:border-[#FF4D6D]/60 shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.6),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_5px_14px_-1px_rgba(0,0,0,0.15)] dark:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.45),inset_0_-3px_5px_0_rgba(0,0,0,0.5),0_6px_16px_-1px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_8px_20px_-1px_rgba(0,0,0,0.2)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.55),inset_0_-3px_5px_0_rgba(0,0,0,0.5),0_8px_20px_-1px_rgba(255,77,109,0.3)] active:translate-y-0.5 active:scale-95',
-      pill: isAudiencePillOpen ? (
-        <AudienceFloatingPill
-          isOpen={isAudiencePillOpen}
-          onClose={() => setIsAudiencePillOpen(false)}
+          : isAudiencePillOpen
+          ? 'bg-linear-to-tr from-[#FAF8F5]/95 to-[#EDE8E1]/95 dark:from-[#161122]/95 dark:to-[#251A38]/95 border border-[#FF4D6D] ring-2 ring-[#FF4D6D]/40 text-[#FF4D6D] shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.6),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_6px_16px_-1px_rgba(255,77,109,0.35)] hover:-translate-y-1 active:translate-y-0.5 active:scale-95'
+          : 'bg-linear-to-tr from-[#FAF8F5]/95 to-[#EDE8E1]/95 dark:from-[#161122]/95 dark:to-[#221832]/95 border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white hover:border-[#FF4D6D]/60 shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.6),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_5px_14px_-1px_rgba(0,0,0,0.15)] dark:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.45),inset_0_-3px_5px_0_rgba(0,0,0,0.5),0_6px_16px_-1px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_8px_20px_-1px_rgba(0,0,0,0.2)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.55),inset_0_-3px_5px_0_rgba(0,0,0,0.5),0_8px_20px_-1px_rgba(255,77,109,0.3)] active:translate-y-0.5 active:scale-95',
+        pill: isAudiencePillOpen ? (
+          <AudienceFloatingPill
+            isOpen={isAudiencePillOpen}
+            onClose={() => setIsAudiencePillOpen(false)}
+            soundEnabled={soundEnabled}
+            isDrawerOpen={isDrawerOpen}
+          />
+        ) : null
+      });
+    }
+
+    // Item 4.5: Job Role Floating Button (Directly below Audience Type)
+    const isRoleActive = activeRole && activeRole !== 'overview';
+    items.push({
+      id: 'job-role-filter',
+      triggerId: 'job-role-trigger',
+      dataAttribute: 'data-job-role-trigger',
+      label: `${isHindi ? 'जॉब रोल' : 'Job Role'}: ${activeRoleData?.label || 'Accountant'}`,
+      ariaLabel: isHindi ? 'जॉब रोल बदलें' : 'Change Job Role',
+      icon: <Briefcase className="w-5 h-5 text-emerald-500 group-hover:scale-110 transition-transform duration-300" />,
+      onClick: handleToggleRoleFilter,
+      active: isRolePillOpen,
+      pill: isRolePillOpen ? (
+        <RoleFloatingPill
+          isOpen={isRolePillOpen}
+          onClose={() => setIsRolePillOpen(false)}
           soundEnabled={soundEnabled}
           isDrawerOpen={isDrawerOpen}
         />
-      ) : null
+      ) : null,
+      buttonClass: isRolePillOpen
+        ? 'bg-linear-to-tr from-[#FAF8F5]/95 to-[#EDE8E1]/95 dark:from-[#161122]/95 dark:to-[#251A38]/95 border border-emerald-500 ring-2 ring-emerald-500/40 text-emerald-500 shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.6),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_6px_16px_-1px_rgba(16,185,129,0.35)] hover:-translate-y-1 active:translate-y-0.5 active:scale-95'
+        : 'bg-linear-to-tr from-[#FAF8F5]/95 to-[#EDE8E1]/95 dark:from-[#161122]/95 dark:to-[#221832]/95 border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-200 hover:text-[#18181B] dark:hover:text-white hover:border-emerald-500/60 shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.6),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_5px_14px_-1px_rgba(0,0,0,0.15)] dark:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.45),inset_0_-3px_5px_0_rgba(0,0,0,0.5),0_6px_16px_-1px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_0_rgba(0,0,0,0.35),0_8px_20px_-1px_rgba(0,0,0,0.2)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.55),inset_0_-3px_5px_0_rgba(0,0,0,0.5),0_8px_20px_-1px_rgba(16,185,129,0.3)] active:translate-y-0.5 active:scale-95'
     });
 
     // Item 5: View Mode (Basic / Simple / Modern / Terminal)
@@ -444,10 +523,16 @@ export default function FloatingActionHub() {
     isSimpleMode,
     isDrawerOpen,
     handleOpenLabStudio,
+    isBasicView,
     activeAudienceData,
     handleToggleAudienceFilter,
     isAudiencePillOpen,
     isFilterActive,
+    activeRole,
+    activeRoleData,
+    handleToggleRoleFilter,
+    isRolePillOpen,
+    isHindi,
     viewMode,
     activeViewModeData,
     handleToggleViewMode,
@@ -471,9 +556,10 @@ export default function FloatingActionHub() {
     );
   }, [isOpen, hubItems.length]);
 
+  // Elevated above chat box (z-[45]) with z-[60] (satisfies z-[50] minimum overlay specification)
   return (
     <div
-      className={`fixed bottom-6 sm:bottom-8 z-[50] select-none flex flex-col-reverse items-center gap-3 transition-all duration-300 ease-out ${
+      className={`fixed bottom-6 sm:bottom-8 z-[60] select-none flex flex-col-reverse items-center gap-3 transition-all duration-300 ease-out ${
         isDrawerOpen ? 'sm:right-[460px] right-6' : 'right-6 sm:right-8'
       }`}
       role="region"
@@ -521,7 +607,7 @@ export default function FloatingActionHub() {
         {/* Accessible Floating Tooltip (strictly horizontal to the left in both collapsed & expanded states) */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-xl bg-stone-900/95 dark:bg-stone-950/95 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 hidden sm:block border border-stone-700/60 z-50"
+          className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-xl bg-stone-900/95 dark:bg-stone-950/95 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 hidden sm:block border border-stone-700/60 z-[70]"
         >
           {isOpen ? 'सभी बटन छुपाएं (Hide All Buttons)' : 'सभी बटन दिखाएं (Show All Buttons)'}
         </span>
@@ -543,11 +629,19 @@ export default function FloatingActionHub() {
           const transitionDelay = isOpen ? `${index * 45}ms` : '0ms';
           const isAudienceTrigger = item.id === 'audience-filter';
           const isViewModeTrigger = item.id === 'view-mode';
+          const isJobRoleTrigger = item.id === 'job-role-filter';
 
           const commonProps = {
-            id: isAudienceTrigger ? 'audience-filter-trigger' : isViewModeTrigger ? 'view-mode-trigger' : undefined,
+            id: isAudienceTrigger
+              ? 'audience-filter-trigger'
+              : isViewModeTrigger
+              ? 'view-mode-trigger'
+              : isJobRoleTrigger
+              ? 'job-role-trigger'
+              : undefined,
             'data-audience-filter-trigger': isAudienceTrigger ? 'true' : undefined,
             'data-view-mode-trigger': isViewModeTrigger ? 'true' : undefined,
+            'data-job-role-trigger': isJobRoleTrigger ? 'true' : undefined,
             role: 'menuitem',
             tabIndex: isOpen ? 0 : -1,
             'aria-label': item.ariaLabel || item.label,
@@ -564,7 +658,7 @@ export default function FloatingActionHub() {
               {!item.pill && (
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-xl bg-stone-900/95 dark:bg-stone-950/95 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 hidden sm:block border border-stone-700/60 z-50"
+                  className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-xl bg-stone-900/95 dark:bg-stone-950/95 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 hidden sm:block border border-stone-700/60 z-[70]"
                 >
                   {item.label}
                 </span>

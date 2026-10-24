@@ -144,6 +144,8 @@ const AUTOCOMPLETE_LIST = [
   'matrix',
   'maximize',
   'max',
+  'fullscreen',
+  'fs',
   'minimize',
   'min',
   'restore',
@@ -620,7 +622,12 @@ export default function TerminalCLI({
   soundEnabled = true,
   onToggleSound,
   activeCursor = 'butterfly',
-  onSelectCursor
+  onSelectCursor,
+  fullView = false,
+  isMaximized: isMaximizedProp,
+  onMaximizeChange,
+  onMinimize,
+  onRestore
 }) {
   const { theme, setTheme, toggleTheme } = useTheme();
   let roleContext = null;
@@ -702,7 +709,29 @@ export default function TerminalCLI({
   const [commandHistory, setCommandHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(() => Boolean(isMaximizedProp));
+
+  useEffect(() => {
+    if (isMaximizedProp !== undefined) {
+      setIsMaximized(isMaximizedProp);
+    }
+  }, [isMaximizedProp]);
+
+  const toggleMaximize = useCallback(() => {
+    setIsMaximized((prev) => {
+      const next = !prev;
+      onMaximizeChange?.(next);
+      return next;
+    });
+  }, [onMaximizeChange]);
+
+  const handleMinimize = useCallback(() => {
+    if (fullView && onMinimize) {
+      onMinimize();
+    } else {
+      setIsMinimized(true);
+    }
+  }, [fullView, onMinimize]);
   const [crtEnabled, setCrtEnabled] = useState(true);
   const [isMatrixActive, setIsMatrixActive] = useState(false);
 
@@ -770,20 +799,42 @@ export default function TerminalCLI({
     if (!isOpen && !isMatrixActive) return;
 
     const handleKeyDown = (e) => {
+      // 1. Fullscreen / Maximize toggle via F11 or Alt+M
+      if (e.key === 'F11' || (e.altKey && (e.key === 'm' || e.key === 'M'))) {
+        e.preventDefault();
+        toggleMaximize();
+        return;
+      }
+
+      // 2. Alt+Down minimizes to bottom-left dock
+      if (e.altKey && (e.key === 'ArrowDown' || e.key === 'Down')) {
+        e.preventDefault();
+        handleMinimize();
+        return;
+      }
+
+      // 3. Escape key: closes matrix first, or minimizes if fullView, or closes terminal
       if (e.key === 'Escape') {
         if (isMatrixActive) {
           setIsMatrixActive(false);
           e.stopPropagation();
+          e.preventDefault();
           return;
         }
         if (isOpen) {
-          onClose();
+          if (fullView && onMinimize) {
+            e.stopPropagation();
+            e.preventDefault();
+            onMinimize();
+          } else {
+            onClose();
+          }
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isMatrixActive, isOpen, onClose]);
+  }, [isMatrixActive, isOpen, onClose, fullView, onMinimize, toggleMaximize, handleMinimize]);
 
   // Handle Dragging
   const handleMouseDown = (e) => {
@@ -1118,10 +1169,13 @@ export default function TerminalCLI({
         }
 
         case 'maximize':
-        case 'max': {
+        case 'max':
+        case 'fullscreen':
+        case 'fs': {
           setIsMaximized(true);
+          onMaximizeChange?.(true);
           setIsMinimized(false);
-          outputResult = '[✔] Window state set to MAXIMIZED.';
+          outputResult = '[✔] Window state set to FULLSCREEN MAXIMIZED.';
           soundFX.playTerminalSuccess?.();
           break;
         }
@@ -1851,40 +1905,59 @@ export default function TerminalCLI({
 
       {/* 2. Floating Terminal Window */}
       {isMinimized ? (
-        /* Minimized Dock Bar */
+        /* Minimized Dock Pill (Bottom-Left) */
         <div
           role="region"
           aria-label="Minimized Terminal Window"
-          className="fixed bottom-5 right-5 z-[9995] flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-2xl backdrop-blur-md cursor-pointer transition-all duration-200 select-none border"
+          className="fixed bottom-5 left-5 z-[9995] flex items-center gap-2.5 px-3.5 py-2 rounded-xl shadow-2xl backdrop-blur-md cursor-pointer transition-all duration-200 select-none border group hover:scale-[1.02] active:scale-[0.98]"
           style={{
-            backgroundColor: hexToRgba(effectiveBgHex, bgOpacity),
+            backgroundColor: hexToRgba(effectiveBgHex, Math.max(bgOpacity, 0.9)),
             borderColor: `${fontColor}60`
           }}
-          onClick={() => setIsMinimized(false)}
+          onClick={() => {
+            setIsMinimized(false);
+            if (onRestore) onRestore();
+          }}
         >
-          <div
-            className="w-2.5 h-2.5 rounded-full animate-pulse"
-            style={{ backgroundColor: fontColor }}
-          />
-          <span
-            className="font-mono text-xs font-semibold tracking-wide"
-            style={{ color: fontColor }}
-          >
-            {osStyle === 'win'
-              ? 'Windows PowerShell (minimized)'
-              : osStyle === 'linux'
-              ? 'guest@atul-linux:~ (minimized)'
-              : 'guest@atul-mac:~ (minimized)'}
-          </span>
-          <button
-            type="button"
-            className="p-1 rounded hover:bg-white/10"
-            style={{ color: fontColor }}
-            title="Restore Window"
-            aria-label="Restore Terminal"
-          >
-            <Maximize2 className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <Terminal className="w-4 h-4 animate-pulse" style={{ color: fontColor }} />
+            <span
+              className="font-mono text-xs font-semibold tracking-wide"
+              style={{ color: fontColor }}
+            >
+              guest@atul-mac:~
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1 ml-1 pl-2 border-l border-white/20">
+            <button
+              type="button"
+              className="p-1 rounded hover:bg-white/10 transition-colors"
+              style={{ color: fontColor }}
+              title="Restore Terminal"
+              aria-label="Restore Terminal"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMinimized(false);
+                if (onRestore) onRestore();
+              }}
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              className="p-1 rounded hover:bg-white/10 transition-colors text-stone-400 hover:text-white"
+              title="Close Terminal"
+              aria-label="Close Terminal"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMinimized(false);
+                onClose();
+              }}
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       ) : (
         <div
@@ -1911,7 +1984,7 @@ export default function TerminalCLI({
           }}
           className={`fixed z-[9990] transition-shadow duration-200 flex flex-col font-mono text-xs sm:text-sm select-text overflow-hidden ${
             isMaximized
-              ? 'inset-2 md:inset-6 rounded-2xl'
+              ? 'fixed inset-0 z-[9995] w-screen h-screen max-w-none max-h-none rounded-none border-0'
               : 'top-1/2 left-1/2 rounded-xl shadow-2xl'
           } ${osStyles.bg} border backdrop-blur-xl`}
           onClick={() => inputRef.current?.focus()}
@@ -1958,7 +2031,7 @@ export default function TerminalCLI({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setIsMinimized(true);
+                      handleMinimize();
                     }}
                     className="w-3 h-3 rounded-full bg-[#FFBD2E] hover:bg-[#FFAC1C] border border-[#DEA123] transition-colors focus:outline-none"
                     title="Minimize terminal"
@@ -1969,7 +2042,7 @@ export default function TerminalCLI({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setIsMaximized((prev) => !prev);
+                      toggleMaximize();
                     }}
                     className="w-3 h-3 rounded-full bg-[#27C93F] hover:bg-[#1EAE34] border border-[#1AAB29] transition-colors focus:outline-none"
                     title={isMaximized ? 'Restore size' : 'Maximize window'}
@@ -2112,7 +2185,7 @@ export default function TerminalCLI({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setIsMinimized(true);
+                      handleMinimize();
                     }}
                     className="w-8 h-6 flex items-center justify-center hover:bg-white/10 text-stone-300 text-xs transition-colors"
                     title="Minimize"
@@ -2126,7 +2199,7 @@ export default function TerminalCLI({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setIsMaximized((prev) => !prev);
+                      toggleMaximize();
                     }}
                     className="w-8 h-6 flex items-center justify-center hover:bg-white/10 text-stone-300 text-xs transition-colors"
                     title={isMaximized ? 'Restore size' : 'Maximize window'}
@@ -2212,7 +2285,7 @@ export default function TerminalCLI({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setIsMinimized(true);
+                      handleMinimize();
                     }}
                     className="w-5 h-5 rounded-full bg-stone-700/80 hover:bg-stone-600 flex items-center justify-center text-[10px] text-stone-300 transition-colors"
                     title="Minimize"
@@ -2226,7 +2299,7 @@ export default function TerminalCLI({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setIsMaximized((prev) => !prev);
+                      toggleMaximize();
                     }}
                     className="w-5 h-5 rounded-full bg-stone-700/80 hover:bg-stone-600 flex items-center justify-center text-[9px] text-stone-300 transition-colors"
                     title={isMaximized ? 'Restore size' : 'Maximize window'}

@@ -67,7 +67,7 @@ const newFunction = `function createFollowupChips(intent, context = {}, query = 
       c(\`cs-\${caseId}-impact\`, \`📈 Business Impact & ROI\`, \`business outcomes and impact of case study \${caseId}\`),
       c(\`cs-\${caseId}-next\`, \`📑 Next: \${nextName}\`, \`case study \${nextId} \${nextName}\`),
       c(\`cs-\${caseId}-live\`, \`🚀 Live Telemetry & Demo\`, \`show case study \${caseId} simulation\`),
-      c(\`cs-\${caseId}-stack\", \`🛠️ Core Architecture\`, 'what is your core tech stack and skills'),
+      c(\`cs-\${caseId}-stack\`, \`🛠️ Core Architecture\`, 'what is your core tech stack and skills'),
       c(\`cs-\${caseId}-time\`, \`⏱️ Turnaround & Delivery\`, 'what is turnaround time for projects')
     ], roleKey);
   }

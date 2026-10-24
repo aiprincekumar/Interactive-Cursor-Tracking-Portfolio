@@ -179,6 +179,7 @@ export function AudienceProvider({ children }) {
     () => ({
       audience,
       setAudience,
+      selectAudience: setAudience,
       activeModeData,
       modes: AUDIENCE_MODES,
       modesList: AUDIENCE_LIST,

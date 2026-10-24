@@ -45,7 +45,7 @@ function tuneResponseEmojis(text, audience = 'all', options = { enabled: true })
   const enabled = options?.enabled !== false && options?.emojis !== false;
   if (!enabled) {
     return text
-      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '')
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]|\u{FE0F}/gu, '')
       .replace(/[ ]{2,}/g, ' ')
       .trim();
   }
@@ -63,7 +63,7 @@ assert(typeof marriageEmoji === 'string', 'Marriage mode produces tone-appropria
 assert(typeof allEmoji === 'string', 'All mode produces valid text');
 
 const disabledEmoji = tuneResponseEmojis(sampleMsg, 'recruiter', { enabled: false });
-assert(!/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u.test(disabledEmoji), 'When emoji mode is disabled (enabled: false), emojis are cleanly stripped/suppressed');
+assert(!/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]|\u{FE0F}/u.test(disabledEmoji), 'When emoji mode is disabled (enabled: false), emojis are cleanly stripped/suppressed');
 console.log(`   Disabled output: "${disabledEmoji}"\n`);
 
 // 3. Test Onboarding Decision Tree

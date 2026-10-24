@@ -1,5 +1,5 @@
 /* oxlint-disable react/only-export-components */
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { FileText, Sparkles, Layers, Terminal } from 'lucide-react';
 import { useSimpleMode } from './SimpleModeContext';
 
@@ -112,8 +112,11 @@ export function ViewModeProvider({ children }) {
     return DEFAULT_VIEW_MODE;
   });
 
+  const isInternalChangeRef = useRef(false);
+
   // Keep body class and SimpleModeContext in sync when viewMode changes
   const applyViewMode = useCallback((modeId) => {
+    isInternalChangeRef.current = true;
     const cleanMode = String(modeId || '').toLowerCase();
     const targetMode = VALID_VIEW_MODE_IDS.includes(cleanMode) ? cleanMode : DEFAULT_VIEW_MODE;
 
@@ -170,6 +173,10 @@ export function ViewModeProvider({ children }) {
 
   // Synchronize on external changes to isSimpleMode
   useEffect(() => {
+    if (isInternalChangeRef.current) {
+      isInternalChangeRef.current = false;
+      return;
+    }
     if (isSimpleMode && (viewMode === 'modern')) {
       setViewModeState('simple');
       try {
@@ -181,7 +188,7 @@ export function ViewModeProvider({ children }) {
         localStorage.setItem(VIEW_MODE_STORAGE_KEY, 'modern');
       } catch {}
     }
-  }, [isSimpleMode, viewMode]);
+  }, [isSimpleMode]);
 
   // Apply initial body classes on mount
   useEffect(() => {

@@ -494,7 +494,7 @@ export default function AudienceFloatingPill({
 
   const inlineStyle = {
     position: 'fixed',
-    zIndex: 55,
+    zIndex: 70,
     left: `${activeLeft}px`,
     top: `${activeTop}px`,
     touchAction: 'none',

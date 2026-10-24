@@ -417,7 +417,7 @@ export default function ViewModeFloatingPill({
         left: `${currentPos.left ?? currentPos.x ?? 0}px`,
         top: `${currentPos.top ?? currentPos.y ?? 0}px`,
         width: '320px',
-        zIndex: 51,
+        zIndex: 70,
         touchAction: 'none',
         transition: isDragging ? 'none' : 'left 0.25s ease-out, top 0.25s ease-out'
       }}

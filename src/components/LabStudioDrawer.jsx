@@ -61,7 +61,7 @@ export default function LabStudioDrawer() {
           tabIndex={-1}
           aria-hidden="true"
           onClick={closeDrawer}
-          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-[47] transition-opacity duration-300 cursor-pointer"
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-[75] transition-opacity duration-300 cursor-pointer"
         />
       )}
 
@@ -74,7 +74,7 @@ export default function LabStudioDrawer() {
         aria-label="Portfolio Control Center Drawer"
         aria-hidden={!isDrawerOpen}
         inert={!isDrawerOpen ? '' : undefined}
-        className={`fixed top-0 right-0 h-full w-[380px] sm:w-[440px] max-w-[95vw] z-[48] bg-[#FAF8F5]/98 dark:bg-[#120D1D]/98 backdrop-blur-2xl border-l border-[#E7E2D8] dark:border-[#2D2340] shadow-2xl flex flex-col transition-transform duration-300 ease-out will-change-transform ${
+        className={`fixed top-0 right-0 h-full w-[380px] sm:w-[440px] max-w-[95vw] z-[80] bg-[#FAF8F5]/98 dark:bg-[#120D1D]/98 backdrop-blur-2xl border-l border-[#E7E2D8] dark:border-[#2D2340] shadow-2xl flex flex-col transition-transform duration-300 ease-out will-change-transform ${
           isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >

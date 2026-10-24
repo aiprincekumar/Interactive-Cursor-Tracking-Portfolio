@@ -85,6 +85,11 @@
     color: var(--text-primary);
   }
 
+  body.view-mode-terminal {
+    background-color: #ffffff !important;
+    color: #18181b !important;
+  }
+
   html.tilt-scrolling {
     scroll-behavior: auto !important;
   }
