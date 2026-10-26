@@ -60,6 +60,22 @@ export const CHAT_SLASH_COMMANDS = [
     description: 'Select local On-Device AI neural model or offline engine'
   },
   {
+    command: '/language',
+    label: 'Switch Response Language',
+    category: 'Navigation',
+    badge: '🌐 Language',
+    icon: 'Languages',
+    description: 'Switch between English, शुद्ध हिन्दी (Hindi), and Bilingual mode'
+  },
+  {
+    command: '/lang',
+    label: 'Language Selector (/lang)',
+    category: 'Navigation',
+    badge: '🌐 Language',
+    icon: 'Languages',
+    description: 'Quick alias to switch chat response language'
+  },
+  {
     command: '/terminal',
     label: 'Switch to Terminal Mode',
     category: 'Navigation',
@@ -654,6 +670,35 @@ export function handleSlashCommand(rawQuery, context = { role: 'overview', audie
             { id: 'overview', label: '🎯 Executive Overview', role: 'overview' }
           ]
         },
+        confidence: 1.0,
+        isRelaxed: false,
+        isFallback: false
+      };
+
+    case '/lang':
+    case '/language':
+      return {
+        id: rid,
+        intent: 'language',
+        command: cmdKey,
+        language: 'en',
+        text: 'Select your preferred assistant response language / अपनी पसंदीदा भाषा चुनें:',
+        decisionTree: {
+          step: 'language',
+          title: 'भाषा चयन / Response Language Selection:',
+          options: [
+            { id: 'lang_en', label: '🇺🇸 English (United States)', description: 'Single-language English responses', language: 'en' },
+            { id: 'lang_hi', label: '🇮🇳 हिन्दी (भारत)', description: 'शुद्ध देवनागरी हिन्दी रिस्पॉन्स', language: 'hi' },
+            { id: 'lang_bilingual', label: '🌐 बाइलिंग्वल / Bilingual', description: 'English + हिन्दी दोनों समानांतर', language: 'bilingual' },
+            { id: 'lang_skip', label: '⏭️ छोड़ें / Skip', description: 'वर्तमान भाषा बरकरार रखें', isSkip: true }
+          ]
+        },
+        chips: [
+          { id: 'lang_en', label: '🇺🇸 English', language: 'en' },
+          { id: 'lang_hi', label: '🇮🇳 हिन्दी', language: 'hi' },
+          { id: 'lang_bilingual', label: '🌐 Bilingual', language: 'bilingual' }
+        ],
+        actions: [],
         confidence: 1.0,
         isRelaxed: false,
         isFallback: false

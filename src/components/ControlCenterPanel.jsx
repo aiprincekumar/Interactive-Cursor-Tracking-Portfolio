@@ -73,6 +73,9 @@ import {
 } from 'lucide-react';
 import UniversalMiniPortfolio from './3d-sandbox/UniversalMiniPortfolio';
 import StickySandboxColumn from './3d-sandbox/StickySandboxColumn';
+import { ThreeDPresetCard, ThreeDActionKeycap, ThreeDToggleKey } from './3d-sandbox/ThreeDButtonPrimitives';
+import { CameraCubePreview, MaterialShaderSphere, ThemeExtrudedSlab, LightingVectorPreview } from './3d-sandbox/Visual3DPresets';
+import { SpringElasticityVisual, ExplodedCADLayerVisual } from './3d-sandbox/PhysicsAndCADVisuals';
 import useSandboxAutoSwitch from '../hooks/useSandboxAutoSwitch';
 import { useLab, useLabVisuals, useLabChat, DEFAULT_AI_CHAT_SETTINGS, POSE_INDEX_MAP } from '../context/LabContext';
 import { useTheme } from '../context/ThemeContext';
@@ -2212,8 +2215,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                type="button"
+              <ThreeDActionKeycap
                 onClick={() => {
                   if (isLive3DApplied) {
                     revertLivePortfolio();
@@ -2223,29 +2225,23 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                     if (soundEnabled) soundFX.playCrystalChime();
                   }
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95 ${
-                  isLive3DApplied
-                    ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 shadow-emerald-500/10'
-                    : 'bg-stone-100 hover:bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700'
-                }`}
-                aria-label={isLive3DApplied ? 'Revert live portfolio 3D' : 'Apply 3D settings to live portfolio'}
-              >
-                <Radio className={`w-3.5 h-3.5 ${isLive3DApplied ? 'text-emerald-500 animate-pulse' : 'text-stone-400'}`} />
-                <span>{isLive3DApplied ? 'Live Active (Click to Revert)' : 'Apply to Live Portfolio'}</span>
-              </button>
+                icon={Radio}
+                label={isLive3DApplied ? 'Live Active (Click to Revert)' : 'Apply to Live Portfolio'}
+                variant={isLive3DApplied ? 'emerald' : 'default'}
+                active={isLive3DApplied}
+                ariaLabel={isLive3DApplied ? 'Revert live portfolio 3D' : 'Apply 3D settings to live portfolio'}
+              />
 
-              <button
-                type="button"
+              <ThreeDActionKeycap
                 onClick={() => {
                   reset3DDefaults();
                   if (soundEnabled) soundFX.playCrystalChime();
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
-                aria-label="Reset Sandbox to defaults"
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-stone-400" />
-                <span>Reset Sandbox</span>
-              </button>
+                icon={RotateCcw}
+                label="Reset Sandbox"
+                variant="default"
+                ariaLabel="Reset Sandbox to defaults"
+              />
             </div>
           </div>
           {/* 2. Interactive Mini 3D Sandbox Preview Card (Universal Top Mini-DOM Replica - Phase 2) */}
@@ -2446,41 +2442,38 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
 
             {/* Quick Master Actions */}
             <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-stone-100 dark:border-stone-800/80">
-              <button
-                type="button"
+              <ThreeDActionKeycap
                 onClick={() => {
                   enableAll3D();
                   if (soundEnabled) soundFX.playLaserFocus();
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-[#FF4D6D]/15 text-stone-700 hover:text-[#FF4D6D] dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-[#FF4D6D]/20 dark:hover:text-[#FF4D6D] text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
-              >
-                <ToggleRight className="w-3.5 h-3.5" />
-                <span>Enable All 3D</span>
-              </button>
+                icon={ToggleRight}
+                label="Enable All 3D"
+                variant="primary"
+                ariaLabel="Enable 3D on all portfolio elements"
+              />
 
-              <button
-                type="button"
+              <ThreeDActionKeycap
                 onClick={() => {
                   disableAll3D();
                   if (soundEnabled) soundFX.playHapticClick();
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
-              >
-                <ToggleLeft className="w-3.5 h-3.5" />
-                <span>Disable All 2D</span>
-              </button>
+                icon={ToggleLeft}
+                label="Disable All 2D"
+                variant="default"
+                ariaLabel="Revert all elements to 2D flat mode"
+              />
 
-              <button
-                type="button"
+              <ThreeDActionKeycap
                 onClick={() => {
                   reset3DDefaults();
                   if (soundEnabled) soundFX.playCrystalChime();
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-stone-400" />
-                <span>Reset Defaults</span>
-              </button>
+                icon={RotateCcw}
+                label="Reset Defaults"
+                variant="default"
+                ariaLabel="Reset 3D settings to defaults"
+              />
 
               <div className="ml-auto flex items-center gap-2">
                 <span className="text-xs text-stone-500 font-medium">Active:</span>
@@ -2509,30 +2502,19 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                   const isSelected = currentMasterTheme === th.id;
                   const Icon = th.icon;
                   return (
-                    <button
+                    <ThreeDPresetCard
                       key={th.id}
-                      type="button"
+                      isSelected={isSelected}
                       onClick={() => {
                         set3DTheme(th.id);
                         if (soundEnabled) soundFX.playLaserFocus();
                       }}
-                      className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-[#FF4D6D]/10 border-[#FF4D6D] ring-2 ring-[#FF4D6D]/30 shadow-xs text-[#18181B] dark:text-white'
-                          : 'bg-white/40 dark:bg-stone-900/40 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-stone-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full mb-1">
-                        <span className="text-xs font-bold flex items-center gap-1.5">
-                          <Icon className="w-3.5 h-3.5 text-[#FF4D6D]" />
-                          <span>{th.name}</span>
-                        </span>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-[#FF4D6D]" />}
-                      </div>
-                      <span className="text-[10px] text-stone-400 leading-snug">
-                        {th.desc}
-                      </span>
-                    </button>
+                      title={th.name}
+                      desc={th.desc}
+                      badge={th.badge}
+                      icon={Icon}
+                      visualPreview={<ThemeExtrudedSlab themeId={th.id} />}
+                    />
                   );
                 })}
               </div>
@@ -2679,12 +2661,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                     onMouseLeave={() => setHighlightedComponent(null)}
                                     onFocus={() => setHighlightedComponent(cat.id === 'containers' ? 'showcase' : cat.id)}
                                     onBlur={() => setHighlightedComponent(null)}
-                                    className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                                    className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-3 active:translate-y-[1px] ${
                                       isCategoryTargeted ? 'ring-1 ring-[#FF4D6D]/40' : ''
                                     } ${
                                       isItemOn
-                                        ? 'bg-[#FF4D6D]/10 border-[#FF4D6D]/40 text-[#18181B] dark:text-white'
-                                        : 'bg-white/60 dark:bg-[#1F1733]/60 border-stone-200/70 dark:border-stone-800 text-stone-600 dark:text-stone-400'
+                                        ? 'bg-[#FF4D6D]/10 border-[#FF4D6D]/40 text-[#18181B] dark:text-white shadow-[0_3px_0_0_#D93856]'
+                                        : 'bg-white/60 dark:bg-[#1F1733]/60 border-stone-200/70 dark:border-stone-800 text-stone-600 dark:text-stone-400 shadow-[0_3px_0_0_#D1CBC1] dark:shadow-[0_3px_0_0_#140D20]'
                                     }`}
                                   >
                                     <div className="flex items-center gap-2.5 min-w-0">
@@ -2800,30 +2782,18 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                           const isSelected = lighting.preset === lp.id;
                           const Icon = lp.icon;
                           return (
-                            <button
+                            <ThreeDPresetCard
                               key={lp.id}
-                              type="button"
+                              isSelected={isSelected}
                               onClick={() => {
                                 set3DLightingPreset(lp.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
                               }}
-                              className={`p-3.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                                isSelected
-                                  ? 'bg-amber-500/10 border-amber-500 ring-2 ring-amber-500/30 shadow-xs text-[#18181B] dark:text-white'
-                                  : 'bg-white/40 dark:bg-stone-900/40 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-stone-300'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between w-full mb-1">
-                                <span className="text-xs font-bold flex items-center gap-1.5">
-                                  <Icon className="w-3.5 h-3.5 text-amber-500" />
-                                  <span>{lp.name}</span>
-                                </span>
-                                {isSelected && <Check className="w-3.5 h-3.5 text-amber-500" />}
-                              </div>
-                              <span className="text-[11px] text-stone-500 dark:text-stone-400 mt-1 leading-snug">
-                                {lp.desc}
-                              </span>
-                            </button>
+                              title={lp.name}
+                              desc={lp.desc}
+                              icon={Icon}
+                              visualPreview={<LightingVectorPreview presetId={lp.id} />}
+                            />
                           );
                         })}
                       </div>
@@ -2995,31 +2965,22 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                         <span>Viewing Angle Preset</span>
                       </span>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
                         {CAMERA_PRESETS.map((cp) => {
                           const isSelected = camera.anglePreset === cp.id;
                           return (
-                            <button
+                            <ThreeDPresetCard
                               key={cp.id}
-                              type="button"
+                              isSelected={isSelected}
                               onClick={() => {
                                 set3DCameraAnglePreset(cp.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
                               }}
-                              className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                                isSelected
-                                  ? 'bg-cyan-500/10 border-cyan-500 ring-2 ring-cyan-500/30 shadow-xs text-[#18181B] dark:text-white'
-                                  : 'bg-white/40 dark:bg-stone-900/40 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-stone-300'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between w-full mb-1">
-                                <span className="text-xs font-bold">{cp.name}</span>
-                                {isSelected && <Check className="w-3.5 h-3.5 text-cyan-500" />}
-                              </div>
-                              <span className="text-[10px] text-stone-400 leading-snug">
-                                {cp.desc}
-                              </span>
-                            </button>
+                              title={cp.name}
+                              desc={cp.desc}
+                              icon={Camera}
+                              visualPreview={<CameraCubePreview presetId={cp.id} />}
+                            />
                           );
                         })}
                       </div>
@@ -3302,27 +3263,18 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                         {MATERIAL_PRESETS.map((mat) => {
                           const isSelected = materials.preset === mat.id;
                           return (
-                            <button
+                            <ThreeDPresetCard
                               key={mat.id}
-                              type="button"
+                              isSelected={isSelected}
                               onClick={() => {
                                 set3DMaterialPreset(mat.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
                               }}
-                              className={`p-3.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                                isSelected
-                                  ? 'bg-purple-500/10 border-purple-500 ring-2 ring-purple-500/30 shadow-xs text-[#18181B] dark:text-white'
-                                  : 'bg-white/40 dark:bg-stone-900/40 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-stone-300'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between w-full mb-1">
-                                <span className="text-xs font-bold">{mat.name}</span>
-                                {isSelected && <Check className="w-3.5 h-3.5 text-purple-500" />}
-                              </div>
-                              <span className="text-[11px] text-stone-500 dark:text-stone-400 mt-1 leading-snug">
-                                {mat.desc}
-                              </span>
-                            </button>
+                              title={mat.name}
+                              desc={mat.desc}
+                              icon={Cuboid}
+                              visualPreview={<MaterialShaderSphere materialId={mat.id} />}
+                            />
                           );
                         })}
                       </div>
@@ -3471,27 +3423,18 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                         {ELASTICITY_PRESETS.map((ep) => {
                           const isSelected = physics.elasticity === ep.id;
                           return (
-                            <button
+                            <ThreeDPresetCard
                               key={ep.id}
-                              type="button"
+                              isSelected={isSelected}
                               onClick={() => {
                                 set3DElasticity(ep.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
                               }}
-                              className={`p-3.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                                isSelected
-                                  ? 'bg-rose-500/10 border-rose-500 ring-2 ring-rose-500/30 shadow-xs text-[#18181B] dark:text-white'
-                                  : 'bg-white/40 dark:bg-stone-900/40 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-stone-300'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between w-full mb-1">
-                                <span className="text-xs font-bold">{ep.name}</span>
-                                {isSelected && <Check className="w-3.5 h-3.5 text-rose-500" />}
-                              </div>
-                              <span className="text-[11px] text-stone-500 dark:text-stone-400 mt-1 leading-snug">
-                                {ep.desc}
-                              </span>
-                            </button>
+                              title={ep.name}
+                              desc={ep.desc}
+                              icon={Activity}
+                              visualPreview={<SpringElasticityVisual presetId={ep.id} />}
+                            />
                           );
                         })}
                       </div>
@@ -3608,6 +3551,44 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
 
                 {expandedAccordion === 'exploded' && (
                   <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
+                    {/* Visual 3D Strata Stack Preview */}
+                    <div className="p-3.5 rounded-xl border border-cyan-500/30 bg-cyan-500/5 flex flex-col sm:flex-row items-center justify-between gap-3 threed-preserve">
+                      <div className="flex items-center gap-3">
+                        <ExplodedCADLayerVisual isExploded={exploded.enabled} isBlueprint={exploded.blueprintMode} />
+                        <div>
+                          <div className="text-xs font-bold text-[#18181B] dark:text-white">
+                            {exploded.enabled ? '3D Strata Stack: Exploded' : '3D Strata Stack: Compact Assembled'}
+                          </div>
+                          <p className="text-[10.5px] text-stone-500 dark:text-stone-400">
+                            {exploded.blueprintMode ? 'CAD Cyan Wireframe Matrix Active' : 'Solid Material Layers Separated along Z-Plane'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <ThreeDActionKeycap
+                          onClick={() => {
+                            set3DExploded({ enabled: !exploded.enabled });
+                            if (soundEnabled) soundFX.playHapticClick();
+                          }}
+                          label={exploded.enabled ? 'Collapse' : 'Explode'}
+                          variant={exploded.enabled ? 'primary' : 'default'}
+                          active={exploded.enabled}
+                          ariaLabel="Toggle 3D Layer Explosion"
+                        />
+                        <ThreeDActionKeycap
+                          onClick={() => {
+                            set3DExploded({ blueprintMode: !exploded.blueprintMode });
+                            if (soundEnabled) soundFX.playLaserFocus();
+                          }}
+                          icon={Grid}
+                          label={exploded.blueprintMode ? 'Solid' : 'CAD'}
+                          variant={exploded.blueprintMode ? 'primary' : 'default'}
+                          active={exploded.blueprintMode}
+                          ariaLabel="Toggle CAD Wireframe"
+                        />
+                      </div>
+                    </div>
+
                     {/* Exploded Mode Main Toggle */}
                     <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex items-center justify-between gap-3">
                       <div>

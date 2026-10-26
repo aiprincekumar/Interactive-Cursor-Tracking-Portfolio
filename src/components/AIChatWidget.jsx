@@ -52,11 +52,13 @@ import {
   Layers,
   BotOff,
   Power,
-  PowerOff
+  PowerOff,
+  Languages
 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
 import { useLab, useLabChat, useLabAudio, useLabDrawer, DEFAULT_AI_CHAT_SETTINGS } from '../context/LabContext';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { useRole } from '../context/RoleContext';
 import { useAudience } from '../context/AudienceContext';
 import { useViewMode, VIEW_MODES } from '../context/ViewModeContext';
@@ -190,6 +192,13 @@ export const UNIFIED_VIEW_MODE_OPTIONS = [
   { id: 'terminal', label: '💻 Terminal / Developer', viewMode: 'terminal' },
   { id: 'skip', label: '⏩ Skip', isSkip: true },
   { id: 'other', label: '✏️ Other / Specify', isOther: true }
+];
+
+export const UNIFIED_LANGUAGE_OPTIONS = [
+  { id: 'lang_en', label: '🇺🇸 English (United States)', description: 'Single-language English responses', language: 'en' },
+  { id: 'lang_hi', label: '🇮🇳 हिन्दी (भारत)', description: 'शुद्ध देवनागरी हिन्दी रिस्पॉन्स', language: 'hi' },
+  { id: 'lang_bilingual', label: '🌐 बाइलिंग्वल / Bilingual', description: 'English + हिन्दी दोनों समानांतर', language: 'bilingual' },
+  { id: 'lang_skip', label: '⏭️ छोड़ें / Skip', description: 'वर्तमान भाषा बरकरार रखें', isSkip: true }
 ];
 
 export const DEFAULT_PREFERENCES_PROMPT_OPTIONS = [
@@ -511,6 +520,19 @@ function AIChatWidget() {
   const viewMode = viewModeContext?.viewMode || 'modern';
   const selectViewMode = viewModeContext?.selectViewMode || (() => {});
   const activeViewModeData = VIEW_MODES[viewMode] || VIEW_MODES.modern;
+
+  // Safe access to Language Context
+  let langContext = null;
+  try {
+    langContext = useLanguage();
+  } catch {
+    // safe fallback
+  }
+  const language = langContext?.language || 'en';
+  const isHindi = Boolean(langContext?.isHindi);
+  const setLanguage = langContext?.setLanguage || (() => {});
+  const [chatLanguageMode, setChatLanguageMode] = useState('auto'); // 'auto' | 'en' | 'hi' | 'bilingual'
+  const effectiveLang = chatLanguageMode === 'auto' ? language : chatLanguageMode;
 
   // Safe access to Announcer Context
   let announcerContext = null;
@@ -1128,6 +1150,8 @@ function AIChatWidget() {
       handleResetLayout();
     } else if (cmdStr === '/view') {
       handleTriggerViewModeDecisionTree();
+    } else if (cmdStr === '/lang' || cmdStr === '/language') {
+      handleTriggerLanguageDecisionTree();
     } else if (cmdStr === '/audience') {
       handleTriggerAudienceDecisionTree();
     } else if (cmdStr === '/role') {
@@ -2292,6 +2316,77 @@ function AIChatWidget() {
   };
 
   /**
+   * Triggers in-chat 4-card Response Language Decision Tree
+   */
+  const handleTriggerLanguageDecisionTree = () => {
+    if (soundEnabled && soundFX?.playTap) soundFX.playTap();
+    const newMsg = {
+      id: `assistant-lang-trigger-${Date.now()}`,
+      sender: 'assistant',
+      text: "Select your preferred assistant response language / अपनी पसंदीदा भाषा चुनें:",
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      decisionTree: {
+        step: 'language',
+        title: "भाषा चयन / Response Language Selection:",
+        options: UNIFIED_LANGUAGE_OPTIONS
+      }
+    };
+    setMessages((prev) => [...prev, newMsg]);
+    if (soundEnabled && soundFX?.playFocusBeep) soundFX.playFocusBeep();
+    setTimeout(scrollToBottom, 50);
+  };
+
+  /**
+   * Handles user selection from Language Decision Tree
+   */
+  const handleLanguageSelect = (actionId, label, triggerMsgId) => {
+    if (soundEnabled && soundFX?.playTap) soundFX.playTap();
+    if (triggerMsgId) {
+      setSkippedDecisionTreeMsgIds((prev) => new Set([...prev, triggerMsgId]));
+    } else {
+      const latestLangMsg = [...messages].reverse().find((m) => m.decisionTree?.step === 'language');
+      if (latestLangMsg) {
+        setSkippedDecisionTreeMsgIds((prev) => new Set([...prev, latestLangMsg.id]));
+      }
+    }
+
+    const userMsg = {
+      id: `user-lang-${Date.now()}`,
+      sender: 'user',
+      text: label || actionId,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    let ackText = '';
+    if (actionId === 'lang_en' || actionId === 'en') {
+      setChatLanguageMode('en');
+      setLanguage('en');
+      ackText = "🇺🇸 **Language Set to English**: Assistant responses will now be generated exclusively in clean English.";
+    } else if (actionId === 'lang_hi' || actionId === 'hi') {
+      setChatLanguageMode('hi');
+      setLanguage('hi');
+      ackText = "🇮🇳 **भाषा हिन्दी सेट की गई**: सहायक के सभी उत्तर अब शुद्ध देवनागरी हिन्दी में दिए जाएंगे।";
+    } else if (actionId === 'lang_bilingual' || actionId === 'bilingual') {
+      setChatLanguageMode('bilingual');
+      ackText = "🌐 **Bilingual Mode Activated / बाइलिंग्वल मोड सक्रिय**:\nResponses will now include both pure English followed by शुद्ध देवनागरी हिन्दी side-by-side.";
+    } else {
+      // lang_skip
+      ackText = `⏭️ Kept current language mode (${chatLanguageMode === 'auto' ? `Auto: ${isHindi ? 'हिन्दी' : 'English'}` : chatLanguageMode}). No changes made. / वर्तमान भाषा सेटिंग्स बरकरार रखी गई हैं।`;
+    }
+
+    const assistantMsg = {
+      id: `assistant-lang-ack-${Date.now()}`,
+      sender: 'assistant',
+      text: ackText,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setMessages((prev) => [...prev, userMsg, assistantMsg]);
+    if (soundEnabled && soundFX?.playSuccess) soundFX.playSuccess();
+    setTimeout(scrollToBottom, 50);
+  };
+
+  /**
    * Triggers in-chat Hierarchical AI Model Decision Tree (Step 1: Categories)
    */
   const handleTriggerAIModelDecisionTree = () => {
@@ -2570,7 +2665,7 @@ function AIChatWidget() {
     let res = null;
     try {
       if (typeof queryAssistant === 'function') {
-        res = queryAssistant(query, { role: activeRole, audience });
+        res = queryAssistant(query, { role: activeRole, audience, language: effectiveLang });
       }
     } catch (err) {
       console.warn('runDeterministicRag queryAssistant error:', err);
@@ -2596,7 +2691,7 @@ function AIChatWidget() {
     setIsStreaming(false);
     triggerAutoSpeak(assistantMsgId, replyText);
     scrollToBottom();
-  }, [activeRole, audience]);
+  }, [activeRole, audience, effectiveLang]);
 
   /**
    * Phase 3: Neural Model Request & Consent Interception
@@ -2886,6 +2981,30 @@ function AIChatWidget() {
     const trimmed = (textToSend || inputValue).trim();
     if (!trimmed || isTyping || isStreaming) return;
 
+    const lowerTrimmed = trimmed.toLowerCase();
+    if (
+      lowerTrimmed === '/lang' ||
+      lowerTrimmed === '/language' ||
+      lowerTrimmed === 'language' ||
+      lowerTrimmed === 'bhasha' ||
+      trimmed === 'भाषा' ||
+      lowerTrimmed === 'change language'
+    ) {
+      soundFX.triggerHaptic(20);
+      if (soundEnabled && soundFX?.playTap) soundFX.playTap();
+      const userMsg = {
+        id: `user-${Date.now()}`,
+        role: 'user',
+        sender: 'user',
+        text: trimmed,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages((prev) => [...prev, userMsg]);
+      setInputValue('');
+      handleTriggerLanguageDecisionTree();
+      return;
+    }
+
     const sendStartTime = Date.now();
     soundFX.triggerHaptic(20);
 
@@ -2921,7 +3040,7 @@ function AIChatWidget() {
 
         try {
           if (typeof queryAssistant === 'function') {
-            response = queryAssistant(trimmed, { role: activeRole, audience });
+            response = queryAssistant(trimmed, { role: activeRole, audience, language: effectiveLang });
             if (response) {
               botReplyText = response.text || '';
               botChips = response.chips || null;
@@ -3505,7 +3624,7 @@ function AIChatWidget() {
                 e.currentTarget.scrollLeft += e.deltaY;
               }
             }}
-            className="px-1.5 sm:px-2.5 py-1.5 bg-stone-100/90 dark:bg-[#150F22]/90 border-b border-[#E7E2D8]/60 dark:border-[#2D2340]/60 flex items-center justify-between gap-1 sm:gap-1.5 shrink-0 overflow-x-auto no-scrollbar touch-pan-x"
+            className="px-1.5 sm:px-2.5 py-1.5 bg-stone-100/90 dark:bg-[#150F22]/90 border-b border-[#E7E2D8]/60 dark:border-[#2D2340]/60 flex items-center justify-between gap-1 shrink-0 overflow-x-auto no-scrollbar touch-pan-x"
           >
             {/* Section 1: Left Perspective Group (4 Buttons) */}
             <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-stone-200/50 dark:bg-stone-800/50 border border-stone-300/40 dark:border-stone-700/40 shrink-0">
@@ -3515,7 +3634,7 @@ function AIChatWidget() {
                 onClick={handleTriggerAudienceDecisionTree}
                 aria-label="Select Audience Perspective"
                 title={`Select Audience Perspective: ${getAudienceLabel(audience)}`}
-                className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getAudienceColorStyle(audience)}`}
+                className={`w-[24.5px] h-[24.5px] sm:w-[27px] sm:h-[27px] min-w-[24.5px] min-h-[24.5px] sm:min-w-[27px] sm:min-h-[27px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getAudienceColorStyle(audience)}`}
               >
                 <AudienceIcon className="w-3.5 h-3.5" />
               </button>
@@ -3526,7 +3645,7 @@ function AIChatWidget() {
                 onClick={handleTriggerRoleDecisionTree}
                 aria-label="Select Job Role Track"
                 title={`Select Job Role Track: ${getRoleLabel(activeRole)}`}
-                className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getRoleColorStyle(activeRole)}`}
+                className={`w-[24.5px] h-[24.5px] sm:w-[27px] sm:h-[27px] min-w-[24.5px] min-h-[24.5px] sm:min-w-[27px] sm:min-h-[27px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getRoleColorStyle(activeRole)}`}
               >
                 <RoleIcon className="w-3.5 h-3.5" />
               </button>
@@ -3537,7 +3656,7 @@ function AIChatWidget() {
                 onClick={handleTriggerViewModeDecisionTree}
                 aria-label="Switch View Mode (Modern, Terminal, Simple, Basic)"
                 title={`Switch View Mode: ${getViewModeLabel(viewMode)}`}
-                className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${getViewModeColorStyle(viewMode)}`}
+                className={`w-[24.5px] h-[24.5px] sm:w-[27px] sm:h-[27px] min-w-[24.5px] min-h-[24.5px] sm:min-w-[27px] sm:min-h-[27px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${getViewModeColorStyle(viewMode)}`}
               >
                 <ViewModeIcon className="w-3.5 h-3.5" />
               </button>
@@ -3554,23 +3673,23 @@ function AIChatWidget() {
                     ? 'Loading Model...'
                     : 'Offline Engine'
                 })`}
-                className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${getAIModelColorStyle(localAiState)}`}
+                className={`w-[24.5px] h-[24.5px] sm:w-[27px] sm:h-[27px] min-w-[24.5px] min-h-[24.5px] sm:min-w-[27px] sm:min-h-[27px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${getAIModelColorStyle(localAiState)}`}
               >
                 <AIModelIcon className="w-3.5 h-3.5" />
               </button>
             </div>
 
             {/* Right-Anchored Cluster (Section 2 + Divider + Section 3) */}
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto">
-              {/* Section 2: 3 Engine / Toggle Buttons */}
-              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+            <div className="flex items-center gap-1 shrink-0 ml-auto">
+              {/* Section 2: 4 Engine / Toggle Buttons */}
+              <div className="flex items-center gap-0.5 shrink-0">
                 {/* 1. Prompt Studio button */}
                 <button
                   type="button"
                   onClick={handleOpenPromptStudio}
                   aria-label="Meta-Prompt Studio"
                   title="Meta-Prompt Engineer & Studio (/engineer)"
-                  className="w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 text-purple-600 dark:text-purple-300 bg-purple-500/15 border border-purple-500/30 hover:bg-purple-500/25 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:outline-hidden"
+                  className="w-[24.5px] h-[24.5px] sm:w-[27px] sm:h-[27px] min-w-[24.5px] min-h-[24.5px] sm:min-w-[27px] sm:min-h-[27px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 text-purple-600 dark:text-purple-300 bg-purple-500/15 border border-purple-500/30 hover:bg-purple-500/25 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:outline-hidden"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-purple-500" />
                 </button>
@@ -3587,7 +3706,7 @@ function AIChatWidget() {
                       ? "Turn Off On-Device AI (Switch to Offline Knowledge Engine)"
                       : "Turn On On-Device AI"
                   }
-                  className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                  className={`w-[24.5px] h-[24.5px] sm:w-[27px] sm:h-[27px] min-w-[24.5px] min-h-[24.5px] sm:min-w-[27px] sm:min-h-[27px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
                     localAiState?.status === 'ready' && localAiState?.activeModel
                       ? 'text-emerald-500 bg-emerald-500/15 border-emerald-500/40 hover:bg-emerald-500/25'
                       : localAiState?.status === 'switching' || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache'
@@ -3604,13 +3723,42 @@ function AIChatWidget() {
                   )}
                 </button>
 
-                {/* 3. Sound FX Toggle button */}
+                {/* 3. Language Switcher button */}
+                <button
+                  type="button"
+                  onClick={handleTriggerLanguageDecisionTree}
+                  aria-label={`Select Chat Language (Current: ${
+                    chatLanguageMode === 'bilingual'
+                      ? 'Bilingual'
+                      : (chatLanguageMode === 'hi' || (chatLanguageMode === 'auto' && isHindi))
+                      ? 'Hindi'
+                      : 'English'
+                  })`}
+                  title={`Response Language: ${
+                    chatLanguageMode === 'bilingual'
+                      ? 'Bilingual (EN + HI)'
+                      : (chatLanguageMode === 'hi' || (chatLanguageMode === 'auto' && isHindi))
+                      ? 'Hindi (हिन्दी)'
+                      : 'English'
+                  } (${chatLanguageMode === 'auto' ? 'Auto-Sync' : 'Manual'})`}
+                  className={`w-[24.5px] h-[24.5px] sm:w-[27px] sm:h-[27px] min-w-[24.5px] min-h-[24.5px] sm:min-w-[27px] sm:min-h-[27px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                    chatLanguageMode === 'bilingual'
+                      ? 'text-emerald-500 bg-emerald-500/15 border-emerald-500/40 hover:bg-emerald-500/25'
+                      : (chatLanguageMode === 'hi' || (chatLanguageMode === 'auto' && isHindi))
+                      ? 'text-amber-500 bg-amber-500/15 border-amber-500/40 hover:bg-amber-500/25'
+                      : 'text-indigo-500 bg-indigo-500/15 border-indigo-500/40 hover:bg-indigo-500/25'
+                  }`}
+                >
+                  <Languages className="w-3.5 h-3.5" />
+                </button>
+
+                {/* 4. Sound FX Toggle button */}
                 <button
                   type="button"
                   onClick={handleToggleSound}
                   aria-label={soundEnabled ? "Mute Sound Effects" : "Enable Sound Effects"}
                   title={`Sound Effects: ${soundEnabled ? 'Enabled' : 'Muted'}`}
-                  className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                  className={`w-[24.5px] h-[24.5px] sm:w-[27px] sm:h-[27px] min-w-[24.5px] min-h-[24.5px] sm:min-w-[27px] sm:min-h-[27px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
                     soundEnabled
                       ? 'text-emerald-500 bg-emerald-500/15 border-emerald-500/40 hover:bg-emerald-500/25'
                       : 'text-stone-400 bg-stone-200/50 dark:bg-stone-800/50 border-stone-300/40 dark:border-stone-700/40 hover:text-stone-700 dark:hover:text-stone-300'
@@ -3625,10 +3773,10 @@ function AIChatWidget() {
               </div>
 
               {/* Divider between Section 2 and Section 3 */}
-              <div className="w-px h-4 bg-stone-300/80 dark:bg-stone-700/80 mx-0.5 shrink-0" aria-hidden="true" />
+              <div className="w-px h-3.5 bg-stone-300/80 dark:bg-stone-700/80 mx-0.5 shrink-0" aria-hidden="true" />
 
               {/* Section 3: 4 Utility & Settings Buttons */}
-              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+              <div className="flex items-center gap-0.5 shrink-0">
                 {/* 1. History Drawer button */}
                 <button
                   type="button"
@@ -3638,7 +3786,7 @@ function AIChatWidget() {
                   }}
                   aria-label="View conversation history & sessions"
                   title="Conversation History (Saved Sessions Archive)"
-                  className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                  className={`w-[24.5px] h-[24.5px] sm:w-[27px] sm:h-[27px] min-w-[24.5px] min-h-[24.5px] sm:min-w-[27px] sm:min-h-[27px] rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
                     showHistoryDrawer
                       ? 'bg-rose-500/20 text-[#FF4D6D] border-rose-500/40 shadow-xs'
                       : 'bg-stone-100 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
@@ -3647,7 +3795,7 @@ function AIChatWidget() {
                   <History className="w-3.5 h-3.5" />
                 </button>
 
-                {/* 9. Export Transcript Popover Picker */}
+                {/* 2. Export Transcript Popover Picker */}
                 <div className="relative">
                   <button
                     type="button"
@@ -3657,7 +3805,7 @@ function AIChatWidget() {
                     }}
                     aria-label="Export Chat Transcript"
                     title="Export Chat Transcript (Markdown, TXT, JSON, HTML, Copy)"
-                    className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                    className={`w-[24.5px] h-[24.5px] sm:w-[27px] sm:h-[27px] min-w-[24.5px] min-h-[24.5px] sm:min-w-[27px] sm:min-h-[27px] rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
                       showExportMenu
                         ? 'bg-rose-500/20 text-[#FF4D6D] border-rose-500/40 shadow-xs'
                         : 'bg-stone-100 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
@@ -3725,7 +3873,7 @@ function AIChatWidget() {
                   onClick={handleClearChat}
                   aria-label="Clear chat history"
                   title="Clear chat history"
-                  className="w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 bg-stone-100 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+                  className="w-[24.5px] h-[24.5px] sm:w-[27px] sm:h-[27px] min-w-[24.5px] min-h-[24.5px] sm:min-w-[27px] sm:min-h-[27px] rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 bg-stone-100 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                 </button>
@@ -3739,7 +3887,7 @@ function AIChatWidget() {
                   }}
                   aria-label="Open AI & Chat Studio Settings"
                   title="AI & Chat Studio Settings (Tab 7)"
-                  className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                  className={`w-[24.5px] h-[24.5px] sm:w-[27px] sm:h-[27px] min-w-[24.5px] min-h-[24.5px] sm:min-w-[27px] sm:min-h-[27px] rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
                     showSettingsModal
                       ? 'bg-rose-500/20 text-[#FF4D6D] border-rose-500/40 shadow-xs'
                       : 'bg-stone-100 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
@@ -4557,6 +4705,36 @@ function AIChatWidget() {
                               ))}
                             </div>
                           )}
+
+                          {/* Case G: Language Selection Cards */}
+                          {msg.decisionTree.step === 'language' && Array.isArray(msg.decisionTree.options) && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+                              {msg.decisionTree.options.map((opt) => (
+                                <button
+                                  key={opt.id}
+                                  type="button"
+                                  onClick={() => {
+                                    soundFX.triggerHaptic(20);
+                                    handleLanguageSelect(opt.id, opt.label, msg.id);
+                                  }}
+                                  className={`w-full p-2.5 rounded-xl text-left border transition-all cursor-pointer active:scale-[0.98] shadow-xs ${
+                                    opt.isSkip
+                                      ? 'col-span-1 sm:col-span-2 bg-stone-100/90 dark:bg-stone-800/90 border-stone-300/80 dark:border-stone-700 hover:border-stone-400 text-stone-700 dark:text-stone-200'
+                                      : opt.id === 'lang_en'
+                                      ? 'bg-indigo-50/70 dark:bg-indigo-950/30 border-indigo-200/80 dark:border-indigo-800/50 hover:border-indigo-500 hover:bg-indigo-500/10 text-stone-800 dark:text-stone-100'
+                                      : opt.id === 'lang_hi'
+                                      ? 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-200/80 dark:border-amber-800/50 hover:border-amber-500 hover:bg-amber-500/10 text-stone-800 dark:text-stone-100'
+                                      : 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200/80 dark:border-emerald-800/50 hover:border-emerald-500 hover:bg-emerald-500/10 text-stone-800 dark:text-stone-100'
+                                  }`}
+                                >
+                                  <div className="text-xs font-semibold">{opt.label}</div>
+                                  {opt.description && (
+                                    <div className="text-[10px] text-stone-500 dark:text-stone-400 mt-0.5 leading-tight">{opt.description}</div>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -4782,6 +4960,17 @@ function AIChatWidget() {
 
                 if (chip.viewMode) {
                   handleViewModeDecisionSelect(chip.viewMode, chip.label, chip.isSequential);
+                  return;
+                }
+
+                if (
+                  chip.decisionStep === 'language' ||
+                  chip.id === 'lang_en' ||
+                  chip.id === 'lang_hi' ||
+                  chip.id === 'lang_bilingual' ||
+                  chip.id === 'lang_skip'
+                ) {
+                  handleLanguageSelect(chip.id, chip.label, chip.messageId);
                   return;
                 }
 
