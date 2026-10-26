@@ -10,9 +10,10 @@ import { pipeline, env, TextStreamer, InterruptableStoppingCriteria } from '@hug
 env.allowLocalModels = false;
 env.useBrowserCache = true;
 
-// Prevent nested worker proxying within an already isolated worker
+// Universal Browser Stability: Enforce single-threaded WASM to eliminate SharedArrayBuffer crash in non-isolated browsers
 if (env.backends?.onnx?.wasm) {
   env.backends.onnx.wasm.proxy = false;
+  env.backends.onnx.wasm.numThreads = 1;
 }
 
 let activeGenerator = null;
@@ -323,14 +324,19 @@ export async function initPipeline(modelId, device = 'webgpu', dtype = 'q4', ses
       });
     }
 
-    // If webgpu failed, attempt wasm fallback
-    if (device === 'webgpu') {
+    // Bidirectional Fallback: WebGPU -> WASM or WASM -> WebGPU
+    const secondaryDevice = device === 'webgpu' ? 'wasm' : 'webgpu';
+    const canAttemptFallback = device === 'webgpu'
+      ? true // WASM is always available as fallback
+      : (typeof navigator !== 'undefined' && !!navigator.gpu); // WebGPU fallback only if hardware supported
+
+    if (canAttemptFallback) {
       if (typeof self !== 'undefined' && self.postMessage) {
         self.postMessage({
           type: 'LOG',
           payload: {
             sessionId: currentSessionId,
-            message: 'WebGPU backend failed or unavailable. Falling back to WASM backend...'
+            message: `${device.toUpperCase()} backend failed. Attempting fallback to ${secondaryDevice.toUpperCase()} backend...`
           }
         });
       }
@@ -340,26 +346,32 @@ export async function initPipeline(modelId, device = 'webgpu', dtype = 'q4', ses
         isLoading = true;
         currentLoadingModelId = modelId;
 
+        // Ensure single-threaded WASM if falling back to wasm
+        if (secondaryDevice === 'wasm' && env.backends?.onnx?.wasm) {
+          env.backends.onnx.wasm.proxy = false;
+          env.backends.onnx.wasm.numThreads = 1;
+        }
+
         activeGenerator = await pipeline('text-generation', modelId, {
-          device: 'wasm',
+          device: secondaryDevice,
           dtype: 'q4',
           progress_callback: handleProgress
         });
 
-        const wasmHealthCheck = await probeModelPerformance(activeGenerator, modelId, 'wasm');
+        const fallbackHealthCheck = await probeModelPerformance(activeGenerator, modelId, secondaryDevice);
 
-        if (wasmHealthCheck.isOOM) {
+        if (fallbackHealthCheck.isOOM) {
           await cleanupActivePipeline();
           if (typeof self !== 'undefined' && self.postMessage) {
             self.postMessage({
               type: 'ERROR',
               payload: {
                 sessionId: currentSessionId,
-                error: wasmHealthCheck.error || 'WASM OOM during warm-up probe',
-                reason: wasmHealthCheck.reason || 'oom_allocation_failed',
+                error: fallbackHealthCheck.error || `${secondaryDevice.toUpperCase()} OOM during warm-up probe`,
+                reason: fallbackHealthCheck.reason || 'oom_allocation_failed',
                 modelId,
                 isOOM: true,
-                healthCheck: wasmHealthCheck
+                healthCheck: fallbackHealthCheck
               }
             });
           }
@@ -368,7 +380,7 @@ export async function initPipeline(modelId, device = 'webgpu', dtype = 'q4', ses
 
         activeModelId = modelId;
         currentLoadingModelId = null;
-        activeDevice = 'wasm';
+        activeDevice = secondaryDevice;
         isLoading = false;
 
         if (typeof self !== 'undefined' && self.postMessage) {
@@ -377,45 +389,32 @@ export async function initPipeline(modelId, device = 'webgpu', dtype = 'q4', ses
             payload: {
               sessionId: currentSessionId,
               modelId,
-              device: 'wasm',
+              device: secondaryDevice,
               dtype: 'q4',
               timestamp: Date.now(),
-              healthCheck: wasmHealthCheck
+              healthCheck: fallbackHealthCheck
             }
           });
         }
-        return;
-      } catch (wasmErr) {
-        console.error(`[AI Worker] WASM fallback also failed for ${modelId}:`, wasmErr);
-        await cleanupActivePipeline();
-        const wasmErrMsg = String(wasmErr?.message || '').toLowerCase();
-        const wasmOOM = wasmErrMsg.includes('out of memory') || wasmErrMsg.includes('oom') || wasmErrMsg.includes('allocation');
-        if (typeof self !== 'undefined' && self.postMessage) {
-          self.postMessage({
-            type: 'ERROR',
-            payload: {
-              sessionId: currentSessionId,
-              error: wasmErr.message || 'WASM load failed',
-              reason: wasmOOM ? 'oom_allocation_failed' : 'load_error',
-              modelId,
-              isOOM: wasmOOM
-            }
-          });
-        }
-        return;
+        return; // Fallback succeeded!
+      } catch (fallbackErr) {
+        console.warn(`[AI Worker] Secondary ${secondaryDevice} backend also failed for ${modelId}:`, fallbackErr);
       }
     }
 
+    // Both primary and secondary backends failed -> emit ERROR
+    isLoading = false;
+    currentLoadingModelId = null;
     await cleanupActivePipeline();
+
     if (typeof self !== 'undefined' && self.postMessage) {
       self.postMessage({
         type: 'ERROR',
         payload: {
           sessionId: currentSessionId,
-          error: primaryErr.message || 'Model load failed',
-          reason: isAllocationFailed ? 'oom_allocation_failed' : (isContextLost ? 'device_lost' : 'load_error'),
+          error: primaryErr?.message || 'Model initialization failed on all backends',
           modelId,
-          isOOM: isAllocationFailed
+          reason: 'backend_failure'
         }
       });
     }

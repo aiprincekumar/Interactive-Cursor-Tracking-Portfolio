@@ -861,8 +861,10 @@ class LocalAIService {
     const initialTimeout = isCached ? this.compilationWatchdogMs : this.watchdogDurationMs;
     this.armProgressWatchdog(modelId, initialTimeout, isCached ? 'compilation_timeout' : 'timeout_watchdog_stalled');
 
+    // Immediate WebGPU capability detection: check navigator.gpu directly if deviceProfile is pending
+    const hasWebGpu = (typeof navigator !== 'undefined' && !!navigator.gpu) || !!this.deviceProfile?.webgpu?.supported;
     const devicePreference = this.executionBackend || 'webgpu';
-    const device = (devicePreference === 'wasm' || !this.deviceProfile?.webgpu?.supported) ? 'wasm' : 'webgpu';
+    const device = devicePreference === 'wasm' ? 'wasm' : (hasWebGpu ? 'webgpu' : 'wasm');
 
     if (isCached) {
       // Silent cache loading: internal status 'loading_cache', no download progress, no UI download event
@@ -984,13 +986,14 @@ class LocalAIService {
       } catch {}
     }
 
+    const hasWebGpuDirect = (typeof navigator !== 'undefined' && !!navigator.gpu) || !!this.deviceProfile?.webgpu?.supported;
     this.status = 'ready';
     this.activeModel = {
       id: details.id,
       name: details.name,
       shortcut: details.shortcut,
       sizeMB: details.sizeMB,
-      device: (this.executionBackend === 'wasm' || !this.deviceProfile?.webgpu?.supported) ? 'wasm' : 'webgpu',
+      device: this.executionBackend === 'wasm' ? 'wasm' : (hasWebGpuDirect ? 'webgpu' : 'wasm'),
       dtype: 'q4',
       ...(this.pendingActivationModel?.id === details.id ? this.pendingActivationModel : {})
     };

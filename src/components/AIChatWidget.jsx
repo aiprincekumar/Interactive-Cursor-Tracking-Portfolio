@@ -2213,65 +2213,45 @@ function AIChatWidget() {
   };
 
   /**
-   * Triggers in-chat AI Model Decision Tree with 4 dynamic cards
+   * Triggers in-chat AI Model Decision Tree with 3 structured cards (SmolLM2 first)
    */
   const handleTriggerAIModelDecisionTree = () => {
     if (soundEnabled && soundFX?.playTap) soundFX.playTap();
 
-    const deviceProfile = localAiState?.deviceProfile;
-    // Default to MEDIUM (Qwen-1.5B) or HIGH (Qwen-3B) for capable device
-    let recommended = deviceProfile?.recommendedModel;
-    if (!recommended || recommended.id === MODEL_CATALOG.BARE_MINIMUM.id) {
-      recommended = MODEL_CATALOG.MEDIUM;
-    }
-
-    // Note: '🛡️ बेयर-मिनिमम बेस मॉडल' (SmolLM-135M) is excluded from user choice and reserved purely as internal baseline fallback.
     const options = [
+      // Position #1: SmolLM2-135M (Default & Recommended Baseline)
       {
-        id: recommended.id,
-        modelId: recommended.id,
-        shortcut: recommended.shortcut,
-        label: `🚀 डिवाइस-अनुशंसित मॉडल (${recommended.shortcut})`,
-        sublabel: `${recommended.name} • ~${recommended.approxSizeMB || 950}MB • डिवाइस के लिए अनुशंसित सटीकता`,
+        id: MODEL_CATALOG.BARE_MINIMUM.id,
+        modelId: MODEL_CATALOG.BARE_MINIMUM.id,
+        shortcut: MODEL_CATALOG.BARE_MINIMUM.shortcut,
+        label: `🛡️ डिफ़ॉल्ट व अनुशंसित मॉडल (${MODEL_CATALOG.BARE_MINIMUM.shortcut})`,
+        sublabel: `${MODEL_CATALOG.BARE_MINIMUM.name} • ~${MODEL_CATALOG.BARE_MINIMUM.approxSizeMB || 90}MB • अल्ट्रा-लाइटवेट, तत्काल लोडिंग व ऑन-डिवाइस AI`,
         isRecommended: true
-      }
-    ];
-
-    // ⚖️ बैलेंस्ड मिड मॉडल / बैलेंस्ड लाइट मॉडल: Add Balanced Light Model (Qwen-0.5B)
-    if (recommended.id !== MODEL_CATALOG.LIGHT.id) {
-      options.push({
+      },
+      // Position #2: Qwen2.5-0.5B (Balanced Light Model)
+      {
         id: MODEL_CATALOG.LIGHT.id,
         modelId: MODEL_CATALOG.LIGHT.id,
         shortcut: MODEL_CATALOG.LIGHT.shortcut,
         label: `⚖️ बैलेंस्ड लाइट मॉडल (${MODEL_CATALOG.LIGHT.shortcut})`,
-        sublabel: `${MODEL_CATALOG.LIGHT.name} • ~${MODEL_CATALOG.LIGHT.approxSizeMB}MB • तेज़ गति व संतुलित रिस्पॉन्स`,
+        sublabel: `${MODEL_CATALOG.LIGHT.name} • ~${MODEL_CATALOG.LIGHT.approxSizeMB || 350}MB • उच्च गति व संतुलित रिस्पॉन्स`,
         isMid: true
-      });
-    } else {
-      options.push({
+      },
+      // Position #3: Qwen2.5-1.5B (Advanced High-Accuracy Model)
+      {
         id: MODEL_CATALOG.MEDIUM.id,
         modelId: MODEL_CATALOG.MEDIUM.id,
         shortcut: MODEL_CATALOG.MEDIUM.shortcut,
-        label: `⚖️ बैलेंस्ड मीडियम मॉडल (${MODEL_CATALOG.MEDIUM.shortcut})`,
-        sublabel: `${MODEL_CATALOG.MEDIUM.name} • ~${MODEL_CATALOG.MEDIUM.approxSizeMB}MB • उच्च सटीकता`,
-        isMid: true
-      });
-    }
-
-    // 🔌 AI ऑफ करें / Turn Off AI ([Portfolio-Engine])
-    options.push({
-      id: 'portfolio-engine',
-      modelId: 'portfolio-engine',
-      shortcut: '[Portfolio-Engine]',
-      label: '🔌 AI ऑफ करें / Turn Off AI',
-      sublabel: '100% ऑफलाइन डिटर्मिनिस्टिक नॉलेज इंजन [Portfolio-Engine] • 0MB',
-      isTurnOff: true
-    });
+        label: `🚀 एडवांस्ड मॉडल (${MODEL_CATALOG.MEDIUM.shortcut})`,
+        sublabel: `${MODEL_CATALOG.MEDIUM.name} • ~${MODEL_CATALOG.MEDIUM.approxSizeMB || 950}MB • उच्च सटीकता (सक्षम डिवाइसेज़ हेतु)`,
+        isAdvanced: true
+      }
+    ];
 
     const newMsg = {
       id: `assistant-ai-model-trigger-${Date.now()}`,
       sender: 'assistant',
-      text: "🤖 **Select AI Model / AI मॉडल चुनें**\n\nअपनी डिवाइस क्षमता और नेटवर्क स्पीड के अनुसार उपयुक्त AI मॉडल चुनें या AI को ऑफ करके 100% ऑफलाइन इंजन इस्तेमाल करें:",
+      text: "🤖 **Select AI Model / AI मॉडल चुनें**\n\nअपनी डिवाइस क्षमता और नेटवर्क स्पीड के अनुसार उपयुक्त AI मॉडल चुनें:",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       decisionTree: {
         step: 'ai_model_switch',
