@@ -4679,17 +4679,6 @@ function AIChatWidget() {
               className="flex-1 bg-stone-100 dark:bg-[#1F172E] text-stone-900 dark:text-white placeholder-stone-400 text-xs rounded-xl px-3 py-2 border border-transparent focus:border-[#FF4D6D]/60 focus:bg-white dark:focus:bg-[#181224] focus:outline-hidden transition-all min-h-[44px]"
             />
 
-            {/* Sparkles Prompt Studio Trigger */}
-            <button
-              type="button"
-              onClick={handleOpenPromptStudio}
-              aria-label="Meta-Prompt Studio (/engineer)"
-              title="Prompt Studio (/engineer)"
-              className="min-w-[44px] min-h-[44px] sm:min-w-[36px] sm:min-h-[36px] rounded-xl flex items-center justify-center transition-all cursor-pointer bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-300/40 dark:border-purple-800/50 active:scale-95 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:outline-hidden shrink-0"
-            >
-              <Sparkles className="w-4 h-4 text-purple-500" />
-            </button>
-
             {/* Voice Microphone Input */}
             <button
               type="button"
