@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import TerminalCLI from './TerminalCLI';
 import { useViewMode } from '../context/ViewModeContext';
-import { useLab } from '../context/LabContext';
+import { useLabAudio } from '../context/LabContext';
 
 /**
  * TerminalFullView
@@ -25,7 +25,7 @@ export default function TerminalFullView({
   onMinimize
 }) {
   const { selectViewMode } = useViewMode();
-  const { soundEnabled, setSoundEnabled } = useLab();
+  const { soundEnabled, setSoundEnabled } = useLabAudio();
   // Default to Fullscreen Maximized mode as agreed upon
   const [isMaximized, setIsMaximized] = useState(true);
 

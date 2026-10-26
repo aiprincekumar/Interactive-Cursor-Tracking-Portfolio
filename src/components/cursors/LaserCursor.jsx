@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { getInitialCursorPosition, saveCursorPosition } from '../../utils/cursorPersistence';
 
 /**
  * LaserCursor Component (नियॉन लेज़र पॉइंटर / Neon Laser Pointer & Beam)
@@ -9,26 +10,35 @@ import React, { useEffect, useRef } from 'react';
  * - Digital plasma sparks and target lock-on pulse shockwave
  * - Ultra-snappy response with zero lag (60-120+ FPS lock)
  */
+const HISTORY_CAPACITY = 24;
+
 export default function LaserCursor({
   heroRef,
   isInsideHero,
+  isInsideHeroRef: propIsInsideHeroRef,
   speed = 0.22,
   trailEnabled = true,
-  scale = 1
+  scale = 1,
+  initialPosition
 }) {
   const laserRef = useRef(null);
   const canvasRef = useRef(null);
-  const isInsideHeroRef = useRef(isInsideHero);
+  const fallbackHeroRef = useRef(false);
+  const isInsideHeroRef = propIsInsideHeroRef || (isInsideHero && typeof isInsideHero === 'object' && 'current' in isInsideHero ? isInsideHero : fallbackHeroRef);
   const speedRef = useRef(speed);
   const scaleRef = useRef(scale);
   const trailEnabledRef = useRef(trailEnabled);
 
+  const resolvedInitialPos = initialPosition || getInitialCursorPosition();
   const posRef = useRef({
-    currentX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    currentY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    targetX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    targetY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    history: [], // For continuous neon laser beam ribbon
+    currentX: resolvedInitialPos.clientX,
+    currentY: resolvedInitialPos.clientY,
+    targetX: resolvedInitialPos.clientX,
+    targetY: resolvedInitialPos.clientY,
+    // Pre-allocated circular ring buffer for zero-GC neon laser beam ribbon
+    history: Array.from({ length: HISTORY_CAPACITY }, () => ({ x: 0, y: 0, alpha: 1.0 })),
+    historyHead: HISTORY_CAPACITY - 1,
+    historyCount: 0,
     pulses: [],  // Shockwave rings on click
     isVisible: true
   });
@@ -36,8 +46,10 @@ export default function LaserCursor({
   const particlesRef = useRef([]);
 
   useEffect(() => {
-    isInsideHeroRef.current = isInsideHero;
-  }, [isInsideHero]);
+    if (isInsideHeroRef === fallbackHeroRef) {
+      fallbackHeroRef.current = Boolean(isInsideHero);
+    }
+  }, [isInsideHero, isInsideHeroRef]);
 
   useEffect(() => {
     speedRef.current = speed;
@@ -60,6 +72,7 @@ export default function LaserCursor({
         posRef.current.targetX = clientX;
         posRef.current.targetY = clientY;
         posRef.current.isVisible = true;
+        saveCursorPosition(clientX, clientY, false);
       }
     };
 
@@ -138,10 +151,15 @@ export default function LaserCursor({
       state.currentX += dx * lerpFactor;
       state.currentY += dy * lerpFactor;
 
-      // Maintain breadcrumb history for continuous neon laser beam
-      state.history.unshift({ x: state.currentX, y: state.currentY, alpha: 1.0 });
-      if (state.history.length > 22) {
-        state.history.pop();
+      // Maintain breadcrumb history using circular ring buffer (zero unshift/pop allocation)
+      const nextHead = (state.historyHead + 1) % HISTORY_CAPACITY;
+      state.historyHead = nextHead;
+      const point = state.history[nextHead];
+      point.x = state.currentX;
+      point.y = state.currentY;
+      point.alpha = 1.0;
+      if (state.historyCount < HISTORY_CAPACITY) {
+        state.historyCount++;
       }
 
       // DOM Update: Centered reticle
@@ -167,12 +185,17 @@ export default function LaserCursor({
           ctx.scale(dpr, dpr);
           ctx.globalCompositeOperation = 'lighter';
 
-          // 1. Continuous Neon Laser Beam line connecting history points
-          if (trailEnabledRef.current && state.history.length > 2) {
+          // 1. Continuous Neon Laser Beam line connecting history points (iterating ring buffer newest -> oldest)
+          if (trailEnabledRef.current && state.historyCount > 2) {
+            const headIdx = state.historyHead;
+            const startPt = state.history[headIdx];
+
             ctx.beginPath();
-            ctx.moveTo(state.history[0].x, state.history[0].y);
-            for (let i = 1; i < state.history.length; i++) {
-              ctx.lineTo(state.history[i].x, state.history[i].y);
+            ctx.moveTo(startPt.x, startPt.y);
+            for (let i = 1; i < state.historyCount; i++) {
+              const idx = (headIdx - i + HISTORY_CAPACITY) % HISTORY_CAPACITY;
+              const pt = state.history[idx];
+              ctx.lineTo(pt.x, pt.y);
             }
             // Neon outer glow stroke
             ctx.strokeStyle = 'rgba(255, 30, 80, 0.35)';
@@ -183,9 +206,11 @@ export default function LaserCursor({
 
             // Intense inner neon core
             ctx.beginPath();
-            ctx.moveTo(state.history[0].x, state.history[0].y);
-            for (let i = 1; i < state.history.length; i++) {
-              ctx.lineTo(state.history[i].x, state.history[i].y);
+            ctx.moveTo(startPt.x, startPt.y);
+            for (let i = 1; i < state.historyCount; i++) {
+              const idx = (headIdx - i + HISTORY_CAPACITY) % HISTORY_CAPACITY;
+              const pt = state.history[idx];
+              ctx.lineTo(pt.x, pt.y);
             }
             ctx.strokeStyle = 'rgba(255, 230, 240, 0.85)';
             ctx.lineWidth = 1.8;

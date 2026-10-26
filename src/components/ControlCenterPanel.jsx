@@ -61,10 +61,15 @@ import {
   Download,
   Upload,
   Copy,
-  Code
+  Code,
+  Shield
 } from 'lucide-react';
-import { useLab, POSE_INDEX_MAP } from '../context/LabContext';
+import UniversalMiniPortfolio from './3d-sandbox/UniversalMiniPortfolio';
+import StickySandboxColumn from './3d-sandbox/StickySandboxColumn';
+import useSandboxAutoSwitch from '../hooks/useSandboxAutoSwitch';
+import { useLab, useLabVisuals, POSE_INDEX_MAP } from '../context/LabContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useHighContrast } from '../context/HighContrastContext';
 import { useAnnounce } from '../context/AnnouncerContext';
 import { soundFX, SOUNDBOARD_SOUNDS } from '../utils/audio';
@@ -276,8 +281,9 @@ const FPS_PRESETS = [
   { id: 120, name: '120 FPS', badge: 'ProMotion Ultra', desc: 'Uncapped ultra-high-refresh rate rendering for Pro displays' }
 ];
 
-export default function ControlCenterPanel({ variant = 'workbench' }) {
+export default function ControlCenterPanel({ variant = 'workbench', isStandalone = false, mode = 'all', singleTab = null }) {
   const lab = useLab();
+  const labVisuals = useLabVisuals();
 
   const {
     // Audio
@@ -388,6 +394,10 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
     import3DConfig,
     export3DConfig,
     copy3DCSSVariables,
+    isLive3DApplied,
+    applyToLivePortfolio,
+    revertLivePortfolio,
+    getScopedSandboxStyles,
 
     // State & Meta
     activeTab,
@@ -396,14 +406,50 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
   } = lab;
 
   const [expandedAccordion, setExpandedAccordion] = useState('elements');
+  const {
+    activePreviewTab,
+    setActivePreviewTab: setPreviewTabDirect,
+    handleManualTabSelect,
+    isAutoSwitchPaused,
+    resumeAutoSwitch,
+    notifyAccordionChange
+  } = useSandboxAutoSwitch({ initialTab: 'universal' });
+
+  // Phase 5: Bi-Directional Visual Linking State & Normalizer
+  const [highlightedComponent, setHighlightedComponent] = useState(null);
+
+  const isComponentHighlighted = useCallback((key) => {
+    if (!highlightedComponent || !key) return false;
+    const k1 = String(highlightedComponent).toLowerCase().trim();
+    const k2 = String(key).toLowerCase().trim();
+    if (k1 === k2) return true;
+    if ((k1 === 'nav' || k1 === 'navbar' || k1 === 'navigation') && (k2 === 'nav' || k2 === 'navbar' || k2 === 'navigation')) return true;
+    if ((k1 === 'hero' || k1 === 'header' || k1 === 'card3d' || k1 === 'avatar' || k1 === 'profilepic') && (k2 === 'hero' || k2 === 'header' || k2 === 'card3d' || k2 === 'avatar' || k2 === 'profilepic')) return true;
+    if ((k1 === 'showcase' || k1 === 'cards' || k1 === 'grid' || k1 === 'container' || k1 === 'containercontent' || k1 === 'containers') && (k2 === 'showcase' || k2 === 'cards' || k2 === 'grid' || k2 === 'container' || k2 === 'containercontent' || k2 === 'containers')) return true;
+    if (k1 === 'dock' && (k2 === 'dock' || k2 === 'floatingbutton')) return true;
+    if (k1 === 'footer' && k2 === 'footer') return true;
+    return false;
+  }, [highlightedComponent]);
+
+  const setActivePreviewTab = useCallback((tabId) => {
+    handleManualTabSelect(tabId);
+  }, [handleManualTabSelect]);
+
   const toggleAccordionSection = useCallback((secKey) => {
-    setExpandedAccordion((prev) => (prev === secKey ? null : secKey));
+    setExpandedAccordion((prev) => {
+      const next = prev === secKey ? null : secKey;
+      if (next) {
+        notifyAccordionChange(next);
+      }
+      return next;
+    });
     if (soundEnabled) soundFX.playHapticClick();
-  }, [soundEnabled]);
+  }, [soundEnabled, notifyAccordionChange]);
 
   const [sandboxTilt, setSandboxTilt] = useState({ rotX: 16, rotY: -20 });
   const [isDraggingSandbox, setIsDraggingSandbox] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0, rotX: 16, rotY: -20 });
+  const sandboxRafRef = useRef(null);
 
   const handleSandboxPointerDown = useCallback((e) => {
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -418,15 +464,29 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
 
   const handleSandboxPointerMove = useCallback((e) => {
     if (!isDraggingSandbox) return;
-    const dx = e.clientX - dragStartRef.current.x;
-    const dy = e.clientY - dragStartRef.current.y;
-    const sens = ((threeD?.camera?.tiltSensitivity ?? 15) / 15);
-    const newRotX = Math.min(Math.max(dragStartRef.current.rotX - dy * 0.4 * sens, -60), 60);
-    const newRotY = Math.min(Math.max(dragStartRef.current.rotY + dx * 0.4 * sens, -75), 75);
-    setSandboxTilt({ rotX: Math.round(newRotX), rotY: Math.round(newRotY) });
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+
+    if (sandboxRafRef.current) {
+      cancelAnimationFrame(sandboxRafRef.current);
+    }
+
+    sandboxRafRef.current = requestAnimationFrame(() => {
+      const dx = clientX - dragStartRef.current.x;
+      const dy = clientY - dragStartRef.current.y;
+      const sens = ((threeD?.camera?.tiltSensitivity ?? 15) / 15);
+      const newRotX = Math.min(Math.max(dragStartRef.current.rotX - dy * 0.4 * sens, -60), 60);
+      const newRotY = Math.min(Math.max(dragStartRef.current.rotY + dx * 0.4 * sens, -75), 75);
+      setSandboxTilt({ rotX: Math.round(newRotX), rotY: Math.round(newRotY) });
+      sandboxRafRef.current = null;
+    });
   }, [isDraggingSandbox, threeD?.camera?.tiltSensitivity]);
 
   const handleSandboxPointerUp = useCallback((e) => {
+    if (sandboxRafRef.current) {
+      cancelAnimationFrame(sandboxRafRef.current);
+      sandboxRafRef.current = null;
+    }
     if (isDraggingSandbox) {
       try {
         e.currentTarget.releasePointerCapture(e.pointerId);
@@ -436,6 +496,15 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
       setIsDraggingSandbox(false);
     }
   }, [isDraggingSandbox]);
+
+  useEffect(() => {
+    return () => {
+      if (sandboxRafRef.current) {
+        cancelAnimationFrame(sandboxRafRef.current);
+        sandboxRafRef.current = null;
+      }
+    };
+  }, []);
 
   const resetSandboxView = useCallback(() => {
     setSandboxTilt({ rotX: 16, rotY: -20 });
@@ -453,6 +522,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
       ...prev,
       [catKey]: !prev[catKey]
     }));
+    notifyAccordionChange(catKey);
     if (soundEnabled) soundFX.playHapticClick();
   };
 
@@ -551,6 +621,11 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
   }
   const isHighContrast = Boolean(highContrastContext?.isHighContrast);
   const toggleHighContrast = highContrastContext?.toggleHighContrast;
+
+  const { language } = useLanguage();
+  const autoScrollOnRefresh = labVisuals?.autoScrollOnRefresh ?? lab?.autoScrollOnRefresh ?? true;
+  const setAutoScrollOnRefresh = labVisuals?.setAutoScrollOnRefresh || lab?.setAutoScrollOnRefresh;
+  const effectiveActiveTab = (mode === 'single' && singleTab) ? singleTab : activeTab;
 
   const isDrawer = variant === 'drawer';
 
@@ -977,7 +1052,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
       {/* ========================================================================= */}
       {/* TAB 1: AUDIO STUDIO                                                       */}
       {/* ========================================================================= */}
-      {activeTab === 'audio' && (
+      {(effectiveActiveTab === 'audio' || activeTab === 'audio') && (
         <div
           role="tabpanel"
           id="panel-audio"
@@ -1278,7 +1353,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
       {/* ========================================================================= */}
       {/* TAB 2: CURSOR & DYNAMICS                                                  */}
       {/* ========================================================================= */}
-      {activeTab === 'cursor' && (
+      {(effectiveActiveTab === 'cursor' || activeTab === 'cursor') && (
         <div
           role="tabpanel"
           id="panel-cursor"
@@ -1473,7 +1548,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
       {/* ========================================================================= */}
       {/* TAB 3: HERO & CHARACTER CONTROL                                           */}
       {/* ========================================================================= */}
-      {activeTab === 'hero' && (
+      {(effectiveActiveTab === 'hero' || activeTab === 'hero') && (
         <div
           role="tabpanel"
           id="panel-hero"
@@ -1866,7 +1941,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
       {/* ========================================================================= */}
       {/* TAB 3D: NEXT-LEVEL 3D CONTROL SUITE (9 SECTIONS ACROSS 3 CLUSTERS)        */}
       {/* ========================================================================= */}
-      {activeTab === 'threed' && (
+      {(effectiveActiveTab === 'threed' || activeTab === 'threed') && (
         <div
           role="tabpanel"
           id="panel-threed"
@@ -1874,7 +1949,224 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
           tabIndex={0}
           className="flex flex-col gap-6 focus:outline-none animate-fadeIn"
         >
-          {/* 1. Master 3D Control & Global Theme Card */}
+          {/* 3D Studio Architecture & State Isolation Bar (Phase 1) */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-stone-50 to-white dark:from-[#181226] dark:to-[#1f1730] border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${
+                  isLive3DApplied
+                    ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-sm shadow-emerald-500/10'
+                    : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300'
+                }`}
+              >
+                {isLive3DApplied ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Mode: Live Applied</span>
+                  </>
+                ) : (
+                  <>
+                    <Shield className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
+                    <span>Mode: Sandbox Isolated</span>
+                  </>
+                )}
+              </span>
+              <span className="text-[11px] text-stone-500 dark:text-stone-400 hidden md:inline">
+                {isLive3DApplied
+                  ? '3D custom properties active on live portfolio DOM'
+                  : '3D parameters isolated exclusively to sandbox previews'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (isLive3DApplied) {
+                    revertLivePortfolio();
+                    if (soundEnabled) soundFX.playHapticClick();
+                  } else {
+                    applyToLivePortfolio();
+                    if (soundEnabled) soundFX.playCrystalChime();
+                  }
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95 ${
+                  isLive3DApplied
+                    ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 shadow-emerald-500/10'
+                    : 'bg-stone-100 hover:bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700'
+                }`}
+                aria-label={isLive3DApplied ? 'Revert live portfolio 3D' : 'Apply 3D settings to live portfolio'}
+              >
+                <Radio className={`w-3.5 h-3.5 ${isLive3DApplied ? 'text-emerald-500 animate-pulse' : 'text-stone-400'}`} />
+                <span>{isLive3DApplied ? 'Live Active (Click to Revert)' : 'Apply to Live Portfolio'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  reset3DDefaults();
+                  if (soundEnabled) soundFX.playCrystalChime();
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
+                aria-label="Reset Sandbox to defaults"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-stone-400" />
+                <span>Reset Sandbox</span>
+              </button>
+            </div>
+          </div>
+          {/* 2. Interactive Mini 3D Sandbox Preview Card (Universal Top Mini-DOM Replica - Phase 2) */}
+          <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all w-full">
+            <div className="p-4 sm:p-5 flex items-center justify-between border-b border-[#ECE7DF]/70 dark:border-[#2D2340]/70 bg-white/80 dark:bg-[#1D162E]/80">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-500 flex items-center justify-center font-bold text-sm">
+                  <Maximize2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h5 className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white">
+                      Interactive 3D Sandbox Preview
+                    </h5>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30">
+                      Live Simulation
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30">
+                      Universal Portfolio Replica
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-500 dark:text-stone-400">
+                    Universal interactive Mini-DOM replica demonstrating live 3D perspective, tilt, shadow falloff, atmosphere &amp; exploded layers
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShow3DSandbox(!showSandboxPreview);
+                  if (soundEnabled) soundFX.playHapticClick();
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white/80 dark:bg-stone-800/80 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+              >
+                {showSandboxPreview ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                <span>{showSandboxPreview ? 'Hide Sandbox' : 'Show Sandbox'}</span>
+              </button>
+            </div>
+
+            {showSandboxPreview && (
+              <div className="p-4 sm:p-6 flex flex-col gap-4">
+                {/* Top Toolbar Controls */}
+                <div className="flex flex-wrap items-center justify-between gap-2.5 px-3.5 py-2 rounded-xl bg-stone-100/70 dark:bg-[#150F21]/80 border border-stone-200/70 dark:border-stone-800 backdrop-blur-md">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[11px] font-semibold bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30">
+                      <Sparkles className="w-3 h-3 text-cyan-500 animate-pulse" />
+                      <span>Universal Portfolio Replica</span>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Orientation Readout */}
+                    <div className="font-mono text-[11px] px-2.5 py-1 rounded-lg bg-white/90 dark:bg-stone-900/90 border border-stone-200/80 dark:border-stone-800 text-stone-600 dark:text-stone-300">
+                      Rot: {sandboxTilt.rotX}°, {sandboxTilt.rotY}° | Light: {lighting?.angle ?? 45}°
+                    </div>
+
+                    {/* Wireframe / CAD Mode Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        set3DExploded({ blueprintMode: !exploded.blueprintMode });
+                        if (soundEnabled) soundFX.playLaserFocus();
+                      }}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-mono text-xs font-semibold border transition-all cursor-pointer shadow-2xs active:scale-95 ${
+                        exploded.blueprintMode
+                          ? 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border-cyan-500/50 shadow-cyan-500/10'
+                          : 'bg-white hover:bg-stone-50 text-stone-600 dark:bg-stone-800 dark:text-stone-400 dark:hover:bg-stone-700 border-stone-200 dark:border-stone-700'
+                      }`}
+                      title={exploded.blueprintMode ? 'Disable CAD Blueprint' : 'Enable CAD Blueprint'}
+                      aria-label="Toggle CAD Wireframe Mode"
+                    >
+                      <Grid className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">{exploded.blueprintMode ? 'CAD Active' : 'CAD Wireframe'}</span>
+                    </button>
+
+                    {/* Quick Reset Orientation */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        resetSandboxView();
+                        if (soundEnabled) soundFX.playHapticClick();
+                      }}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-stone-50 text-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700 font-mono text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
+                      title="Reset Sandbox Orientation"
+                      aria-label="Reset Orientation button"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-stone-400" />
+                      <span className="hidden sm:inline">Reset</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Living Universal Mini-DOM Portfolio Sandbox */}
+                <UniversalMiniPortfolio
+                  className="w-full"
+                  showControls={false}
+                  sandboxTilt={sandboxTilt}
+                  onPointerDown={handleSandboxPointerDown}
+                  onPointerMove={handleSandboxPointerMove}
+                  onPointerUp={handleSandboxPointerUp}
+                  onResetOrientation={resetSandboxView}
+                  wireframeActive={exploded.blueprintMode}
+                  onToggleWireframe={(val) => set3DExploded({ blueprintMode: val })}
+                  highlightedComponent={highlightedComponent}
+                  onHighlightComponent={setHighlightedComponent}
+                />
+
+                {/* Sandbox Footer & Status */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
+                    <span className={`w-2 h-2 rounded-full ${isMaster3DOn ? 'bg-emerald-500 animate-ping' : 'bg-stone-400'}`} />
+                    <span>{isMaster3DOn ? 'Active 3D Mode' : '2D Flat Mode'}</span>
+                    {exploded.enabled && (
+                      <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/30 px-2 py-0.5 rounded-md border border-cyan-500/20 hidden sm:inline">
+                        BASE CHASSIS [STRATA -01]
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={resetSandboxView}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white/80 dark:bg-stone-800/80 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-stone-400" />
+                    <span>Reset Orientation</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+                    {/* Phase 3: Desktop 2-Column Responsive Split & Sticky Sandbox Container */}
+          <div className={isDrawer ? "flex flex-col gap-4" : "grid grid-cols-1 lg:grid-cols-12 gap-6 items-start"}>
+            {!isDrawer && (
+              <div className="lg:col-span-5 xl:col-span-5 sticky top-6 self-start">
+                <StickySandboxColumn
+                  activePreviewTab={activePreviewTab}
+                  onSelectTab={setActivePreviewTab}
+                  interactive={true}
+                  sandboxTilt={sandboxTilt}
+                  onResetOrientation={resetSandboxView}
+                  isAutoSwitchPaused={isAutoSwitchPaused}
+                  onResumeAutoSwitch={resumeAutoSwitch}
+                  highlightedComponent={highlightedComponent}
+                  onHighlightComponent={setHighlightedComponent}
+                  soundEnabled={soundEnabled}
+                />
+              </div>
+            )}
+
+            <div className={isDrawer ? "flex flex-col gap-4" : "lg:col-span-7 xl:col-span-7 flex flex-col gap-4"}>
+    {/* 1. Master 3D Control & Global Theme Card */}
           <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -2014,194 +2306,6 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
             </div>
           </div>
 
-          {/* 2. Interactive Mini 3D Sandbox Preview Card */}
-          <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
-            <div className="p-4 sm:p-5 flex items-center justify-between border-b border-[#ECE7DF]/70 dark:border-[#2D2340]/70 bg-white/80 dark:bg-[#1D162E]/80">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-500 flex items-center justify-center font-bold text-sm">
-                  <Maximize2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h5 className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white">
-                      Interactive 3D Sandbox Preview
-                    </h5>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30">
-                      Live Simulation
-                    </span>
-                  </div>
-                  <p className="text-xs text-stone-500 dark:text-stone-400">
-                    Click &amp; drag card below to dynamically test live 3D perspective, tilt, shadow falloff &amp; exploded layers
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShow3DSandbox(!showSandboxPreview);
-                  if (soundEnabled) soundFX.playHapticClick();
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white/80 dark:bg-stone-800/80 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
-              >
-                {showSandboxPreview ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                <span>{showSandboxPreview ? 'Hide Sandbox' : 'Show Sandbox'}</span>
-              </button>
-            </div>
-
-            {showSandboxPreview && (
-              <div className="p-4 sm:p-6 flex flex-col gap-4">
-                <div
-                  onPointerDown={handleSandboxPointerDown}
-                  onPointerMove={handleSandboxPointerMove}
-                  onPointerUp={handleSandboxPointerUp}
-                  onPointerCancel={handleSandboxPointerUp}
-                  className="w-full h-64 sm:h-72 rounded-2xl bg-gradient-to-br from-stone-100 via-stone-50 to-stone-200 dark:from-[#110B1D] dark:via-[#19112B] dark:to-[#0F0A1A] border border-stone-200/80 dark:border-stone-800 flex items-center justify-center relative overflow-hidden select-none cursor-grab active:cursor-grabbing touch-none"
-                  style={{
-                    perspective: `${threeDConfig.camera.perspectiveFOV || 1000}px`
-                  }}
-                >
-                  {/* Skybox & Atmosphere layer */}
-                  <div className="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(circle_at_center,rgba(0,242,254,0.12)_0%,transparent_70%)]" />
-
-                  {/* Volumetric Fog overlay */}
-                  {environment.fogDensity > 0 && (
-                    <div
-                      className="absolute inset-0 pointer-events-none transition-opacity duration-300"
-                      style={{
-                        backgroundColor: 'rgba(15, 23, 42, 0.4)',
-                        backdropFilter: `blur(${Math.round(environment.fogDensity * 0.08)}px)`,
-                        opacity: environment.fogDensity / 100
-                      }}
-                    />
-                  )}
-
-                  {/* Stardust particles simulation */}
-                  {environment.stardustParticles && (
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                      {[15, 30, 45, 60, 75, 90].map((leftPct, i) => (
-                        <div
-                          key={i}
-                          className="absolute w-1 h-1 rounded-full bg-cyan-400/60 animate-pulse"
-                          style={{
-                            left: `${leftPct}%`,
-                            top: `${(i * 17) % 85 + 5}%`,
-                            animationDelay: `${i * 0.4}s`,
-                            transform: `translateZ(${(i % 3) * 15}px)`
-                          }}
-                        />
-                      ))}
-                    </div>
-                  )}
-
-                  {/* 3D Sandbox Object */}
-                  <div
-                    style={{
-                      transform: isMaster3DOn
-                        ? `rotateX(${sandboxTilt.rotX}deg) rotateY(${sandboxTilt.rotY}deg) scale(1.04)`
-                        : 'none',
-                      transformStyle: 'preserve-3d',
-                      transition: isDraggingSandbox ? 'none' : 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)'
-                    }}
-                    className="relative w-64 h-40 sm:w-72 sm:h-44 rounded-2xl flex flex-col justify-between p-4 shadow-2xl transition-shadow"
-                  >
-                    {/* Exploded Strata Layer 1 (Base Chassis) */}
-                    {exploded.enabled && (
-                      <div
-                        className="absolute inset-0 rounded-2xl border border-cyan-500/40 bg-cyan-950/20 backdrop-blur-xs pointer-events-none"
-                        style={{
-                          transform: `translateZ(-${exploded.separationDistance}px)`,
-                          opacity: exploded.ghostOpacity || 0.4
-                        }}
-                      >
-                        <div className="p-2 text-[9px] font-mono text-cyan-400">
-                          BASE CHASSIS [STRATA -01]
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Exploded Strata Layer 2 (CAD Logic & Blueprint Wireframe) */}
-                    {exploded.enabled && exploded.blueprintMode && (
-                      <div
-                        className="absolute inset-0 rounded-2xl border-2 border-dashed border-cyan-400/50 bg-cyan-900/10 pointer-events-none"
-                        style={{
-                          transform: `translateZ(-${Math.round(exploded.separationDistance * 0.5)}px)`
-                        }}
-                      >
-                        <div className="p-2 text-[9px] font-mono text-cyan-300">
-                          SCHEMATIC WIREFRAME [Z: -${Math.round(exploded.separationDistance * 0.5)}px]
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Main Interactive Card Face */}
-                    <div
-                      className={`absolute inset-0 rounded-2xl border transition-all ${
-                        exploded.blueprintMode
-                          ? 'border-cyan-400 bg-cyan-950/70 shadow-[0_0_20px_rgba(0,242,254,0.3)]'
-                          : isMaster3DOn
-                            ? 'border-white/40 dark:border-white/20 bg-white/70 dark:bg-[#1E1730]/80 backdrop-blur-xl shadow-xl'
-                            : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-[#181226]'
-                      }`}
-                      style={{
-                        transform: exploded.enabled ? `translateZ(${exploded.layerStagger}px)` : 'translateZ(0px)',
-                        boxShadow: isMaster3DOn
-                          ? `0 ${Math.round(materials.bevelExtrusion * 4)}px ${Math.round(materials.bevelExtrusion * 8)}px -4px rgba(0,0,0,0.3)`
-                          : 'none'
-                      }}
-                    >
-                      <div className="p-4 flex flex-col justify-between h-full">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-[#FF4D6D]/20 text-[#FF4D6D] flex items-center justify-center font-bold text-xs">
-                              3D
-                            </div>
-                            <span className="text-xs font-bold text-stone-900 dark:text-white">
-                              Spatial Card Preview
-                            </span>
-                          </div>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-stone-200/60 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
-                            Rot: {sandboxTilt.rotX}°, {sandboxTilt.rotY}°
-                          </span>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <div className="h-2 w-3/4 bg-stone-300/70 dark:bg-stone-700/70 rounded-full" />
-                          <div className="h-2 w-1/2 bg-stone-200 dark:bg-stone-800 rounded-full" />
-                        </div>
-
-                        <div className="flex items-center justify-between text-[10px] font-mono text-stone-400 pt-2 border-t border-stone-200/50 dark:border-stone-700/50">
-                          <span>Intensity: {threeDConfig.depthIntensity}x</span>
-                          <span>Preset: {threeDConfig.stylePreset}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="absolute bottom-3 left-3 text-[10px] font-mono text-stone-400 dark:text-stone-500 bg-white/70 dark:bg-stone-900/70 px-2.5 py-1 rounded-lg backdrop-blur-xs border border-stone-200/50 dark:border-stone-800/50">
-                    Drag to inspect 3D Perspective
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
-                    <span className={`w-2 h-2 rounded-full ${isMaster3DOn ? 'bg-emerald-500 animate-ping' : 'bg-stone-400'}`} />
-                    <span>{isMaster3DOn ? 'Active 3D Mode' : '2D Flat Mode'}</span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={resetSandboxView}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white/80 dark:bg-stone-800/80 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5 text-stone-400" />
-                    <span>Reset Orientation</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* 3. Top Cluster Filter Bar */}
           <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-stone-100/80 dark:bg-[#150F21]/80 border border-stone-200/80 dark:border-stone-800 backdrop-blur-md overflow-x-auto">
             {THREED_CLUSTERS.map((cluster) => {
@@ -2274,6 +2378,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                     {THREED_CATEGORIES.map((cat) => {
                       const activeCount = cat.items.filter((it) => current3DElements[it.key]).length;
                       const isCatOpen = Boolean(expandedCategories[cat.id]);
+                      const isCategoryTargeted = isComponentHighlighted(cat.id);
 
                       return (
                         <div
@@ -2283,17 +2388,33 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                           <button
                             type="button"
                             onClick={() => toggleCategory(cat.id)}
+                            onMouseEnter={() => setHighlightedComponent(cat.id)}
+                            onMouseLeave={() => setHighlightedComponent(null)}
+                            onFocus={() => setHighlightedComponent(cat.id)}
+                            onBlur={() => setHighlightedComponent(null)}
                             aria-expanded={isCatOpen}
-                            className="w-full flex items-center justify-between p-3.5 bg-stone-50/80 dark:bg-[#231A38]/80 hover:bg-stone-100/80 dark:hover:bg-[#281D40] transition-colors cursor-pointer text-left"
+                            className={`w-full flex items-center justify-between p-3.5 bg-stone-50/80 dark:bg-[#231A38]/80 hover:bg-stone-100/80 dark:hover:bg-[#281D40] transition-colors cursor-pointer text-left ${
+                              isCategoryTargeted ? 'ring-2 ring-[#FF4D6D]/60 ring-inset bg-[#FF4D6D]/5' : ''
+                            }`}
                           >
                             <div className="flex items-center gap-2.5">
                               <span className="w-6 h-6 rounded-lg bg-[#FF4D6D]/15 text-[#FF4D6D] flex items-center justify-center font-bold text-xs">
                                 {cat.num}
                               </span>
                               <div>
-                                <h6 className="text-xs sm:text-sm font-bold text-[#18181B] dark:text-white">
-                                  {cat.title}
-                                </h6>
+                                <div className="flex items-center gap-2">
+                                  <h6 className="text-xs sm:text-sm font-bold text-[#18181B] dark:text-white">
+                                    {cat.title}
+                                  </h6>
+                                  {isCategoryTargeted && (
+                                    <span
+                                      data-testid="targeted-in-preview-badge"
+                                      className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#FF4D6D]/15 text-[#FF4D6D] border border-[#FF4D6D]/30 animate-pulse shadow-xs"
+                                    >
+                                      [Targeted in Preview]
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="text-[11px] text-stone-500 dark:text-stone-400">
                                   {cat.desc}
                                 </p>
@@ -2321,7 +2442,13 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                                 return (
                                   <div
                                     key={item.key}
+                                    onMouseEnter={() => setHighlightedComponent(cat.id === 'containers' ? 'showcase' : cat.id)}
+                                    onMouseLeave={() => setHighlightedComponent(null)}
+                                    onFocus={() => setHighlightedComponent(cat.id === 'containers' ? 'showcase' : cat.id)}
+                                    onBlur={() => setHighlightedComponent(null)}
                                     className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                                      isCategoryTargeted ? 'ring-1 ring-[#FF4D6D]/40' : ''
+                                    } ${
                                       isItemOn
                                         ? 'bg-[#FF4D6D]/10 border-[#FF4D6D]/40 text-[#18181B] dark:text-white'
                                         : 'bg-white/60 dark:bg-[#1F1733]/60 border-stone-200/70 dark:border-stone-800 text-stone-600 dark:text-stone-400'
@@ -3926,6 +4053,8 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
               <span>Reset 3D Defaults</span>
             </button>
           </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -3933,7 +4062,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
       {/* ========================================================================= */}
       {/* TAB 4: STARTUP & PREFERENCES                                              */}
       {/* ========================================================================= */}
-      {activeTab === 'preferences' && (
+      {(effectiveActiveTab === 'preferences' || activeTab === 'preferences') && (
         <div
           role="tabpanel"
           id="panel-preferences"
@@ -4152,7 +4281,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
       {/* ========================================================================= */}
       {/* TAB 5: DISPLAY & VISUALS                                                  */}
       {/* ========================================================================= */}
-      {activeTab === 'visuals' && (
+      {(effectiveActiveTab === 'visuals' || activeTab === 'visuals') && (
         <div
           role="tabpanel"
           id="panel-visuals"
@@ -4173,7 +4302,7 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-stone-100 dark:bg-[#251A3A] text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-stone-700/60">
-                Active: {theme === 'dark' ? 'Obsidian Dark' : 'Linen Light'} • {getAccentName(accentColor)} • {layoutDensity.charAt(0).toUpperCase() + layoutDensity.slice(1)}
+                Active: {theme === 'dark' ? 'Obsidian Dark' : 'Linen Light'} • {getAccentName(accentColor)} • {layoutDensity.charAt(0).toUpperCase() + layoutDensity.slice(1) + ' • ' + (autoScrollOnRefresh ? 'Auto-Scroll ON' : 'Top (0,0)')}
               </span>
             </div>
           </div>
@@ -4479,6 +4608,83 @@ export default function ControlCenterPanel({ variant = 'workbench' }) {
                     </button>
                   );
                 })}
+              </div>
+            </div>
+          
+            {/* CARD 6: Auto-Scroll on Refresh Toggle Card */}
+            <div className={`p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col justify-between gap-4 ${isDrawer ? '' : 'md:col-span-2'}`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                      <RotateCcw className="w-4 h-4 text-[var(--theme-accent,#FF4D6D)]" />
+                      <span>Auto-Scroll on Refresh</span>
+                      <span className="text-xs font-normal text-stone-500 dark:text-stone-400">/ रिफ्रेश ऑटो-स्क्रॉल</span>
+                    </h4>
+                    <span
+                      className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border transition-colors ${
+                        autoScrollOnRefresh
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                          : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 border-stone-200/60 dark:border-stone-700/60'
+                      }`}
+                    >
+                      {autoScrollOnRefresh ? 'Enabled / Active (X, Y)' : 'Disabled / Top (0, 0)'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
+                    {language === 'hi'
+                      ? 'पेज रीफ्रेश होने पर पिछली X/Y स्क्रॉल स्थिति, URL और एक्टिव सेक्शन को स्वतः रीस्टोर करें।'
+                      : 'Automatically restore exact X & Y scroll position, browser location, and active section upon page refresh.'}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  role="switch"
+                  id="switch-auto-scroll-refresh"
+                  aria-checked={autoScrollOnRefresh}
+                  aria-label="Toggle Auto-Scroll on Refresh / रिफ्रेश ऑटो-स्क्रॉल"
+                  onClick={() => {
+                    const nextState = !autoScrollOnRefresh;
+                    if (typeof setAutoScrollOnRefresh === 'function') {
+                      setAutoScrollOnRefresh(nextState);
+                    }
+                    if (soundEnabled) {
+                      try {
+                        if (typeof soundFX.toggle === 'function') {
+                          soundFX.toggle();
+                        } else if (typeof soundFX.click === 'function') {
+                          soundFX.click();
+                        } else if (typeof soundFX.playHapticClick === 'function') {
+                          soundFX.playHapticClick();
+                        }
+                      } catch {}
+                    }
+                  }}
+                  className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent,#FF4D6D)]/40 ${
+                    autoScrollOnRefresh ? 'bg-[var(--theme-accent,#FF4D6D)]' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                >
+                  <span
+                    className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                      autoScrollOnRefresh ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-stone-100 dark:border-stone-800/80 text-[11px] text-stone-500 dark:text-stone-400">
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${autoScrollOnRefresh ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400'}`} />
+                  <span>
+                    {autoScrollOnRefresh
+                      ? 'Preserves scroll coordinates & restores exact viewport state on reload'
+                      : 'Restores browser viewport to top (0, 0) Hero on reload'}
+                  </span>
+                </div>
+                <div className="text-[10px] font-mono text-stone-400 dark:text-stone-500">
+                  Key: portfolio_auto_scroll_on_refresh
+                </div>
               </div>
             </div>
           </div>

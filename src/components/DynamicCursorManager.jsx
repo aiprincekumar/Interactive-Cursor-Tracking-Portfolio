@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ButterflyCursor from './ButterflyCursor';
 import FireflyCursor from './cursors/FireflyCursor';
 import StardustCursor from './cursors/StardustCursor';
@@ -8,7 +8,8 @@ import CameraCursor from './cursors/CameraCursor';
 import MinimalCursor from './cursors/MinimalCursor';
 import ModularKinematicCursor from './cursors/ModularKinematicCursor';
 import { useDesktopCursorSupport } from '../hooks/useDesktopCursorSupport';
-import { useLab } from '../context/LabContext';
+import { useLabCursor } from '../context/LabContext';
+import { getInitialCursorPosition, initCursorPersistenceTracker } from '../utils/cursorPersistence';
 
 /**
  * Dedicated bespoke cursor components that have specialized interactive mechanics
@@ -39,16 +40,22 @@ export default function DynamicCursorManager({
   activeCursor = 'butterfly',
   heroRef,
   isInsideHero = false,
+  isInsideHeroRef,
   customCursorEnabled: propCustomCursorEnabled,
   speed,
   trailEnabled,
   scale,
-  gravity = 0,
+  gravity,
   particleColor,
-  wingDynamics = 1.0,
+  wingDynamics,
   reducedMotion: propReducedMotion
 }) {
-  const lab = useLab();
+  let lab = null;
+  try {
+    lab = useLabCursor();
+  } catch {
+    lab = null;
+  }
   const isDesktopCursor = useDesktopCursorSupport();
 
   const customCursorEnabled = propCustomCursorEnabled !== undefined
@@ -56,9 +63,40 @@ export default function DynamicCursorManager({
     : (lab?.customCursorEnabled ?? true);
 
   const effectiveSpeed = speed ?? lab?.flightSpeed ?? 0.14;
-  const effectiveTrail = trailEnabled ?? lab?.stardustTrailEnabled ?? true;
+  const effectiveTrail = trailEnabled ?? lab?.trailEnabled ?? lab?.stardustTrailEnabled ?? true;
   const effectiveScale = scale ?? lab?.cursorScale ?? 1.0;
   const effectiveParticleColor = particleColor ?? lab?.particleColor ?? '#FF4D6D';
+  const effectiveGravity = gravity ?? lab?.gravity ?? 0;
+  const effectiveWingDynamics = wingDynamics ?? lab?.wingDynamics ?? 1.0;
+
+  // Initialize posRef with restored coordinates so custom cursor immediately appears at the exact last position
+  const initialPos = getInitialCursorPosition();
+  const posRef = useRef({
+    currentX: initialPos.clientX,
+    currentY: initialPos.clientY,
+    targetX: initialPos.clientX,
+    targetY: initialPos.clientY
+  });
+
+  // Global passive cursor tracking and persistence
+  useEffect(() => {
+    const cleanup = initCursorPersistenceTracker();
+    const handleMove = (e) => {
+      const cx = e.clientX ?? (e.touches && e.touches[0]?.clientX);
+      const cy = e.clientY ?? (e.touches && e.touches[0]?.clientY);
+      if (cx !== undefined && cy !== undefined && posRef.current) {
+        posRef.current.targetX = cx;
+        posRef.current.targetY = cy;
+        posRef.current.currentX = cx;
+        posRef.current.currentY = cy;
+      }
+    };
+    window.addEventListener('pointermove', handleMove, { passive: true });
+    return () => {
+      cleanup();
+      window.removeEventListener('pointermove', handleMove);
+    };
+  }, []);
 
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
     if (typeof window !== 'undefined' && window.matchMedia) {
@@ -89,7 +127,7 @@ export default function DynamicCursorManager({
 
   // Compute effective reduced motion (prop or lab context overrides system if passed)
   const effectiveReducedMotion = propReducedMotion !== undefined
-    ? propReducedMotion
+    ? (propReducedMotion || Boolean(lab?.reducedMotion))
     : (Boolean(lab?.reducedMotion) || prefersReducedMotion);
 
   // Manage .custom-cursor-disabled class and direct style cursor overrides on document body and html root
@@ -120,19 +158,23 @@ export default function DynamicCursorManager({
     return null;
   }
 
+  const resolvedHeroRef = isInsideHeroRef || (isInsideHero && typeof isInsideHero === 'object' && 'current' in isInsideHero ? isInsideHero : null);
+
   // Check if cursor has a bespoke dedicated component
   const DedicatedComponent = DEDICATED_CURSOR_COMPONENTS[activeCursor];
   if (DedicatedComponent) {
     return (
       <DedicatedComponent
         heroRef={heroRef}
-        isInsideHero={isInsideHero}
+        isInsideHero={resolvedHeroRef || isInsideHero}
+        isInsideHeroRef={resolvedHeroRef}
         speed={effectiveSpeed}
         trailEnabled={effectiveTrail}
         scale={effectiveScale}
-        gravity={gravity}
+        gravity={effectiveGravity}
         particleColor={effectiveParticleColor}
-        wingDynamics={wingDynamics}
+        wingDynamics={effectiveWingDynamics}
+        initialPosition={initialPos}
       />
     );
   }
@@ -142,13 +184,15 @@ export default function DynamicCursorManager({
     <ModularKinematicCursor
       cursorId={activeCursor}
       heroRef={heroRef}
-      isInsideHero={isInsideHero}
+      isInsideHero={resolvedHeroRef || isInsideHero}
+      isInsideHeroRef={resolvedHeroRef}
       speed={effectiveSpeed}
       trailEnabled={effectiveTrail}
       scale={effectiveScale}
-      gravity={gravity}
+      gravity={effectiveGravity}
       particleColor={effectiveParticleColor}
-      wingDynamics={wingDynamics}
+      wingDynamics={effectiveWingDynamics}
+      initialPosition={initialPos}
     />
   );
 }

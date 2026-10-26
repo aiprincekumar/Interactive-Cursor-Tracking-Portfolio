@@ -551,14 +551,32 @@ export function useGyroscopeTracking({
   useEffect(() => {
     if (typeof window === 'undefined' || !enabled || reducedMotion) return;
 
+    // Desktop hardware guard: if device does not support DeviceOrientation/gyroscope and simulation is inactive, exit early
+    if (!isSupported && !gyroStateRef.current.isSimulatedTracking) return;
+
     let rafId = null;
     let lastTime = performance.now();
 
     const scrollTick = (currentTime) => {
+      const state = gyroStateRef.current;
+
+      // Halt continuous rAF loop if hardware is unsupported and simulation is inactive
+      if (!isSupported && !state.isSimulatedTracking) {
+        state.isScrolling = false;
+        state.scrollDirection = null;
+        if (typeof document !== 'undefined' && document.documentElement && document.documentElement.classList.contains('tilt-scrolling')) {
+          document.documentElement.classList.remove('tilt-scrolling');
+        }
+        if (lastActiveScrollDirRef.current !== null) {
+          lastActiveScrollDirRef.current = null;
+          setActiveScrollDir(null);
+        }
+        rafId = null;
+        return;
+      }
+
       const dt = Math.min(Math.max((currentTime - lastTime) / 1000, 0.001), 0.05);
       lastTime = currentTime;
-
-      const state = gyroStateRef.current;
 
       // Exponential smoothing for normX and normY (lambda = 16.0)
       const lerpFactor = 1.0 - Math.exp(-16.0 * dt);
@@ -683,7 +701,7 @@ export function useGyroscopeTracking({
         setActiveScrollDir(null);
       }
     };
-  }, [enabled, reducedMotion, isGyroScrollActive, scrollThreshold, maxScrollSpeed]);
+  }, [enabled, reducedMotion, isSupported, isActive, isGyroScrollActive, scrollThreshold, maxScrollSpeed]);
 
   const toggleGyroScroll = useCallback(() => {
     setIsGyroScrollActive(prev => !prev);

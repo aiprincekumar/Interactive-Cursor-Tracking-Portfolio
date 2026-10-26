@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, Sparkles } from 'lucide-react';
 import { useSimpleMode } from '../context/SimpleModeContext';
-import { useLab } from '../context/LabContext';
+import { useLabAudio } from '../context/LabContext';
 import { soundFX } from '../utils/audio';
 
 /**
@@ -69,14 +69,14 @@ export default function FloatingSimpleModeToggle() {
     };
   }, []);
 
-  let labContext = null;
+  let audioContext = null;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    labContext = useLab();
+    audioContext = useLabAudio();
   } catch {
     // safe fallback
   }
-  const soundEnabled = labContext?.soundEnabled ?? true;
+  const soundEnabled = audioContext?.soundEnabled ?? true;
 
   const handleClick = () => {
     if (soundEnabled && soundFX?.playFocusBeep) {

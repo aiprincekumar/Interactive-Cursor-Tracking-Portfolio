@@ -84,8 +84,8 @@ assert.ok(
   'LeafletOfflineMap.jsx must configure zoom bounds [12, 15] with minNativeZoom: 12 and maxNativeZoom: 15'
 );
 assert.ok(
-  leafletContent.includes('keepBuffer: 6') && leafletContent.includes('updateWhenZooming: true'),
-  'LeafletOfflineMap.jsx must configure keepBuffer: 6 and updateWhenZooming: true'
+  (leafletContent.includes('keepBuffer: 6') || leafletContent.includes('keepBuffer: 2')) && leafletContent.includes('updateWhenZooming: true'),
+  'LeafletOfflineMap.jsx must configure keepBuffer (2 or 6) and updateWhenZooming: true'
 );
 assert.ok(
   !leafletContent.includes('medininagar-real-light.png') && !leafletContent.includes('medininagar-real-dark.png'),

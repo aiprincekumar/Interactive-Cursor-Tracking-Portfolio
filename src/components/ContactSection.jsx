@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo, useId, lazy, Suspense } from 'react';
+import React, { memo, useState, useRef, useEffect, useMemo, useId, lazy, Suspense } from 'react';
 import { 
   Mail, 
   MapPin, 
@@ -278,7 +278,7 @@ function DynamicQrCodeSvg({ size = 160, url = 'https://atulverma.in' }) {
   );
 }
 
-export default function ContactSection() {
+function ContactSection() {
   const { isSimpleMode } = useSimpleMode();
   let announce = null;
   try {
@@ -2561,3 +2561,6 @@ export default function ContactSection() {
     </section>
   );
 }
+
+ContactSection.displayName = 'ContactSection';
+export default memo(ContactSection);

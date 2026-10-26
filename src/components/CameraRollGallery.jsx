@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { memo, useState, useRef } from 'react';
 import { Camera, Download, Heart, ZoomIn, X, Share2, Archive, Loader2 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { exportAllPolaroidsZip, downloadSinglePolaroid } from '../utils/polaroidExport';
@@ -37,7 +37,7 @@ const INITIAL_PHOTOS = [
   }
 ];
 
-export default function CameraRollGallery({ capturedPhotos }) {
+function CameraRollGallery({ capturedPhotos }) {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [likes, setLikes] = useState({});
   const [poppingId, setPoppingId] = useState(null);
@@ -382,3 +382,6 @@ export default function CameraRollGallery({ capturedPhotos }) {
     </section>
   );
 }
+
+CameraRollGallery.displayName = 'CameraRollGallery';
+export default memo(CameraRollGallery);

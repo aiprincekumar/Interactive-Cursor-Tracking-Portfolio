@@ -15,15 +15,20 @@ const bannerPath = path.join(rootDir, 'src', 'components', 'TechMarqueeBanner.js
 const content = fs.readFileSync(bannerPath, 'utf8');
 
 // 1. Module-level hoisted sequence arrays
+const hasArray4 = content.includes('const TOP_SEQUENCE = Array(4).fill(TOP_ITEMS).flat();');
+const hasArray12 = content.includes('const TOP_SEQUENCE = Array(12).fill(TOP_ITEMS).flat();');
 assert(
-  content.includes('const TOP_SEQUENCE = Array(12).fill(TOP_ITEMS).flat();'),
-  'FAIL: TOP_SEQUENCE must be hoisted to module level with Array(12)'
+  hasArray4 || hasArray12,
+  'FAIL: TOP_SEQUENCE must be hoisted to module level with Array(4) or Array(12)'
 );
+
+const hasBottomArray4 = content.includes('const BOTTOM_SEQUENCE = Array(4).fill(BOTTOM_ITEMS).flat();');
+const hasBottomArray12 = content.includes('const BOTTOM_SEQUENCE = Array(12).fill(BOTTOM_ITEMS).flat();');
 assert(
-  content.includes('const BOTTOM_SEQUENCE = Array(12).fill(BOTTOM_ITEMS).flat();'),
-  'FAIL: BOTTOM_SEQUENCE must be hoisted to module level with Array(12)'
+  hasBottomArray4 || hasBottomArray12,
+  'FAIL: BOTTOM_SEQUENCE must be hoisted to module level with Array(4) or Array(12)'
 );
-console.log('✅ PASS: 1. TOP_SEQUENCE and BOTTOM_SEQUENCE hoisted outside component at module scope');
+console.log('✅ PASS: 1. TOP_SEQUENCE and BOTTOM_SEQUENCE hoisted outside component at module scope (Phase 4 4x optimized)');
 
 // 2. React.memo MarqueeCard with custom comparator
 assert(
@@ -70,9 +75,10 @@ assert(topMatches && bottomMatches, 'FAIL: Could not locate TOP_ITEMS and BOTTOM
 
 const topItemsCount = (topMatches[1].match(/'[^']+'/g) || []).length;
 const bottomItemsCount = (bottomMatches[1].match(/'[^']+'/g) || []).length;
-const totalCardsInDOM = (topItemsCount * 12) + (bottomItemsCount * 12);
+const multiplier = hasArray4 ? 4 : 12;
+const totalCardsInDOM = (topItemsCount * multiplier) + (bottomItemsCount * multiplier);
 
-console.log(`✅ PASS: 4. Verified marquee card metrics: Top items (${topItemsCount} * 12 = ${topItemsCount * 12}), Bottom items (${bottomItemsCount} * 12 = ${bottomItemsCount * 12}), Total: ${totalCardsInDOM} rendered DOM cards (optimized from 348/324 unmemoized elements down to bailout state)`);
+console.log(`✅ PASS: 4. Verified marquee card metrics: Top items (${topItemsCount} * ${multiplier} = ${topItemsCount * multiplier}), Bottom items (${bottomItemsCount} * ${multiplier} = ${bottomItemsCount * multiplier}), Total: ${totalCardsInDOM} rendered DOM cards (optimized from 348/324 unmemoized elements down to bailout state)`);
 
 // 5. Check rendering uses hoisted sequences and MarqueeCard
 assert(

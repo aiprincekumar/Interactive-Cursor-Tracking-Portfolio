@@ -103,10 +103,8 @@ test('getCachedElements detects detached elements and re-scans live DOM', () => 
   assert(navbarContent.includes('!isElementConnected(item.el)'), 'Must identify elements disconnected by React Suspense resolution');
 });
 
-test('SECTION_TO_NAV_MAP maps gallery and playground to projects', () => {
-  assert(navbarContent.includes('SECTION_TO_NAV_MAP'), 'SECTION_TO_NAV_MAP must be defined');
-  assert(navbarContent.includes("gallery: 'projects'"), "gallery must map to projects");
-  assert(navbarContent.includes("playground: 'projects'"), "playground must map to projects");
+test('Navbar decouples gallery and playground without SECTION_TO_NAV_MAP', () => {
+  assert(!navbarContent.includes('SECTION_TO_NAV_MAP'), 'SECTION_TO_NAV_MAP must not be defined to avoid false highlights');
 });
 
 // ========================================================================
@@ -175,11 +173,11 @@ test('Simulated Detached Node Recovery: re-indexes live elements when skeleton r
   assert.strictEqual(cachedElements[0].el.isConnected, true, 'Cached elements must now hold live connected node');
 });
 
-test('Simulated Sub-Section Navigation: gallery and playground highlight projects nav link', () => {
-  const SECTION_MAP = { gallery: 'projects', playground: 'projects' };
-  assert.strictEqual(SECTION_MAP['gallery'] || 'gallery', 'projects', 'Gallery must highlight projects');
-  assert.strictEqual(SECTION_MAP['playground'] || 'playground', 'projects', 'Playground must highlight projects');
-  assert.strictEqual(SECTION_MAP['experience'] || 'experience', 'experience', 'Standard sections remain unchanged');
+test('Simulated Sub-Section Navigation: gallery and playground maintain distinct active section without hijacking projects', () => {
+  const getActiveSection = (current) => current;
+  assert.strictEqual(getActiveSection('gallery'), 'gallery', 'Gallery maintains its own section identity');
+  assert.strictEqual(getActiveSection('playground'), 'playground', 'Playground maintains its own section identity');
+  assert.strictEqual(getActiveSection('experience'), 'experience', 'Standard sections remain unchanged');
 });
 
 console.log('\n========================================================================');

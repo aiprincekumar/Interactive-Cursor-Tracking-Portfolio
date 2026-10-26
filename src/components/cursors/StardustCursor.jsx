@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { getInitialCursorPosition, saveCursorPosition } from '../../utils/cursorPersistence';
 
 /**
  * StardustCursor Component (मैजिक वैंड / Stardust & Celestial Wand)
@@ -55,31 +56,60 @@ function getTintedPalette(baseColor) {
   ];
 }
 
+const MAX_PARTICLES = 75;
+
+function createStardustParticlePool() {
+  const pool = new Array(MAX_PARTICLES);
+  for (let i = 0; i < MAX_PARTICLES; i++) {
+    pool[i] = {
+      active: false,
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      size: 0,
+      alpha: 0,
+      decay: 0,
+      color: 'rgba(255, 215, 0,',
+      isStar: false,
+      rot: 0,
+      rotSpeed: 0
+    };
+  }
+  return pool;
+}
+
 export default function StardustCursor({
   heroRef,
   isInsideHero,
+  isInsideHeroRef: propIsInsideHeroRef,
   speed = 0.16,
   trailEnabled = true,
   scale = 1,
   gravity = 0,
-  particleColor = null
+  particleColor = null,
+  initialPosition
 }) {
   const wandRef = useRef(null);
   const canvasRef = useRef(null);
-  const isInsideHeroRef = useRef(isInsideHero);
+  const fallbackHeroRef = useRef(false);
+  const isInsideHeroRef = propIsInsideHeroRef || (isInsideHero && typeof isInsideHero === 'object' && 'current' in isInsideHero ? isInsideHero : fallbackHeroRef);
   const speedRef = useRef(speed);
   const scaleRef = useRef(scale);
   const trailEnabledRef = useRef(trailEnabled);
   const gravityRef = useRef(gravity);
   const particleColorRef = useRef(particleColor);
+  const isCanvasDirtyRef = useRef(false);
+  const wakeLoopRef = useRef(null);
 
+  const resolvedInitialPos = initialPosition || getInitialCursorPosition();
   const posRef = useRef({
-    currentX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    currentY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    targetX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    targetY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    lastEmitX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    lastEmitY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
+    currentX: resolvedInitialPos.clientX,
+    currentY: resolvedInitialPos.clientY,
+    targetX: resolvedInitialPos.clientX,
+    targetY: resolvedInitialPos.clientY,
+    lastEmitX: resolvedInitialPos.clientX,
+    lastEmitY: resolvedInitialPos.clientY,
     vx: 0,
     vy: 0,
     wandAngle: -25,
@@ -87,33 +117,84 @@ export default function StardustCursor({
     isVisible: true
   });
 
-  const particlesRef = useRef([]);
+  const particlesRef = useRef(createStardustParticlePool());
 
   useEffect(() => {
-    isInsideHeroRef.current = isInsideHero;
-  }, [isInsideHero]);
+    if (isInsideHeroRef === fallbackHeroRef) {
+      fallbackHeroRef.current = Boolean(isInsideHero);
+    }
+  }, [isInsideHero, isInsideHeroRef]);
 
   useEffect(() => {
     speedRef.current = speed;
+    wakeLoopRef.current?.();
   }, [speed]);
 
   useEffect(() => {
     scaleRef.current = scale;
+    wakeLoopRef.current?.();
   }, [scale]);
 
   useEffect(() => {
     trailEnabledRef.current = trailEnabled;
+    wakeLoopRef.current?.();
   }, [trailEnabled]);
 
   useEffect(() => {
     gravityRef.current = gravity;
+    wakeLoopRef.current?.();
   }, [gravity]);
 
   useEffect(() => {
     particleColorRef.current = particleColor;
+    wakeLoopRef.current?.();
   }, [particleColor]);
 
   useEffect(() => {
+    let poolHead = 0;
+    const spawnParticle = (x, y, vx, vy, size, alpha, decay, color, isStar, rot, rotSpeed) => {
+      const pool = particlesRef.current;
+      let slot = null;
+      for (let i = 0; i < MAX_PARTICLES; i++) {
+        const idx = (poolHead + i) % MAX_PARTICLES;
+        if (!pool[idx].active) {
+          slot = pool[idx];
+          poolHead = (idx + 1) % MAX_PARTICLES;
+          break;
+        }
+      }
+      if (!slot) {
+        slot = pool[poolHead];
+        poolHead = (poolHead + 1) % MAX_PARTICLES;
+      }
+      slot.active = true;
+      slot.x = x;
+      slot.y = y;
+      slot.vx = vx;
+      slot.vy = vy;
+      slot.size = size;
+      slot.alpha = alpha;
+      slot.decay = decay;
+      slot.color = color;
+      slot.isStar = Boolean(isStar);
+      slot.rot = rot || 0;
+      slot.rotSpeed = rotSpeed || 0;
+      return slot;
+    };
+
+    let isRunning = false;
+    let animationFrameId = null;
+    let lastTime = performance.now();
+
+    const startLoop = () => {
+      if (!isRunning) {
+        isRunning = true;
+        lastTime = performance.now();
+        animationFrameId = requestAnimationFrame(loop);
+      }
+    };
+    wakeLoopRef.current = startLoop;
+
     const handlePointerMove = (e) => {
       const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
       const clientY = e.clientY ?? (e.touches && e.touches[0]?.clientY);
@@ -122,20 +203,27 @@ export default function StardustCursor({
         posRef.current.targetX = clientX;
         posRef.current.targetY = clientY;
         posRef.current.isVisible = true;
+        saveCursorPosition(clientX, clientY, false);
+        startLoop();
       }
     };
 
     const handlePointerLeave = () => {
       posRef.current.isVisible = false;
+      if (wandRef.current) {
+        wandRef.current.style.opacity = '0';
+      }
     };
 
     const handlePointerEnter = () => {
       posRef.current.isVisible = true;
+      startLoop();
     };
 
     // Magic wand click burst
     const handlePointerDown = () => {
       if (!trailEnabledRef.current) return;
+      startLoop();
       const state = posRef.current;
       const defaultCelestialColors = [
         'rgba(255, 215, 0,',   // Gold
@@ -149,19 +237,19 @@ export default function StardustCursor({
       for (let i = 0; i < 14; i++) {
         const ang = Math.random() * Math.PI * 2;
         const spd = Math.random() * 80 + 35;
-        particlesRef.current.push({
-          x: state.currentX,
-          y: state.currentY,
-          vx: Math.cos(ang) * spd,
-          vy: Math.sin(ang) * spd,
-          size: Math.random() * 3.5 + 2.0,
-          alpha: 1.0,
-          decay: Math.random() * 1.1 + 0.9,
-          color: celestialColors[Math.floor(Math.random() * celestialColors.length)],
-          isStar: true,
-          rot: Math.random() * Math.PI,
-          rotSpeed: (Math.random() - 0.5) * 12
-        });
+        spawnParticle(
+          state.currentX,
+          state.currentY,
+          Math.cos(ang) * spd,
+          Math.sin(ang) * spd,
+          Math.random() * 3.5 + 2.0,
+          1.0,
+          Math.random() * 1.1 + 0.9,
+          celestialColors[Math.floor(Math.random() * celestialColors.length)],
+          true,
+          Math.random() * Math.PI,
+          (Math.random() - 0.5) * 12
+        );
       }
     };
 
@@ -170,9 +258,6 @@ export default function StardustCursor({
     window.addEventListener('pointerdown', handlePointerDown, { passive: true });
     document.addEventListener('mouseleave', handlePointerLeave);
     document.addEventListener('mouseenter', handlePointerEnter);
-
-    let animationFrameId;
-    let lastTime = performance.now();
 
     const updateCanvasDimensions = () => {
       if (!canvasRef.current) return;
@@ -204,15 +289,22 @@ export default function StardustCursor({
       const lambda = Math.max(3.0, (speedRef.current || 0.16) * 85.0);
       const lerpFactor = 1.0 - Math.exp(-lambda * dt);
 
-      const prevX = state.currentX;
-      const prevY = state.currentY;
-      state.currentX += dx * lerpFactor;
-      state.currentY += dy * lerpFactor;
+      if (distance < 0.2) {
+        state.currentX = state.targetX;
+        state.currentY = state.targetY;
+        state.vx = 0;
+        state.vy = 0;
+      } else {
+        const prevX = state.currentX;
+        const prevY = state.currentY;
+        state.currentX += dx * lerpFactor;
+        state.currentY += dy * lerpFactor;
 
-      const instVx = (state.currentX - prevX) / dt;
-      const instVy = (state.currentY - prevY) / dt;
-      state.vx += (instVx - state.vx) * (1.0 - Math.exp(-12.0 * dt));
-      state.vy += (instVy - state.vy) * (1.0 - Math.exp(-12.0 * dt));
+        const instVx = (state.currentX - prevX) / dt;
+        const instVy = (state.currentY - prevY) / dt;
+        state.vx += (instVx - state.vx) * (1.0 - Math.exp(-12.0 * dt));
+        state.vy += (instVy - state.vy) * (1.0 - Math.exp(-12.0 * dt));
+      }
 
       // Wand tilt based on movement direction
       let targetWandAngle = -25;
@@ -221,6 +313,9 @@ export default function StardustCursor({
         targetWandAngle = Math.max(-45, Math.min(10, moveAng * 0.25 - 20));
       }
       state.wandAngle += (targetWandAngle - state.wandAngle) * (1.0 - Math.exp(-10.0 * dt));
+      if (distance <= 2 && Math.abs(state.wandAngle - (-25)) < 0.05) {
+        state.wandAngle = -25;
+      }
 
       // Wand DOM Position
       if (wandRef.current) {
@@ -235,73 +330,87 @@ export default function StardustCursor({
       }
 
       // Stardust Canvas Trail
+      let activeCount = 0;
+      const pool = particlesRef.current;
+
       if (trailEnabledRef.current && canvasRef.current) {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
 
         if (ctx) {
           const dpr = Math.min(window.devicePixelRatio || 1, 2);
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
 
           const emitDist = Math.hypot(state.currentX - state.lastEmitX, state.currentY - state.lastEmitY);
           const step = 8;
 
           if (emitDist >= step) {
             const count = Math.min(Math.floor(emitDist / step), 3);
+            const defaultPalette = [
+              'rgba(255, 215, 0,',
+              'rgba(244, 114, 182,',
+              'rgba(192, 132, 252,',
+              'rgba(96, 165, 250,',
+              'rgba(255, 255, 255,'
+            ];
+            const palette = (particleColorRef.current && getTintedPalette(particleColorRef.current)) || defaultPalette;
             for (let k = 1; k <= count; k++) {
-              if (particlesRef.current.length < 70) {
-                const t = k / count;
-                const px = state.lastEmitX + (state.currentX - state.lastEmitX) * t + (Math.random() - 0.5) * 6;
-                const py = state.lastEmitY + (state.currentY - state.lastEmitY) * t + (Math.random() - 0.5) * 6;
+              const t = k / count;
+              const px = state.lastEmitX + (state.currentX - state.lastEmitX) * t + (Math.random() - 0.5) * 6;
+              const py = state.lastEmitY + (state.currentY - state.lastEmitY) * t + (Math.random() - 0.5) * 6;
+              const color = palette[Math.floor(Math.random() * palette.length)];
 
-                const defaultPalette = [
-                  'rgba(255, 215, 0,',
-                  'rgba(244, 114, 182,',
-                  'rgba(192, 132, 252,',
-                  'rgba(96, 165, 250,',
-                  'rgba(255, 255, 255,'
-                ];
-                const palette = (particleColorRef.current && getTintedPalette(particleColorRef.current)) || defaultPalette;
-                const color = palette[Math.floor(Math.random() * palette.length)];
-
-                particlesRef.current.push({
-                  x: px,
-                  y: py,
-                  vx: (Math.random() - 0.5) * 14 - state.vx * 0.05,
-                  vy: (Math.random() - 0.5) * 14 - state.vy * 0.05 + 8,
-                  size: Math.random() * 2.8 + 1.2,
-                  alpha: 0.95,
-                  decay: Math.random() * 0.9 + 1.1,
-                  color,
-                  isStar: Math.random() > 0.4,
-                  rot: Math.random() * Math.PI,
-                  rotSpeed: (Math.random() - 0.5) * 8
-                });
-              }
+              spawnParticle(
+                px,
+                py,
+                (Math.random() - 0.5) * 14 - state.vx * 0.05,
+                (Math.random() - 0.5) * 14 - state.vy * 0.05 + 8,
+                Math.random() * 2.8 + 1.2,
+                0.95,
+                Math.random() * 0.9 + 1.1,
+                color,
+                Math.random() > 0.4,
+                Math.random() * Math.PI,
+                (Math.random() - 0.5) * 8
+              );
             }
             state.lastEmitX = state.currentX;
             state.lastEmitY = state.currentY;
           }
 
-          if (particlesRef.current.length > 0) {
-            ctx.save();
-            ctx.scale(dpr, dpr);
-            ctx.globalCompositeOperation = 'lighter';
+          // In-place updates without garbage generation
+          const currentGravity = gravityRef.current || 0;
+          for (let i = 0; i < MAX_PARTICLES; i++) {
+            const p = pool[i];
+            if (!p.active) continue;
 
-            for (let i = particlesRef.current.length - 1; i >= 0; i--) {
-              const p = particlesRef.current[i];
-              p.vy += (gravityRef.current || 0) * dt;
-              p.x += p.vx * dt;
-              p.y += p.vy * dt;
-              p.vx *= 0.96;
-              p.vy *= 0.96;
-              p.rot += p.rotSpeed * dt;
-              p.alpha -= p.decay * dt;
-              p.size = Math.max(0, p.size - dt * 0.5);
+            p.vy += currentGravity * dt;
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.vx *= 0.96;
+            p.vy *= 0.96;
+            p.rot += p.rotSpeed * dt;
+            p.alpha -= p.decay * dt;
+            p.size = Math.max(0, p.size - dt * 0.5);
 
-              if (p.alpha <= 0 || p.size <= 0) {
-                particlesRef.current.splice(i, 1);
-              } else {
+            if (p.alpha <= 0 || p.size <= 0) {
+              p.active = false;
+            } else {
+              activeCount++;
+            }
+          }
+
+          const isDirty = activeCount > 0 || isCanvasDirtyRef.current;
+          if (isDirty) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (activeCount > 0) {
+              ctx.save();
+              ctx.scale(dpr, dpr);
+              ctx.globalCompositeOperation = 'lighter';
+
+              for (let i = 0; i < MAX_PARTICLES; i++) {
+                const p = pool[i];
+                if (!p.active) continue;
+
                 ctx.fillStyle = `${p.color} ${p.alpha.toFixed(2)})`;
 
                 if (p.isStar) {
@@ -323,23 +432,42 @@ export default function StardustCursor({
                   ctx.fill();
                 }
               }
+              ctx.restore();
+              isCanvasDirtyRef.current = true;
+            } else {
+              isCanvasDirtyRef.current = false;
             }
-            ctx.restore();
           }
         }
       } else if (!trailEnabledRef.current && canvasRef.current) {
-        if (particlesRef.current.length > 0) particlesRef.current = [];
-        const ctx = canvasRef.current.getContext('2d');
-        if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        if (isCanvasDirtyRef.current) {
+          for (let i = 0; i < MAX_PARTICLES; i++) pool[i].active = false;
+          const ctx = canvasRef.current.getContext('2d');
+          if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+          isCanvasDirtyRef.current = false;
+        }
+      }
+
+      // Idle Sleep Mode: stop rAF loop when cursor is stationary and active particles count reaches 0
+      if (distance < 0.2 && state.wandAngle === -25 && activeCount === 0 && !isCanvasDirtyRef.current) {
+        isRunning = false;
+        animationFrameId = null;
+        return;
       }
 
       animationFrameId = requestAnimationFrame(loop);
     };
 
-    animationFrameId = requestAnimationFrame(loop);
+    startLoop();
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      isRunning = false;
+      wakeLoopRef.current = null;
+      for (let i = 0; i < MAX_PARTICLES; i++) {
+        particlesRef.current[i].active = false;
+      }
+      isCanvasDirtyRef.current = false;
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('touchmove', handlePointerMove);
       window.removeEventListener('pointerdown', handlePointerDown);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Layers, X, Sliders, Eye, BotMessageSquare, Filter, Briefcase } from 'lucide-react';
-import { useLab } from '../context/LabContext';
+import { useLabDrawer, useLabAudio } from '../context/LabContext';
 import { useSimpleMode } from '../context/SimpleModeContext';
 import { useAudience } from '../context/AudienceContext';
 import { useViewMode } from '../context/ViewModeContext';
@@ -73,20 +73,27 @@ export default function FloatingActionHub() {
   const isFilterActive = audienceContext?.isFilterActive ?? (audience !== 'all');
   const activeAudienceData = audienceContext?.activeModeData;
 
-  // Lab Context (safe access)
-  let labContext = null;
+  // Lab Drawer & Audio Contexts (safe access)
+  let drawerContext = null;
+  let audioContext = null;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    labContext = useLab();
+    drawerContext = useLabDrawer();
+  } catch {
+    // safe fallback
+  }
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    audioContext = useLabAudio();
   } catch {
     // safe fallback
   }
 
-  const isDrawerOpen = labContext?.isDrawerOpen ?? false;
-  const toggleDrawer = labContext?.toggleDrawer;
-  const openDrawer = labContext?.openDrawer;
-  const closeDrawer = labContext?.closeDrawer;
-  const soundEnabled = labContext?.soundEnabled ?? true;
+  const isDrawerOpen = drawerContext?.isDrawerOpen ?? false;
+  const toggleDrawer = drawerContext?.toggleDrawer;
+  const openDrawer = drawerContext?.openDrawer;
+  const closeDrawer = drawerContext?.closeDrawer;
+  const soundEnabled = audioContext?.soundEnabled ?? true;
 
   // WhatsApp unlocked contact state
   const [unlockedData, setUnlockedData] = useState(() => {
@@ -559,7 +566,7 @@ export default function FloatingActionHub() {
   // Elevated above chat box (z-[45]) with z-[60] (satisfies z-[50] minimum overlay specification)
   return (
     <div
-      className={`fixed bottom-6 sm:bottom-8 z-[60] select-none flex flex-col-reverse items-center gap-3 transition-all duration-300 ease-out ${
+      className={`fixed bottom-6 sm:bottom-8 z-[60] select-none pointer-events-none flex flex-col-reverse items-center gap-3 transition-all duration-300 ease-out ${
         isDrawerOpen ? 'sm:right-[460px] right-6' : 'right-6 sm:right-8'
       }`}
       role="region"
@@ -574,7 +581,7 @@ export default function FloatingActionHub() {
         aria-expanded={isOpen}
         aria-haspopup="true"
         title={isOpen ? 'सभी बटन छुपाएं (Hide All Buttons)' : 'सभी बटन दिखाएं (Show All Buttons)'}
-        className={`group relative flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 rounded-full transition-all duration-300 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D] border backdrop-blur-md hover:-translate-y-1 active:translate-y-0.5 active:scale-95 ${
+        className={`group relative pointer-events-auto flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 rounded-full transition-all duration-300 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D] border backdrop-blur-md hover:-translate-y-1 active:translate-y-0.5 active:scale-95 ${
           isOpen
             ? 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white border-[#FF4D6D] shadow-[inset_0_2.5px_4px_0_rgba(255,255,255,0.75),inset_0_-4px_8px_0_rgba(0,0,0,0.4),0_8px_20px_-2px_rgba(255,77,109,0.5),0_4px_8px_rgba(0,0,0,0.3)] hover:shadow-[inset_0_2.5px_4px_0_rgba(255,255,255,0.85),inset_0_-4px_8px_0_rgba(0,0,0,0.4),0_12px_28px_-2px_rgba(255,77,109,0.65),0_6px_10px_rgba(0,0,0,0.35)]'
             : 'bg-linear-to-tr from-[#120D1D]/95 via-[#1E1229]/95 to-[#2E1838]/95 dark:from-[#120D1D]/95 dark:via-[#1E1229]/95 dark:to-[#2E1838]/95 text-[#FF4D6D] border-[#FF4D6D]/50 hover:border-[#FF4D6D] shadow-[inset_0_2.5px_4px_0_rgba(255,255,255,0.75),inset_0_-4px_8px_0_rgba(0,0,0,0.4),0_8px_20px_-2px_rgba(255,77,109,0.35),0_4px_8px_rgba(0,0,0,0.3)] hover:shadow-[inset_0_2.5px_4px_0_rgba(255,255,255,0.85),inset_0_-4px_8px_0_rgba(0,0,0,0.4),0_12px_28px_-2px_rgba(255,77,109,0.55),0_6px_10px_rgba(0,0,0,0.35)]'
@@ -630,6 +637,7 @@ export default function FloatingActionHub() {
           const isAudienceTrigger = item.id === 'audience-filter';
           const isViewModeTrigger = item.id === 'view-mode';
           const isJobRoleTrigger = item.id === 'job-role-filter';
+          const isAIChatTrigger = item.id === 'ai-chat';
 
           const commonProps = {
             id: isAudienceTrigger
@@ -638,16 +646,19 @@ export default function FloatingActionHub() {
               ? 'view-mode-trigger'
               : isJobRoleTrigger
               ? 'job-role-trigger'
+              : isAIChatTrigger
+              ? 'ai-chat-trigger'
               : undefined,
             'data-audience-filter-trigger': isAudienceTrigger ? 'true' : undefined,
             'data-view-mode-trigger': isViewModeTrigger ? 'true' : undefined,
             'data-job-role-trigger': isJobRoleTrigger ? 'true' : undefined,
+            'data-ai-chat-trigger': isAIChatTrigger ? 'true' : undefined,
             role: 'menuitem',
             tabIndex: isOpen ? 0 : -1,
             'aria-label': item.ariaLabel || item.label,
             title: item.pill ? undefined : item.label,
             style: { transitionDelay },
-            className: `group relative flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full backdrop-blur-md transition-all duration-300 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D] ${item.buttonClass}`
+            className: `group relative pointer-events-auto flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full backdrop-blur-md transition-all duration-300 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D] ${item.buttonClass}`
           };
 
           const innerContent = (
@@ -667,7 +678,7 @@ export default function FloatingActionHub() {
           );
 
           return (
-            <div key={item.id} className="relative flex items-center justify-center">
+            <div key={item.id} className="relative flex items-center justify-center pointer-events-auto">
               {item.pill}
               {item.isLink ? (
                 <a

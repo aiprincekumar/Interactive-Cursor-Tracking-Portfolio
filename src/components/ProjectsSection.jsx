@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { Sparkles, ArrowUpRight, Check, X, RefreshCw, BookOpen } from 'lucide-react';
 import { GithubIcon } from './Icons';
 import { soundFX } from '../utils/audio';
@@ -147,7 +147,7 @@ const VIBE_CODING_PROJECTS = [
   }
 ];
 
-export default function ProjectsSection({ onOpenCaseStudy }) {
+function ProjectsSection({ onOpenCaseStudy }) {
   const handleOpenCaseStudy = (id) => {
     if (typeof onOpenCaseStudy === 'function') {
       onOpenCaseStudy(id);
@@ -1800,3 +1800,6 @@ export default function ProjectsSection({ onOpenCaseStudy }) {
     </section>
   );
 }
+
+ProjectsSection.displayName = 'ProjectsSection';
+export default memo(ProjectsSection);

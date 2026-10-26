@@ -1,5 +1,5 @@
 /* oxlint-disable react/no-danger */
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { memo, useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   Globe,
   Briefcase,
@@ -46,7 +46,7 @@ const ICON_MAP = {
   Terminal
 };
 
-export default function FAQSection() {
+function FAQSection() {
   const { isSimpleMode } = useSimpleMode();
   let audienceContext = null;
   try {
@@ -775,3 +775,6 @@ export default function FAQSection() {
     </section>
   );
 }
+
+FAQSection.displayName = 'FAQSection';
+export default memo(FAQSection);

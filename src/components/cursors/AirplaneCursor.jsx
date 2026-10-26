@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { getInitialCursorPosition, saveCursorPosition } from '../../utils/cursorPersistence';
 
 /**
  * AirplaneCursor Component (ओरिगेमी पेपर प्लेन / Origami Paper Plane)
@@ -10,27 +11,53 @@ import React, { useEffect, useRef } from 'react';
  * - Dual wingtip aerodynamic vapor / wind condensation trails on canvas
  * - Hardware-accelerated GPU transforms (60-120+ FPS lock)
  */
+const MAX_PARTICLES = 75;
+
+function createAirplaneParticlePool() {
+  const pool = new Array(MAX_PARTICLES);
+  for (let i = 0; i < MAX_PARTICLES; i++) {
+    pool[i] = {
+      active: false,
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      size: 0,
+      alpha: 0,
+      decay: 0,
+      color: 'rgba(255, 255, 255,'
+    };
+  }
+  return pool;
+}
+
 export default function AirplaneCursor({
   heroRef,
   isInsideHero,
+  isInsideHeroRef: propIsInsideHeroRef,
   speed = 0.15,
   trailEnabled = true,
-  scale = 1
+  scale = 1,
+  initialPosition
 }) {
   const planeRef = useRef(null);
   const canvasRef = useRef(null);
-  const isInsideHeroRef = useRef(isInsideHero);
+  const fallbackHeroRef = useRef(false);
+  const isInsideHeroRef = propIsInsideHeroRef || (isInsideHero && typeof isInsideHero === 'object' && 'current' in isInsideHero ? isInsideHero : fallbackHeroRef);
   const speedRef = useRef(speed);
   const scaleRef = useRef(scale);
   const trailEnabledRef = useRef(trailEnabled);
+  const isCanvasDirtyRef = useRef(false);
+  const wakeLoopRef = useRef(null);
 
+  const resolvedInitialPos = initialPosition || getInitialCursorPosition();
   const posRef = useRef({
-    currentX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    currentY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    targetX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    targetY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    lastEmitX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    lastEmitY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
+    currentX: resolvedInitialPos.clientX,
+    currentY: resolvedInitialPos.clientY,
+    targetX: resolvedInitialPos.clientX,
+    targetY: resolvedInitialPos.clientY,
+    lastEmitX: resolvedInitialPos.clientX,
+    lastEmitY: resolvedInitialPos.clientY,
     vx: 0,
     vy: 0,
     angle: 0,
@@ -40,25 +67,71 @@ export default function AirplaneCursor({
     isVisible: true
   });
 
-  const particlesRef = useRef([]);
+  const particlesRef = useRef(createAirplaneParticlePool());
 
   useEffect(() => {
-    isInsideHeroRef.current = isInsideHero;
-  }, [isInsideHero]);
+    if (isInsideHeroRef === fallbackHeroRef) {
+      fallbackHeroRef.current = Boolean(isInsideHero);
+    }
+  }, [isInsideHero, isInsideHeroRef]);
 
   useEffect(() => {
     speedRef.current = speed;
+    wakeLoopRef.current?.();
   }, [speed]);
 
   useEffect(() => {
     scaleRef.current = scale;
+    wakeLoopRef.current?.();
   }, [scale]);
 
   useEffect(() => {
     trailEnabledRef.current = trailEnabled;
+    wakeLoopRef.current?.();
   }, [trailEnabled]);
 
   useEffect(() => {
+    let poolHead = 0;
+    const spawnParticle = (x, y, vx, vy, size, alpha, decay, color) => {
+      const pool = particlesRef.current;
+      let slot = null;
+      for (let i = 0; i < MAX_PARTICLES; i++) {
+        const idx = (poolHead + i) % MAX_PARTICLES;
+        if (!pool[idx].active) {
+          slot = pool[idx];
+          poolHead = (idx + 1) % MAX_PARTICLES;
+          break;
+        }
+      }
+      if (!slot) {
+        slot = pool[poolHead];
+        poolHead = (poolHead + 1) % MAX_PARTICLES;
+      }
+      slot.active = true;
+      slot.x = x;
+      slot.y = y;
+      slot.vx = vx;
+      slot.vy = vy;
+      slot.size = size;
+      slot.alpha = alpha;
+      slot.decay = decay;
+      slot.color = color;
+      return slot;
+    };
+
+    let isRunning = false;
+    let animationFrameId = null;
+    let lastTime = performance.now();
+
+    const startLoop = () => {
+      if (!isRunning) {
+        isRunning = true;
+        lastTime = performance.now();
+        animationFrameId = requestAnimationFrame(loop);
+      }
+    };
+    wakeLoopRef.current = startLoop;
+
     const handlePointerMove = (e) => {
       const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
       const clientY = e.clientY ?? (e.touches && e.touches[0]?.clientY);
@@ -67,34 +140,41 @@ export default function AirplaneCursor({
         posRef.current.targetX = clientX;
         posRef.current.targetY = clientY;
         posRef.current.isVisible = true;
+        saveCursorPosition(clientX, clientY, false);
+        startLoop();
       }
     };
 
     const handlePointerLeave = () => {
       posRef.current.isVisible = false;
+      if (planeRef.current) {
+        planeRef.current.style.opacity = '0';
+      }
     };
 
     const handlePointerEnter = () => {
       posRef.current.isVisible = true;
+      startLoop();
     };
 
     // Aerodynamic jet puff on click
     const handlePointerDown = () => {
       if (!trailEnabledRef.current) return;
+      startLoop();
       const state = posRef.current;
       for (let i = 0; i < 8; i++) {
         const ang = Math.random() * Math.PI * 2;
         const spd = Math.random() * 50 + 20;
-        particlesRef.current.push({
-          x: state.currentX,
-          y: state.currentY,
-          vx: Math.cos(ang) * spd,
-          vy: Math.sin(ang) * spd,
-          size: Math.random() * 4.0 + 2.0,
-          alpha: 0.8,
-          decay: Math.random() * 1.2 + 1.0,
-          color: 'rgba(255, 255, 255,'
-        });
+        spawnParticle(
+          state.currentX,
+          state.currentY,
+          Math.cos(ang) * spd,
+          Math.sin(ang) * spd,
+          Math.random() * 4.0 + 2.0,
+          0.8,
+          Math.random() * 1.2 + 1.0,
+          'rgba(255, 255, 255,'
+        );
       }
     };
 
@@ -103,9 +183,6 @@ export default function AirplaneCursor({
     window.addEventListener('pointerdown', handlePointerDown, { passive: true });
     document.addEventListener('mouseleave', handlePointerLeave);
     document.addEventListener('mouseenter', handlePointerEnter);
-
-    let animationFrameId;
-    let lastTime = performance.now();
 
     const updateCanvasDimensions = () => {
       if (!canvasRef.current) return;
@@ -135,16 +212,24 @@ export default function AirplaneCursor({
       const lambda = Math.max(3.0, (speedRef.current || 0.15) * 80.0);
       const lerpFactor = 1.0 - Math.exp(-lambda * dt);
 
-      const prevX = state.currentX;
-      const prevY = state.currentY;
-      state.currentX += dx * lerpFactor;
-      state.currentY += dy * lerpFactor;
+      if (distance < 0.2) {
+        state.currentX = state.targetX;
+        state.currentY = state.targetY;
+        state.vx = 0;
+        state.vy = 0;
+        state.speedPxPerSec = 0;
+      } else {
+        const prevX = state.currentX;
+        const prevY = state.currentY;
+        state.currentX += dx * lerpFactor;
+        state.currentY += dy * lerpFactor;
 
-      const instVx = (state.currentX - prevX) / dt;
-      const instVy = (state.currentY - prevY) / dt;
-      state.vx += (instVx - state.vx) * (1.0 - Math.exp(-14.0 * dt));
-      state.vy += (instVy - state.vy) * (1.0 - Math.exp(-14.0 * dt));
-      state.speedPxPerSec = Math.hypot(state.vx, state.vy);
+        const instVx = (state.currentX - prevX) / dt;
+        const instVy = (state.currentY - prevY) / dt;
+        state.vx += (instVx - state.vx) * (1.0 - Math.exp(-14.0 * dt));
+        state.vy += (instVy - state.vy) * (1.0 - Math.exp(-14.0 * dt));
+        state.speedPxPerSec = Math.hypot(state.vx, state.vy);
+      }
 
       // Orientation Heading & Aerodynamic Banking
       if (distance > 2.0) {
@@ -156,10 +241,11 @@ export default function AirplaneCursor({
         const targetBank = Math.max(-32, Math.min(32, angleDiff * 0.55));
         state.bankAngle += (targetBank - state.bankAngle) * (1.0 - Math.exp(-16.0 * dt));
       } else {
-        // Idle gentle float sway
-        state.idleTime += dt * 2.5;
-        const idleTilt = Math.sin(state.idleTime * 1.5) * 5.0;
-        state.bankAngle += (idleTilt - state.bankAngle) * (1.0 - Math.exp(-8.0 * dt));
+        // Wings level out when stopping
+        state.bankAngle += (0 - state.bankAngle) * (1.0 - Math.exp(-12.0 * dt));
+        if (Math.abs(state.bankAngle) < 0.05) {
+          state.bankAngle = 0;
+        }
       }
 
       // DOM Update
@@ -175,13 +261,15 @@ export default function AirplaneCursor({
       }
 
       // Canvas Contrail & Wind Vapor Trail
+      let activeCount = 0;
+      const pool = particlesRef.current;
+
       if (trailEnabledRef.current && canvasRef.current) {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
 
         if (ctx) {
           const dpr = Math.min(window.devicePixelRatio || 1, 2);
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
 
           const emitDist = Math.hypot(state.currentX - state.lastEmitX, state.currentY - state.lastEmitY);
           const step = 8;
@@ -195,71 +283,100 @@ export default function AirplaneCursor({
             const rightWingX = state.currentX + Math.cos(rad + Math.PI / 2) * wingDist;
             const rightWingY = state.currentY + Math.sin(rad + Math.PI / 2) * wingDist;
 
-            // Emit dual wingtip ribbon vapor
-            if (particlesRef.current.length < 60) {
-              // Left contrail
-              particlesRef.current.push({
-                x: leftWingX,
-                y: leftWingY,
-                vx: -state.vx * 0.05 + (Math.random() - 0.5) * 4,
-                vy: -state.vy * 0.05 + (Math.random() - 0.5) * 4,
-                size: Math.random() * 2.0 + 1.2,
-                alpha: 0.65,
-                decay: 1.4,
-                color: 'rgba(255, 255, 255,'
-              });
-              // Right contrail
-              particlesRef.current.push({
-                x: rightWingX,
-                y: rightWingY,
-                vx: -state.vx * 0.05 + (Math.random() - 0.5) * 4,
-                vy: -state.vy * 0.05 + (Math.random() - 0.5) * 4,
-                size: Math.random() * 2.0 + 1.2,
-                alpha: 0.65,
-                decay: 1.4,
-                color: 'rgba(255, 255, 255,'
-              });
-            }
+            // Emit dual wingtip ribbon vapor using pool
+            spawnParticle(
+              leftWingX,
+              leftWingY,
+              -state.vx * 0.05 + (Math.random() - 0.5) * 4,
+              -state.vy * 0.05 + (Math.random() - 0.5) * 4,
+              Math.random() * 2.0 + 1.2,
+              0.65,
+              1.4,
+              'rgba(255, 255, 255,'
+            );
+            spawnParticle(
+              rightWingX,
+              rightWingY,
+              -state.vx * 0.05 + (Math.random() - 0.5) * 4,
+              -state.vy * 0.05 + (Math.random() - 0.5) * 4,
+              Math.random() * 2.0 + 1.2,
+              0.65,
+              1.4,
+              'rgba(255, 255, 255,'
+            );
+
             state.lastEmitX = state.currentX;
             state.lastEmitY = state.currentY;
           }
 
-          if (particlesRef.current.length > 0) {
-            ctx.save();
-            ctx.scale(dpr, dpr);
+          // Update active particles in pool
+          for (let i = 0; i < MAX_PARTICLES; i++) {
+            const p = pool[i];
+            if (!p.active) continue;
 
-            for (let i = particlesRef.current.length - 1; i >= 0; i--) {
-              const p = particlesRef.current[i];
-              p.x += p.vx * dt;
-              p.y += p.vy * dt;
-              p.alpha -= p.decay * dt;
-              p.size = Math.max(0, p.size + dt * 1.5); // expand slightly like vapor
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.alpha -= p.decay * dt;
+            p.size = Math.max(0, p.size + dt * 1.5); // expand slightly like vapor
 
-              if (p.alpha <= 0) {
-                particlesRef.current.splice(i, 1);
-              } else {
+            if (p.alpha <= 0) {
+              p.active = false;
+            } else {
+              activeCount++;
+            }
+          }
+
+          // Render only when canvas has active particles or needs cleaning
+          const isDirty = activeCount > 0 || isCanvasDirtyRef.current;
+          if (isDirty) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (activeCount > 0) {
+              ctx.save();
+              ctx.scale(dpr, dpr);
+              for (let i = 0; i < MAX_PARTICLES; i++) {
+                const p = pool[i];
+                if (!p.active) continue;
                 ctx.fillStyle = `${p.color} ${p.alpha.toFixed(2)})`;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                 ctx.fill();
               }
+              ctx.restore();
+              isCanvasDirtyRef.current = true;
+            } else {
+              isCanvasDirtyRef.current = false;
             }
-            ctx.restore();
           }
         }
       } else if (!trailEnabledRef.current && canvasRef.current) {
-        if (particlesRef.current.length > 0) particlesRef.current = [];
-        const ctx = canvasRef.current.getContext('2d');
-        if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        if (isCanvasDirtyRef.current) {
+          for (let i = 0; i < MAX_PARTICLES; i++) pool[i].active = false;
+          const ctx = canvasRef.current.getContext('2d');
+          if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+          isCanvasDirtyRef.current = false;
+        }
+      }
+
+      // Idle Sleep Mode: when cursor velocity is zero and all particles have settled/faded, pause rAF
+      if (distance < 0.2 && Math.abs(state.bankAngle) < 0.05 && activeCount === 0 && !isCanvasDirtyRef.current) {
+        isRunning = false;
+        animationFrameId = null;
+        return;
       }
 
       animationFrameId = requestAnimationFrame(loop);
     };
 
-    animationFrameId = requestAnimationFrame(loop);
+    startLoop();
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      isRunning = false;
+      wakeLoopRef.current = null;
+      for (let i = 0; i < MAX_PARTICLES; i++) {
+        particlesRef.current[i].active = false;
+      }
+      isCanvasDirtyRef.current = false;
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('touchmove', handlePointerMove);
       window.removeEventListener('pointerdown', handlePointerDown);

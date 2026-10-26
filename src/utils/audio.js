@@ -612,6 +612,124 @@ class SoundFX {
     osc.stop(t + 0.14);
   }
 
+  // 14. 3D Spatial Audio Ping (Acoustic Impulse & Room Reverberation Soundfield Test Ping)
+  playSpatialPing(options = {}) {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+
+    const {
+      pan = 0,
+      roomSize = 'studio',
+      reverbIntensity = 0.5
+    } = options;
+
+    this.triggerHaptic([12, 24, 18]);
+    const t = this.ctx.currentTime;
+    const mult = this.pitchMultiplier || 1.0;
+
+    // Spatial Panner Node (StereoPannerNode with fallback)
+    let panner = null;
+    if (typeof this.ctx.createStereoPanner === 'function') {
+      try {
+        panner = this.ctx.createStereoPanner();
+        const panVal = Math.max(-1, Math.min(1, typeof pan === 'number' ? pan : 0));
+        panner.pan.setValueAtTime(panVal, t);
+      } catch {
+        panner = null;
+      }
+    }
+
+    // Room acoustic profiles: decay multiplier and reflections
+    let decayMultiplier = 1.0;
+    let reflectionCount = 2;
+    let delayTime = 0.08;
+
+    if (roomSize === 'booth') {
+      decayMultiplier = 0.45;
+      reflectionCount = 1;
+      delayTime = 0.04;
+    } else if (roomSize === 'cathedral') {
+      decayMultiplier = 2.4;
+      reflectionCount = 4;
+      delayTime = 0.16;
+    } else {
+      // studio
+      decayMultiplier = 1.0;
+      reflectionCount = 2;
+      delayTime = 0.08;
+    }
+
+    const reverb = Math.max(0, Math.min(1, typeof reverbIntensity === 'number' ? reverbIntensity : 0.5));
+    const envelopeDecay = (0.28 + reverb * 0.42) * decayMultiplier;
+
+    // Harmonic oscillator pair: 880Hz (A5) + 1320Hz (E6 harmonic overtone)
+    const f1 = Math.max(20, Math.min(20000, 880 * mult));
+    const f2 = Math.max(20, Math.min(20000, 1320 * mult));
+
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const chimeGain = this.ctx.createGain();
+
+    osc1.type = 'sine';
+    osc2.type = 'triangle';
+
+    osc1.frequency.setValueAtTime(f1, t);
+    osc1.frequency.exponentialRampToValueAtTime(f1 * 0.99, t + envelopeDecay);
+
+    osc2.frequency.setValueAtTime(f2, t);
+    osc2.frequency.exponentialRampToValueAtTime(f2 * 0.995, t + envelopeDecay);
+
+    // Dynamic envelope with swift 6ms attack and smooth exponential decay
+    chimeGain.gain.setValueAtTime(0.0001, t);
+    chimeGain.gain.linearRampToValueAtTime(0.18, t + 0.006);
+    chimeGain.gain.exponentialRampToValueAtTime(0.0001, t + envelopeDecay);
+
+    osc1.connect(chimeGain);
+    osc2.connect(chimeGain);
+
+    if (panner) {
+      chimeGain.connect(panner);
+      panner.connect(this.masterGain);
+    } else {
+      chimeGain.connect(this.masterGain);
+    }
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1.stop(t + envelopeDecay + 0.05);
+    osc2.stop(t + envelopeDecay + 0.05);
+
+    // Feedback reflections / reverberant soundfield tail
+    if (reverb > 0.05 && reflectionCount > 0) {
+      for (let i = 1; i <= reflectionCount; i++) {
+        const echoTime = t + (delayTime * i);
+        const echoGainNode = this.ctx.createGain();
+        const echoOsc = this.ctx.createOscillator();
+
+        echoOsc.type = 'sine';
+        echoOsc.frequency.setValueAtTime(f1 * (1 + (i * 0.015)), echoTime);
+
+        const echoVolume = 0.1 * Math.pow(0.55, i) * reverb;
+        const echoDuration = 0.16 * decayMultiplier;
+
+        echoGainNode.gain.setValueAtTime(0.0001, echoTime);
+        echoGainNode.gain.linearRampToValueAtTime(echoVolume, echoTime + 0.005);
+        echoGainNode.gain.exponentialRampToValueAtTime(0.0001, echoTime + echoDuration);
+
+        echoOsc.connect(echoGainNode);
+        if (panner) {
+          echoGainNode.connect(panner);
+        } else {
+          echoGainNode.connect(this.masterGain);
+        }
+
+        echoOsc.start(echoTime);
+        echoOsc.stop(echoTime + echoDuration + 0.02);
+      }
+    }
+  }
+
   // --- Sound Dispatcher Helper ---
   playSound(soundId) {
     switch (soundId) {
@@ -653,6 +771,11 @@ class SoundFX {
         break;
       case 'terminal-error':
         this.playTerminalError();
+        break;
+      case 'spatial-ping':
+      case 'spatial':
+      case 'ping':
+        this.playSpatialPing();
         break;
       default:
         this.playLaserFocus();

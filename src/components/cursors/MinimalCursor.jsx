@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { getInitialCursorPosition, saveCursorPosition } from '../../utils/cursorPersistence';
 
 /**
  * MinimalCursor Component (मैग्नेटिक मिनिमल रिंग और स्मूथ स्मॉल डॉट)
@@ -12,29 +13,33 @@ import React, { useEffect, useRef } from 'react';
 export default function MinimalCursor({
   heroRef,
   isInsideHero,
+  isInsideHeroRef: propIsInsideHeroRef,
   speed = 0.14,
   trailEnabled = true,
-  scale = 1
+  scale = 1,
+  initialPosition
 }) {
   const dotRef = useRef(null);
   const ringRef = useRef(null);
   const canvasRef = useRef(null);
-  const isInsideHeroRef = useRef(isInsideHero);
+  const fallbackHeroRef = useRef(false);
+  const isInsideHeroRef = propIsInsideHeroRef || (isInsideHero && typeof isInsideHero === 'object' && 'current' in isInsideHero ? isInsideHero : fallbackHeroRef);
   const speedRef = useRef(speed);
   const scaleRef = useRef(scale);
   const trailEnabledRef = useRef(trailEnabled);
 
+  const resolvedInitialPos = initialPosition || getInitialCursorPosition();
   const posRef = useRef({
     // Snappy inner dot coordinates
-    dotX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    dotY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
+    dotX: resolvedInitialPos.clientX,
+    dotY: resolvedInitialPos.clientY,
     // Smooth magnetic follower ring coordinates
-    ringX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    ringY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    targetX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    targetY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    lastEmitX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    lastEmitY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
+    ringX: resolvedInitialPos.clientX,
+    ringY: resolvedInitialPos.clientY,
+    targetX: resolvedInitialPos.clientX,
+    targetY: resolvedInitialPos.clientY,
+    lastEmitX: resolvedInitialPos.clientX,
+    lastEmitY: resolvedInitialPos.clientY,
     ringScale: 1,
     targetRingScale: 1,
     ripples: [],
@@ -44,8 +49,10 @@ export default function MinimalCursor({
   const particlesRef = useRef([]);
 
   useEffect(() => {
-    isInsideHeroRef.current = isInsideHero;
-  }, [isInsideHero]);
+    if (isInsideHeroRef === fallbackHeroRef) {
+      fallbackHeroRef.current = Boolean(isInsideHero);
+    }
+  }, [isInsideHero, isInsideHeroRef]);
 
   useEffect(() => {
     speedRef.current = speed;
@@ -68,6 +75,7 @@ export default function MinimalCursor({
         posRef.current.targetX = clientX;
         posRef.current.targetY = clientY;
         posRef.current.isVisible = true;
+        saveCursorPosition(clientX, clientY, false);
       }
     };
 

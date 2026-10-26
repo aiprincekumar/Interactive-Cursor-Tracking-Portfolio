@@ -7,10 +7,11 @@ import { useRoleTab } from '../context/RoleContext';
 import { useGyroscopeTracking } from '../hooks/useGyroscopeTracking';
 import { useDraggableCharacter } from '../hooks/useDraggableCharacter';
 import { formatVintageTimestamp } from '../utils/polaroidExport';
-import { useLab, POSE_INDEX_MAP, ZOOM_FOCUS_MAP } from '../context/LabContext';
+import { useLabCursor, useLabHero, POSE_INDEX_MAP, ZOOM_FOCUS_MAP } from '../context/LabContext';
 import { useSimpleMode } from '../context/SimpleModeContext';
 import { useAnnounce } from '../context/AnnouncerContext';
 import { useLanguage } from '../context/LanguageContext';
+import { getSavedCursorPosition, saveCursorPosition } from '../utils/cursorPersistence';
 
 /**
  * Full-Screen Reel-Accurate Character Hero Section
@@ -45,14 +46,24 @@ const IMG_UPPER_CENTER = IMG_CENTER_UP;
 const IMG_LEFT = IMG_CENTER_LEFT;
 const IMG_RIGHT = IMG_CENTER_RIGHT;
 
-export default function HeroSection({
+function HeroSection({
   heroRef,
   isInsideHero,
   setIsInsideHero,
+  isInsideHeroRef: propIsInsideHeroRef,
   onPhotoCaptured,
   forcedState,
   reducedMotion
 }) {
+  const fallbackInsideHeroRef = useRef(false);
+  const isInsideHeroRef = propIsInsideHeroRef || (isInsideHero && typeof isInsideHero === 'object' && 'current' in isInsideHero ? isInsideHero : fallbackInsideHeroRef);
+
+  useEffect(() => {
+    if (isInsideHeroRef === fallbackInsideHeroRef && typeof isInsideHero === 'boolean') {
+      fallbackInsideHeroRef.current = isInsideHero;
+    }
+  }, [isInsideHero, isInsideHeroRef]);
+
   const { isSimpleMode } = useSimpleMode();
   const { announce } = useAnnounce();
   let languageContext = null;
@@ -65,18 +76,19 @@ export default function HeroSection({
   const t = languageContext?.t ?? ((key, fallback) => fallback || key);
   const isHindi = languageContext?.isHindi ?? false;
   const { activeRole, activeTrack } = useRoleTab();
-  const lab = useLab();
-  const customCursorEnabled = lab?.customCursorEnabled ?? true;
-  const gazeMode = lab?.gazeMode ?? 'auto';
-  const poseOverride = lab?.poseOverride ?? null;
-  const characterZoom = lab?.characterZoom ?? 1.0;
-  const zoomFocus = lab?.zoomFocus ?? 'center';
-  const flashConfettiEnabled = lab?.flashConfettiEnabled ?? true;
-  const dragEnabled = lab?.dragEnabled ?? true;
-  const dragBoundaryConstrained = lab?.dragBoundaryConstrained ?? true;
-  const dragAutoSnapBack = lab?.dragAutoSnapBack ?? false;
-  const parallaxTiltEnabled = lab?.parallaxTiltEnabled ?? true;
-  const setCharacterZoom = lab?.setCharacterZoom;
+  const { customCursorEnabled = true } = useLabCursor() || {};
+  const {
+    gazeMode = 'auto',
+    poseOverride = null,
+    characterZoom = 1.0,
+    zoomFocus = 'center',
+    flashConfettiEnabled = true,
+    dragEnabled = true,
+    dragBoundaryConstrained = true,
+    dragAutoSnapBack = false,
+    parallaxTiltEnabled = true,
+    setCharacterZoom
+  } = useLabHero() || {};
 
   const [isFlashing, setIsFlashing] = useState(false);
   const [photosCount, setPhotosCount] = useState(0);
@@ -154,9 +166,12 @@ export default function HeroSection({
   // Keep isInsideHero in sync with simple mode
   useEffect(() => {
     if (isSimpleMode) {
-      setIsInsideHero(false);
+      if (isInsideHeroRef) isInsideHeroRef.current = false;
+      if (typeof setIsInsideHero === 'function') {
+        setIsInsideHero(false);
+      }
     }
-  }, [isSimpleMode, setIsInsideHero]);
+  }, [isSimpleMode, isInsideHeroRef, setIsInsideHero]);
 
   useEffect(() => {
     userScaleRef.current = userScale;
@@ -231,22 +246,51 @@ export default function HeroSection({
   fallbackLiftProgressRef.current = liftProgress;
   const liftProgressRef = hookLiftProgressRef || fallbackLiftProgressRef;
 
-  // Tracking state store
+  // Tracking state store - initialized with restored cursor coordinates for seamless gaze on reload
+  const restoredCursor = getSavedCursorPosition();
+  const initialPointerX = restoredCursor?.clientX ?? (typeof window !== 'undefined' ? window.innerWidth / 2 : 500);
+  const initialPointerY = restoredCursor?.clientY ?? (typeof window !== 'undefined' ? window.innerHeight / 2 : 400);
+
+  const isInitiallyInsideHero = Boolean(
+    restoredCursor &&
+    typeof window !== 'undefined' &&
+    initialPointerY >= 0 &&
+    initialPointerY <= window.innerHeight &&
+    initialPointerX >= 0 &&
+    initialPointerX <= window.innerWidth
+  );
+
+  const initNormX = isInitiallyInsideHero && typeof window !== 'undefined'
+    ? Math.max(-0.5, Math.min(0.5, (initialPointerX - window.innerWidth * 0.5) / (window.innerWidth * 0.5)))
+    : 0;
+  const initNormY = isInitiallyInsideHero && typeof window !== 'undefined'
+    ? Math.max(-0.5, Math.min(0.5, (initialPointerY - window.innerHeight * 0.5) / (window.innerHeight * 0.5)))
+    : 0;
+
   const animStateRef = useRef({
-    targetNormX: 0,
-    targetNormY: 0,
-    currentNormX: 0,
-    currentNormY: 0,
-    pointerX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    pointerY: typeof window !== 'undefined' ? window.innerHeight / 2 : 400,
-    activePose: 'idle',
-    isHovered: false,
-    hoverWeight: 0,
+    targetNormX: initNormX,
+    targetNormY: initNormY,
+    currentNormX: initNormX,
+    currentNormY: initNormY,
+    pointerX: initialPointerX,
+    pointerY: initialPointerY,
+    activePose: isInitiallyInsideHero ? 'center' : 'idle',
+    isHovered: isInitiallyInsideHero,
+    hoverWeight: isInitiallyInsideHero ? 1 : 0,
     breathingWeight: 1,
-    isPointerInteracting: false,
-    lastPointerTime: 0,
+    isPointerInteracting: Boolean(restoredCursor),
+    lastPointerTime: restoredCursor ? performance.now() : 0,
     rafId: null
   });
+
+  useEffect(() => {
+    if (isInitiallyInsideHero) {
+      isInsideHeroRef.current = true;
+      if (typeof setIsInsideHero === 'function') {
+        setIsInsideHero(true);
+      }
+    }
+  }, [isInitiallyInsideHero, isInsideHeroRef, setIsInsideHero]);
 
   const isHeroVisibleRef = useRef(true);
   const prevOpsRef = useRef({
@@ -262,10 +306,6 @@ export default function HeroSection({
     lowRight: -1
   });
 
-  const isInsideHeroRef = useRef(isInsideHero);
-  useEffect(() => {
-    isInsideHeroRef.current = isInsideHero;
-  }, [isInsideHero]);
 
   // Intelligent progressive loading & warm-up of non-critical character poses after first paint (FCP)
   useEffect(() => {
@@ -685,6 +725,7 @@ export default function HeroSection({
       state.pointerY = clientY;
       state.isPointerInteracting = true;
       state.lastPointerTime = performance.now();
+      saveCursorPosition(clientX, clientY, false);
 
       let rect = sectionRectRef.current;
       if (!rect) {
@@ -705,10 +746,16 @@ export default function HeroSection({
 
       if (isInside !== state.isHovered && !isGyroActive) {
         state.isHovered = isInside;
-        setIsInsideHero(isInside);
+        isInsideHeroRef.current = isInside;
+        if (typeof setIsInsideHero === 'function') {
+          setIsInsideHero(isInside);
+        }
       } else if (isGyroActive) {
         state.isHovered = true;
-        setIsInsideHero(true);
+        isInsideHeroRef.current = true;
+        if (typeof setIsInsideHero === 'function') {
+          setIsInsideHero(true);
+        }
       }
 
       if (isInside) {
@@ -758,7 +805,7 @@ export default function HeroSection({
       window.removeEventListener('touchend', handlePointerUp);
       window.removeEventListener('touchcancel', handlePointerUp);
     };
-  }, [reducedMotion, isSimpleMode, setIsInsideHero, gyro.gyroStateRef, updateSectionRect]);
+  }, [reducedMotion, isSimpleMode, isInsideHeroRef, setIsInsideHero, gyro.gyroStateRef, updateSectionRect]);
 
   // Floating HUD notification trigger
   const triggerHud = useCallback((customMsg = null, duration = 1500) => {
@@ -980,7 +1027,10 @@ export default function HeroSection({
       id="hero"
       aria-label="Introduction & Character Tracking"
       onPointerEnter={isSimpleMode ? undefined : () => {
-        setIsInsideHero(true);
+        isInsideHeroRef.current = true;
+        if (typeof setIsInsideHero === 'function') {
+          setIsInsideHero(true);
+        }
         animStateRef.current.isHovered = true;
       }}
       onPointerLeave={isSimpleMode ? undefined : () => {
@@ -991,7 +1041,10 @@ export default function HeroSection({
           state.targetNormX = gState.normX;
           state.targetNormY = gState.normY;
         } else {
-          setIsInsideHero(false);
+          isInsideHeroRef.current = false;
+          if (typeof setIsInsideHero === 'function') {
+            setIsInsideHero(false);
+          }
           state.isHovered = false;
           state.targetNormX = 0;
           state.targetNormY = 0;
@@ -1015,7 +1068,7 @@ export default function HeroSection({
           ? 'min-h-[75vh] md:min-h-[85vh] py-12 md:py-16'
           : 'h-screen min-h-screen'
       } overflow-hidden select-none bg-[#FAF8F5] dark:bg-[#0B0813] flex items-center justify-center transition-colors duration-300 touch-pan-y ${
-        !isSimpleMode && isInsideHero && !reducedMotion && customCursorEnabled ? 'cursor-none' : ''
+        !isSimpleMode && !reducedMotion && customCursorEnabled ? 'cursor-none' : ''
       }`}
       style={{ touchAction: isSimpleMode ? 'auto' : 'pan-y' }}
     >
@@ -1655,3 +1708,5 @@ export default function HeroSection({
     </section>
   );
 }
+
+export default React.memo(HeroSection);

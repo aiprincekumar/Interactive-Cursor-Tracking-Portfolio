@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 
 export default function ScrollProgressBar({ className = '' }) {
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const barRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     let ticking = false;
+    let lastAriaValue = 0;
 
     const calculateScroll = () => {
       const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
@@ -12,13 +14,19 @@ export default function ScrollProgressBar({ className = '' }) {
       const innerHeight = window.innerHeight || document.documentElement.clientHeight || 0;
       const maxScroll = scrollHeight - innerHeight;
 
-      if (maxScroll <= 0) {
-        setScrollProgress(0);
-      } else {
-        const percentage = (scrollY / maxScroll) * 100;
-        // Strictly clamp between 0% and 100% to handle rubber-banding / bounce
-        const clamped = Math.min(100, Math.max(0, percentage));
-        setScrollProgress(clamped);
+      const ratio = maxScroll > 0 ? Math.min(1, Math.max(0, scrollY / maxScroll)) : 0;
+
+      if (barRef.current) {
+        barRef.current.style.transform = `scaleX(${ratio})`;
+      }
+
+      // Accessibility: Update aria-valuenow in discrete 5% steps to prevent DOM mutation thrashing
+      const currentPercent = Math.round(ratio * 100);
+      if (Math.abs(currentPercent - lastAriaValue) >= 5 || currentPercent === 0 || currentPercent === 100) {
+        lastAriaValue = currentPercent;
+        if (containerRef.current) {
+          containerRef.current.setAttribute('aria-valuenow', String(currentPercent));
+        }
       }
 
       ticking = false;
@@ -26,12 +34,12 @@ export default function ScrollProgressBar({ className = '' }) {
 
     const handleScroll = () => {
       if (!ticking) {
-        window.requestAnimationFrame(calculateScroll);
         ticking = true;
+        window.requestAnimationFrame(calculateScroll);
       }
     };
 
-    // Initial calculation
+    // Initial calculation on mount
     calculateScroll();
 
     // Passive event listeners for optimal 60-120fps scrolling performance
@@ -46,16 +54,18 @@ export default function ScrollProgressBar({ className = '' }) {
 
   return (
     <div
+      ref={containerRef}
       role="progressbar"
       aria-label="Page scroll progress"
-      aria-valuenow={Math.round(scrollProgress)}
+      aria-valuenow={0}
       aria-valuemin={0}
       aria-valuemax={100}
       className={`absolute bottom-0 left-0 right-0 h-[2.5px] pointer-events-none overflow-hidden rounded-b-full z-20 ${className}`}
     >
       <div
-        className="h-full bg-gradient-to-r from-[#FF4D6D] to-[#FFAA00] transition-[width] duration-75 ease-out will-change-[width]"
-        style={{ width: `${scrollProgress}%` }}
+        ref={barRef}
+        className="w-full h-full bg-gradient-to-r from-[#FF4D6D] to-[#FFAA00] will-change-transform"
+        style={{ transform: 'scaleX(0)', transformOrigin: 'left center' }}
       />
     </div>
   );

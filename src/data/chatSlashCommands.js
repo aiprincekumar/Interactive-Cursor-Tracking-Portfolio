@@ -3,6 +3,12 @@
  * Comprehensive directory & response catalog for instant navigation, profile details, domain expertise, and utilities.
  */
 
+import { formatAnalyticsScorecard } from '../utils/chatAnalytics.js';
+import { searchPortfolio } from '../utils/portfolioSemanticIndex.js';
+import { PORTFOLIO_TOURS } from '../utils/chatTourEngine.js';
+import { generateMetaPrompt, META_PROMPT_TEMPLATES } from '../services/metaPromptEngine.js';
+
+
 export const CHAT_SLASH_COMMANDS = [
   // --- Navigation & Modes ---
   {
@@ -44,6 +50,14 @@ export const CHAT_SLASH_COMMANDS = [
     badge: '🧭 Navigation',
     icon: 'Briefcase',
     description: 'Filter for Accountant, MIS, Vibe Coder, Controller, or Overview'
+  },
+  {
+    command: '/model',
+    label: 'Switch AI Model (On-Device LLM)',
+    category: 'Navigation',
+    badge: '🤖 AI Model',
+    icon: 'Bot',
+    description: 'Select local On-Device AI neural model or offline engine'
   },
   {
     command: '/terminal',
@@ -92,6 +106,14 @@ export const CHAT_SLASH_COMMANDS = [
     badge: '🧭 Navigation',
     icon: 'RotateCcw',
     description: 'Dock assistant back to bottom-right corner'
+  },
+  {
+    command: '/tour',
+    label: 'Interactive Guided Tours',
+    category: 'Navigation',
+    badge: '🧭 Navigation',
+    icon: 'Compass',
+    description: 'Launch guided interactive tours for recruiters, clients, or engineers'
   },
 
   // --- Profile & Competencies ---
@@ -242,12 +264,52 @@ export const CHAT_SLASH_COMMANDS = [
     description: 'Claude Code, Google Antigravity SDK, and MCP tool calling'
   },
   {
+    command: '/grill-me',
+    label: 'Architectural & System Design Grill Mode',
+    category: 'AI & Intelligence',
+    badge: '🔥 Interview',
+    icon: 'Flame',
+    description: 'Interactive architectural & system design interview mode'
+  },
+  {
+    command: '/engineer',
+    label: 'Meta-Prompt Engineer & Studio',
+    category: 'AI & Intelligence',
+    badge: '⚡ Meta-Prompt',
+    icon: 'Sparkles',
+    description: 'Transform goals into executable commands, structured meta-prompts & engineering suggestions'
+  },
+  {
+    command: '/prompt',
+    label: 'Prompt Studio & Architect',
+    category: 'AI & Intelligence',
+    badge: '⚡ Meta-Prompt',
+    icon: 'Zap',
+    description: 'Generate production-ready structured LLM meta-prompts with refinement tips'
+  },
+  {
+    command: '/metaprompt',
+    label: 'Engineered Meta-Prompt Generator',
+    category: 'AI & Intelligence',
+    badge: '⚡ Meta-Prompt',
+    icon: 'Cpu',
+    description: 'Create dual-card command + meta-prompt specifications for any technical task'
+  },
+  {
     command: '/automation',
     label: 'Financial & Workflow Automation',
     category: 'Domain',
     badge: '📊 Domain',
     icon: 'Sliders',
     description: 'Scripts, reconciliation bots, and batch processing'
+  },
+  {
+    command: '/tools',
+    label: 'Tools & Technology Stack',
+    category: 'Domain',
+    badge: '📊 Domain',
+    icon: 'Cpu',
+    description: 'Accounting ERPs, AI IDEs, agentic frameworks, and dev tools'
   },
 
   // --- Commercial & Engagement ---
@@ -364,6 +426,86 @@ export const CHAT_SLASH_COMMANDS = [
     badge: '⚡ Utility',
     icon: 'Lightbulb',
     description: 'Best ways to navigate based on recruiter, client, or hiring needs'
+  },
+  {
+    command: '/export',
+    label: 'Export Chat Transcript',
+    category: 'Utility',
+    badge: '⚡ Utility',
+    icon: 'Download',
+    description: 'Export chat transcript in Markdown, Plain Text, JSON, or HTML format'
+  },
+  {
+    command: '/history',
+    label: 'Conversation Session Archive',
+    category: 'Utility',
+    badge: '⚡ Utility',
+    icon: 'History',
+    description: 'Manage and switch between up to 10 stored local conversation sessions'
+  },
+  {
+    command: '/analytics',
+    label: 'AI Performance Telemetry',
+    category: 'Utility',
+    badge: '⚡ Utility',
+    icon: 'BarChart2',
+    description: 'View zero-cloud on-device latency, token throughput, and satisfaction metrics'
+  },
+  {
+    command: '/telemetry',
+    label: 'Local Hardware & AI Metrics',
+    category: 'Utility',
+    badge: '⚡ Utility',
+    icon: 'Activity',
+    description: 'Detailed client telemetry for WebGPU/WASM model inference'
+  },
+  {
+    command: '/benchmark',
+    label: 'On-Device AI Benchmarks',
+    category: 'Utility',
+    badge: '⚡ Utility',
+    icon: 'Cpu',
+    description: 'Real-time tokens/sec, average latency, and memory throughput score'
+  },
+  {
+    command: '/search',
+    label: 'Semantic Portfolio Search',
+    category: 'Utility',
+    badge: '⚡ Utility',
+    icon: 'Search',
+    description: 'Deep multi-faceted semantic search across case studies, skills, and tools'
+  },
+  {
+    command: '/voice',
+    label: 'Voice Agent Controller',
+    category: 'Utility',
+    badge: '🎙️ Voice',
+    icon: 'Mic',
+    description: 'Toggle voice agent, view audio waveforms, and configure speech dubbing'
+  },
+  {
+    command: '/speak',
+    label: 'Text-to-Speech Read Aloud',
+    category: 'Utility',
+    badge: '🎙️ Voice',
+    icon: 'Volume2',
+    description: 'Read the latest response or custom text aloud using browser neural voice synthesis'
+  },
+  {
+    command: '/voicesettings',
+    label: 'Voice Pitch, Rate & Language',
+    category: 'Utility',
+    badge: '🎙️ Voice',
+    icon: 'Settings',
+    description: 'Adjust speech playback rate (0.8x-1.5x), pitch, hands-free auto-speak, and language profiles'
+  },
+  {
+    command: '/voiceconfig',
+    label: 'Voice Studio Configuration',
+    category: 'Utility',
+    badge: '🎙️ Voice',
+    icon: 'Sliders',
+    description: 'Direct alias to configure speech rate, pitch modulator, auto-speak, and voice profiles'
   }
 ];
 
@@ -390,10 +532,14 @@ export function handleSlashCommand(rawQuery, context = { role: 'overview', audie
           `• **Navigation & Modes**: \`/view\`, \`/audience\`, \`/role\`, \`/terminal\`, \`/pdf\`, \`/basic\`, \`/simple\`, \`/fullscreen\`, \`/reset\`, \`/clear\`\n` +
           `• **Profile & Background**: \`/about\`, \`/bio\`, \`/skills\`, \`/experience\`, \`/projects\`, \`/certifications\`, \`/education\`, \`/stats\`\n` +
           `• **Domain Specialties**: \`/accounting\`, \`/gst\`, \`/tax\`, \`/tally\`, \`/mis\`, \`/audit\`, \`/reconciliation\`, \`/excel\`, \`/vibecoding\`, \`/ai-tools\`, \`/automation\`\n` +
+          `• **Interactive & Interview**: \`/grill-me\` (Architectural & system design drill session)\n` +
+          `• **Meta-Prompt Studio**: \`/engineer\`, \`/prompt\`, \`/metaprompt\` (Craft executable commands + structured LLM prompts)\n` +
+          `• **Voice & Speech Dubbing**: \`/voice\`, \`/speak\`, \`/voicesettings\` (Multilingual natural TTS, Chrome watchdog & procedural waveform)\n` +
           `• **Commercial & Hire**: \`/quote\`, \`/pricing\`, \`/hire\`, \`/contact\`, \`/whatsapp\`, \`/email\`, \`/linkedin\`, \`/github\`\n` +
           `• **Utility & Resources**: \`/resume\`, \`/download\`, \`/transcript\`, \`/faq\`, \`/shortcuts\`, \`/tips\`\n\n` +
           `✨ *Tip: Start typing \`/\` in the chat input to see autocomplete suggestions with category badges and instant descriptions!*`,
         chips: [
+          { id: 'c-eng', label: '⚡ /engineer', query: '/engineer' },
           { id: 'c-proj', label: '🚀 Projects', query: '/projects' },
           { id: 'c-skills', label: '⚡ Skills', query: '/skills' },
           { id: 'c-gst', label: '📊 GST & Tax', query: '/gst' },
@@ -1001,6 +1147,9 @@ export function handleSlashCommand(rawQuery, context = { role: 'overview', audie
         command: cmdKey,
         language: 'en',
         text: `💰 **Interactive Quotation & Transparent Fee Estimator**\n\n• **Accounting & Statutory GST**: ₹2,500 – ₹8,000 / month\n• **Income Tax E-Filing (ITR)**: ₹1,500 – ₹5,000 / filing\n• **Tally Prime ERP Setup & BRS**: ₹3,000 – ₹7,500 one-time\n• **MIS Reporting & Custom Excel Pipelines**: ₹5,000 – ₹15,000\n• **AI Full-stack Web Apps & Prototypes**: ₹20,000 – ₹60,000\n\n*Use our interactive estimator to calculate a customized project quote with instant turnaround:*`,
+        card: {
+          type: 'quotation-estimator'
+        },
         chips: [
           { id: 'c-hire', label: '🤝 /hire', query: '/hire' },
           { id: 'c-wa', label: '💬 /whatsapp', query: '/whatsapp' }
@@ -1162,22 +1311,6 @@ export function handleSlashCommand(rawQuery, context = { role: 'overview', audie
         isFallback: false
       };
 
-    case '/transcript':
-      return {
-        id: rid,
-        intent: 'slash_command',
-        command: '/transcript',
-        language: 'en',
-        text: `📥 **Export Conversation Transcript**\n\nYou can export your current conversation history as a structured JSON file for auditing, offline records, or sharing.`,
-        chips: defaultChips,
-        actions: [
-          { type: 'export-transcript', label: '📥 Export JSON Transcript' }
-        ],
-        confidence: 1.0,
-        isRelaxed: false,
-        isFallback: false
-      };
-
     case '/faq':
       return {
         id: rid,
@@ -1231,6 +1364,573 @@ export function handleSlashCommand(rawQuery, context = { role: 'overview', audie
           { type: 'set-audience', audience: 'recruiter', payload: { audience: 'recruiter' }, label: '💼 Recruiter Mode' },
           { type: 'switch-view-mode', viewMode: 'terminal', payload: { viewMode: 'terminal' }, label: '💻 Terminal View' },
           { type: 'open-estimator', label: '💰 Fee Estimator' }
+        ],
+        confidence: 1.0,
+        isRelaxed: false,
+        isFallback: false
+      };
+
+    case '/export':
+    case '/transcript':
+      return {
+        id: rid,
+        intent: 'slash_command',
+        command: '/export',
+        language: 'en',
+        text: `📥 **Export Conversation Transcript**\n\nYou can download the full conversation transcript securely formatted for your needs. Zero data leaves your device.\n\nChoose an export format below:`,
+        chips: [
+          { id: 'c-export-md', label: '📄 Markdown (.md)', query: '/export md' },
+          { id: 'c-export-json', label: '📊 JSON (.json)', query: '/export json' },
+          { id: 'c-export-txt', label: '📝 Text (.txt)', query: '/export txt' },
+          { id: 'c-export-html', label: '🌐 HTML Print', query: '/export html' }
+        ],
+        actions: [
+          { type: 'export-transcript-md', label: '📄 Download Markdown (.md)' },
+          { type: 'export-transcript-json', label: '📊 Download JSON' },
+          { type: 'export-transcript-txt', label: '📝 Download Text (.txt)' },
+          { type: 'export-transcript-html', label: '🌐 Download HTML' },
+          { type: 'copy-transcript', label: '📋 Copy to Clipboard' }
+        ],
+        confidence: 1.0,
+        isRelaxed: false,
+        isFallback: false
+      };
+
+    case '/history':
+    case '/sessions':
+      return {
+        id: rid,
+        intent: 'slash_command',
+        command: '/history',
+        language: 'en',
+        text: `🗂️ **Multi-Session Conversation History**\n\nThe assistant stores your last **10 conversation sessions** securely in browser local storage with zero cloud tracking.\n\nYou can switch sessions, archive discussions, or start fresh at any time using the Session Archive Drawer.`,
+        chips: [
+          { id: 'c-new-session', label: '✨ New Session', query: '/clear' },
+          { id: 'c-export-sess', label: '📥 Export Current', query: '/export' },
+          { id: 'c-telemetry', label: '📊 View Analytics', query: '/analytics' }
+        ],
+        actions: [
+          { type: 'open-session-drawer', label: '🗂️ Open Session Archive' },
+          { type: 'new-session', label: '✨ Start New Session' },
+          { type: 'clear-chat', label: '🗑️ Clear Active Chat' }
+        ],
+        confidence: 1.0,
+        isRelaxed: false,
+        isFallback: false
+      };
+
+    case '/analytics':
+    case '/telemetry':
+    case '/benchmark':
+      return {
+        id: rid,
+        intent: 'slash_command',
+        command: cmdKey,
+        language: 'en',
+        text: formatAnalyticsScorecard(),
+        card: {
+          type: 'hardware-benchmark'
+        },
+        chips: [
+          { id: 'c-model', label: '🤖 /model Switcher', query: '/model' },
+          { id: 'c-export', label: '📥 /export Chat', query: '/export' },
+          { id: 'c-perf', label: '⚡ /benchmark', query: '/benchmark' }
+        ],
+        actions: [
+          { type: 'benchmark', label: '⚡ Run Hardware Benchmark' },
+          { type: 'switch-model-drawer', label: '🤖 Select AI Model' },
+          { type: 'export-transcript-json', label: '📥 Export JSON Log' },
+          { type: 'reset-telemetry', label: '🔄 Reset Telemetry' }
+        ],
+        confidence: 1.0,
+        isRelaxed: false,
+        isFallback: false
+      };
+
+    case '/tour':
+    case '/walkthrough': {
+      const tourArg = rawQuery.replace(/^\/(?:tour|walkthrough)\s*/i, '').trim().toLowerCase();
+      let selectedTourId = null;
+      if (tourArg.includes('recruiter') || tourArg.includes('fast')) {
+        selectedTourId = 'recruiter-fast-track';
+      } else if (tourArg.includes('gst') || tourArg.includes('tax') || tourArg.includes('corporate')) {
+        selectedTourId = 'corporate-tax-gst';
+      } else if (tourArg.includes('ai') || tourArg.includes('vibe') || tourArg.includes('code') || tourArg.includes('saas')) {
+        selectedTourId = 'ai-vibe-coding';
+      } else if (tourArg.includes('exec') || tourArg.includes('flash')) {
+        selectedTourId = 'executive-flash-tour';
+      }
+
+      if (selectedTourId && PORTFOLIO_TOURS[selectedTourId]) {
+        const tour = PORTFOLIO_TOURS[selectedTourId];
+        return {
+          id: rid,
+          intent: 'slash_command',
+          command: '/tour',
+          language: 'en',
+          text: `🧭 **Guided Walkthrough: ${tour.title}**\n\n${tour.description}\n\n*Interactive navigation is active. Follow step-by-step guidance below:*`,
+          card: {
+            type: 'tour-controller',
+            tourId: tour.id,
+            tourTitle: tour.title
+          },
+          chips: [
+            { id: 'c-tour-recruiter', label: '💼 Recruiter Tour', query: '/tour recruiter' },
+            { id: 'c-tour-tax', label: '📊 GST Tour', query: '/tour gst' },
+            { id: 'c-tour-ai', label: '⚡ AI Tour', query: '/tour ai' }
+          ],
+          actions: [
+            { type: 'start-tour', tourId: tour.id, label: `🚀 Launch ${tour.title}` },
+            { type: 'next-tour-step', label: '➡️ Next Step' },
+            { type: 'end-tour', label: '⏹️ End Tour' }
+          ],
+          confidence: 1.0,
+          isRelaxed: false,
+          isFallback: false
+        };
+      }
+
+      return {
+        id: rid,
+        intent: 'slash_command',
+        command: '/tour',
+        language: 'en',
+        text: `🧭 **Interactive Guided Portfolio Tours**\n\nExperience structured multi-step walkthroughs with smooth scrolling and role-tailored focus:\n\n1. 💼 **Recruiter Fast Track** (4 steps: Bio, Metrics, Case Studies, Resume)\n2. 📊 **Corporate Tax & GST** (4 steps: Tax Domain, GSTR-2B, ERP Ledgers, Audit Quote)\n3. ⚡ **AI Vibe Coding & SaaS** (4 steps: AI SaaS Engine, Tech Stack, Physics Lab, Hire)\n4. 👔 **Executive Flash Tour** (3 steps: Career Milestones, Live Demos, Get In Touch)\n\n*Select a tour below to begin:*`,
+        card: {
+          type: 'tour-controller',
+          tourId: 'recruiter-fast-track',
+          tourTitle: 'Recruiter Fast Track'
+        },
+        chips: [
+          { id: 'c-tour-recruiter', label: '💼 Recruiter Tour', query: '/tour recruiter' },
+          { id: 'c-tour-tax', label: '📊 GST & Tax Tour', query: '/tour gst' },
+          { id: 'c-tour-ai', label: '⚡ AI Vibe Tour', query: '/tour ai' },
+          { id: 'c-tour-exec', label: '👔 Executive Tour', query: '/tour executive' }
+        ],
+        actions: [
+          { type: 'start-tour', tourId: 'recruiter-fast-track', label: '💼 Recruiter Tour' },
+          { type: 'start-tour', tourId: 'corporate-tax-gst', label: '📊 GST & Tax Tour' },
+          { type: 'start-tour', tourId: 'ai-vibe-coding', label: '⚡ AI Vibe Tour' },
+          { type: 'start-tour', tourId: 'executive-flash-tour', label: '👔 Executive Tour' }
+        ],
+        confidence: 1.0,
+        isRelaxed: false,
+        isFallback: false
+      };
+    }
+
+    case '/search':
+    case '/find': {
+      const searchTerm = rawQuery.replace(/^\/(?:search|find)\s*/i, '').trim();
+      if (searchTerm) {
+        const results = searchPortfolio(searchTerm, { limit: 5 });
+        const summaryText = results.length > 0
+          ? `🔍 **Search Results for "${searchTerm}"**\n\nFound **${results.length}** matching items across Case Studies, Skills, Actions, and FAQs:`
+          : `🔍 **Search Results for "${searchTerm}"**\n\nNo exact matches found. Try keywords like \`gst\`, \`tally\`, \`react\`, \`excel\`, or \`resume\`.`;
+
+        return {
+          id: rid,
+          intent: 'slash_command',
+          command: '/search',
+          language: 'en',
+          text: summaryText,
+          card: {
+            type: 'search-results',
+            query: searchTerm,
+            results
+          },
+          chips: [
+            { id: 'c-s-gst', label: '🔍 /search gst', query: '/search gst' },
+            { id: 'c-s-tally', label: '🔍 /search tally', query: '/search tally' },
+            { id: 'c-s-ai', label: '🔍 /search ai', query: '/search ai' }
+          ],
+          actions: results.length > 0
+            ? results.slice(0, 3).map(r => r.action || { type: 'scroll', target: r.targetId, label: r.title })
+            : [
+                { type: 'scroll', target: '#projects', payload: { selector: '#projects' }, label: '🚀 Explore Case Studies' },
+                { type: 'scroll', target: '#skills', payload: { selector: '#skills' }, label: '⚡ View Skills' }
+              ],
+          confidence: 1.0,
+          isRelaxed: false,
+          isFallback: false
+        };
+      }
+
+      return {
+        id: rid,
+        intent: 'slash_command',
+        command: '/search',
+        language: 'en',
+        text: `🔍 **Semantic Portfolio Search**\n\nSearch any technology, case study, statutory regulation, or capability. Type \`/search <keyword>\` or click a quick search topic below:`,
+        chips: [
+          { id: 'c-s-gst', label: '🔍 GST Engine', query: '/search gst' },
+          { id: 'c-s-tally', label: '🔍 Tally Prime', query: '/search tally' },
+          { id: 'c-s-powerbi', label: '🔍 Power BI', query: '/search power bi' },
+          { id: 'c-s-react', label: '🔍 React & AI', query: '/search react' }
+        ],
+        actions: [
+          { type: 'scroll', target: '#projects', payload: { selector: '#projects' }, label: '🚀 Browse All Projects' },
+          { type: 'scroll', target: '#skills', payload: { selector: '#skills' }, label: '⚡ Skills Matrix' }
+        ],
+        confidence: 1.0,
+        isRelaxed: false,
+        isFallback: false
+      };
+    }
+
+    case '/engineer':
+    case '/prompt':
+    case '/metaprompt': {
+      const promptResult = generateMetaPrompt(rawQuery, context);
+      return {
+        id: rid,
+        intent: 'slash_command',
+        command: cmdKey,
+        language: 'en',
+        text: promptResult.summaryText,
+        card: {
+          type: 'meta-prompt',
+          isStudioGuide: promptResult.isStudioGuide,
+          task: promptResult.task,
+          title: promptResult.title,
+          domain: promptResult.domain,
+          roleTitle: promptResult.roleTitle,
+          shortCommand: promptResult.shortCommand,
+          metaPrompt: promptResult.metaPrompt,
+          suggestions: promptResult.suggestions,
+          templates: promptResult.templates
+        },
+        chips: promptResult.isStudioGuide ? [
+          { id: 'c-gst', label: '📊 GST Recon Prompt', query: '/engineer GST 2B vs purchase register reconciliation in python' },
+          { id: 'c-react', label: '⚛️ React 19 UI Prompt', query: '/engineer Accessible virtualized table in React 19 with Tailwind' },
+          { id: 'c-agent', label: '🤖 Multi-Agent DAG Prompt', query: '/engineer Multi-agent workflow planner with Claude Code' },
+          { id: 'c-mis', label: '📉 MIS Power Query Prompt', query: '/engineer Power Query M-code for multi-district portal CSVs' }
+        ] : [
+          { id: 'c-copy-cmd', label: '📋 Copy Command', query: '/copy-command' },
+          { id: 'c-copy-prompt', label: '🎯 Copy Meta-Prompt', query: '/copy-prompt' },
+          { id: 'c-studio', label: '⚡ Prompt Studio', query: '/engineer' },
+          { id: 'c-help', label: '🧭 /help', query: '/help' }
+        ],
+        actions: [
+          { type: 'copy-command', payload: { command: promptResult.shortCommand }, label: '⚡ Copy Command' },
+          { type: 'copy-metaprompt', payload: { prompt: promptResult.metaPrompt }, label: '🎯 Copy Meta-Prompt' }
+        ],
+        confidence: 1.0,
+        isRelaxed: false,
+        isFallback: false
+      };
+    }
+
+    case '/grill-me': {
+      const grillArg = rawQuery.replace(/^\/grill-me\s*/i, '').trim().toLowerCase();
+
+      // Track 1: System Design & Real-Time On-Device AI
+      if (grillArg.includes('system') || grillArg.includes('arch') || grillArg.includes('webgpu')) {
+        return {
+          id: rid,
+          intent: 'slash_command',
+          command: '/grill-me',
+          language: 'en',
+          text: `🔥 **Architectural Grill: Real-Time On-Device AI & 60FPS Micro-Frontends**\n\n` +
+            `**Problem Statement:**\n` +
+            `You are building a client-side AI application running quantized transformer LLMs (WebGPU/WASM) alongside a 60fps cursor-tracking 3D physics canvas.\n\n` +
+            `**Hard Constraints:**\n` +
+            `1. **Frame Budget:** Main thread execution slice strictly < 16.6ms to prevent 60fps frame drops.\n` +
+            `2. **Memory Cap:** Low-tier mobile browsers enforce a strict ~1.2GB heap threshold before killing the tab with \`Out of Memory\`.\n` +
+            `3. **Asynchronous Concurrency:** LLM token generation must stream continuously without freezing user input, tactile gestures, or audio dubbing.\n\n` +
+            `**Probing Drill Questions:**\n` +
+            `• *How do you isolate heavy tensor operations off the UI thread without incurring expensive serialization/deserialization penalties across Web Worker postMessage boundaries?*\n` +
+            `• *When a WebGPU \`device_lost\` event triggers mid-generation due to GPU driver resets, what exact deterministic recovery ladder do you execute to avoid crash loops?*\n` +
+            `• *How does your architecture budget memory between model weights, KV caches, and audio waveform FFT buffers?*`,
+          chips: [
+            { id: 'c-g-sol-sys', label: '💡 WebGPU Blueprint', query: 'Explain Atul\'s WebGPU and Web Worker architecture with heartbeat watchdog' },
+            { id: 'c-g-gst', label: '📊 /grill-me gst', query: '/grill-me gst' },
+            { id: 'c-g-ai', label: '🤖 /grill-me ai', query: '/grill-me ai' },
+            { id: 'c-g-all', label: '🔥 All Grill Tracks', query: '/grill-me' }
+          ],
+          actions: [
+            { type: 'scroll', target: '#projects', payload: { selector: '#projects' }, label: '🚀 Inspect Project 9 (AI Architecture)' }
+          ],
+          confidence: 1.0,
+          isRelaxed: false,
+          isFallback: false
+        };
+      }
+
+      // Track 2: High-Volume Statutory GST Reconciliation Engine
+      if (grillArg.includes('gst') || grillArg.includes('tax') || grillArg.includes('fintech') || grillArg.includes('recon')) {
+        return {
+          id: rid,
+          intent: 'slash_command',
+          command: '/grill-me',
+          language: 'en',
+          text: `🔥 **Architectural Grill: 500k+ Monthly Invoice Statutory GST Reconciliation Engine**\n\n` +
+            `**Problem Statement:**\n` +
+            `Design a resilient data pipeline that reconciles 500,000+ monthly GSTR-2B government invoices with purchase ledgers across multi-state GSTINs under Indian statutory compliance.\n\n` +
+            `**Hard Constraints:**\n` +
+            `1. **Statutory Precision:** Zero tolerated deviation in ITC eligibility (Section 16(2)(aa) & Rule 36(4)). Sub-penny rounding edge cases.\n` +
+            `2. **Fuzzy Invariants:** Asymmetric invoice number formatting (e.g., \`INV/2024-25/001\` vs \`INV-1\` vs \`001\`) with multi-pass matching.\n` +
+            `3. **Audit Trail:** Every auto-matched or flagged ITC claim must have 100% deterministic cryptographic hash traceability for GST statutory audit defense.\n\n` +
+            `**Probing Drill Questions:**\n` +
+            `• *How do you structure your composite key matching algorithm to prevent false positives when vendors submit amended credit notes (CDN) in later tax periods?*\n` +
+            `• *How do you handle retroactive vendor cancellation notices without invalidating historical ledger periods?*\n` +
+            `• *What data structures ensure sub-second search and diffing over half a million line-items directly in memory or indexed stores?*`,
+          chips: [
+            { id: 'c-g-sol-gst', label: '💡 2B Recon Solution', query: 'Explain Atul\'s GSTR-2B reconciliation engine algorithm with ₹2.5Cr+ ITC optimization' },
+            { id: 'c-g-sys', label: '🏛️ /grill-me system', query: '/grill-me system' },
+            { id: 'c-g-ai', label: '🤖 /grill-me ai', query: '/grill-me ai' },
+            { id: 'c-g-all', label: '🔥 All Grill Tracks', query: '/grill-me' }
+          ],
+          actions: [
+            { type: 'scroll', target: '#projects', payload: { selector: '#projects' }, label: '🚀 Inspect Project 1 (GST Automation)' }
+          ],
+          confidence: 1.0,
+          isRelaxed: false,
+          isFallback: false
+        };
+      }
+
+      // Track 3: Autonomous Multi-Agent Orchestration & Tool Calling Resilience
+      if (grillArg.includes('ai') || grillArg.includes('agent') || grillArg.includes('llm') || grillArg.includes('mcp')) {
+        return {
+          id: rid,
+          intent: 'slash_command',
+          command: '/grill-me',
+          language: 'en',
+          text: `🔥 **Architectural Grill: Autonomous Multi-Agent Orchestration & Tool Calling Resilience**\n\n` +
+            `**Problem Statement:**\n` +
+            `Architect a multi-agent system (using Claude Code / Google Antigravity SDK / MCP servers) executing multi-step autonomous tasks (file mutations, shell execution, testing) with strict reliability guarantees.\n\n` +
+            `**Hard Constraints:**\n` +
+            `1. **Loop Prevention:** Agents must never enter infinite tool-calling or hallucination retry cycles.\n` +
+            `2. **State Hygiene:** Subagents running in parallel must not produce race conditions on shared filesystem or git index state.\n` +
+            `3. **Fallback SLA:** If remote LLM providers experience outages or 429 rate limits, system must failover to deterministic on-device engines in < 50ms.\n\n` +
+            `**Probing Drill Questions:**\n` +
+            `• *How do you implement progressive confidence scoring and monotonic execution session IDs to detect stale subagent responses?*\n` +
+            `• *What schema validation and guardrail checks protect destructive operations (rm, git reset, ledger overwrites) from prompt injection?*\n` +
+            `• *How do you coordinate reactive wakeup without wasteful polling loops across background worker tasks?*`,
+          chips: [
+            { id: 'c-g-sol-ai', label: '💡 Multi-Agent Engine', query: 'Explain Atul\'s multi-agent Claude Code and Antigravity framework design' },
+            { id: 'c-g-perf', label: '⚡ /grill-me perf', query: '/grill-me perf' },
+            { id: 'c-g-sys', label: '🏛️ /grill-me system', query: '/grill-me system' },
+            { id: 'c-g-all', label: '🔥 All Grill Tracks', query: '/grill-me' }
+          ],
+          actions: [
+            { type: 'scroll', target: '#skills', payload: { selector: '#skills' }, label: '⚡ View AI Skills Matrix' }
+          ],
+          confidence: 1.0,
+          isRelaxed: false,
+          isFallback: false
+        };
+      }
+
+      // Track 4: 60FPS Web Performance, Virtualization & Bundle Budgeting
+      if (grillArg.includes('perf') || grillArg.includes('performance') || grillArg.includes('speed') || grillArg.includes('bundle')) {
+        return {
+          id: rid,
+          intent: 'slash_command',
+          command: '/grill-me',
+          language: 'en',
+          text: `🔥 **Architectural Grill: 60FPS Web Performance, Virtualization & Bundle Budgeting**\n\n` +
+            `**Problem Statement:**\n` +
+            `Deliver a rich interactive portfolio with 3D cursor tracking, live audio waveforms, local AI inference, and 100+ case studies while achieving 100/100 Lighthouse performance on low-end 4G mobile devices.\n\n` +
+            `**Hard Constraints:**\n` +
+            `1. **LCP & FCP:** First Contentful Paint < 0.8s, Largest Contentful Paint < 1.5s.\n` +
+            `2. **CLS:** Cumulative Layout Shift strictly 0.000.\n` +
+            `3. **Bundle Overhead:** Critical JS payload < 65KB gzipped on initial route load.\n\n` +
+            `**Probing Drill Questions:**\n` +
+            `• *How do you decouple heavy WebGL / Canvas physics loops from React component re-renders to ensure steady 60FPS?*\n` +
+            `• *How is dynamic code splitting configured so on-device neural weights, audio synthesizers, and PDF renderers load strictly on demand?*\n` +
+            `• *What layout isolation, CSS \`content-visibility: auto\`, and virtualization strategies prevent DOM bloat over 4,000+ nodes?*`,
+          chips: [
+            { id: 'c-g-sol-perf', label: '💡 60FPS Blueprint', query: 'Explain how Atul achieves 60fps and zero CLS with React 19 and Tailwind v4' },
+            { id: 'c-g-sys', label: '🏛️ /grill-me system', query: '/grill-me system' },
+            { id: 'c-g-gst', label: '📊 /grill-me gst', query: '/grill-me gst' },
+            { id: 'c-g-all', label: '🔥 All Grill Tracks', query: '/grill-me' }
+          ],
+          confidence: 1.0,
+          isRelaxed: false,
+          isFallback: false
+        };
+      }
+
+      // Track 5: Solutions & Blueprints
+      if (grillArg.includes('solution') || grillArg.includes('answer') || grillArg.includes('blueprint')) {
+        return {
+          id: rid,
+          intent: 'slash_command',
+          command: '/grill-me',
+          language: 'en',
+          text: `💡 **Atul Verma's Architectural Blueprints & Production Solutions**\n\n` +
+            `Here are the battle-tested patterns Atul has implemented across production systems:\n\n` +
+            `1. **Dual-Tier AI Architecture (Offline-First + WebGPU)**:\n` +
+            `   • *Primary:* Dedicated Web Worker running Transformers.js with WebGPU quantized models (Q4/FP16).\n` +
+            `   • *Watchdog Heartbeat:* 20s stall monitor with monotonic session IDs; auto-downgrades to WASM or instant deterministic knowledge engine on failure.\n` +
+            `   • *Zero Latency:* 100% offline keyword & semantic router answers queries in < 15ms while background models compile.\n\n` +
+            `2. **High-Scale GST & Financial Reconciliation Engine**:\n` +
+            `   • 4-stage fuzzy matching algorithm (Exact GSTIN+Inv# ➔ Fuzzy Date/Amount within ±₹1 tolerance ➔ Multi-line aggregation ➔ Credit note adjustment).\n` +
+            `   • Result: ₹2.5Cr+ reconciled ITC claims, zero audit disallowances over 500+ filings.\n\n` +
+            `3. **Autonomous Agent Harness**:\n` +
+            `   • Declarative task planning with MCP tool safety invariants, dry-run previews, and single-source git commit traceability.\n\n` +
+            `4. **60FPS UI & Zero CLS**:\n` +
+            `   • React 19 concurrent features, offscreen canvas rendering, virtualized prompt/command palettes, and Tailwind v4 zero-runtime stylesheets.`,
+          chips: [
+            { id: 'c-g-sys', label: '🏛️ /grill-me system', query: '/grill-me system' },
+            { id: 'c-g-gst', label: '📊 /grill-me gst', query: '/grill-me gst' },
+            { id: 'c-g-ai', label: '🤖 /grill-me ai', query: '/grill-me ai' },
+            { id: 'c-engineer', label: '⚡ /engineer', query: '/engineer' }
+          ],
+          confidence: 1.0,
+          isRelaxed: false,
+          isFallback: false
+        };
+      }
+
+      // Default Grill Overview Menu
+      return {
+        id: rid,
+        intent: 'slash_command',
+        command: '/grill-me',
+        language: 'en',
+        text: `🔥 **Architectural & System Design Grill Session — Interview Mode Active**\n\n` +
+          `Welcome to the **Deep-Dive Engineering & Architectural Grill Session**! Choose your challenge track to test production-grade system design, concurrency constraints, statutory compliance algorithms, and multi-agent workflows:\n\n` +
+          `• 🏛️ **Track 1: Real-Time On-Device AI & 60FPS Micro-Frontends**\n` +
+          `  *WebGPU vs WASM fallbacks, watchdog heartbeats, worker memory budgets, and 60fps render pipelines.*\n\n` +
+          `• 📊 **Track 2: High-Volume Statutory GST Reconciliation Engine**\n` +
+          `  *500k+ monthly invoices, fuzzy multi-pass matching, ₹2.5Cr+ ITC optimization, and zero-deviation audit trails.*\n\n` +
+          `• 🤖 **Track 3: Autonomous Multi-Agent Orchestration & Tool Calling Resilience**\n` +
+          `  *Claude Code & Antigravity MCP workflows, cycle prevention, guardrails, and deterministic fallbacks.*\n\n` +
+          `• ⚡ **Track 4: 60FPS Web Performance, Virtualization & Bundle Budgeting**\n` +
+          `  *Zero CLS, sub-16ms main thread budgets, and aggressive code splitting on mobile devices.*\n\n` +
+          `👉 *Select a track below or type \`/grill-me <track>\` (e.g. \`/grill-me system\`, \`/grill-me gst\`, \`/grill-me ai\`, \`/grill-me perf\`) to begin grilling!*`,
+        chips: [
+          { id: 'c-g-sys', label: '🏛️ /grill-me system', query: '/grill-me system' },
+          { id: 'c-g-gst', label: '📊 /grill-me gst', query: '/grill-me gst' },
+          { id: 'c-g-ai', label: '🤖 /grill-me ai', query: '/grill-me ai' },
+          { id: 'c-g-perf', label: '⚡ /grill-me perf', query: '/grill-me perf' },
+          { id: 'c-g-sol', label: '💡 Solutions & Blueprints', query: '/grill-me solution' },
+          { id: 'c-help', label: '🧭 /help', query: '/help' }
+        ],
+        decisionTree: {
+          step: 'grill_mode',
+          title: '🔥 Select Architectural Grill Track:',
+          options: [
+            { id: 'grill_sys', label: '🏛️ Track 1: 60FPS On-Device AI Pipeline', query: '/grill-me system' },
+            { id: 'grill_gst', label: '📊 Track 2: 500k Invoice GST Reconciliation Engine', query: '/grill-me gst' },
+            { id: 'grill_ai', label: '🤖 Track 3: Multi-Agent DAG & Tool Calling Resilience', query: '/grill-me ai' },
+            { id: 'grill_perf', label: '⚡ Track 4: Web Performance, Memory & WASM Fallbacks', query: '/grill-me perf' },
+            { id: 'grill_sol', label: '💡 View Atul\'s Architectural Solutions & Blueprints', query: '/grill-me solution' }
+          ]
+        },
+        actions: [
+          { type: 'scroll', target: '#projects', payload: { selector: '#projects' }, label: '🚀 Explore Case Studies' },
+          { type: 'scroll', target: '#skills', payload: { selector: '#skills' }, label: '⚡ View Skills Matrix' }
+        ],
+        confidence: 1.0,
+        isRelaxed: false,
+        isFallback: false
+      };
+    }
+
+    case '/voice':
+      return {
+        id: rid,
+        intent: 'slash_command',
+        command: '/voice',
+        language: 'en',
+        text: `🎙️ **Atul AI Voice Agent & Waveform Visualizer**\n\n` +
+          `• **Natural SpeechDub**: Neural multilingual speech synthesis supporting Indian English, Hindi, and US English.\n` +
+          `• **Chrome Keep-Alive Watchdog**: Eliminates Chromium's 14-second audio garbage collection freeze.\n` +
+          `• **Interactive Sine Waveform**: Real-time multi-harmonic procedural audio visualizer with reduced-motion fallback.\n` +
+          `• **Hands-Free Mode**: Automatically speaks responses as they stream in without manual clicks.\n\n` +
+          `Try saying or typing commands like *"speak response"*, *"voice settings"*, or click below:`,
+        chips: [
+          { id: 'c-v-speak', label: '🔊 /speak', query: '/speak' },
+          { id: 'c-v-settings', label: '⚙️ /voicesettings', query: '/voicesettings' },
+          { id: 'c-v-hi', label: '🇮🇳 Hindi Voice', query: '/voice hindi' },
+          { id: 'c-help', label: '🧭 /help', query: '/help' }
+        ],
+        actions: [
+          { type: 'open-voice-settings', label: '⚙️ Voice Settings' },
+          { type: 'speak-last', label: '🔊 Read Aloud Last Response' },
+          { type: 'toggle-auto-speak', label: '🎙️ Toggle Auto-Speak' }
+        ],
+        confidence: 1.0,
+        isRelaxed: false,
+        isFallback: false
+      };
+
+    case '/speak':
+    case '/read':
+    case '/readaloud': {
+      const speakText = rawQuery.replace(/^\/(?:speak|read|readaloud)\s*/i, '').trim();
+      return {
+        id: rid,
+        intent: 'slash_command',
+        command: '/speak',
+        language: 'en',
+        text: speakText
+          ? `🔊 **Dubbing Text**: "${speakText.length > 80 ? speakText.slice(0, 80) + '...' : speakText}"\n\nStarting speech synthesis with live audio waveform...`
+          : `🔊 **Text-to-Speech Engine Ready**\n\nClick below to read aloud the last response, or type \`/speak <your text>\` to vocalize custom text:`,
+        chips: [
+          { id: 'c-v-settings', label: '⚙️ Voice Settings', query: '/voicesettings' },
+          { id: 'c-v-voice', label: '🎙️ /voice', query: '/voice' },
+          { id: 'c-help', label: '🧭 /help', query: '/help' }
+        ],
+        actions: [
+          { type: 'speak-last', payload: { customText: speakText }, label: speakText ? '🔊 Vocalize Now' : '🔊 Read Aloud Last Response' },
+          { type: 'open-voice-settings', label: '⚙️ Configure Speed / Voice' }
+        ],
+        confidence: 1.0,
+        isRelaxed: false,
+        isFallback: false
+      };
+    }
+
+    case '/voicesettings':
+    case '/voiceconfig':
+      return {
+        id: rid,
+        intent: 'slash_command',
+        command: '/voicesettings',
+        language: 'en',
+        text: `⚙️ **Voice Synthesis & Dubbing Settings**\n\n` +
+          `• **Playback Speed**: 0.8x (Deliberate), 1.0x (Normal), 1.2x (Brisk), 1.5x (Fast)\n` +
+          `• **Pitch Modulator**: 0.8 to 1.2 (Natural frequency tone)\n` +
+          `• **Voice Profiles**: Auto (Devanagari / English auto-detect), en-IN (Indian English), hi-IN (Hindi), en-US (US English)\n` +
+          `• **Hands-Free Auto-Speak**: Automatically narrates incoming responses\n\n` +
+          `Open the voice settings panel or select a quick preset below:`,
+        chips: [
+          { id: 'c-vs-1x', label: '⚡ Normal Speed (1.0x)', query: '/voice rate 1.0' },
+          { id: 'c-vs-12x', label: '🚀 Brisk Speed (1.2x)', query: '/voice rate 1.2' },
+          { id: 'c-vs-auto', label: '🎙️ Toggle Auto-Speak', query: '/voice autospeak' },
+          { id: 'c-v-voice', label: '🎙️ Voice Overview', query: '/voice' }
+        ],
+        actions: [
+          { type: 'open-voice-settings', label: '⚙️ Open Voice Settings Modal' },
+          { type: 'toggle-auto-speak', label: '🎙️ Toggle Hands-Free Auto-Speak' }
+        ],
+        confidence: 1.0,
+        isRelaxed: false,
+        isFallback: false
+      };
+
+    case '/tools':
+    case '/tech':
+    case '/stack':
+      return {
+        id: rid,
+        intent: 'slash_command',
+        command: '/tools',
+        language: 'en',
+        text: `🛠️ **Tools & Technology Stack Matrix**\n\n• **Accounting & ERP**: Tally Prime, Tally.ERP 9, Busy, Marg ERP, BRS automation.\n• **Statutory Tax Portals**: GST Portal, Income Tax E-Filing, TRACES (TDS), Challan 280/281, Form 26AS, AIS/TIS.\n• **Data & Analytics**: Advanced Excel (VBA / Macros / Power Query), Power BI (DAX), Google Sheets API.\n• **Modern AI & Frontend**: React 19, Tailwind CSS v4, Vite, Transformers.js (WebGPU/WASM), Claude Code, MCP Servers.\n• **Government MIS**: DAY-NULM Portal, Skill India Biometric MIS, UIDAI Smart Card SDK.`,
+        chips: [
+          { id: 'c-skills', label: '⚡ /skills', query: '/skills' },
+          { id: 'c-ai-tools', label: '🤖 /ai-tools', query: '/ai-tools' },
+          { id: 'c-tally', label: '📊 /tally', query: '/tally' }
+        ],
+        actions: [
+          { type: 'scroll', target: '#skills', payload: { selector: '#skills' }, label: '⚡ View Skills Matrix' },
+          { type: 'scroll', target: '#projects', payload: { selector: '#projects' }, label: '🚀 View Project Stacks' }
         ],
         confidence: 1.0,
         isRelaxed: false,

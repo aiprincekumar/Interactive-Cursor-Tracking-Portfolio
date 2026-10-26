@@ -67,10 +67,9 @@ runTest('ControlCenterPanel tablist has ref, drag-to-scroll, wheel translation &
   assert(panelSrc.includes('no-scrollbar'), 'Must have no-scrollbar');
 });
 
-runTest('ControlCenterPanel implements auto-center active tab via scrollIntoView', () => {
-  assert(panelSrc.includes('activeTabBtn.scrollIntoView({'), 'Must call scrollIntoView for activeTab');
-  assert(panelSrc.includes("behavior: 'smooth'"), 'Must smooth scroll active tab');
-  assert(panelSrc.includes("inline: 'center'"), 'Must center inline');
+runTest('ControlCenterPanel implements safe container-only auto-center active tab', () => {
+  assert(panelSrc.includes('container.scrollTo({ left: Math.max(0, scrollLeft), behavior: \'smooth\' })'), 'Must center active tab using horizontal container scrollTo');
+  assert(!panelSrc.includes('activeTabBtn.scrollIntoView'), 'Must not call scrollIntoView on activeTabBtn to avoid window scrolling bug');
 });
 
 runTest('ControlCenterPanel tab buttons have shrink-0, select-none, and drawer-safe badge formatting', () => {

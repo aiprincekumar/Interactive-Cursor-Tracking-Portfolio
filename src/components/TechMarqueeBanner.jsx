@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { memo, useState, useEffect, useRef, useCallback } from 'react';
 import { soundFX } from '../utils/audio';
 import { useRoleTab } from '../context/RoleContext';
 import { useLab } from '../context/LabContext';
@@ -314,8 +314,8 @@ const TECH_DETAILS = {
 };
 
 // Hoist sequences outside component to avoid re-allocation on every render
-const TOP_SEQUENCE = Array(12).fill(TOP_ITEMS).flat();
-const BOTTOM_SEQUENCE = Array(12).fill(BOTTOM_ITEMS).flat();
+const TOP_SEQUENCE = Array(4).fill(TOP_ITEMS).flat();
+const BOTTOM_SEQUENCE = Array(4).fill(BOTTOM_ITEMS).flat();
 
 function areMarqueeCardPropsEqual(prevProps, nextProps) {
   return (
@@ -451,9 +451,28 @@ export const MarqueeCard = React.memo(function MarqueeCard({
   );
 }, areMarqueeCardPropsEqual);
 
-export default function TechMarqueeBanner() {
+function TechMarqueeBanner() {
   const bannerRef = useRef(null);
   const [activeTooltipKey, setActiveTooltipKey] = useState(null);
+  const [isIntersecting, setIsIntersecting] = useState(true);
+
+  // Pause marquee animations when off-screen to eliminate GPU compositing overhead
+  useEffect(() => {
+    const el = bannerRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsIntersecting(entry.isIntersecting);
+      },
+      { root: null, rootMargin: '100px', threshold: 0 }
+    );
+
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   let roleContext = null;
   try {
@@ -630,7 +649,7 @@ export default function TechMarqueeBanner() {
     }
   }, [handleItemNavigation, activeTooltipKey]);
 
-  const isPaused = Boolean(activeTooltipKey);
+  const isPaused = Boolean(activeTooltipKey) || !isIntersecting;
   const isTopActive = activeTooltipKey?.startsWith('top-');
   const isBottomActive = activeTooltipKey?.startsWith('bottom-');
 
@@ -725,3 +744,6 @@ export default function TechMarqueeBanner() {
     </section>
   );
 }
+
+TechMarqueeBanner.displayName = 'TechMarqueeBanner';
+export default memo(TechMarqueeBanner);

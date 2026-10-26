@@ -4,19 +4,27 @@
    Provides clean, fast, clutter-free viewing experience with standard system cursor.
    ========================================================================== */
 
-/* 1. Universal Standard Browser Cursor Everywhere */
-body.simple-mode,
-body.simple-mode * {
+/* 1. Universal Standard Browser Cursor Everywhere (Inherited via body) */
+body.simple-mode {
   cursor: auto !important;
 }
 
 body.simple-mode a,
 body.simple-mode button,
-body.simple-mode input,
 body.simple-mode select,
-body.simple-mode textarea,
 body.simple-mode [role="button"],
 body.simple-mode label {
+  cursor: pointer !important;
+}
+
+body.simple-mode input,
+body.simple-mode textarea {
+  cursor: auto !important;
+}
+
+body.simple-mode input[type="button"],
+body.simple-mode input[type="submit"],
+body.simple-mode input[type="reset"] {
   cursor: pointer !important;
 }
 

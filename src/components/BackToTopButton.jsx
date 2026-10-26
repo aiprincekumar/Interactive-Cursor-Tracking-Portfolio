@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { soundFX } from '../utils/audio';
-import { useLab } from '../context/LabContext';
+import { useLabAudio, useLabDrawer } from '../context/LabContext';
 import { useLanguage } from '../context/LanguageContext';
 
 /**
@@ -24,15 +24,22 @@ export default function BackToTopButton() {
   const [isHubOpen, setIsHubOpen] = useState(false);
   const [hubItemCount, setHubItemCount] = useState(0);
 
-  let labContext = null;
+  let audioContext = null;
+  let drawerContext = null;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    labContext = useLab();
+    audioContext = useLabAudio();
   } catch {
     // safe fallback
   }
-  const soundEnabled = labContext?.soundEnabled ?? true;
-  const isDrawerOpen = labContext?.isDrawerOpen ?? false;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    drawerContext = useLabDrawer();
+  } catch {
+    // safe fallback
+  }
+  const soundEnabled = audioContext?.soundEnabled ?? true;
+  const isDrawerOpen = drawerContext?.isDrawerOpen ?? false;
 
   let langContext = null;
   try {
@@ -121,17 +128,21 @@ export default function BackToTopButton() {
   // - If 1 item: child is at bottom-22 sm:bottom-25 -> BackToTopButton glides to bottom-40 sm:bottom-44
   // - If 2 items: children are at bottom-22 & bottom-38 -> BackToTopButton glides to bottom-56 sm:bottom-60
   // - If 3 items: children stack up to bottom-54 -> BackToTopButton glides to bottom-72 sm:bottom-76
-  // - If 4+ items: children stack up -> BackToTopButton glides to bottom-[22rem] sm:bottom-[23rem]
+  // - If 4 items: children stack up -> BackToTopButton glides to bottom-[22rem] sm:bottom-[23rem]
+  // - If 5 items: children stack up -> BackToTopButton glides to bottom-[25.5rem] sm:bottom-[27rem]
+  // - If 6+ items: children stack up -> BackToTopButton glides to bottom-[29.5rem] sm:bottom-[31rem]
   const verticalPositionClass = isHubOpen
-    ? hubItemCount >= 5
-      ? 'bottom-[25.5rem] sm:bottom-[26.5rem]'
-      : hubItemCount >= 4
-        ? 'bottom-[22rem] sm:bottom-[23rem]'
-        : hubItemCount === 3
-          ? 'bottom-72 sm:bottom-76'
-          : hubItemCount === 2
-            ? 'bottom-56 sm:bottom-60'
-            : 'bottom-40 sm:bottom-44'
+    ? hubItemCount >= 6
+      ? 'bottom-[29.5rem] sm:bottom-[31rem]'
+      : hubItemCount === 5
+        ? 'bottom-[25.5rem] sm:bottom-[27rem]'
+        : hubItemCount >= 4
+          ? 'bottom-[22rem] sm:bottom-[23rem]'
+          : hubItemCount === 3
+            ? 'bottom-72 sm:bottom-76'
+            : hubItemCount === 2
+              ? 'bottom-56 sm:bottom-60'
+              : 'bottom-40 sm:bottom-44'
     : 'bottom-22 sm:bottom-25';
 
   return (
@@ -139,7 +150,7 @@ export default function BackToTopButton() {
       aria-hidden={!isVisible}
       className={`fixed ${
         isDrawerOpen ? 'sm:right-[460px] right-6' : 'right-6 sm:right-8'
-      } z-40 select-none transition-all duration-300 ease-out ${verticalPositionClass} ${
+      } z-[70] select-none transition-all duration-300 ease-out ${verticalPositionClass} ${
         isVisible
           ? 'opacity-100 scale-100 pointer-events-auto translate-y-0'
           : 'opacity-0 scale-75 pointer-events-none translate-y-3'
@@ -151,7 +162,7 @@ export default function BackToTopButton() {
         onClick={scrollToTop}
         aria-label={isHindi ? `शीर्ष पर जाएं (स्क्रॉल ${Math.round(scrollProgress)}%)` : `Back to top (scrolled ${Math.round(scrollProgress)}%)`}
         title={isHindi ? `शीर्ष पर जाएं (${Math.round(scrollProgress)}%)` : `Back to Top (${Math.round(scrollProgress)}%)`}
-        className="group relative flex items-center justify-center w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-[#FAF8F5]/90 dark:bg-[#161122]/90 border border-[#E7E2D8] dark:border-[#2D2340] backdrop-blur-md text-[#18181B] dark:text-[#F5F2F8] shadow-lg shadow-black/10 dark:shadow-purple-950/30 hover:border-[#FF4D6D]/60 hover:shadow-xl hover:shadow-[#FF4D6D]/20 hover:scale-105 active:scale-90 transition-all duration-200 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
+        className="group relative pointer-events-auto flex items-center justify-center w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-[#FAF8F5]/90 dark:bg-[#161122]/90 border border-[#E7E2D8] dark:border-[#2D2340] backdrop-blur-md text-[#18181B] dark:text-[#F5F2F8] shadow-lg shadow-black/10 dark:shadow-purple-950/30 hover:border-[#FF4D6D]/60 hover:shadow-xl hover:shadow-[#FF4D6D]/20 hover:scale-105 active:scale-90 transition-all duration-200 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
       >
         {/* SVG Circular Scroll Progress Ring */}
         <svg

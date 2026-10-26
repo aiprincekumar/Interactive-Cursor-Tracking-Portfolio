@@ -5,21 +5,21 @@ import {
   RotateCcw,
   ExternalLink
 } from 'lucide-react';
-import { useLab } from '../context/LabContext';
+import { useLabDrawer, useLabAudio, useLab } from '../context/LabContext';
 import { soundFX } from '../utils/audio';
 import ControlCenterPanel from './ControlCenterPanel';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 
-export default function LabStudioDrawer() {
+function LabStudioDrawer() {
   const {
     isDrawerOpen,
     openDrawer,
     closeDrawer,
     toggleDrawer,
-    resetDefaults,
-    soundEnabled,
     activeTab
-  } = useLab();
+  } = useLabDrawer();
+  const { soundEnabled } = useLabAudio();
+  const { resetDefaults } = useLab();
 
   const drawerRef = useRef(null);
 
@@ -73,7 +73,7 @@ export default function LabStudioDrawer() {
         aria-modal="true"
         aria-label="Portfolio Control Center Drawer"
         aria-hidden={!isDrawerOpen}
-        inert={!isDrawerOpen ? '' : undefined}
+        inert={!isDrawerOpen ? true : undefined}
         className={`fixed top-0 right-0 h-full w-[380px] sm:w-[440px] max-w-[95vw] z-[80] bg-[#FAF8F5]/98 dark:bg-[#120D1D]/98 backdrop-blur-2xl border-l border-[#E7E2D8] dark:border-[#2D2340] shadow-2xl flex flex-col transition-transform duration-300 ease-out will-change-transform ${
           isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
@@ -125,7 +125,7 @@ export default function LabStudioDrawer() {
 
         {/* Scrollable Drawer Body with 6-Tab Control Center */}
         <div className="flex-1 overflow-y-auto px-4 py-4 no-scrollbar">
-          <ControlCenterPanel variant="drawer" />
+          {isDrawerOpen ? <ControlCenterPanel variant="drawer" /> : null}
         </div>
 
         {/* Drawer Footer */}
@@ -146,3 +146,5 @@ export default function LabStudioDrawer() {
     </>
   );
 }
+
+export default React.memo(LabStudioDrawer);

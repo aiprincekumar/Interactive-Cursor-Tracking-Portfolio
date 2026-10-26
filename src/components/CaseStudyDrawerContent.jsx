@@ -169,7 +169,7 @@ export default function CaseStudyDrawerContent({
         aria-labelledby="casestudy-drawer-title"
         aria-describedby="casestudy-drawer-subtitle"
         aria-hidden={!isOpen}
-        inert={!isOpen ? '' : undefined}
+        inert={!isOpen ? true : undefined}
         className={`fixed top-0 right-0 h-full w-full sm:w-[560px] md:w-[680px] lg:w-[780px] max-w-[100vw] sm:max-w-[95vw] z-[80] bg-[#FAF8F5]/98 dark:bg-[#120D1D]/98 text-[#18181B] dark:text-[#F5F2F8] backdrop-blur-2xl border-l border-[#E7E2D8] dark:border-[#2D2340] shadow-2xl flex flex-col transition-transform duration-300 ease-out will-change-transform ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}

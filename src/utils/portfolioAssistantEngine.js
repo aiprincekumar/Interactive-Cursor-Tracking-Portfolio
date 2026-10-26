@@ -7,6 +7,32 @@ import { CASE_STUDIES } from '../data/caseStudiesData.js';
 import { FAQ_ITEMS } from '../data/faqConfig.js';
 import { RESUME_ROLE_CONFIG, getResumeConfig } from './resumeConfig.js';
 import { SKILLS_DATA } from '../data/skillsData.js';
+import { searchPortfolio } from './portfolioSemanticIndex.js';
+import {
+  QUOTATION_DATA,
+  createSessionMemory,
+  getConversationalContext,
+  updateConversationalContext,
+  resetConversationalContext,
+  resolveAnaphoricReferences,
+  detectComparativeQuery,
+  detectCompoundQuery,
+  getDynamicContextualChips,
+  synthesizeContextualResponse,
+  getTopicForCaseStudy
+} from './portfolioContextMemory.js';
+
+export {
+  QUOTATION_DATA,
+  createSessionMemory,
+  getConversationalContext,
+  updateConversationalContext,
+  resetConversationalContext,
+  resolveAnaphoricReferences,
+  detectComparativeQuery,
+  detectCompoundQuery,
+  getDynamicContextualChips
+};
 
 
 export const PROJECT_KEYWORD_MAP = [
@@ -25,17 +51,17 @@ export function matchProjectKeyword(query) {
   if (!query) return null;
   const q = String(query).toLowerCase();
   for (const item of PROJECT_KEYWORD_MAP) {
-    if (item.regex.test(q)) return item.id;
+  if (item.regex.test(q)) return item.id;
   }
   try {
-    const norm = typeof normalizeQuery === 'function' ? normalizeQuery(query).normalized : '';
-    if (norm && norm !== q) {
-      for (const item of PROJECT_KEYWORD_MAP) {
-        if (item.regex.test(norm)) return item.id;
-      }
-    }
+  const norm = typeof normalizeQuery === 'function' ? normalizeQuery(query).normalized : '';
+  if (norm && norm !== q) {
+  for (const item of PROJECT_KEYWORD_MAP) {
+  if (item.regex.test(norm)) return item.id;
+  }
+  }
   } catch {
-    // safe fallback
+  // safe fallback
   }
   return null;
 }
@@ -45,15 +71,15 @@ export function getCaseStudyId(item) {
   if (item.caseStudyId) return item.caseStudyId;
   const target = item.targetId || item.id || '';
   const map = {
-    'proj-gst-tax': '01',
-    'proj-tally-accounting': '02',
-    'proj-day-nulm': '03',
-    'proj-smart-card': '04',
-    'proj-enterprise-transformation': '05',
-    'proj-business-advisory': '06',
-    'proj-ai-saas-generator': '07',
-    'proj-agent-workflow-engine': '08',
-    'proj-doc-code-synthesizer': '09'
+  'proj-gst-tax': '01',
+  'proj-tally-accounting': '02',
+  'proj-day-nulm': '03',
+  'proj-smart-card': '04',
+  'proj-enterprise-transformation': '05',
+  'proj-business-advisory': '06',
+  'proj-ai-saas-generator': '07',
+  'proj-agent-workflow-engine': '08',
+  'proj-doc-code-synthesizer': '09'
   };
   if (map[target]) return map[target];
   return matchProjectKeyword(item.title || item.keywords || '');
@@ -80,41 +106,73 @@ export function findMatchedSkill(query, searchResults = []) {
   if (!query) return null;
   const q = String(query).toLowerCase();
   for (const entry of SKILL_LOOKUP_MAP) {
-    if (entry.regex.test(q)) {
-      const data = SKILLS_DATA[entry.key];
-      if (data) return { ...data, key: entry.key, relatedCaseStudy: entry.relatedCaseStudy };
-    }
+  if (entry.regex.test(q)) {
+  const data = SKILLS_DATA[entry.key];
+  if (data) return { ...data, key: entry.key, relatedCaseStudy: entry.relatedCaseStudy };
+  }
   }
   try {
-    const norm = typeof normalizeQuery === 'function' ? normalizeQuery(query).normalized : '';
-    if (norm && norm !== q) {
-      for (const entry of SKILL_LOOKUP_MAP) {
-        if (entry.regex.test(norm)) {
-          const data = SKILLS_DATA[entry.key];
-          if (data) return { ...data, key: entry.key, relatedCaseStudy: entry.relatedCaseStudy };
-        }
-      }
-    }
+  const norm = typeof normalizeQuery === 'function' ? normalizeQuery(query).normalized : '';
+  if (norm && norm !== q) {
+  for (const entry of SKILL_LOOKUP_MAP) {
+  if (entry.regex.test(norm)) {
+  const data = SKILLS_DATA[entry.key];
+  if (data) return { ...data, key: entry.key, relatedCaseStudy: entry.relatedCaseStudy };
+  }
+  }
+  }
   } catch {
-    // safe fallback
+  // safe fallback
   }
   if (Array.isArray(searchResults)) {
-    for (const res of searchResults) {
-      if (res.item && res.item.category === 'Skills') {
-        const itemTitle = res.item.title || '';
-        for (const [key, data] of Object.entries(SKILLS_DATA)) {
-          if (itemTitle.toLowerCase().includes(data.title.toLowerCase()) || data.title.toLowerCase().includes(itemTitle.toLowerCase())) {
-            const entry = SKILL_LOOKUP_MAP.find(m => m.key === key);
-            return { ...data, key, relatedCaseStudy: entry?.relatedCaseStudy || null };
-          }
-        }
-      }
-    }
+  for (const res of searchResults) {
+  if (res.item && res.item.category === 'Skills') {
+  const itemTitle = res.item.title || '';
+  for (const [key, data] of Object.entries(SKILLS_DATA)) {
+  if (itemTitle.toLowerCase().includes(data.title.toLowerCase()) || data.title.toLowerCase().includes(itemTitle.toLowerCase())) {
+  const entry = SKILL_LOOKUP_MAP.find(m => m.key === key);
+  return { ...data, key, relatedCaseStudy: entry?.relatedCaseStudy || null };
+  }
+  }
+  }
+  }
   }
   return null;
 }
 
 // 1. AUTHENTIC KNOWLEDGE CONSTANTS & TAXONOMY
+
+/**
+ * Categorize a chip into one of the 5 canonical UI categories:
+ * 'projects' | 'tax' | 'tech' | 'experience' | 'hire'
+ */
+export function inferChipCategory(id = '', label = '', query = '') {
+  const combined = `${id} ${label} ${query}`.toLowerCase();
+  if (/\b(cs-|case|project|stud|portfolio|o-proj|rec-cs|cli-cs|p-cs|c-cs|cs01|cs02|cs03|cs04|cs05|cs06|cs07|cs08|cs09)\b/i.test(combined)) return 'projects';
+  if (/\b(gst|tax|tally|itc|audit|itr|gstr|ledger|brs)\b/i.test(combined)) return 'tax';
+  if (/\b(tech|stack|tool|vba|macro|power bi|pbi|saas|agent|claude|sdk|react|code|clean)\b/i.test(combined)) return 'tech';
+  if (/\b(exp|experience|tenure|nulm|smart card|bio-edu|bio-career|track record)\b/i.test(combined)) return 'experience';
+  if (/\b(hire|contact|wa|whatsapp|call|phone|email|avail|notice|resume|cv|quote|quotation|fee|pricing|price|ctc|bio|partner|family|horoscope|kundli)\b/i.test(combined)) return 'hire';
+  return 'projects';
+}
+
+/**
+ * Canonical verified default prompt chips tagged by category
+ */
+export const PROMPT_CHIPS = [
+  { id: 'projects', label: '🚀 Projects', query: 'Tell me about your featured projects', category: 'projects' },
+  { id: 'tech', label: '⚡ Tech Stack', query: 'What is your core tech stack and skills?', category: 'tech' },
+  { id: 'experience', label: '💼 Experience', query: 'Summarize your professional experience', category: 'experience' },
+  { id: 'pricing', label: '💰 Pricing', query: 'Estimate quotation and service fees', category: 'hire' },
+  { id: 'resume', label: '📄 Resume', query: 'Download verified professional resume', category: 'hire' },
+  { id: 'gst', label: '📊 GST & Tax', query: 'Tell me about GST, ITR, and accounting practice', category: 'tax' },
+  { id: 'itc', label: '📑 ITC & GSTR-2B', query: 'Explain GST ITC matching and GSTR-2B reconciliation', category: 'tax' },
+  { id: 'tally', label: '📈 Tally Prime & BRS', query: 'Tell me about Tally Prime and bank reconciliation', category: 'tax' },
+  { id: 'audit', label: '🔍 Audit & Ledgers', query: 'Tell me about balance sheet audit and financial controls', category: 'tax' },
+  { id: 'powerbi', label: '📉 Power BI', query: 'Tell me about Power BI and Excel automation', category: 'tech' },
+  { id: 'ai', label: '🤖 AI & SaaS', query: 'Tell me about AI prompt-to-SaaS and multi-agent workflows', category: 'tech' },
+  { id: 'contact', label: '📬 Contact', query: 'How can I get in touch or hire you?', category: 'hire' }
+];
 
 export const CORE_INTENTS = [
   'roles',
@@ -131,48 +189,12 @@ export const CORE_INTENTS = [
   'navigation',
   'filter_toggles',
   'suggestions',
+  'voice_control',
   'ambiguous',
   'fallback'
 ];
 
-export const QUOTATION_DATA = {
-  accounting: {
-    trackName: 'Accounting & Statutory Tax Advisory',
-    trackName_hi: 'अकाउंटिंग एवं वैधानिक कर परामर्श',
-    minBase: 4500,
-    maxBase: 8000,
-    services: [
-      { id: 'gst', label: 'GST Return Filing (GSTR-1, 3B, 2B Reconciliation)', cost: 2500 },
-      { id: 'itr', label: 'Income Tax E-Filing (ITR-1 to 4 & Tax Planning)', cost: 2000 },
-      { id: 'tally', label: 'Tally Prime / ERP Multi-Company Setup & BRS', cost: 3000 },
-      { id: 'audit', label: 'Balance Sheet, P&L & Audit Readiness Dossier', cost: 4500 }
-    ]
-  },
-  mis: {
-    trackName: 'MIS & Operations Data Systems',
-    trackName_hi: 'MIS एवं ऑपरेशंस डेटा सिस्टम्स',
-    minBase: 5000,
-    maxBase: 9000,
-    services: [
-      { id: 'macro', label: 'MS Excel VBA / Macro Automation & Pipelines', cost: 3500 },
-      { id: 'govt', label: 'DAY-NULM / Government Skill Portal Reporting', cost: 3000 },
-      { id: 'cleaning', label: 'Large Dataset Reconciliation & Cleaning (10k+ rows)', cost: 2500 },
-      { id: 'powerbi', label: 'Power BI Executive KPI Dashboard & Telemetry', cost: 4000 }
-    ]
-  },
-  ai_web: {
-    trackName: 'AI & Web Engineering / Vibe Coding',
-    trackName_hi: 'AI एवं वेब इंजीनियरिंग / Vibe Coding',
-    minBase: 22000,
-    maxBase: 35000,
-    services: [
-      { id: 'mvp', label: 'Full-Stack Next.js / React SaaS MVP Prototype', cost: 18000 },
-      { id: 'agents', label: 'Autonomous Multi-Agent LLM Workflow Engine', cost: 14000 },
-      { id: 'api', label: 'Production REST API, Auth & PostgreSQL DB Integration', cost: 8000 },
-      { id: 'design', label: 'High-Fidelity Tailwind CSS & UI/UX Interactions', cost: 6000 }
-    ]
-  }
-};
+
 
 export const DEMOGRAPHIC_BIO = {
   fullName: 'Atul Verma',
@@ -204,34 +226,34 @@ export const CONTACT_INFO = {
 
 export const ROLE_PROFILES = {
   overview: {
-    title: 'Multi-Track Polymath & Executive Practitioner',
-    title_hi: 'बहु-विषयक पॉलीमैथ एवं एग्जीक्यूटिव प्रैक्टिशनर',
-    summary: 'Atul Verma bridges statutory financial compliance, high-volume government MIS systems, and modern autonomous AI vibe coding into unified operational excellence.',
-    summary_hi: 'अतुल वर्मा वैधानिक वित्तीय अनुपालन, उच्च-मात्रा वाले सरकारी MIS सिस्टम्स और आधुनिक स्वायत्त AI Vibe Coding को एकीकृत परिचालन उत्कृष्टता में जोड़ते हैं।'
+  title: 'Multi-Track Polymath & Executive Practitioner',
+  title_hi: 'बहु-विषयक पॉलीमैथ एवं एग्जीक्यूटिव प्रैक्टिशनर',
+  summary: 'Atul Verma bridges statutory financial compliance, high-volume government MIS systems, and modern autonomous AI vibe coding into unified operational excellence.',
+  summary_hi: 'अतुल वर्मा वैधानिक वित्तीय अनुपालन, उच्च-मात्रा वाले सरकारी MIS सिस्टम्स और आधुनिक स्वायत्त AI Vibe Coding को एकीकृत परिचालन उत्कृष्टता में जोड़ते हैं।'
   },
   accountant: {
-    title: 'Senior Tally Accountant & Statutory Tax Consultant',
-    title_hi: 'सीनियर टैली अकाउंटेंट एवं वैधानिक कर सलाहकार',
-    summary: '7+ years active practice, 500+ statutory returns filed (GSTR-1, 3B, 9, ITR 1-4), ₹2.5Cr+ reconciled ITC with 0% scrutiny notices.',
-    summary_hi: '7+ वर्षों का सक्रिय अभ्यास, 500+ दाखिल वैधानिक रिटर्न (GSTR-1, 3B, 9, ITR 1-4), ₹2.5Cr+ सत्यापित ITC और शून्य पेनल्टी नोटिस रिकॉर्ड।'
+  title: 'Senior Tally Accountant & Statutory Tax Consultant',
+  title_hi: 'सीनियर टैली अकाउंटेंट एवं वैधानिक कर सलाहकार',
+  summary: '7+ years active practice, 500+ statutory returns filed (GSTR-1, 3B, 9, ITR 1-4), ₹2.5Cr+ reconciled ITC with 0% scrutiny notices.',
+  summary_hi: '7+ वर्षों का सक्रिय अभ्यास, 500+ दाखिल वैधानिक रिटर्न (GSTR-1, 3B, 9, ITR 1-4), ₹2.5Cr+ सत्यापित ITC और शून्य पेनल्टी नोटिस रिकॉर्ड।'
   },
   mis: {
-    title: 'MIS & Analytics Specialist / Operations Lead',
-    title_hi: 'MIS एवं एनालिटिक्स स्पेशलिस्ट / ऑपरेशंस लीड',
-    summary: '10+ years career, 50,000+ candidate biometric enrollments across 12+ districts, DAY-NULM Skill India portal governance, Advanced Excel VBA/Macros.',
-    summary_hi: '10+ वर्षों का अनुभव, 12+ जिलों में 50,000+ बायोमेट्रिक नामांकन, DAY-NULM स्किल इंडिया पोर्टल संचालन और उन्नत Excel VBA ऑटोमेशन।'
+  title: 'MIS & Analytics Specialist / Operations Lead',
+  title_hi: 'MIS एवं एनालिटिक्स स्पेशलिस्ट / ऑपरेशंस लीड',
+  summary: '10+ years career, 50,000+ candidate biometric enrollments across 12+ districts, DAY-NULM Skill India portal governance, Advanced Excel VBA/Macros.',
+  summary_hi: '10+ वर्षों का अनुभव, 12+ जिलों में 50,000+ बायोमेट्रिक नामांकन, DAY-NULM स्किल इंडिया पोर्टल संचालन और उन्नत Excel VBA ऑटोमेशन।'
   },
   vibe_coding: {
-    title: 'AI Vibe Coder & Full-Stack Systems Engineer',
-    title_hi: 'AI Vibe Coder एवं फुल-स्टैक सिस्टम्स इंजीनियर',
-    summary: 'Rapid prototyping via Google Antigravity SDK, Claude Code, Cursor, React 19, Vite, Tailwind v4, and autonomous multi-agent pipelines.',
-    summary_hi: 'एंटीग्रेविटी SDK, क्लॉड कोड, कर्सर, React 19, Vite और स्वायत्त मल्टी-एजेंट पाइपलाइन्स के माध्यम से रैपिड फुल-स्टैक प्रोटोटाइपिंग।'
+  title: 'AI Vibe Coder & Full-Stack Systems Engineer',
+  title_hi: 'AI Vibe Coder एवं फुल-स्टैक सिस्टम्स इंजीनियर',
+  summary: 'Rapid prototyping via Google Antigravity SDK, Claude Code, Cursor, React 19, Vite, Tailwind v4, and autonomous multi-agent pipelines.',
+  summary_hi: 'एंटीग्रेविटी SDK, क्लॉड कोड, कर्सर, React 19, Vite और स्वायत्त मल्टी-एजेंट पाइपलाइन्स के माध्यम से रैपिड फुल-स्टैक प्रोटोटाइपिंग।'
   },
   other: {
-    title: 'Executive Corporate Controller & BI Strategist',
-    title_hi: 'एग्जीक्यूटिव कॉर्पोरेट कंट्रोलर एवं BI रणनीतिकार',
-    summary: 'Synthesizing rigorous statutory financial controls with automated ERP pipelines and dynamic Power BI executive telemetry.',
-    summary_hi: 'स्वचालित ERP पाइपलाइनों और गतिशील Power BI एग्जीक्यूटिव टेलीमेट्री के साथ सख्त वैधानिक वित्तीय नियंत्रण।'
+  title: 'Executive Corporate Controller & BI Strategist',
+  title_hi: 'एग्जीक्यूटिव कॉर्पोरेट कंट्रोलर एवं BI रणनीतिकार',
+  summary: 'Synthesizing rigorous statutory financial controls with automated ERP pipelines and dynamic Power BI executive telemetry.',
+  summary_hi: 'स्वचालित ERP पाइपलाइनों और गतिशील Power BI एग्जीक्यूटिव टेलीमेट्री के साथ सख्त वैधानिक वित्तीय नियंत्रण।'
   }
 };
 
@@ -260,11 +282,18 @@ const CANONICAL_VOCABULARY = [
   'react', 'tailwind', 'python', 'vite', 'javascript', 'atul', 'verma'
 ];
 
+const _qa = 'quotation pricing fees charge cost estimate';
+const _ba = 'matrimonial marriage personal family biodata';
+const _ia = 'input tax credit itc 2b reconciliation';
+const _ma = 'ms excel vba macro automated pipelines';
+const _pa = 'profit and loss balance sheet finalization';
+const _da = 'day-nulm';
+
 const TECHNICAL_ALIASES = {
   brs: 'bank reconciliation statement brs tally',
-  itc: 'input tax credit itc 2b reconciliation',
-  itc2b: 'input tax credit itc 2b reconciliation',
-  'itc-2b': 'input tax credit itc 2b reconciliation',
+  itc: _ia,
+  itc2b: _ia,
+  'itc-2b': _ia,
   gstr: 'gst return compliance gstr-1 gstr-3b gstr-9',
   gstr1: 'gstr-1 outward supplies return gst',
   gstr3b: 'gstr-3b monthly summary return gst',
@@ -273,25 +302,25 @@ const TECHNICAL_ALIASES = {
   tcs: 'tax collected at source tcs 27eq',
   pbi: 'power bi',
   powerbi: 'power bi',
-  nulm: 'day-nulm',
-  daynulm: 'day-nulm',
+  nulm: _da,
+  daynulm: _da,
   rsby: 'rsby smart card biometric field operations',
-  vba: 'ms excel vba macro automated pipelines',
-  macro: 'ms excel vba macro automated pipelines',
-  pnl: 'profit and loss balance sheet finalization',
-  'p&l': 'profit and loss balance sheet finalization',
+  vba: _ma,
+  macro: _ma,
+  pnl: _pa,
+  'p&l': _pa,
   itr: 'income tax e-filing itr-1 itr-4 tax planning',
   cv: 'resume cv download official verified pdf',
-  biodata: 'matrimonial marriage personal family biodata',
-  shadi: 'matrimonial marriage personal family biodata',
-  vivah: 'matrimonial marriage personal family biodata',
-  fee: 'quotation pricing fees charge cost estimate',
-  fees: 'quotation pricing fees charge cost estimate',
-  cost: 'quotation pricing fees charge cost estimate',
-  price: 'quotation pricing fees charge cost estimate',
-  pricing: 'quotation pricing fees charge cost estimate',
-  charge: 'quotation pricing fees charge cost estimate',
-  kharcha: 'quotation pricing fees charge cost estimate'
+  biodata: _ba,
+  shadi: _ba,
+  vivah: _ba,
+  fee: _qa,
+  fees: _qa,
+  cost: _qa,
+  price: _qa,
+  pricing: _qa,
+  charge: _qa,
+  kharcha: _qa
 };
 
 const HINDI_KEYWORD_MAP = {
@@ -338,14 +367,14 @@ export function detectLanguage(text) {
   let hinglishCount = 0;
 
   for (const token of tokens) {
-    if (HINGLISH_STOPWORDS.has(token)) {
-      hinglishCount++;
-    }
+  if (HINGLISH_STOPWORDS.has(token)) {
+  hinglishCount++;
+  }
   }
 
   // If query contains 2+ Hinglish words or >20% Hinglish markers
   if (hinglishCount >= 2 || (tokens.length > 0 && hinglishCount / tokens.length >= 0.25)) {
-    return 'hinglish';
+  return 'hinglish';
   }
 
   return 'en';
@@ -364,38 +393,26 @@ export function levenshteinDistance(a, b) {
   for (let j = 0; j <= n; j++) prevRow[j] = j;
 
   for (let i = 1; i <= m; i++) {
-    currRow[0] = i;
-    const aChar = a.charCodeAt(i - 1);
-    for (let j = 1; j <= n; j++) {
-      const bChar = b.charCodeAt(j - 1);
-      const cost = aChar === bChar ? 0 : 1;
-      currRow[j] = Math.min(
-      currRow[j - 1] + 1,
-      prevRow[j] + 1,
-      prevRow[j - 1] + cost
-      );
-    }
-    const temp = prevRow;
-    prevRow = currRow;
-    currRow = temp;
+  currRow[0] = i;
+  const aChar = a.charCodeAt(i - 1);
+  for (let j = 1; j <= n; j++) {
+  const bChar = b.charCodeAt(j - 1);
+  const cost = aChar === bChar ? 0 : 1;
+  currRow[j] = Math.min(
+  currRow[j - 1] + 1,
+  prevRow[j] + 1,
+  prevRow[j - 1] + cost
+  );
+  }
+  const temp = prevRow;
+  prevRow = currRow;
+  currRow = temp;
   }
 
   return prevRow[n];
 }
 
-const COMMON_ENGLISH_WORDS = new Set([
-  'tell', 'call', 'with', 'from', 'have', 'this', 'that', 'what', 'when', 'where',
-  'which', 'who', 'how', 'your', 'work', 'more', 'some', 'than', 'them', 'then',
-  'they', 'were', 'will', 'been', 'each', 'make', 'like', 'time', 'just', 'know',
-  'take', 'into', 'year', 'good', 'could', 'look', 'only', 'come', 'over',
-  'also', 'back', 'after', 'used', 'our', 'out', 'all', 'any', 'can', 'has', 'had',
-  'not', 'for', 'and', 'the', 'about', 'role', 'roles', 'profile', 'profiles',
-  'show', 'give', 'need', 'want', 'view', 'read', 'find', 'done', 'open', 'send',
-  'contract', 'contracts', 'terms', 'timeline', 'turnaround', 'drive', 'prime', 'atul', 'verma',
-  'file', 'files', 'filed', 'filing', 'live', 'line', 'list', 'past', 'post', 'rate', 'real',
-  'site', 'size', 'stat', 'stay', 'team', 'test', 'text', 'user', 'went', 'wide', 'wire',
-  'city', 'date', 'edit', 'fast', 'host', 'item', 'last', 'life', 'lite', 'mine', 'most', 'must'
-]);
+const COMMON_ENGLISH_WORDS = new Set('tell call with from have this that what when where which who how your work more some than them then they were will been each make like time just know take into year good could look only come over also back after used our out all any can has had not for and the about role roles profile profiles show give need want view read find done open send contract contracts terms timeline turnaround drive prime atul verma file files filed filing live line list past post rate real site size stat stay team test text user went wide wire city date edit fast host item last life lite mine most must'.split(' '));
 
 function repairTypo(word) {
   if (!word || word.length < 4 || word.length > 18) return word;
@@ -407,15 +424,15 @@ function repairTypo(word) {
   let minDistance = 3;
 
   for (const candidate of CANONICAL_VOCABULARY) {
-    if (Math.abs(candidate.length - lower.length) > 2) continue;
-    // For short words (<= 5 chars), require first letter to match to avoid cross-word false collisions
-    if (lower.length <= 5 && candidate[0] !== lower[0]) continue;
-    const dist = levenshteinDistance(lower, candidate);
-    if (dist <= 2 && dist < minDistance) {
-      minDistance = dist;
-      bestMatch = candidate;
-      if (dist === 1) break;
-    }
+  if (Math.abs(candidate.length - lower.length) > 2) continue;
+  // For short words (<= 5 chars), require first letter to match to avoid cross-word false collisions
+  if (lower.length <= 5 && candidate[0] !== lower[0]) continue;
+  const dist = levenshteinDistance(lower, candidate);
+  if (dist <= 2 && dist < minDistance) {
+  minDistance = dist;
+  bestMatch = candidate;
+  if (dist === 1) break;
+  }
   }
 
   return bestMatch;
@@ -423,7 +440,7 @@ function repairTypo(word) {
 
 export function normalizeQuery(query) {
   if (!query || typeof query !== 'string') {
-    return { normalized: '', rawTokens: [], tokens: [], aliasesApplied: [], lang: 'en' };
+  return { normalized: '', rawTokens: [], tokens: [], aliasesApplied: [], lang: 'en' };
   }
 
   const lang = detectLanguage(query);
@@ -432,13 +449,13 @@ export function normalizeQuery(query) {
 
   // 1. Expand Hindi Devanagari mappings (Length-Descending to Prevent Substring Truncation)
   if (lang === 'hi') {
-    const sortedHindiKeys = Object.keys(HINDI_KEYWORD_MAP).sort((a, b) => b.length - a.length);
-    for (const hindiWord of sortedHindiKeys) {
-      if (processed.includes(hindiWord)) {
-      processed = processed.replace(new RegExp(hindiWord, 'g'), ` ${HINDI_KEYWORD_MAP[hindiWord]} `);
-      aliasesApplied.push(hindiWord);
-      }
-    }
+  const sortedHindiKeys = Object.keys(HINDI_KEYWORD_MAP).sort((a, b) => b.length - a.length);
+  for (const hindiWord of sortedHindiKeys) {
+  if (processed.includes(hindiWord)) {
+  processed = processed.replace(new RegExp(hindiWord, 'g'), ` ${HINDI_KEYWORD_MAP[hindiWord]} `);
+  aliasesApplied.push(hindiWord);
+  }
+  }
   }
 
   // 2. Tokenize
@@ -446,27 +463,27 @@ export function normalizeQuery(query) {
   const repairedTokens = [];
 
   for (const token of rawTokens) {
-    // 3. Technical Alias Lookup (hardened against prototype property collision)
-    if (Object.prototype.hasOwnProperty.call(TECHNICAL_ALIASES, token) && typeof TECHNICAL_ALIASES[token] === 'string') {
-      const expansion = TECHNICAL_ALIASES[token];
-      repairedTokens.push(...expansion.split(' '));
-      aliasesApplied.push(token);
-    } else {
-      // 4. Typo Correction
-      const repaired = repairTypo(token);
-      repairedTokens.push(repaired);
-    }
+  // 3. Technical Alias Lookup (hardened against prototype property collision)
+  if (Object.prototype.hasOwnProperty.call(TECHNICAL_ALIASES, token) && typeof TECHNICAL_ALIASES[token] === 'string') {
+  const expansion = TECHNICAL_ALIASES[token];
+  repairedTokens.push(...expansion.split(' '));
+  aliasesApplied.push(token);
+  } else {
+  // 4. Typo Correction
+  const repaired = repairTypo(token);
+  repairedTokens.push(repaired);
+  }
   }
   const tokens = Array.from(new Set(repairedTokens)).filter(
-    (t) => t.length > 1 || t === 'ai' || t === 'bi' || t === '3b' || t === '2b' || /^[1-9]$/.test(t)
+  (t) => t.length > 1 || t === 'ai' || t === 'bi' || t === '3b' || t === '2b' || /^[1-9]$/.test(t)
   );
 
   return {
-    normalized: tokens.join(' '),
-    rawTokens,
-    tokens,
-    aliasesApplied,
-    lang
+  normalized: tokens.join(' '),
+  rawTokens,
+  tokens,
+  aliasesApplied,
+  lang
   };
 }
 
@@ -476,67 +493,78 @@ const makeBoundaryRegex = (patternStr) =>
   new RegExp(`(?<![\\p{L}\\p{N}\\p{M}])(?:${patternStr})(?![\\p{L}\\p{N}\\p{M}])`, 'iu');
 
 const INTENT_PATTERNS = {
+  voice_control: makeBoundaryRegex(
+  'voice|speak|read that|read aloud|speak response|voice settings|change voice speed|voice dubbing|tts|narrate|' +
+  'बोलकर सुनाओ|आवाज़ में बोलो|वॉइस सेटिंग्स|आवाज|बोल के बताओ|आवाज़'
+  ),
+  tour: makeBoundaryRegex(
+  'tour|start tour|give me a tour|guided walkthrough|show me around|take a tour|explore portfolio tour|guided tour|walkthrough|' +
+  'टूर|वॉकथ्रू|पोर्टफोलियो दिखाओ|दिखाओ'
+  ),
+  search: makeBoundaryRegex(
+  'search for|search|find|look up|search portfolio|खोजें|ढूंढो|सर्च'
+  ),
   faq: makeBoundaryRegex(
-    'where are you located|located in india|office location|kaha rehte ho|headquartered|location kya hai|' +
-    'कहाँ स्थित|कहाँ रहते|कहाँ का'
+  'where are you located|located in india|office location|kaha rehte ho|headquartered|location kya hai|' +
+  'कहाँ स्थित|कहाँ रहते|कहाँ का'
   ),
   navigation: makeBoundaryRegex(
-    'navigate|navigate to|go to|scroll|scroll to|scroll down to|scroll karo|jump to|take me to|open section|le chalo|section|' +
-    'ले चलो|सेक्शन खोलो|जाओ|जाएं|अनुभाग पर जाएं|अनुभाग खोलो|स्क्रॉल करो'
+  'navigate|navigate to|go to|scroll|scroll to|scroll down to|scroll karo|jump to|take me to|open section|le chalo|section|' +
+  'ले चलो|सेक्शन खोलो|जाओ|जाएं|अनुभाग पर जाएं|अनुभाग खोलो|स्क्रॉल करो'
   ),
   filter_toggles: makeBoundaryRegex(
-    'switch role|change track|switch track|track badal|role badal|track change|role change|track badlo|role badlo|' +
-    'switch to corporate accountant view|switch to accountant|switch to mis|switch to vibe|switch to other|switch to overview|' +
-    'recruiter mode|client mode|marriage mode|accountant mode|mis mode|vibe mode|mode on karo|filter lagao|' +
-    'मोड बदलो|ट्रैक बदलो|चेंज रोल|मोड चालू|अकाउंटेंट मोड'
+  'switch role|change track|switch track|track badal|role badal|track change|role change|track badlo|role badlo|' +
+  'switch to corporate accountant view|switch to accountant|switch to mis|switch to vibe|switch to other|switch to overview|' +
+  'recruiter mode|client mode|marriage mode|accountant mode|mis mode|vibe mode|mode on karo|filter lagao|' +
+  'मोड बदलो|ट्रैक बदलो|चेंज रोल|मोड चालू|अकाउंटेंट मोड'
   ),
   marriage_bio: makeBoundaryRegex(
-    'marriage|matrimonial|biodata|family|father|birth year|shadi|vivah|kundali|gotra|caste|parents|' +
-    'शादी|विवाह|पारिवारिक|परिवार|माता-पिता|पिता का नाम|पिता|बायोडाटा|कुंडली|गोत्र'
+  'marriage|matrimonial|biodata|family|father|birth year|shadi|vivah|kundali|gotra|caste|parents|' +
+  'शादी|विवाह|पारिवारिक|परिवार|माता-पिता|पिता का नाम|पिता|बायोडाटा|कुंडली|गोत्र'
   ),
   availability: makeBoundaryRegex(
-    'available|availability|working hours|timings|timing|open for work|freelance available|when can you start|kab baat karein|office hours|immediate hire|immediate join|available for immediate hire|immediate join kar sakte ho|' +
-    'उपलब्धता|उपलब्ध|समय|कब बात करें|वर्किंग आवर्स|काम के लिए उपलब्ध'
+  'available|availability|working hours|timings|timing|open for work|freelance available|when can you start|kab baat karein|office hours|immediate hire|immediate join|available for immediate hire|immediate join kar sakte ho|' +
+  'उपलब्धता|उपलब्ध|समय|कब बात करें|वर्किंग आवर्स|काम के लिए उपलब्ध'
   ),
   recruiter_info: makeBoundaryRegex(
-    'resume|cv|biodata download|download resume|hire|recruiter|notice period|job offer|full time|interview|salary|ctc|compensation|hiring|' +
-    'रिज्यूमे|सीवी|हायरिंग|नौकरी|डाउनलोड करें|रिज्यूमे डाउनलोड'
+  'resume|cv|biodata download|download resume|hire|recruiter|notice period|job offer|full time|interview|salary|ctc|compensation|hiring|' +
+  'रिज्यूमे|सीवी|हायरिंग|नौकरी|डाउनलोड करें|रिज्यूमे डाउनलोड'
   ),
   client_info: makeBoundaryRegex(
-    'client|contract|sla|timeline|turnaround|delivery time|client work|terms|project cost|cost|pricing|price|quotation|quotation estimator|quote|how much|fee|fees|kharcha|kitna aayega|kitna kharch|kitna kharcha|estimator|freelance|' +
-    'खर्च|खर्चा|कीमत|कोटेशन|शुल्क|दरें|फ्रीलांस|क्लाइंट|डिलीवरी|प्रोजेक्ट का कितना खर्च'
+  'client|contract|sla|timeline|turnaround|delivery time|client work|terms|project cost|cost|pricing|price|quotation|quotation estimator|quote|how much|fee|fees|kharcha|kitna aayega|kitna kharch|kitna kharcha|estimator|freelance|' +
+  'खर्च|खर्चा|कीमत|कोटेशन|शुल्क|दरें|फ्रीलांस|क्लाइंट|डिलीवरी|प्रोजेक्ट का कितना खर्च'
   ),
   services: makeBoundaryRegex(
-    'services|service|offerings|consulting|consultation|advisory|tax filing karwana|kya services provide|work provided|app banwana|banwana|saas app|ek saas|mvp banwana|' +
-    'सेवाएं|सेवा|कंसल्टेंसी|परामर्श'
+  'services|service|offerings|consulting|consultation|advisory|tax filing karwana|kya services provide|work provided|app banwana|banwana|saas app|ek saas|mvp banwana|' +
+  'सेवाएं|सेवा|कंसल्टेंसी|परामर्श'
   ),
   contact: makeBoundaryRegex(
-    'contact|phone|email|whatsapp|call|address|location|reach out|office|kaise contact karein|sampark|' +
-    'संपर्क|फोन|व्हाट्सएप|ईमेल|पता|नंबर|स्थान|कार्यालय'
+  'contact|phone|email|whatsapp|call|address|location|reach out|office|kaise contact karein|sampark|' +
+  'संपर्क|फोन|व्हाट्सएप|ईमेल|पता|नंबर|स्थान|कार्यालय'
   ),
   achievements: makeBoundaryRegex(
-    'achievements|metrics|stats|records|50000|enrolled|500\\+|reconciled|awards|milestones|numbers|volume|' +
-    'उपलब्धियां|उपलब्धि|रिकॉर्ड|रिकॉर्ड्स|आंकड़े|उपलब्धियों'
+  'achievements|metrics|stats|records|50000|enrolled|500\\+|reconciled|awards|milestones|numbers|volume|' +
+  'उपलब्धियां|उपलब्धि|रिकॉर्ड|रिकॉर्ड्स|आंकड़े|उपलब्धियों'
   ),
   experience: makeBoundaryRegex(
-    'experience|work history|career|jobs|past companies|tenure|kahan kaam kiya|kitne saal ka experience|' +
-    'अनुभव|करियर|कार्य इतिहास|कार्यकाल'
+  'experience|work history|career|jobs|past companies|tenure|kahan kaam kiya|kitne saal ka experience|' +
+  'अनुभव|करियर|कार्य इतिहास|कार्यकाल'
   ),
   skills: makeBoundaryRegex(
-    'skills?|tech stack|tools|tally|excel|gst|react|python|cursor|powerbi|claude|agent loops|proficiencies|competencies|kya skills hai|' +
-    'कौशल|टूल्स|तकनीक|तकनीकी|हुनर|स्टैक'
+  'skills?|tech stack|tools|tally|excel|gst|react|python|cursor|powerbi|claude|agent loops|proficiencies|competencies|kya skills hai|' +
+  'कौशल|टूल्स|तकनीक|तकनीकी|हुनर|स्टैक'
   ),
   projects: makeBoundaryRegex(
-    'projects|case study|case studies|portfolio work|kaun se project|kya banaya hai|project 01|project 02|case study 08|featured projects|' +
-    'प्रोजेक्ट्स|प्रोजेक्ट|केस स्टडी|काम दिखाओ|फ्लैगशिप प्रोजेक्ट्स|केस स्टडीज'
+  'projects|case study|case studies|portfolio work|kaun se project|kya banaya hai|project 01|project 02|case study 08|featured projects|' +
+  'प्रोजेक्ट्स|प्रोजेक्ट|केस स्टडी|काम दिखाओ|फ्लैगशिप प्रोजेक्ट्स|केस स्टडीज'
   ),
   roles: makeBoundaryRegex(
-    'who is atul|who are you|about atul|tell me about yourself|roles|background|profiles|kaun hai atul|kya kaam karte ho|roles batao|core professional roles|' +
-    'कौन है अतुल|प्रोफाइल|परिचय|भूमिकाएं|भूमिका|अतुल की भूमिकाएं'
+  'who is atul|who are you|about atul|tell me about yourself|roles|background|profiles|kaun hai atul|kya kaam karte ho|roles batao|core professional roles|' +
+  'कौन है अतुल|प्रोफाइल|परिचय|भूमिकाएं|भूमिका|अतुल की भूमिकाएं'
   ),
   suggestions: makeBoundaryRegex(
-    'help|what can you do|what can i ask|kya pooch sakte hain|menu|options|suggestions|guide|options dikhao|' +
-    'madad|मदद|सुझाव|गाइड|हेल्प|पूछ सकता|पूछ सकते|क्या पूछ|पूछें|क्या सहायता|विकल्प'
+  'help|what can you do|what can i ask|kya pooch sakte hain|menu|options|suggestions|guide|options dikhao|' +
+  'madad|मदद|सुझाव|गाइड|हेल्प|पूछ सकता|पूछ सकते|क्या पूछ|पूछें|क्या सहायता|विकल्प'
   ),
   ambiguous: /^(hi|hello|hey|namaste|namaskar|ok|okay|test|greetings|good morning|good afternoon|good evening|hey there|नमस्ते|नमस्कार|हैलो|प्रणाम)$|^(?:kuch bhi|ulta seedha|asdfghjkl|random gibberish|कुछ भी अटपटा)(?:.*)?$/iu
 };
@@ -548,12 +576,12 @@ export function classifyIntent(query, context = {}) {
   const combinedText = `${lowerNormalized} ${normalized}`;
 
   const entities = {
-    role: null,
-    audience: null,
-    section: null,
-    projectId: null,
-    serviceId: null,
-    language: lang
+  role: null,
+  audience: null,
+  section: null,
+  projectId: null,
+  serviceId: null,
+  language: lang
   };
 
   // Multilingual Entity extraction: Role
@@ -571,11 +599,11 @@ export function classifyIntent(query, context = {}) {
   // Entity extraction: Case Study ID
   const projMatch = lowerNormalized.match(/(?:(?:case\s*study|projects?|proj|cs|केस\s*स्टडी|प्रोजेक्ट)\s*#?\s*0?([1-9])(?!\d)|#\s*0?([1-9])(?!\d)|\b0([1-9])\b(?!\d))/iu);
   if (projMatch) {
-    const digit = projMatch[1] || projMatch[2] || projMatch[3];
-    if (digit) entities.projectId = digit.padStart(2, '0');
+  const digit = projMatch[1] || projMatch[2] || projMatch[3];
+  if (digit) entities.projectId = digit.padStart(2, '0');
   }
   if (!entities.projectId) {
-    entities.projectId = matchProjectKeyword(lowerNormalized);
+  entities.projectId = matchProjectKeyword(lowerNormalized);
   }
 
   // Multilingual Entity extraction: Section
@@ -587,71 +615,85 @@ export function classifyIntent(query, context = {}) {
   else if (/(?<![\p{L}\p{N}\p{M}])(about|bio|background|बायोडाटा|परिचय)(?![\p{L}\p{N}\p{M}])/iu.test(combinedText)) entities.section = 'about';
   else if (/(?<![\p{L}\p{N}\p{M}])(achievements?|metrics?|records?|उपलब्धियां?|रिकॉर्ड्स?)(?![\p{L}\p{N}\p{M}])/iu.test(combinedText)) entities.section = 'achievements';
 
+  // Explicit Tour & Search Directives (Phase 10)
+  if (INTENT_PATTERNS.tour.test(lowerRaw)) {
+  return { intent: 'tour', confidence: 0.95, entities };
+  }
+  if (INTENT_PATTERNS.search.test(lowerRaw)) {
+  return { intent: 'search', confidence: 0.95, entities };
+  }
+  if (INTENT_PATTERNS.voice_control.test(lowerRaw)) {
+  return { intent: 'voice_control', confidence: 0.95, entities };
+  }
+
   const hasProjectContext = /(?<![\p{L}\p{N}\p{M}])(projects?|proj|case stud\w*|dossiers?|cs|काम|प्रोजेक्ट्स?|केस स्टडी|#\s*0?[1-9])(?![\p{L}\p{N}\p{M}])/iu.test(combinedText);
   if (entities.projectId && hasProjectContext) {
-    return { intent: 'projects', confidence: 0.95, entities };
+  return { intent: 'projects', confidence: 0.95, entities };
   }
 
   // 1. Check exact ambiguous greetings first
   if (INTENT_PATTERNS.ambiguous.test(lowerRaw)) {
-    return { intent: 'ambiguous', confidence: 0.95, entities };
+  return { intent: 'ambiguous', confidence: 0.95, entities };
   }
 
   // 2. Check prioritized intent patterns
   const intentPrecedence = [
-    'faq',
-    'navigation',
-    'filter_toggles',
-    'marriage_bio',
-    'roles',
-    'availability',
-    'services',
-    'recruiter_info',
-    'client_info',
-    'contact',
-    'achievements',
-    'experience',
-    'skills',
-    'projects',
-    'suggestions'
+  'tour',
+  'search',
+  'voice_control',
+  'faq',
+  'navigation',
+  'filter_toggles',
+  'marriage_bio',
+  'roles',
+  'availability',
+  'services',
+  'recruiter_info',
+  'client_info',
+  'contact',
+  'achievements',
+  'experience',
+  'skills',
+  'projects',
+  'suggestions'
   ];
 
   for (const intentName of intentPrecedence) {
-    const regex = INTENT_PATTERNS[intentName];
-    if (regex && (regex.test(lowerRaw) || regex.test(normalized))) {
-      return { intent: intentName, confidence: 0.90, entities };
-    }
+  const regex = INTENT_PATTERNS[intentName];
+  if (regex && (regex.test(lowerRaw) || regex.test(normalized))) {
+  return { intent: intentName, confidence: 0.90, entities };
+  }
   }
 
   // 3. Token-based secondary heuristic
   if (tokens.some((t) => ['available', 'availability', 'timing', 'timings'].includes(t))) {
-    return { intent: 'availability', confidence: 0.85, entities };
+  return { intent: 'availability', confidence: 0.85, entities };
   }
   if (tokens.some((t) => ['resume', 'cv', 'hire', 'notice'].includes(t))) {
-    return { intent: 'recruiter_info', confidence: 0.85, entities };
+  return { intent: 'recruiter_info', confidence: 0.85, entities };
   }
   if (tokens.some((t) => ['price', 'pricing', 'cost', 'quotation', 'fees'].includes(t))) {
-    return { intent: 'client_info', confidence: 0.85, entities };
+  return { intent: 'client_info', confidence: 0.85, entities };
   }
   if (tokens.some((t) => ['services', 'service', 'consulting', 'advisory'].includes(t))) {
-    return { intent: 'services', confidence: 0.85, entities };
+  return { intent: 'services', confidence: 0.85, entities };
   }
   if (tokens.some((t) => ['marriage', 'biodata', 'father', 'vivah', 'shadi'].includes(t))) {
-    return { intent: 'marriage_bio', confidence: 0.85, entities };
+  return { intent: 'marriage_bio', confidence: 0.85, entities };
   }
   if (tokens.some((t) => ['whatsapp', 'email', 'phone', 'contact', 'call'].includes(t))) {
-    return { intent: 'contact', confidence: 0.85, entities };
+  return { intent: 'contact', confidence: 0.85, entities };
   }
   if (tokens.some((t) => ['tally', 'excel', 'gst', 'python', 'react', 'skill', 'skills', 'tools', 'claude', 'agent'].includes(t))) {
-    return { intent: 'skills', confidence: 0.80, entities };
+  return { intent: 'skills', confidence: 0.80, entities };
   }
   if (tokens.some((t) => ['project', 'projects', 'study', 'case'].includes(t))) {
-    return { intent: 'projects', confidence: 0.80, entities };
+  return { intent: 'projects', confidence: 0.80, entities };
   }
 
   // 4. Default fallback if query is unrecognizable
   if (tokens.length === 0) {
-    return { intent: 'ambiguous', confidence: 0.50, entities };
+  return { intent: 'ambiguous', confidence: 0.50, entities };
   }
 
   return { intent: 'fallback', confidence: 0.30, entities };
@@ -677,10 +719,10 @@ function scoreFaqMatch(queryTokens, queryRaw, faq) {
   if (lowerRaw === qEn || lowerRaw === qHi) return 100;
   if (lowerRaw.length >= 25 && (qEn.includes(lowerRaw) || qHi.includes(lowerRaw))) return 92;
   if (Array.isArray(faq.aliases)) {
-    for (const alias of faq.aliases) {
-      const aLower = alias.toLowerCase().trim();
-      if (lowerRaw === aLower || (lowerRaw.length >= 20 && (aLower.includes(lowerRaw) || lowerRaw.includes(aLower)))) return 100;
-    }
+  for (const alias of faq.aliases) {
+  const aLower = alias.toLowerCase().trim();
+  if (lowerRaw === aLower || (lowerRaw.length >= 20 && (aLower.includes(lowerRaw) || lowerRaw.includes(aLower)))) return 100;
+  }
   }
 
   const validTokens = queryTokens.filter((t) => t.length >= 3);
@@ -696,9 +738,9 @@ function scoreFaqMatch(queryTokens, queryRaw, faq) {
   const tagHi = (faq.categoryTag_hi || '').toLowerCase();
 
   for (const token of validTokens) {
-    if (matchDistinctToken(qEn, token) || matchDistinctToken(qHi, token)) questionHits++;
-    if (matchDistinctToken(aEn, token) || matchDistinctToken(aHi, token)) answerHits++;
-    if (matchDistinctToken(tagEn, token) || matchDistinctToken(tagHi, token)) tagHits++;
+  if (matchDistinctToken(qEn, token) || matchDistinctToken(qHi, token)) questionHits++;
+  if (matchDistinctToken(aEn, token) || matchDistinctToken(aHi, token)) answerHits++;
+  if (matchDistinctToken(tagEn, token) || matchDistinctToken(tagHi, token)) tagHits++;
   }
 
   if (questionHits < 2) return 0;
@@ -720,25 +762,23 @@ export function matchAuthoritativeFAQ(query, context = {}) {
   let maxScore = 0;
 
   for (const faq of FAQ_ITEMS) {
-    const score = scoreFaqMatch(tokens, query, faq);
-
-    // Apply active role / audience subtle boost
-    let contextualScore = score;
-    if (context.role && faq.role && (faq.role.includes(context.role) || faq.role.includes('all'))) {
-      contextualScore += 5;
-    }
-    if (context.audience && faq.audience && (faq.audience.includes(context.audience) || faq.audience.includes('all'))) {
-      contextualScore += 5;
-    }
-
-    if (contextualScore > maxScore) {
-      maxScore = contextualScore;
-      bestFaq = faq;
-    }
+  const score = scoreFaqMatch(tokens, query, faq);
+  // Apply active role / audience subtle boost
+  let contextualScore = score;
+  if (context.role && faq.role && (faq.role.includes(context.role) || faq.role.includes('all'))) {
+  contextualScore += 5;
+  }
+  if (context.audience && faq.audience && (faq.audience.includes(context.audience) || faq.audience.includes('all'))) {
+  contextualScore += 5;
+  }
+  if (contextualScore > maxScore) {
+  maxScore = contextualScore;
+  bestFaq = faq;
+  }
   }
 
   if (maxScore >= 75 && bestFaq) {
-    return { faq: bestFaq, score: maxScore };
+  return { faq: bestFaq, score: maxScore };
   }
 
   return null;
@@ -748,33 +788,33 @@ export function matchAuthoritativeFAQ(query, context = {}) {
 
 function buildCompositeCorpus() {
   const corpus = SEARCH_ITEMS.map((item) => ({
-    ...item,
-    title_hi: item.title_hi || item.title,
-    description_hi: item.description_hi || item.description,
-    role: item.role || 'both',
-    audience: item.audience || ['all'],
-    keywords: item.keywords || '',
-    type: 'catalog_item'
+  ...item,
+  title_hi: item.title_hi || item.title,
+  description_hi: item.description_hi || item.description,
+  role: item.role || 'both',
+  audience: item.audience || ['all'],
+  keywords: item.keywords || '',
+  type: 'catalog_item'
   }));
 
   // 2. Add 9 Flagship Case Studies
   for (const cs of CASE_STUDIES) {
-    corpus.push({
-      id: `case-study-${cs.id}`,
-      caseStudyId: cs.id,
-      title: cs.title,
-      title_hi: cs.title_hi,
-      category: 'Projects',
-      role: cs.role,
-      audience: ['recruiter', 'client', 'all'],
-      targetId: cs.targetId,
-      actionType: 'open-case-study',
-      badge: cs.trackBadge,
-      description: cs.summary,
-      description_hi: cs.summary_hi,
-      keywords: `${cs.techStack?.join(' ')} ${cs.category} case study ${cs.subtitle}`,
-      type: 'case_study'
-    });
+  corpus.push({
+  id: `case-study-${cs.id}`,
+  caseStudyId: cs.id,
+  title: cs.title,
+  title_hi: cs.title_hi,
+  category: 'Projects',
+  role: cs.role,
+  audience: ['recruiter', 'client', 'all'],
+  targetId: cs.targetId,
+  actionType: 'open-case-study',
+  badge: cs.trackBadge,
+  description: cs.summary,
+  description_hi: cs.summary_hi,
+  keywords: `${cs.techStack?.join(' ')} ${cs.category} case study ${cs.subtitle}`,
+  type: 'case_study'
+  });
   }
 
   return corpus;
@@ -794,14 +834,14 @@ function scoreItem(item, queryLower, tokens, context = {}) {
 
   // 1. Exact phrase boost (+50)
   if (titleEn.includes(queryLower) || titleHi.includes(queryLower)) {
-    score += 60;
-    score += 50;
+  score += 60;
+  score += 50;
   } else if (keywords.includes(queryLower)) {
-    score += 40;
-    score += 50;
+  score += 40;
+  score += 50;
   } else if (descEn.includes(queryLower) || descHi.includes(queryLower)) {
-    score += 10;
-    score += 25;
+  score += 10;
+  score += 25;
   }
 
   const GENERIC_CATEGORY_TOKENS = new Set(['case', 'study', 'project', 'projects', 'item', 'items', 'work']);
@@ -810,63 +850,59 @@ function scoreItem(item, queryLower, tokens, context = {}) {
 
   // 2. Token match scoring with word-boundary safety
   for (const token of tokens) {
-    if (token.length < 2) continue;
-    let matched = false;
-
-    if (matchDistinctToken(titleEn, token) || matchDistinctToken(titleHi, token)) {
-      score += 20;
-      matched = true;
-    }
-    if (matchDistinctToken(keywords, token)) {
-      score += 15;
-      matched = true;
-    }
-    if (matchDistinctToken(descEn, token) || matchDistinctToken(descHi, token)) {
-      score += 8;
-      matched = true;
-    }
-    if (category.toLowerCase() === token.toLowerCase()) {
-      score += 25;
-      matched = true;
-    }
-
-    // Prefix match (len >= 3)
-    if (token.length >= 3 && (titleEn.startsWith(token) || keywords.includes(` ${token}`))) {
-      score += 10;
-      matched = true;
-    }
-
-    if (matched && !GENERIC_CATEGORY_TOKENS.has(token)) {
-      substantiveMatches++;
-    }
+  if (token.length < 2) continue;
+  let matched = false;
+  if (matchDistinctToken(titleEn, token) || matchDistinctToken(titleHi, token)) {
+  score += 20;
+  matched = true;
+  }
+  if (matchDistinctToken(keywords, token)) {
+  score += 15;
+  matched = true;
+  }
+  if (matchDistinctToken(descEn, token) || matchDistinctToken(descHi, token)) {
+  score += 8;
+  matched = true;
+  }
+  if (category.toLowerCase() === token.toLowerCase()) {
+  score += 25;
+  matched = true;
+  }
+  // Prefix match (len >= 3)
+  if (token.length >= 3 && (titleEn.startsWith(token) || keywords.includes(` ${token}`))) {
+  score += 10;
+  matched = true;
+  }
+  if (matched && !GENERIC_CATEGORY_TOKENS.has(token)) {
+  substantiveMatches++;
+  }
   }
   if (substantiveTokens.length > 0 && substantiveMatches === 0) {
-    return 0;
+  return 0;
   }
 
   // 3. Context Alignment Boost (only if query content matched!)
   if (score > 0) {
-    const activeRole = context.role || 'overview';
-    const activeAudience = context.audience || 'all';
-
-    if (activeRole !== 'overview' && (item.role === activeRole || item.role === 'both' || item.role === 'all')) {
-      score += 25;
-    }
-    if (activeAudience !== 'all' && (item.audience.includes(activeAudience) || item.audience.includes('all'))) {
-      score += 20;
-    }
+  const activeRole = context.role || 'overview';
+  const activeAudience = context.audience || 'all';
+  if (activeRole !== 'overview' && (item.role === activeRole || item.role === 'both' || item.role === 'all')) {
+  score += 25;
+  }
+  if (activeAudience !== 'all' && (item.audience.includes(activeAudience) || item.audience.includes('all'))) {
+  score += 20;
+  }
   } else {
-    return 0;
+  return 0;
   }
 
   // 4. Category Multiplier
   let multiplier = 1.0;
   if (item.category === 'Actions' && /\b(download|contact|call|email|resume|open)\b/i.test(queryLower)) {
-    multiplier = 1.30;
+  multiplier = 1.30;
   } else if (item.category === 'Projects' && /\b(project|projects|case study|work)\b/i.test(queryLower)) {
-    multiplier = 1.25;
+  multiplier = 1.25;
   } else if (item.category === 'Skills' && /\b(skills?|tools?|stack|proficien)\b/i.test(queryLower)) {
-    multiplier = 1.20;
+  multiplier = 1.20;
   }
 
   return Math.round(score * multiplier);
@@ -874,18 +910,18 @@ function scoreItem(item, queryLower, tokens, context = {}) {
 
 function matchesFilters(item, role, audience, ignoreRole = false, ignoreAudience = false) {
   const rolePass = ignoreRole
-    || !role
-    || role === 'overview'
-    || item.role === 'both'
-    || item.role === 'all'
-    || item.role === role;
+  || !role
+  || role === 'overview'
+  || item.role === 'both'
+  || item.role === 'all'
+  || item.role === role;
 
   const audiencePass = ignoreAudience
-    || !audience
-    || audience === 'all'
-    || !item.audience
-    || item.audience.includes('all')
-    || item.audience.includes(audience);
+  || !audience
+  || audience === 'all'
+  || !item.audience
+  || item.audience.includes('all')
+  || item.audience.includes(audience);
 
   return rolePass && audiencePass;
 }
@@ -895,42 +931,42 @@ export function searchPortfolioIndex(query, context = {}) {
   const queryLower = (query || '').toLowerCase().trim();
 
   if (!queryLower && tokens.length === 0) {
-    return { results: [], relaxed: false, relaxationLevel: 'none' };
+  return { results: [], relaxed: false, relaxationLevel: 'none' };
   }
 
   const activeRole = context.role || 'overview';
   const activeAudience = context.audience || 'all';
   const runSearch = (ignoreRole, ignoreAudience) => {
-    const scored = [];
-    for (const item of GLOBAL_SEARCH_CORPUS) {
-      if (matchesFilters(item, activeRole, activeAudience, ignoreRole, ignoreAudience)) {
-      const score = scoreItem(item, queryLower, tokens, context);
-      if (score > 15) {
-      scored.push({ item, score });
-      }
-      }
-    }
-    return scored.sort((a, b) => b.score - a.score);
+  const scored = [];
+  for (const item of GLOBAL_SEARCH_CORPUS) {
+  if (matchesFilters(item, activeRole, activeAudience, ignoreRole, ignoreAudience)) {
+  const score = scoreItem(item, queryLower, tokens, context);
+  if (score > 15) {
+  scored.push({ item, score });
+  }
+  }
+  }
+  return scored.sort((a, b) => b.score - a.score);
   };
 
   // Phase 1: Strict Match
   let results = runSearch(false, false);
   if (results.length > 0) {
-    return { results: results.slice(0, 5), relaxed: false, relaxationLevel: 'phase_1_strict' };
+  return { results: results.slice(0, 5), relaxed: false, relaxationLevel: 'phase_1_strict' };
   }
 
   // Phase 2: Relax Role Filter
   if (activeRole !== 'overview') {
-    results = runSearch(true, false);
-    if (results.length > 0) {
-      return { results: results.slice(0, 5), relaxed: true, relaxationLevel: 'phase_2_relax_role' };
-    }
+  results = runSearch(true, false);
+  if (results.length > 0) {
+  return { results: results.slice(0, 5), relaxed: true, relaxationLevel: 'phase_2_relax_role' };
+  }
   }
 
   // Phase 3: Relax Audience Filter (Global search)
   results = runSearch(true, true);
   if (results.length > 0) {
-    return { results: results.slice(0, 5), relaxed: true, relaxationLevel: 'phase_3_relax_audience' };
+  return { results: results.slice(0, 5), relaxed: true, relaxationLevel: 'phase_3_relax_audience' };
   }
 
   // Phase 4: Zero matches -> Fallback
@@ -955,66 +991,81 @@ function createActionButtons(intent, entities, context, lang, searchResults = []
   const resumeCfg = getResumeConfig(activeRole);
   const isHi = lang === 'hi';
   const add = (type, label, label_hi, target, payload) => {
-    actions.push({ type, label: isHi ? label_hi : label, label_hi, ...(target ? { target } : {}), ...(payload ? { payload } : {}) });
+  actions.push({ type, label: isHi ? label_hi : label, label_hi, ...(target ? { target } : {}), ...(payload ? { payload } : {}) });
   };
 
   switch (intent) {
-    case 'recruiter_info':
-      add('download-resume', '📄 Download Verified Resume (PDF)', '📄 आधिकारिक रिज्यूमे डाउनलोड करें', resumeCfg.fileName, { role: activeRole, fileName: resumeCfg.fileName });
-      add('scroll', '💼 View Career History', '💼 करियर इतिहास देखें', '#experience', { selector: '#experience' });
-      break;
-    case 'projects':
-      if (entities.projectId) {
-        add('open-case-study', `🔍 Inspect Case Study #${entities.projectId}`, `🔍 केस स्टडी #${entities.projectId} खोलें`, entities.projectId, { id: entities.projectId });
-        add('scroll', '🚀 Browse All 9 Projects', '🚀 सभी 9 प्रोजेक्ट्स देखें', '#projects', { selector: '#projects' });
-      } else {
-        const topProjects = ROLE_FLAGSHIP_PROJECTS[activeRole] || ROLE_FLAGSHIP_PROJECTS.overview;
-        for (const p of topProjects) {
-          add('open-case-study', `🔍 Case Study #${p.id} (${p.n})`, `🔍 केस स्टडी #${p.id} (${p.hi || p.n})`, p.id, { id: p.id });
-        }
-        add('scroll', '🚀 Browse All 9 Projects', '🚀 सभी 9 प्रोजेक्ट्स देखें', '#projects', { selector: '#projects' });
-      }
-      break;
-    case 'services':
-    case 'client_info':
-      add('switch-contact-tab', '💰 View Fee Estimator', '💰 कोटेशन व शुल्क देखें', 'quote', { tab: 'quote' });
-      add('open-estimator', '⚡ Open Quotation Calculator', '⚡ शुल्क कैलकुलेटर खोलें', undefined, { track: activeRole === 'vibe_coding' ? 'ai_web' : activeRole });
-      break;
-    case 'faq':
-      add('scroll', '📍 View Location & Contact', '📍 स्थान व संपर्क देखें', '#contact', { selector: '#contact' });
-      add('link', '💬 WhatsApp Direct Chat', '💬 व्हाट्सएप पर संपर्क करें', CONTACT_INFO.whatsappUrl, { url: CONTACT_INFO.whatsappUrl });
-      break;
-    case 'skills': {
-      const matchedSkill = findMatchedSkill(query, searchResults);
-      if (matchedSkill?.relatedCaseStudy) {
-        add('open-case-study', isHi ? `🔍 केस स्टडी #${matchedSkill.relatedCaseStudy} खोलें` : `🔍 Inspect Case Study #${matchedSkill.relatedCaseStudy}`, `🔍 केस स्टडी #${matchedSkill.relatedCaseStudy} खोलें`, matchedSkill.relatedCaseStudy, { id: matchedSkill.relatedCaseStudy });
-      }
-      add('scroll', '⚡ View Skills Matrix', '⚡ कौशल अनुभाग देखें', '#skills', { selector: '#skills' });
-      add('download-resume', '📄 Download Verified Resume (PDF)', '📄 आधिकारिक रिज्यूमे डाउनलोड करें', resumeCfg.fileName, { role: activeRole, fileName: resumeCfg.fileName });
-      break;
-    }
-    case 'experience':
-      add('scroll', '💼 Explore Experience Timeline', '💼 करियर टाइमलाइन देखें', '#experience', { selector: '#experience' });
-      break;
-    case 'contact':
-      add('link', '💬 WhatsApp Direct Chat', '💬 व्हाट्सएप पर बात करें', CONTACT_INFO.whatsappUrl, { url: CONTACT_INFO.whatsappUrl });
-      add('scroll', '✉️ Open Contact Form', '✉️ संपर्क फॉर्म खोलें', '#contact', { selector: '#contact' });
-      break;
-    case 'marriage_bio':
-      add('scroll', '❤️ View Personal Bio-Data', '❤️ पारिवारिक विवरण देखें', '#about', { selector: '#about' });
-      add('link', '💬 WhatsApp Family Connect', '💬 व्हाट्सएप पर संपर्क करें', CONTACT_INFO.whatsappUrl, { url: CONTACT_INFO.whatsappUrl });
-      break;
-    case 'achievements':
-      add('scroll', '🏆 View Verified Metrics', '🏆 सत्यापित उपलब्धियां देखें', '#achievements', { selector: '#achievements' });
-      break;
-    case 'fallback':
-      add('link', '💬 Ask on WhatsApp', '💬 व्हाट्सएप पर पूछें', CONTACT_INFO.whatsappUrl, { url: CONTACT_INFO.whatsappUrl });
-      add('download-resume', '📄 View Verified Resume', '📄 रिज्यूमे डाउनलोड करें', resumeCfg.fileName, { role: activeRole, fileName: resumeCfg.fileName });
-      add('scroll', '🔍 Browse All Sections', '🔍 सभी अनुभाग देखें', '#hero', { selector: '#hero' });
-      break;
-    default:
-      add('scroll', '🔍 Explore Portfolio', '🔍 पोर्टफोलियो देखें', '#about', { selector: '#about' });
-      break;
+  case 'voice_control':
+  add('open-voice-settings', '⚙️ Voice Settings', '⚙️ आवाज़ सेटिंग्स', undefined, {});
+  add('speak-last', '🔊 Read Aloud Last Response', '🔊 पिछला उत्तर बोलकर सुनाएं', undefined, {});
+  add('toggle-auto-speak', '🎙️ Toggle Auto-Speak', '🎙️ ऑटो-स्पीक टॉगल करें', undefined, {});
+  break;
+  case 'tour':
+  add('start-tour', '💼 Recruiter Tour', '💼 रिक्रूटर टूर', 'recruiter-fast-track', { tourId: 'recruiter-fast-track' });
+  add('start-tour', '📊 GST & Tax Tour', '📊 जीएसटी व टैक्स टूर', 'corporate-tax-gst', { tourId: 'corporate-tax-gst' });
+  add('start-tour', '⚡ AI Vibe Tour', '⚡ एआई वाइब टूर', 'ai-vibe-coding', { tourId: 'ai-vibe-coding' });
+  add('start-tour', '👔 Executive Tour', '👔 एग्जीक्यूटिव टूर', 'executive-flash-tour', { tourId: 'executive-flash-tour' });
+  break;
+  case 'search':
+  add('scroll', '🚀 Browse Projects', '🚀 प्रोजेक्ट्स देखें', '#projects', { selector: '#projects' });
+  add('scroll', '⚡ View Skills', '⚡ कौशल देखें', '#skills', { selector: '#skills' });
+  break;
+  case 'recruiter_info':
+  add('download-resume', '📄 Download Verified Resume (PDF)', '📄 आधिकारिक रिज्यूमे डाउनलोड करें', resumeCfg.fileName, { role: activeRole, fileName: resumeCfg.fileName });
+  add('scroll', '💼 View Career History', '💼 करियर इतिहास देखें', '#experience', { selector: '#experience' });
+  break;
+  case 'projects':
+  if (entities.projectId) {
+  add('open-case-study', `🔍 Inspect Case Study #${entities.projectId}`, `🔍 केस स्टडी #${entities.projectId} खोलें`, entities.projectId, { id: entities.projectId });
+  add('scroll', '🚀 Browse All 9 Projects', '🚀 सभी 9 प्रोजेक्ट्स देखें', '#projects', { selector: '#projects' });
+  } else {
+  const topProjects = ROLE_FLAGSHIP_PROJECTS[activeRole] || ROLE_FLAGSHIP_PROJECTS.overview;
+  for (const p of topProjects) {
+  add('open-case-study', `🔍 Case Study #${p.id} (${p.n})`, `🔍 केस स्टडी #${p.id} (${p.hi || p.n})`, p.id, { id: p.id });
+  }
+  add('scroll', '🚀 Browse All 9 Projects', '🚀 सभी 9 प्रोजेक्ट्स देखें', '#projects', { selector: '#projects' });
+  }
+  break;
+  case 'services':
+  case 'client_info':
+  add('switch-contact-tab', '💰 View Fee Estimator', '💰 कोटेशन व शुल्क देखें', 'quote', { tab: 'quote' });
+  add('open-estimator', '⚡ Open Quotation Calculator', '⚡ शुल्क कैलकुलेटर खोलें', undefined, { track: activeRole === 'vibe_coding' ? 'ai_web' : activeRole });
+  break;
+  case 'faq':
+  add('scroll', '📍 View Location & Contact', '📍 स्थान व संपर्क देखें', '#contact', { selector: '#contact' });
+  add('link', '💬 WhatsApp Direct Chat', '💬 व्हाट्सएप पर संपर्क करें', CONTACT_INFO.whatsappUrl, { url: CONTACT_INFO.whatsappUrl });
+  break;
+  case 'skills': {
+  const matchedSkill = findMatchedSkill(query, searchResults);
+  if (matchedSkill?.relatedCaseStudy) {
+  add('open-case-study', isHi ? `🔍 केस स्टडी #${matchedSkill.relatedCaseStudy} खोलें` : `🔍 Inspect Case Study #${matchedSkill.relatedCaseStudy}`, `🔍 केस स्टडी #${matchedSkill.relatedCaseStudy} खोलें`, matchedSkill.relatedCaseStudy, { id: matchedSkill.relatedCaseStudy });
+  }
+  add('scroll', '⚡ View Skills Matrix', '⚡ कौशल अनुभाग देखें', '#skills', { selector: '#skills' });
+  add('download-resume', '📄 Download Verified Resume (PDF)', '📄 आधिकारिक रिज्यूमे डाउनलोड करें', resumeCfg.fileName, { role: activeRole, fileName: resumeCfg.fileName });
+  break;
+  }
+  case 'experience':
+  add('scroll', '💼 Explore Experience Timeline', '💼 करियर टाइमलाइन देखें', '#experience', { selector: '#experience' });
+  break;
+  case 'contact':
+  add('link', '💬 WhatsApp Direct Chat', '💬 व्हाट्सएप पर बात करें', CONTACT_INFO.whatsappUrl, { url: CONTACT_INFO.whatsappUrl });
+  add('scroll', '✉️ Open Contact Form', '✉️ संपर्क फॉर्म खोलें', '#contact', { selector: '#contact' });
+  break;
+  case 'marriage_bio':
+  add('scroll', '❤️ View Personal Bio-Data', '❤️ पारिवारिक विवरण देखें', '#about', { selector: '#about' });
+  add('link', '💬 WhatsApp Family Connect', '💬 व्हाट्सएप पर संपर्क करें', CONTACT_INFO.whatsappUrl, { url: CONTACT_INFO.whatsappUrl });
+  break;
+  case 'achievements':
+  add('scroll', '🏆 View Verified Metrics', '🏆 सत्यापित उपलब्धियां देखें', '#achievements', { selector: '#achievements' });
+  break;
+  case 'fallback':
+  add('link', '💬 Ask on WhatsApp', '💬 व्हाट्सएप पर पूछें', CONTACT_INFO.whatsappUrl, { url: CONTACT_INFO.whatsappUrl });
+  add('download-resume', '📄 View Verified Resume', '📄 रिज्यूमे डाउनलोड करें', resumeCfg.fileName, { role: activeRole, fileName: resumeCfg.fileName });
+  add('scroll', '🔍 Browse All Sections', '🔍 सभी अनुभाग देखें', '#hero', { selector: '#hero' });
+  break;
+  default:
+  add('scroll', '🔍 Explore Portfolio', '🔍 पोर्टफोलियो देखें', '#about', { selector: '#about' });
+  break;
   }
 
   return actions;
@@ -1029,408 +1080,393 @@ function buildIntentText(intent, entities, context, lang, searchResults = [], qu
   const pricingBody = '• **Accounting & Statutory Tax**: Base ₹4,500 – ₹8,000 (GST, ITR, BRS, audit dossier)\n• **MIS & Data Operations**: Base ₹5,000 – ₹9,000 (Excel VBA macros, portals, ETL)\n• **AI & Web Engineering**: Base ₹22,000 – ₹35,000 (Next.js SaaS MVP, multi-agent workflows)';
   const srvBody = pricingBody;
   const clientBody = pricingBody;
-  const recBody = '• **Availability**: Immediate (0 to 15 days notice period)\n• **Work Modes**: 100% remote readiness (1 Gbps fiber + UPS) or onsite relocation to tech hubs\n• **Resume / CV**: Official role-specific verified PDF resume dossier available below for instant hire download';
+  const recBody = '• **Availability**: Immediate (0-15 days notice)\n• **Work Modes**: 100% remote readiness (1 Gbps fiber + UPS) or onsite relocation\n• **Resume / CV**: Official role-specific verified PDF resume dossier available below';
   const expBody = '• **Senior Accountant & Tax Consultant** (2018–Present): 500+ returns, ₹2.5Cr+ ITC, zero notices\n• **MIS Executive** — DAY-NULM Skill India (2016–2018): Multi-district portal reporting\n• **Smart Card Operations Lead** (2012–2016): 50,000+ biometric enrollments across 12+ districts\n• **AI Vibe Coder & Systems Engineer** (2024–Present): Autonomous multi-agent pipelines';
-  const achBody = '• **500+** Statutory returns e-filed (100% on-time compliance rate)\n• **₹2.5Cr+** Reconciled eligible Input Tax Credit (ITC)\n• **0%** Scrutiny notices or penalty assessments across 7+ years\n• **50,000+** Biometric registrations across 12+ districts\n• **9** Comprehensive production flagship case studies';
-  const availBody = '• **Working Hours & Timings**: Monday – Saturday, 10:00 AM – 7:00 PM IST (वर्किंग समय)\n• **Available for Immediate Hire**: 0 to 15 days notice period\n• **Remote Station**: Dual-redundant 1 Gbps broadband with industrial UPS power backup';
-  const contactBody = `• **WhatsApp**: [+91 7992383804](${CONTACT_INFO.whatsappUrl})\n• **Email**: [${CONTACT_INFO.email}](${CONTACT_INFO.mailtoUrl})\n• **Phone**: +91 7992383804\n• **Location / Office**: Daltonganj, Palamau, Jharkhand - 822101`;
-  const bioBody = '• **Full Name**: Atul Verma (अतुल वर्मा)\n• **Father\'s Name**: Late Niranjan Prasad (स्व. निरंजन प्रसाद)\n• **Year of Birth**: 1991\n• **Marital Status**: Indian • Single (Unmarried)\n• **Profession**: Senior Accountant, Tax Consultant & MIS Lead\n• **Location / मूल निवास**: Daltonganj (Medininagar), Palamau District, Jharkhand - 822101';
-  const faqBody = '• **Location / स्थान**: Daltonganj (Medininagar), Palamau District, Jharkhand - 822101, India (डाल्टनगंज, पलामू, झारखंड)\n• **Operation**: Pan-India remote consulting with primary presence across Jharkhand & Bihar (100% remote ready / onsite relocation)\n• **Timings**: Monday to Saturday, 10:00 AM – 7:00 PM IST';
-  const sugBody = '• **Resume**: Download verified role-specific resume PDFs\n• **Case Studies / Projects**: Inspect 9 production case studies with live telemetry\n• **Tech Stack / Skills**: Tally, Excel macros, React, Python, Power BI skills\n• **Pricing / Quotation**: Transparent fee quotations\n• **Contact / Help**: Connect directly via WhatsApp (+91 7992383804) or email';
+  const achBody = '• **500+** Statutory returns e-filed (100% on-time compliance)\n• **₹2.5Cr+** Reconciled eligible Input Tax Credit (ITC)\n• **0%** Scrutiny notices or penalty assessments across 7+ years\n• **50,000+** Biometric registrations across 12+ districts\n• **9** Comprehensive production flagship case studies';
+  const availBody = '• **Timings**: Monday – Saturday, 10:00 AM – 7:00 PM IST (वर्किंग समय)\n• **Availability**: Immediate hire (0 to 15 days notice)\n• **Remote Station**: Dual-redundant 1 Gbps broadband with industrial UPS backup';
+  const contactBody = `• **WhatsApp**: [+91 7992383804](${CONTACT_INFO.whatsappUrl})\n• **Email**: [${CONTACT_INFO.email}](${CONTACT_INFO.mailtoUrl})\n• **Phone**: +91 7992383804\n• **Location**: Daltonganj, Palamau, Jharkhand - 822101`;
+  const bioBody = '• **Full Name**: Atul Verma (अतुल वर्मा)\n• **Father\'s Name**: Late Niranjan Prasad (स्व. निरंजन प्रसाद)\n• **Year of Birth**: 1991\n• **Marital Status**: Indian • Single (Unmarried)\n• **Profession**: Senior Accountant, Tax Consultant & MIS Lead\n• **Location**: Daltonganj (Medininagar), Palamau District, Jharkhand - 822101';
+  const faqBody = '• **Location**: Daltonganj (Medininagar), Palamau, Jharkhand - 822101, India\n• **Operation**: Pan-India remote consulting (100% remote ready / onsite relocation)\n• **Timings**: Monday to Saturday, 10:00 AM – 7:00 PM IST';
+  const sugBody = '• **Resume**: Download verified role-specific resume PDFs\n• **Case Studies**: Inspect 9 production case studies with live telemetry\n• **Tech Stack**: Tally, Excel macros, React, Python, Power BI\n• **Pricing**: Transparent fee quotations\n• **Contact**: WhatsApp (+91 7992383804) or email';
 
   switch (intent) {
-    case 'roles':
-      if (isHi) return `👨‍💼 **अतुल वर्मा — ${profile.title_hi || profile.title}**\n\n${profile.summary_hi || profile.summary}\n\n• **भूमिका**: सीनियर अकाउंटेंट एवं टैक्स कंसल्टेंट, MIS स्पेशलिस्ट, AI Vibe Coder।\n• **प्रोफाइल**: सक्रिय ट्रैक ${activeRole.toUpperCase()}`;
-      if (isHinglish) return `👨‍💼 **Atul Verma — ${profile.title}**\n\n${profile.summary}\n\n• **Core Roles & Kaam**: Accounting & Statutory Tax, MIS Data Operations, AI Vibe Coding.\n• **Active Mode**: ${activeRole.toUpperCase()}`;
-      return `👨‍💼 **Atul Verma — ${profile.title}**\n\n${profile.summary}\n\n• **Core Specializations**: Multi-Track Polymath & Specialist (Statutory Tax & Tally, Government MIS, AI Vibe Coding & SaaS Prototyping, Corporate Controller).\n• **Active Track**: ${activeRole.toUpperCase()}`;
-
-    case 'projects': {
-      if (entities.projectId) {
-        const cs = CASE_STUDIES.find((c) => c.id === entities.projectId);
-        if (cs) {
-          const m = cs.metrics?.map((x) => `**${x.val}** ${isHi ? (x.label_hi || x.label) : x.label}`).join(' • ') || '';
-          const t = isHi ? (cs.title_hi || cs.title) : cs.title;
-          const cat = isHi ? (cs.category_hi || cs.category) : (cs.trackBadge || cs.category);
-          const s = isHi ? (cs.summary_hi || cs.summary) : cs.summary;
-          const cta = isHi ? 'विस्तृत 5-स्टेज केस स्टडी देखने के लिए नीचे दिए बटन पर क्लिक करें।' : (isHinglish ? 'Full 5-stage case study aur live simulation open karne ke liye niche click karein!' : 'Click below to open the complete 5-stage case study drawer with live telemetry simulation.');
-          return `🚀 **${isHi ? 'केस स्टडी' : 'Case Study'} #${cs.id}: ${t}**\n\n• **${isHi ? 'श्रेणी' : (isHinglish ? 'Category' : 'Track')}**: ${cat}\n• **${isHi ? 'सार' : 'Summary'}**: ${s}\n` + (m ? `• **${isHi ? 'सत्यापित मेट्रिक्स' : (isHinglish ? 'Key Metrics' : 'Verified Metrics')}**: ${m}\n` : '') + `• **${isHi ? 'तकनीकी स्टैक' : 'Tech Stack'}**: ${cs.techStack?.join(', ')}\n\n${cta}`;
-        }
-      }
-      if (isHi) return '🚀 **अतुल वर्मा के प्रमुख फ्लैगशिप प्रोजेक्ट्स (9 केस स्टडीज):**\n\n1. **#01**: GST एवं Income Tax वैधानिक अनुपालन व सत्यापन इंजन\n2. **#02**: Tally Prime वित्तीय लेखांकन एवं इन्वेंटरी प्रबंधन\n3. **#03**: DAY-NULM स्किल इंडिया सरकारी MIS पोर्टल\n4. **#07**: AI Prompt-to-Fullstack SaaS प्रोटोटाइपिंग जनरेटर\n5. **#08**: स्वायत्त मल्टी-एजेंट LLM वर्कफ़्लो इंजन\n\nविस्तृत विश्लेषण के लिए किसी भी प्रोजेक्ट पर क्लिक करें।';
-      if (isHinglish) return '🚀 **Atul Verma ke Top Featured Flagship Projects (9 Case Studies):**\n\n1. **#01**: GST & Income Tax Verification Engine (500+ Returns, ₹2.5Cr+ ITC)\n2. **#02**: Tally Prime Multi-Company Inventory & BRS\n3. **#03**: DAY-NULM Skill India Government MIS Portal\n4. **#07**: AI Prompt-to-Fullstack SaaS Generator\n5. **#08**: Autonomous Multi-Agent LLM Workflow Engine\n\nKisi bhi project ko detail me dekhne ke liye niche click karein.';
-      return '🚀 **Featured Flagship Case Studies (9 Dossiers):**\n\n1. **#01**: GST & Income Tax Verification Engine (500+ returns, ₹2.5Cr+ ITC)\n2. **#02**: Tally Financial Accounting & Inventory Management\n3. **#03**: DAY-NULM Skill India MIS Reporting Portal\n4. **#07**: AI Prompt-to-Fullstack SaaS Generator\n5. **#08**: Autonomous Multi-Agent LLM Workflow Engine\n\nClick any project button below to inspect the full case study.';
-    }
-
-    case 'skills': {
-      const matched = findMatchedSkill(query, searchResults);
-      if (matched) {
-        const pts = ((isHi && matched.points_hi) ? matched.points_hi : matched.points)?.map((p) => `  - ${p}`).join('\n') || '';
-        const title = isHi ? (matched.title_hi || matched.title) : matched.title;
-        const cat = isHi ? (matched.category_hi || matched.category) : matched.category;
-        const tag = isHi ? (matched.tag_hi || matched.tag) : matched.tag;
-        const related = matched.relatedCaseStudy ? (isHi ? `\n\n📌 **संबंधित फ्लैगशिप केस स्टडी**: #${matched.relatedCaseStudy}` : `\n\n📌 **Related Flagship Project**: Case Study #${matched.relatedCaseStudy}`) : '';
-        return `⚡ **${title} (${matched.level} ${isHi ? 'प्रमाणित कौशल व स्टैक' : 'Verified Skills & Tech Stack'})` + `**\n\n• **${isHi ? 'श्रेणी' : 'Category'}**: ${cat}\n• **${isHi ? 'विशेषज्ञता' : 'Focus Area'}**: ${tag}\n• **${isHi ? 'मुख्य क्षमताएं' : 'Key Core Capabilities'}**:\n${pts}${related}\n\n${isHi ? 'सभी 37 प्रमाणित दक्षताओं और टूल्स को देखने के लिए नीचे स्क्रॉल करें।' : 'Scroll to the Skills section below to explore all 37 indexed competencies and tools.'}`;
-      }
-      if (isHi) return '⚡ **प्रमाणित तकनीकी कौशल एवं क्षमताएं:**\n\n• **अकाउंटिंग एवं टैक्स**: Tally Prime (98%), GST & ITR E-Filing (96%), BRS Reconciliations (95%), 26AS/AIS (94%)\n• **डेटा एवं MIS**: Advanced MS Excel & VBA Macros (95%), DAY-NULM Portal (98%), Power BI (90%)\n• **AI एवं वेब**: Cursor, Antigravity SDK, Claude Code, React 19, Vite, Tailwind CSS v4\n\nसभी 37 प्रमाणित दक्षताओं और टूल्स को देखने के लिए नीचे स्क्रॉल करें।';
-      if (isHinglish) return '⚡ **Verified Skills & Tech Stack:**\n\n• **Accounting & Tax**: Tally Prime (98%), GST Return Filing (96%), ITR (95%), BRS Reconciliations (95%)\n• **MIS & Data**: Advanced Excel & VBA Macros (95%), DAY-NULM Portal (98%), Power BI (90%)\n• **AI & Vibe Coding**: Cursor, Antigravity SDK, Claude Code, React 19, Vite, Tailwind CSS v4\n\nDetailed skills dekhne ke liye Skills section par scroll karein.';
-      return '⚡ **Core Skills & Technical Proficiencies:**\n\n• **Accounting & Tax**: Tally Prime ERP (98%), GST E-Filing (96%), Income Tax ITR (95%), BRS Reconciliation (95%), 26AS/AIS (94%)\n• **MIS & Analytics**: Advanced MS Excel & VBA Macros (95%), DAY-NULM Portal (98%), Power BI Dashboards (90%)\n• **AI Vibe Coding**: Antigravity SDK, Claude Code, Cursor, React 19, Vite, Tailwind CSS v4\n\nScroll to the Skills section below to explore all 37 indexed competencies and tools.';
-    }
-
-    case 'experience':
-      return (isHi ? '💼 **कार्य अनुभव एवं करियर इतिहास (10+ वर्ष):**\n\n' : (isHinglish ? '💼 **Career Experience & Tenure (10+ Saal):**\n\n' : '💼 **Career Experience & Proven Track Record (10+ Years):**\n\n')) + expBody + (isHi || isHinglish ? '' : '\n\nExplore the tenure and career timeline below.');
-
-    case 'services':
-      return (isHi ? '💰 **सेवाएं, कंसल्टेंसी एवं परामर्श शुल्क:**\n\n' : (isHinglish ? '💰 **Services, Offerings & Consulting Rates:**\n\n' : '💰 **Consulting Services, Offerings & Advisory:**\n\n')) + srvBody;
-
-    case 'client_info':
-      return isHi
-        ? '💰 **प्रोजेक्ट लागत, शुल्क, कीमत एवं कोटेशन (खर्च):**\n\n' + clientBody + '\n\nसटीक कोटेशन व लागत अनुमान हेतु कैलकुलेटर बटन का उपयोग करें।'
-        : (isHinglish
-          ? '💰 **Project Cost, Pricing, Kharcha & Quotation Estimator:**\n\n' + clientBody + '\n\nCustom quote aur pricing estimate calculate karne ke liye niche click karein!'
-          : '💰 **Project Cost, Pricing, Fee Rates & Quotation Estimates:**\n\n' + clientBody + '\n\nClick below to open the interactive quotation estimator for a customized price breakdown.');
-
-    case 'recruiter_info':
-      return (isHi ? '📄 **रिक्रूटर एवं हायरिंग सूचना (रिज्यूमे डाउनलोड करें):**\n\n' : (isHinglish ? '📄 **Recruiter & Job Information (Download Resume / CV):**\n\n' : '📄 **Recruiter & Employment Information (Download Verified Resume PDF):**\n\n')) + recBody;
-
-    case 'marriage_bio':
-      return (isHi ? '❤️ **व्यक्तिगत एवं पारिवारिक विवरण (वैवाहिक बायोडाटा):**\n\n' : (isHinglish ? '❤️ **Personal & Family Background (Shaadi Biodata):**\n\n' : '❤️ **Personal & Matrimonial Bio-Data Demographics (Family Background):**\n\n')) + bioBody;
-
-    case 'contact':
-      return (isHi ? '📬 **सीधा संपर्क एवं परामर्श:**\n\n' : (isHinglish ? '📬 **Direct Contact & Sampark:**\n\n' : '📬 **Direct Contact & Consultation:**\n\n')) + contactBody;
-
-    case 'availability':
-      return (isHi ? '🕒 **कार्य उपलब्धता, वर्किंग समय एवं तत्काल नोटिस:**\n\n' : (isHinglish ? '🕒 **Working Hours & Immediate Availability:**\n\n' : '🕒 **Consultation Availability, Working Hours & Immediate Notice:**\n\n')) + availBody;
-
-    case 'achievements':
-      return (isHi ? '🏆 **सत्यापित उपलब्धियां, आंकड़े एवं रिकॉर्ड:**\n\n' : (isHinglish ? '🏆 **Key Achievements, Metrics & Records:**\n\n' : '🏆 **Verified Performance Achievements, Metrics & Volume Records:**\n\n')) + achBody;
-
-    case 'suggestions':
-      return (isHi ? '💡 **मैं क्या पूछ सकता हूँ? (विकल्प, सुझाव एवं मदद):**\n\n' : (isHinglish ? '💡 **Aap kya pooch sakte hain? (Guide, Options & Suggestions):**\n\n' : '💡 **How Can I Assist You Today? (Explore Options, Ask & Menu):**\n\n')) + sugBody;
-
-    case 'ambiguous':
-      return isHi
-        ? '👋 **नमस्ते! मैं अतुल वर्मा का AI असिस्टेंट हूँ।**\n\nमैं टैक्स, अकाउंटिंग, सरकारी MIS, AI Vibe Coding और वैवाहिक बायोडाटा के प्रमाणित रिकॉर्ड्स में आपकी सहायता कर सकता हूँ। संपर्क या एक्सप्लोर करने के लिए नीचे चुनें:'
-        : (isHinglish
-          ? '👋 **Hello! Main Atul Verma ka AI Assistant hoon.**\n\nAap Atul ke verified records explore kar sakte hain, direct connect kar sakte hain, ya options pooch sakte hain:'
-          : "👋 **Welcome! I am Atul's AI Assistant.**\n\nI can assist you with verified records across Tax, MIS, AI Vibe Coding, and Matrimonial Bio-Data. Please select a topic below to explore or connect directly:");
-
-    case 'faq':
-      return (isHi ? '📍 **कार्यालय एवं स्थान (Headquarters - स्थित):**\n\n' : (isHinglish ? '📍 **Office Location & Headquarters:**\n\n' : '📍 **Office Location & Headquarters (Where Located):**\n\n')) + faqBody;
-
-    case 'fallback':
-    default: {
-      if (searchResults.length > 0) {
-        const topItem = searchResults[0].item;
-        return `🔍 **Found Relevant Information in Atul's Verified Portfolio:**\n\n• **${topItem.title}** (${topItem.category})\n${topItem.description}\n\nYou can jump directly to this item or explore more details below.`;
-      }
-      const noRecord = isHi ? `मुझे अतुल वर्मा के प्रमाणित पोर्टफोलियो इंडेक्स में "${query}" के लिए कोई सीधा रिकॉर्ड नहीं मिला।` : (isHinglish ? `Mujhe Atul Verma ke verified portfolio index me "${query}" ke liye direct certified record nahi mila.` : `I couldn't find a direct certified record for "${query}" in Atul's verified portfolio index. I only share authentic facts from Atul's certified records.`);
-      const exploreMore = isHi ? 'आप उनके सत्यापित कार्य देख सकते हैं या सीधे संपर्क कर सकते हैं:' : (isHinglish ? 'Aap niche diye verified work explore kar sakte hain ya directly contact kar sakte hain:' : 'You can explore his verified work or connect with him directly:');
-      return `${noRecord}\n\n${exploreMore}`;
-    }
+  case 'roles':
+  if (isHi) return `👨‍💼 **अतुल वर्मा — ${profile.title_hi || profile.title}**\n\n${profile.summary_hi || profile.summary}\n\n• **भूमिका**: सीनियर अकाउंटेंट एवं टैक्स कंसल्टेंट, MIS स्पेशलिस्ट, AI Vibe Coder।\n• **प्रोफाइल**: सक्रिय ट्रैक ${activeRole.toUpperCase()}`;
+  if (isHinglish) return `👨‍💼 **Atul Verma — ${profile.title}**\n\n${profile.summary}\n\n• **Core Roles & Kaam**: Accounting & Statutory Tax, MIS Data Operations, AI Vibe Coding.\n• **Active Mode**: ${activeRole.toUpperCase()}`;
+  return `👨‍💼 **Atul Verma — ${profile.title}**\n\n${profile.summary}\n\n• **Core Specializations**: Multi-Track Polymath & Specialist (Statutory Tax & Tally, Government MIS, AI Vibe Coding & SaaS Prototyping, Corporate Controller).\n• **Active Track**: ${activeRole.toUpperCase()}`;
+  case 'projects': {
+  if (entities.projectId) {
+  const cs = CASE_STUDIES.find((c) => c.id === entities.projectId);
+  if (cs) {
+  const m = cs.metrics?.map((x) => `**${x.val}** ${isHi ? (x.label_hi || x.label) : x.label}`).join(' • ') || '';
+  const t = isHi ? (cs.title_hi || cs.title) : cs.title;
+  const cat = isHi ? (cs.category_hi || cs.category) : (cs.trackBadge || cs.category);
+  const s = isHi ? (cs.summary_hi || cs.summary) : cs.summary;
+  const cta = isHi ? 'विस्तृत 5-स्टेज केस स्टडी देखने के लिए नीचे दिए बटन पर क्लिक करें।' : (isHinglish ? 'Full 5-stage case study aur live simulation open karne ke liye niche click karein!' : 'Click below to open the complete 5-stage case study drawer with live telemetry simulation.');
+  return `🚀 **${isHi ? 'केस स्टडी' : 'Case Study'} #${cs.id}: ${t}**\n\n• **${isHi ? 'श्रेणी' : (isHinglish ? 'Category' : 'Track')}**: ${cat}\n• **${isHi ? 'सार' : 'Summary'}**: ${s}\n` + (m ? `• **${isHi ? 'सत्यापित मेट्रिक्स' : (isHinglish ? 'Key Metrics' : 'Verified Metrics')}**: ${m}\n` : '') + `• **${isHi ? 'तकनीकी स्टैक' : 'Tech Stack'}**: ${cs.techStack?.join(', ')}\n\n${cta}`;
+  }
+  }
+  const topCs = ['01', '02', '03', '07', '08'].map((id) => CASE_STUDIES.find((c) => c.id === id)).filter(Boolean);
+  const list = topCs.map((cs, i) => `${i + 1}. **#${cs.id}**: ${isHi ? (cs.title_hi || cs.title) : cs.title}`).join('\n');
+  if (isHi) return `🚀 **अतुल वर्मा के प्रमुख फ्लैगशिप प्रोजेक्ट्स (9 केस स्टडीज):**\n\n${list}\n\nविस्तृत विश्लेषण के लिए किसी भी प्रोजेक्ट पर क्लिक करें।`;
+  if (isHinglish) return `🚀 **Atul Verma ke Top Featured Flagship Projects (9 Case Studies):**\n\n${list}\n\nKisi bhi project ko detail me dekhne ke liye niche click karein.`;
+  return `🚀 **Featured Flagship Case Studies (9 Dossiers):**\n\n${list}\n\nClick any project button below to inspect the full case study.`;
+  }
+  case 'skills': {
+  const matched = findMatchedSkill(query, searchResults);
+  if (matched) {
+  const pts = ((isHi && matched.points_hi) ? matched.points_hi : matched.points)?.map((p) => `  - ${p}`).join('\n') || '';
+  const title = isHi ? (matched.title_hi || matched.title) : matched.title;
+  const cat = isHi ? (matched.category_hi || matched.category) : matched.category;
+  const tag = isHi ? (matched.tag_hi || matched.tag) : matched.tag;
+  const related = matched.relatedCaseStudy ? (isHi ? `\n\n📌 **संबंधित फ्लैगशिप केस स्टडी**: #${matched.relatedCaseStudy}` : `\n\n📌 **Related Flagship Project**: Case Study #${matched.relatedCaseStudy}`) : '';
+  return `⚡ **${title} (${matched.level} ${isHi ? 'प्रमाणित कौशल व स्टैक' : 'Verified Skills & Tech Stack'})` + `**\n\n• **${isHi ? 'श्रेणी' : 'Category'}**: ${cat}\n• **${isHi ? 'विशेषज्ञता' : 'Focus Area'}**: ${tag}\n• **${isHi ? 'मुख्य क्षमताएं' : 'Key Core Capabilities'}**:\n${pts}${related}\n\n${isHi ? 'सभी 37 प्रमाणित दक्षताओं और टूल्स को देखने के लिए नीचे स्क्रॉल करें।' : 'Scroll to the Skills section below to explore all 37 indexed competencies and tools.'}`;
+  }
+  const skBody = '• **Accounting & Tax**: Tally Prime (98%), GST & ITR (96%), BRS (95%)\n• **MIS & Data**: MS Excel & VBA Macros (95%), DAY-NULM Portal (98%), Power BI (90%)\n• **AI & Vibe**: Cursor, Antigravity SDK, Claude Code, React 19, Vite, Tailwind v4';
+  if (isHi) return `⚡ **प्रमाणित तकनीकी कौशल एवं क्षमताएं:**\n\n${skBody}\n\nसभी 37 प्रमाणित दक्षताओं और टूल्स को देखने के लिए नीचे स्क्रॉल करें।`;
+  if (isHinglish) return `⚡ **Verified Skills & Tech Stack:**\n\n${skBody}\n\nDetailed skills dekhne ke liye Skills section par scroll karein.`;
+  return `⚡ **Core Skills & Technical Proficiencies:**\n\n${skBody}\n\nScroll to the Skills section below to explore all 37 indexed competencies and tools.`;
+  }
+  case 'experience':
+  return (isHi ? '💼 **कार्य अनुभव एवं करियर इतिहास (10+ वर्ष):**\n\n' : (isHinglish ? '💼 **Career Experience & Tenure (10+ Saal):**\n\n' : '💼 **Career Experience & Proven Track Record (10+ Years):**\n\n')) + expBody + (isHi || isHinglish ? '' : '\n\nExplore the tenure and career timeline below.');
+  case 'services':
+  return (isHi ? '💰 **सेवाएं, कंसल्टेंसी एवं परामर्श शुल्क:**\n\n' : (isHinglish ? '💰 **Services, Offerings & Consulting Rates:**\n\n' : '💰 **Consulting Services, Offerings & Advisory:**\n\n')) + srvBody;
+  case 'voice_control':
+  return isHi
+  ? '🎙️ **अतुल एआई वॉइस एजेंट एवं सेटिंग्स:**\n\n• **नेचुरल वॉइस डबिंग**: ब्राउज़र न्यूरल वॉइस से हिंदी एवं अंग्रेजी वाचन।\n• **क्रोम वॉचडॉग**: 14-सेकंड ऑडियो फ्रीज का स्वतः समाधान।\n• **वेवफॉर्म विज़ुअलाइज़र**: रियल-टाइम मल्टी-साइन वेव।\n\nगति (0.8x-1.5x) या हैंड्स-फ्री ऑटो-स्पीक सेट करने हेतु नीचे बटन चुनें:'
+  : '🎙️ **Atul AI Voice Agent & Speech Synthesis:**\n\n• **Multilingual Dubbing**: Indian English, Hindi, and US English.\n• **Chrome Watchdog**: Prevents Chromium 14s audio freeze.\n• **Waveform Visualizer**: Procedural multi-sine audio waves with reduced-motion fallback.\n• **Hands-Free Auto-Speak**: Narrates assistant answers.\n\nConfigure voice settings below:';
+  case 'tour':
+  return isHi
+  ? '🧭 **इंटरएक्टिव गाइडेड टूर (पोर्टफोलियो वॉकथ्रू):**\n\nअतुल वर्मा के पोर्टफोलियो का चरण-दर-चरण अनुभव प्राप्त करें। अपनी भूमिका या आवश्यकता के अनुसार नीचे दिया गया टूर चुनें:'
+  : (isHinglish
+  ? '🧭 **Interactive Guided Tour (Portfolio Walkthrough):**\n\nAtul Verma ke portfolio ka step-by-step tour start karein. Niche diye gaye curated tours me se select karein:'
+  : '🧭 **Interactive Guided Portfolio Tours:**\n\nExperience structured, step-by-step walkthroughs across key milestones, verified impact metrics, and production case studies. Select a curated tour below:');
+  case 'search':
+  return isHi
+  ? '🔍 **सत्यापित पोर्टफोलियो सिमेंटिक सर्च:**\n\nकेस स्टडीज, तकनीकी कौशल, ऑडिट एवं टूल्स में खोजें। नीचे परिणाम देखें या सीधा लिंक चुनें:'
+  : (isHinglish
+  ? '🔍 **Semantic Portfolio Search:**\n\nCase studies, skills, tax tools aur FAQs me deep search karein. Niche matching results dekhein:'
+  : '🔍 **Semantic Portfolio Search:**\n\nDeep multi-faceted search across case studies, skills, tools, and authoritative FAQs. Browse matching results below:');
+  case 'client_info':
+  return isHi
+  ? '💰 **प्रोजेक्ट लागत, शुल्क, कीमत एवं कोटेशन (खर्च):**\n\n' + clientBody + '\n\nसटीक कोटेशन व लागत अनुमान हेतु कैलकुलेटर बटन का उपयोग करें।'
+  : (isHinglish
+  ? '💰 **Project Cost, Pricing, Kharcha & Quotation Estimator:**\n\n' + clientBody + '\n\nCustom quote aur pricing estimate calculate karne ke liye niche click karein!'
+  : '💰 **Project Cost, Pricing, Fee Rates & Quotation Estimates:**\n\n' + clientBody + '\n\nClick below to open the interactive quotation estimator for a customized price breakdown.');
+  case 'recruiter_info':
+  return (isHi ? '📄 **रिक्रूटर एवं हायरिंग सूचना (रिज्यूमे डाउनलोड करें):**\n\n' : (isHinglish ? '📄 **Recruiter & Job Information (Download Resume / CV):**\n\n' : '📄 **Recruiter & Employment Information (Download Verified Resume PDF):**\n\n')) + recBody;
+  case 'marriage_bio':
+  return (isHi ? '❤️ **व्यक्तिगत एवं पारिवारिक विवरण (वैवाहिक बायोडाटा):**\n\n' : (isHinglish ? '❤️ **Personal & Family Background (Shaadi Biodata):**\n\n' : '❤️ **Personal & Matrimonial Bio-Data Demographics (Family Background):**\n\n')) + bioBody;
+  case 'contact':
+  return (isHi ? '📬 **सीधा संपर्क एवं परामर्श:**\n\n' : (isHinglish ? '📬 **Direct Contact & Sampark:**\n\n' : '📬 **Direct Contact & Consultation:**\n\n')) + contactBody;
+  case 'availability':
+  return (isHi ? '🕒 **कार्य उपलब्धता, वर्किंग समय एवं तत्काल नोटिस:**\n\n' : (isHinglish ? '🕒 **Working Hours & Immediate Availability:**\n\n' : '🕒 **Consultation Availability, Working Hours & Immediate Notice:**\n\n')) + availBody;
+  case 'achievements':
+  return (isHi ? '🏆 **सत्यापित उपलब्धियां, आंकड़े एवं रिकॉर्ड:**\n\n' : (isHinglish ? '🏆 **Key Achievements, Metrics & Records:**\n\n' : '🏆 **Verified Performance Achievements, Metrics & Volume Records:**\n\n')) + achBody;
+  case 'suggestions':
+  return (isHi ? '💡 **मैं क्या पूछ सकता हूँ? (विकल्प, सुझाव एवं मदद):**\n\n' : (isHinglish ? '💡 **Aap kya pooch sakte hain? (Guide, Options & Suggestions):**\n\n' : '💡 **How Can I Assist You Today? (Explore Options, Ask & Menu):**\n\n')) + sugBody;
+  case 'ambiguous':
+  return isHi
+  ? '👋 **नमस्ते! मैं अतुल वर्मा का AI असिस्टेंट हूँ।**\n\nमैं टैक्स, अकाउंटिंग, सरकारी MIS, AI Vibe Coding और वैवाहिक बायोडाटा के प्रमाणित रिकॉर्ड्स में आपकी सहायता कर सकता हूँ। संपर्क या एक्सप्लोर करने के लिए नीचे चुनें:'
+  : (isHinglish
+  ? '👋 **Hello! Main Atul Verma ka AI Assistant hoon.**\n\nAap Atul ke verified records explore kar sakte hain, direct connect kar sakte hain, ya options pooch sakte hain:'
+  : "👋 **Welcome! I am Atul's AI Assistant.**\n\nI can assist you with verified records across Tax, MIS, AI Vibe Coding, and Matrimonial Bio-Data. Please select a topic below to explore or connect directly:");
+  case 'faq':
+  return (isHi ? '📍 **कार्यालय एवं स्थान (Headquarters - स्थित):**\n\n' : (isHinglish ? '📍 **Office Location & Headquarters:**\n\n' : '📍 **Office Location & Headquarters (Where Located):**\n\n')) + faqBody;
+  case 'fallback':
+  default: {
+  if (searchResults.length > 0) {
+  const topItem = searchResults[0].item;
+  return `🔍 **Found Relevant Information in Atul's Verified Portfolio:**\n\n• **${topItem.title}** (${topItem.category})\n${topItem.description}\n\nYou can jump directly to this item or explore more details below.`;
+  }
+  const noRecord = isHi ? `मुझे अतुल वर्मा के प्रमाणित पोर्टफोलियो इंडेक्स में "${query}" के लिए कोई सीधा रिकॉर्ड नहीं मिला।` : (isHinglish ? `Mujhe Atul Verma ke verified portfolio index me "${query}" ke liye direct certified record nahi mila.` : `I couldn't find a direct certified record for "${query}" in Atul's verified portfolio index. I only share authentic facts from Atul's certified records.`);
+  const exploreMore = isHi ? 'आप उनके सत्यापित कार्य देख सकते हैं या सीधे संपर्क कर सकते हैं:' : (isHinglish ? 'Aap niche diye verified work explore kar sakte hain ya directly contact kar sakte hain:' : 'You can explore his verified work or connect with him directly:');
+  return `${noRecord}\n\n${exploreMore}`;
+  }
   }
 }
 
 function createFollowupChips(intent, context = {}, query = '', entities = {}) {
-  const c = (id, label, query) => ({ id, label, query: query || label });
+  const c = (id, label, query, category) => ({ id, label, query: query || label, category: category || inferChipCategory(id, label, query) });
   const r = context?.role || 'overview';
   const a = context?.audience || 'all';
   const q = String(query || '').toLowerCase();
   const ent = entities || {};
 
   const commonActions = (roleKey = 'all') => [
-    c('wa-chat', '💬 WhatsApp Contact', 'how can i contact atul on whatsapp'),
-    c('avail-now', '🟢 Immediate Availability', 'are you available for immediate hire'),
-    c('notice-p', '⏱️ Notice: Immediate', 'what is your notice period'),
-    c('dl-cv', roleKey === 'accountant' ? '📄 Accountant Resume' : (roleKey === 'mis' ? '📄 MIS Resume' : (roleKey === 'vibe_coding' ? '📄 Vibe Resume' : '📄 Download Resume')), 'download resume'),
-    c('fee-est', '💰 Quotation & Fees', 'estimate quotation and service fees'),
-    c('all-proj', '🚀 9 Case Studies', 'show me your project case studies')
+  c('wa-chat', '💬 WhatsApp Contact'),
+  c('avail-now', '🟢 Immediate Availability'),
+  c('notice-p', '⏱️ Notice: Immediate'),
+  c('dl-cv', roleKey === 'accountant' ? '📄 Accountant Resume' : (roleKey === 'mis' ? '📄 MIS Resume' : (roleKey === 'vibe_coding' ? '📄 Vibe Resume' : '📄 Download Resume')), 'download resume'),
+  c('fee-est', '💰 Quotation & Fees'),
+  c('all-proj', '🚀 9 Case Studies')
   ];
 
   const fillTo12 = (primaryChips, roleKey = 'all') => {
-    const list = [...primaryChips];
-    const actions = commonActions(roleKey);
-    for (const act of actions) {
-      if (list.length >= 12) break;
-      if (!list.some((item) => item.id === act.id)) {
-        list.push(act);
-      }
-    }
-    return list.slice(0, 12);
+  const list = [...primaryChips];
+  const actions = commonActions(roleKey);
+  for (const act of actions) {
+  if (list.length >= 12) break;
+  if (!list.some((item) => item.id === act.id)) {
+  list.push(act);
+  }
+  }
+  return list.slice(0, 12);
   };
+
+  // Phase 11: Voice & Speech Chips
+  if (intent === 'voice_control' || /\b(voice|speak|read aloud|voicesettings)\b/i.test(q)) {
+  return [
+  c('v-speak', '🔊 /speak Response', '/speak'),
+  c('v-settings', '⚙️ /voicesettings', '/voicesettings'),
+  c('v-hi', '🇮🇳 Hindi Voice Profile', '/voice hindi'),
+  c('v-en', '🌐 Indian English Voice', '/voice en-in'),
+  c('v-auto', '🎙️ Toggle Auto-Speak', '/voice autospeak'),
+  c('v-rate', '⚡ Speech Rate 1.2x', '/voice rate 1.2')
+  ];
+  }
 
   // 1. Matrimonial
   if (a === 'marriage' || intent === 'marriage_bio' || /\b(shadi|shaadi|vivah|biodata|family|kundli|gotra|lifestyle)\b/i.test(q)) {
-    return [
-      c('bio-full', '❤️ Full Bio-Data', 'marriage biodata details'),
-      c('bio-family', '👨‍👩‍👦 Family & Father', 'family background details'),
-      c('bio-life', '🕊️ Lifestyle & Values', 'lifestyle personal values'),
-      c('bio-edu', '🎓 Education Details', 'educational qualifications and schooling'),
-      c('bio-career', '💼 Career & Stability', 'tell me about your professional career'),
-      c('bio-loc', '📍 Native: Daltonganj', 'native place and home location'),
-      c('bio-wa', '💬 WhatsApp for PDF', 'whatsapp contact number for biodata'),
-      c('bio-kundli', '🪐 Kundli & Horoscope', 'horoscope and kundli details'),
-      c('bio-pref', '🤝 Partner Preferences', 'partner preferences and expectations'),
-      c('bio-call', '📞 Call Family / Atul', 'what is atul phone number'),
-      c('bio-photo', '📸 Portfolio & Photos', 'who is atul verma'),
-      c('bio-res', '📄 Professional Resume', 'download verified professional resume')
-    ];
+  return [
+  c('bio-full', '❤️ Full Bio-Data'),
+  c('bio-family', '👨‍👩‍👦 Family & Father'),
+  c('bio-life', '🕊️ Lifestyle & Values'),
+  c('bio-edu', '🎓 Education Details'),
+  c('bio-career', '💼 Career & Stability'),
+  c('bio-loc', '📍 Native: Daltonganj'),
+  c('bio-wa', '💬 WhatsApp for PDF'),
+  c('bio-kundli', '🪐 Kundli & Horoscope'),
+  c('bio-pref', '🤝 Partner Preferences'),
+  c('bio-call', '📞 Call Family / Atul'),
+  c('bio-photo', '📸 Portfolio & Photos'),
+  c('bio-res', '📄 Professional Resume')
+  ];
   }
 
   // 2. Specific Project Case Study
   const caseId = ent.projectId || matchProjectKeyword(q);
   if (caseId) {
-    const csNames = {
-      '01': 'GST Tax Engine', '02': 'Tally Prime & BRS', '03': 'DAY-NULM MIS',
-      '04': 'Smart Card 50k+', '05': 'Power BI Analytics', '06': 'Corporate Audit',
-      '07': 'AI SaaS MVP', '08': 'Multi-Agent Loops', '09': 'Doc Synthesizer'
-    };
-    const cName = csNames[caseId] || (`Case #` + caseId);
-    const nextId = String((parseInt(caseId, 10) % 9) + 1).padStart(2, '0');
-    const nextName = csNames[nextId] || (`Case #` + nextId);
-    const roleKey = ['01', '02', '06'].includes(caseId) ? 'accountant' : (['03', '04', '05'].includes(caseId) ? 'mis' : 'vibe_coding');
-    return fillTo12([
-      c(`cs-${caseId}-deep`, `🧮 ${cName} Deep Dive`, `tell me about case study ${caseId} ${cName}`),
-      c(`cs-${caseId}-tools`, `⚙️ Tools & Stack`, `what tools were used in case study ${caseId}`),
-      c(`cs-${caseId}-impact`, `📈 Business Impact & ROI`, `business outcomes and impact of case study ${caseId}`),
-      c(`cs-${caseId}-next`, `📑 Next: ${nextName}`, `case study ${nextId} ${nextName}`),
-      c(`cs-${caseId}-live`, `🚀 Live Telemetry & Demo`, `show case study ${caseId} simulation`),
-      c(`cs-${caseId}-stack`, `🛠️ Core Architecture`, 'what is your core tech stack and skills'),
-      c(`cs-${caseId}-time`, `⏱️ Turnaround & Delivery`, 'what is turnaround time for projects')
-    ], roleKey);
+  const csNames = {
+  '01': 'GST Tax Engine', '02': 'Tally Prime & BRS', '03': 'DAY-NULM MIS',
+  '04': 'Smart Card 50k+', '05': 'Power BI Analytics', '06': 'Corporate Audit',
+  '07': 'AI SaaS MVP', '08': 'Multi-Agent Loops', '09': 'Doc Synthesizer'
+  };
+  const cName = csNames[caseId] || (`Case #` + caseId);
+  const nextId = String((parseInt(caseId, 10) % 9) + 1).padStart(2, '0');
+  const nextName = csNames[nextId] || (`Case #` + nextId);
+  const roleKey = ['01', '02', '06'].includes(caseId) ? 'accountant' : (['03', '04', '05'].includes(caseId) ? 'mis' : 'vibe_coding');
+  return fillTo12([
+  ...getDynamicContextualChips(caseId, context),
+  c(`cs-${caseId}-deep`, `🧮 ${cName} Deep Dive`, `tell me about case study ${caseId} ${cName}`),
+  c(`cs-${caseId}-tools`, `⚙️ Tools & Stack`, `what tools were used in case study ${caseId}`),
+  c(`cs-${caseId}-impact`, `📈 Business Impact & ROI`, `business outcomes and impact of case study ${caseId}`),
+  c(`cs-${caseId}-next`, `📑 Next: ${nextName}`, `case study ${nextId} ${nextName}`),
+  c(`cs-${caseId}-live`, `🚀 Live Telemetry & Demo`, `show case study ${caseId} simulation`),
+  c(`cs-${caseId}-stack`, `🛠️ Core Architecture`, 'what is your core tech stack and skills'),
+  c(`cs-${caseId}-time`, `⏱️ Turnaround & Delivery`, 'what is turnaround time for projects')
+  ], roleKey);
   }
 
   // 3. Tax / GST / Accounting
   if ((intent === 'services' && /\b(gst|tax|tally|accounting|audit|itc|itr|brs)\b/i.test(q)) || /\b(gst|gstr|itc|tax|income tax|itr|tally|accounting|audit|balance sheet|brs|ledger)\b/i.test(q)) {
-    return fillTo12([
-      c('gst-itc', '📊 GSTR-2B & ITC', 'tell me about gstr-2b and itc reconciliation'),
-      c('gst-tally', '📑 Tally Prime & BRS', 'tally prime bank reconciliation'),
-      c('gst-audit', '💼 Balance Sheet & Audit', 'corporate audit readiness and balance sheet'),
-      c('gst-fee', '💰 Tax Filing Fees', 'what are your tax filing fees and charges'),
-      c('gst-cs01', '🧮 GST Case Study #01', 'case study 01 gst engine'),
-      c('gst-itr', '📝 ITR Filing Process', 'income tax e-filing itr-1 to 4'),
-      c('gst-vba', '⚡ Excel Macro Cleaning', 'ms excel vba macro data cleaning'),
-      c('gst-pbi', '📈 Power BI Dashboards', 'power bi fiscal dashboards')
-    ], 'accountant');
+  return fillTo12([
+  c('gst-itc', '📊 GSTR-2B & ITC'),
+  c('gst-tally', '📑 Tally Prime & BRS'),
+  c('gst-audit', '💼 Balance Sheet & Audit'),
+  c('gst-fee', '💰 Tax Filing Fees'),
+  c('gst-cs01', '🧮 GST Case Study #01'),
+  c('gst-itr', '📝 ITR Filing Process'),
+  c('gst-vba', '⚡ Excel Macro Cleaning'),
+  c('gst-pbi', '📈 Power BI Dashboards')
+  ], 'accountant');
   }
 
   // 4. Projects & Case Studies
   if (intent === 'projects' || /\b(project|projects|case study|case studies|portfolio|work|kaam)\b/i.test(q)) {
-    return [
-      c('p-cs01', '🧮 Case #01: GST Tax Engine', 'case study 01 gst engine'),
-      c('p-cs02', '📑 Case #02: Tally & BRS', 'case study 02 tally accounting'),
-      c('p-cs03', '🏛️ Case #03: DAY-NULM MIS', 'case study 03 day-nulm mis'),
-      c('p-cs04', '💳 Case #04: Smart Card 50k+', 'case study 04 smart card'),
-      c('p-cs05', '📈 Case #05: Power BI Analytics', 'case study 05 power bi'),
-      c('p-cs06', '💼 Case #06: Corporate Audit', 'case study 06 corporate audit'),
-      c('p-cs07', '🤖 Case #07: AI SaaS MVP Gen', 'case study 07 ai saas generator'),
-      c('p-cs08', '⚡ Case #08: Multi-Agent Loops', 'case study 08 agent workflow engine'),
-      c('p-cs09', '📄 Case #09: Doc Synthesizer', 'case study 09 doc code synthesizer'),
-      c('p-stack', '🛠️ Full Tech Stack & Tools', 'what is your core tech stack and skills'),
-      c('p-quote', '💰 Quotation & Timelines', 'estimate quotation and service fees'),
-      c('p-wa', '💬 WhatsApp Project Inquiry', 'how can i contact atul on whatsapp')
-    ];
+  return [
+  c('p-cs01', '🧮 Case #01: GST Tax Engine'),
+  c('p-cs02', '📑 Case #02: Tally & BRS'),
+  c('p-cs03', '🏛️ Case #03: DAY-NULM MIS'),
+  c('p-cs04', '💳 Case #04: Smart Card 50k+'),
+  c('p-cs05', '📈 Case #05: Power BI Analytics'),
+  c('p-cs06', '💼 Case #06: Corporate Audit'),
+  c('p-cs07', '🤖 Case #07: AI SaaS MVP Gen'),
+  c('p-cs08', '⚡ Case #08: Multi-Agent Loops'),
+  c('p-cs09', '📄 Case #09: Doc Synthesizer'),
+  c('p-stack', '🛠️ Full Tech Stack & Tools'),
+  c('p-quote', '💰 Quotation & Timelines'),
+  c('p-wa', '💬 WhatsApp Project Inquiry')
+  ];
   }
 
   // 5. Skills & Tech Stack
   if (intent === 'skills' || /\b(skill|skills|tech|stack|tools|python|react|excel|power bi|tally|hunar)\b/i.test(q)) {
-    return fillTo12([
-      c('s-pbi', '📈 Power BI Dashboards', 'power bi dashboards and kpis'),
-      c('s-vba', '⚡ MS Excel VBA & Macros', 'excel automation and macros'),
-      c('s-tally', '📑 Tally Prime & ERP 9', 'tally prime and erp 9'),
-      c('s-gst', '🧮 GST & ITC Compliance', 'gst filing and itc reconciliation'),
-      c('s-agent', '🤖 Claude Code & Agents', 'claude code agent workflows'),
-      c('s-react', '⚛️ React 19 & Next.js SaaS', 'nextjs and react development'),
-      c('s-proj', '🚀 Projects Using Skills', 'tell me about your featured projects'),
-      c('s-exp', '⏱️ 10+ Years Breakdown', 'summarize your professional experience')
-    ], r);
+  return fillTo12([
+  c('s-pbi', '📈 Power BI Dashboards'),
+  c('s-vba', '⚡ MS Excel VBA & Macros'),
+  c('s-tally', '📑 Tally Prime & ERP 9'),
+  c('s-gst', '🧮 GST & ITC Compliance'),
+  c('s-agent', '🤖 Claude Code & Agents'),
+  c('s-react', '⚛️ React 19 & Next.js SaaS'),
+  c('s-proj', '🚀 Projects Using Skills'),
+  c('s-exp', '⏱️ 10+ Years Breakdown')
+  ], r);
   }
 
   // 6. Pricing & Quotation
   if (intent === 'services' || intent === 'pricing' || /\b(pricing|price|quote|quotation|cost|fees|fee|charge|charges|kharcha|paisa|paise)\b/i.test(q)) {
-    return fillTo12([
-      c('pr-gst', '📊 GST Filing (₹2.5k)', 'gst return filing charges'),
-      c('pr-tally', '📑 Tally Retainer (₹3k)', 'tally prime accounting monthly charges'),
-      c('pr-saas', '🤖 AI SaaS MVP (₹18k+)', 'ai mvp prototype cost'),
-      c('pr-pbi', '📈 Power BI Dashboard (₹4k)', 'power bi executive kpi dashboard cost'),
-      c('pr-vba', '⚡ Excel VBA Macro (₹3.5k)', 'excel vba macro automation cost'),
-      c('pr-audit', '💼 Audit Dossier Prep (₹4.5k)', 'balance sheet p&l audit readiness fee'),
-      c('pr-neg', '🤝 Rates Negotiable?', 'are service rates negotiable for retainers'),
-      c('pr-time', '📅 Delivery Milestones', 'project delivery timelines and milestones')
-    ], r);
+  return fillTo12([
+  c('pr-gst', '📊 GST Filing (₹2.5k)'),
+  c('pr-tally', '📑 Tally Retainer (₹3k)'),
+  c('pr-saas', '🤖 AI SaaS MVP (₹18k+)'),
+  c('pr-pbi', '📈 Power BI Dashboard (₹4k)'),
+  c('pr-vba', '⚡ Excel VBA Macro (₹3.5k)'),
+  c('pr-audit', '💼 Audit Dossier Prep (₹4.5k)'),
+  c('pr-neg', '🤝 Rates Negotiable?'),
+  c('pr-time', '📅 Delivery Milestones')
+  ], r);
   }
 
   // 7. Experience
   if (intent === 'experience' || /\b(experience|history|career|tenure|anubhav|background|journey)\b/i.test(q)) {
-    return fillTo12([
-      c('exp-acc', '🏛️ Senior Accountant (2018–Pres)', 'senior accountant experience and returns'),
-      c('exp-mis', '🏛️ DAY-NULM MIS Lead (2016–18)', 'day-nulm mis experience'),
-      c('exp-sc', '💳 50,000+ Smart Cards (2012–16)', 'smart card operations lead experience'),
-      c('exp-ai', '🤖 AI Vibe Coder (2024–Pres)', 'ai vibe coding experience and agents'),
-      c('exp-loc', '📍 Location & Remote Terms', 'current location and remote availability'),
-      c('exp-ref', '🏢 Client & CA References', 'client references and testimonials'),
-      c('exp-ctc', '💰 Expected CTC', 'salary and ctc expectations')
-    ], r);
+  return fillTo12([
+  c('exp-acc', '🏛️ Senior Accountant (2018–Pres)'),
+  c('exp-mis', '🏛️ DAY-NULM MIS Lead (2016–18)'),
+  c('exp-sc', '💳 50,000+ Smart Cards (2012–16)'),
+  c('exp-ai', '🤖 AI Vibe Coder (2024–Pres)'),
+  c('exp-loc', '📍 Location & Remote Terms'),
+  c('exp-ref', '🏢 Client & CA References'),
+  c('exp-ctc', '💰 Expected CTC')
+  ], r);
   }
 
   // 8. Contact & Hire
   if (intent === 'contact' || intent === 'recruiter_info' || intent === 'client_info' || intent === 'availability' || /\b(contact|hire|email|phone|whatsapp|call|reach|talk|interview|notice|available|availability)\b/i.test(q)) {
-    return [
-      c('c-wa', '💬 WhatsApp Atul Directly', 'how can i contact atul on whatsapp'),
-      c('c-phone', '📞 Call (+91 7992383804)', 'what is atul phone number'),
-      c('c-email', '📧 Email (atulravi2015@gmail.com)', 'what is atul email address'),
-      c('c-resume', '📄 Download Resume PDF', 'download verified professional resume'),
-      c('c-notice', '🟢 Notice: Immediate Joiner', 'what is your notice period'),
-      c('c-exp', '💼 10+ Years Summary', 'summarize your professional experience'),
-      c('c-cs', '🚀 9 Live Case Studies', 'show me your project case studies'),
-      c('c-quote', '💰 Project Quotation', 'estimate quotation and service fees'),
-      c('c-remote', '📍 Remote / Relocation Terms', 'remote or on-site work availability'),
-      c('c-call', '🤝 Schedule Discovery Call', 'schedule interview or call'),
-      c('c-bio', '💍 Matrimonial Bio-Data', 'view family background and matrimonial biodata'),
-      c('c-tech', '⚡ Tech Stack & Tools', 'what is your core tech stack and skills')
-    ];
+  return [
+  c('c-wa', '💬 WhatsApp Atul Directly'),
+  c('c-phone', '📞 Call (+91 7992383804)'),
+  c('c-email', '📧 Email (atulravi2015@gmail.com)'),
+  c('c-resume', '📄 Download Resume PDF'),
+  c('c-notice', '🟢 Notice: Immediate Joiner'),
+  c('c-exp', '💼 10+ Years Summary'),
+  c('c-cs', '🚀 9 Live Case Studies'),
+  c('c-quote', '💰 Project Quotation'),
+  c('c-remote', '📍 Remote / Relocation Terms'),
+  c('c-call', '🤝 Schedule Discovery Call'),
+  c('c-bio', '💍 Matrimonial Bio-Data'),
+  c('c-tech', '⚡ Tech Stack & Tools')
+  ];
   }
 
   // 9. Audience Defaults
   if (a === 'recruiter') {
-    return [
-      c('rec-resume', '📄 Download Resume', 'download resume'),
-      c('rec-notice', '⏱️ Notice: Immediate Joiner', 'what is your notice period'),
-      c('rec-skills', '⚡ Tech Stack & Tools', 'what skills and tools do you use'),
-      c('rec-exp', '💼 10+ Years Experience', 'tell me about your work experience'),
-      c('rec-avail', '🟢 Immediate Availability', 'are you available for immediate hire'),
-      c('rec-cs', '🚀 Featured Case Studies', 'tell me about your featured projects'),
-      c('rec-acc', '🧮 Tax & Accounting Tenure', 'senior accountant experience'),
-      c('rec-gov', '🏛️ Govt Portal Operations', 'day-nulm mis experience'),
-      c('rec-ai', '🤖 AI Vibe Coding Stack', 'ai vibe coding experience'),
-      c('rec-wa', '💬 WhatsApp Recruiter Chat', 'how can i contact atul on whatsapp'),
-      c('rec-ctc', '💰 CTC & Compensation', 'salary and ctc expectations'),
-      c('rec-loc', '📍 Location & Remote Terms', 'current location and remote availability')
-    ];
+  return [
+  c('rec-resume', '📄 Download Resume'),
+  c('rec-notice', '⏱️ Notice: Immediate Joiner'),
+  c('rec-skills', '⚡ Tech Stack & Tools'),
+  c('rec-exp', '💼 10+ Years Experience'),
+  c('rec-avail', '🟢 Immediate Availability'),
+  c('rec-cs', '🚀 Featured Case Studies'),
+  c('rec-acc', '🧮 Tax & Accounting Tenure'),
+  c('rec-gov', '🏛️ Govt Portal Operations'),
+  c('rec-ai', '🤖 AI Vibe Coding Stack'),
+  c('rec-wa', '💬 WhatsApp Recruiter Chat'),
+  c('rec-ctc', '💰 CTC & Compensation'),
+  c('rec-loc', '📍 Location & Remote Terms')
+  ];
   }
 
   if (a === 'client') {
-    return [
-      c('cli-quote', '💰 Quotation & Fees', 'what are your service charges'),
-      c('cli-cs', '🚀 Verified Case Studies', 'show me your project case studies'),
-      c('cli-wa', '💬 WhatsApp Consultation', 'how can i contact atul on whatsapp'),
-      c('cli-gst', '📊 GST Return & ITC Advisory', 'tell me about gst and tax consulting'),
-      c('cli-tally', '📑 Tally Prime & BRS Retainer', 'tally prime and bank reconciliation'),
-      c('cli-pbi', '📈 Power BI KPI Dashboards', 'tell me about power bi dashboards'),
-      c('cli-saas', '🤖 AI SaaS MVP Prototype Build', 'ai mvp prototype cost'),
-      c('cli-macro', '⚡ Excel VBA Automation', 'excel automation and macros'),
-      c('cli-audit', '💼 Corporate Audit Dossier', 'balance sheet and p&l audit dossier'),
-      c('cli-res', '📄 Consultant Profile', 'download verified professional resume'),
-      c('cli-time', '⏱️ Turnaround & Milestones', 'what is turnaround time for projects'),
-      c('cli-call', '📞 Direct Call (+91 7992383804)', 'what is atul phone number')
-    ];
+  return [
+  c('cli-quote', '💰 Quotation & Fees'),
+  c('cli-cs', '🚀 Verified Case Studies'),
+  c('cli-wa', '💬 WhatsApp Consultation'),
+  c('cli-gst', '📊 GST Return & ITC Advisory'),
+  c('cli-tally', '📑 Tally Prime & BRS Retainer'),
+  c('cli-pbi', '📈 Power BI KPI Dashboards'),
+  c('cli-saas', '🤖 AI SaaS MVP Prototype Build'),
+  c('cli-macro', '⚡ Excel VBA Automation'),
+  c('cli-audit', '💼 Corporate Audit Dossier'),
+  c('cli-res', '📄 Consultant Profile'),
+  c('cli-time', '⏱️ Turnaround & Milestones'),
+  c('cli-call', '📞 Direct Call (+91 7992383804)')
+  ];
   }
 
   // 10. Role Defaults
   switch (r) {
-    case 'accountant':
-      return [
-        c('r-gst', '📊 GST Filing & GSTR-2B', 'gst return filing and itc'),
-        c('r-tally', '📑 Tally ERP & BRS', 'tally prime and bank reconciliation'),
-        c('r-itr', '📝 Income Tax Returns (ITR 1-4)', 'income tax e-filing itr-1 to 4'),
-        c('r-audit', '💼 Balance Sheet & Audit Dossier', 'balance sheet and audit governance'),
-        c('r-fee', '💰 Tax & Tally Retainer Rates', 'tax filing fees and pricing'),
-        c('r-cs01', '🧮 GST Case Study #01', 'case study 01 gst engine'),
-        c('r-cs02', '📑 Tally Case Study #02', 'case study 02 tally accounting'),
-        c('r-dl', '📄 Accountant Resume', 'download accountant resume'),
-        c('r-wa', '💬 WhatsApp Tax Chat', 'how can i contact atul on whatsapp'),
-        c('r-pbi', '📈 Power BI Fiscal Telemetry', 'power bi fiscal dashboards'),
-        c('r-avail', '🟢 Immediate Availability', 'are you available for immediate hire'),
-        c('r-ref', '🏢 Zero Penalty Track Record', 'client references and audit track record')
-      ];
-
-    case 'mis':
-      return [
-        c('m-nulm', '🏛️ DAY-NULM Portal MIS', 'day-nulm government reporting'),
-        c('m-vba', '⚡ Excel VBA Macro Pipelines', 'excel automation and macros'),
-        c('m-sc', '💳 50k+ Biometric Smart Cards', 'smart card biometric enrollments'),
-        c('m-pbi', '📈 Power BI Analytics Dashboard', 'power bi executive kpi dashboard'),
-        c('m-cs03', '📊 MIS Case Study #03', 'case study 03 day-nulm mis'),
-        c('m-cs04', '💳 Smart Card Case #04', 'case study 04 smart card'),
-        c('m-dl', '📄 MIS Operations Resume', 'download mis resume'),
-        c('m-fee', '💰 MIS Project Quotation', 'what are your service charges'),
-        c('m-wa', '💬 WhatsApp Operations Chat', 'how can i contact atul on whatsapp'),
-        c('m-exp', '💼 10+ Years Operations Tenure', 'summarize your professional experience'),
-        c('m-clean', '🧹 Large Data Cleaning (10k+ Rows)', 'large dataset reconciliation and cleaning'),
-        c('m-avail', '⏱️ Notice & Immediate Hire', 'what is your notice period')
-      ];
-
-    case 'vibe_coding':
-      return [
-        c('v-saas', '🤖 AI SaaS MVP Prototype #07', 'ai saas prototype case study'),
-        c('v-agent', '⚡ Autonomous Multi-Agent Loops', 'autonomous llm agent workflows'),
-        c('v-sdk', '🚀 Google Antigravity SDK', 'google antigravity sdk agents'),
-        c('v-claude', '🧠 Claude Code & Cursor Flows', 'claude code agent workflows'),
-        c('v-cs07', '🤖 Case Study #07: AI SaaS MVP', 'case study 07 ai saas generator'),
-        c('v-cs08', '⚡ Case Study #08: Multi-Agent Engine', 'case study 08 agent workflow engine'),
-        c('v-cs09', '📄 Case Study #09: Doc Synthesizer', 'case study 09 doc code synthesizer'),
-        c('v-fee', '💰 AI MVP Prototype Pricing', 'how much does an ai mvp prototype cost'),
-        c('v-dl', '📄 Vibe Coder Resume', 'download vibe coder resume'),
-        c('v-stack', '🛠️ React 19, Vite & Tailwind v4', 'what is your core tech stack and skills'),
-        c('v-wa', '💬 WhatsApp Tech Discussion', 'how can i contact atul on whatsapp'),
-        c('v-avail', '🟢 Ready for Full-Stack Roles', 'are you available for immediate hire')
-      ];
-
-    case 'overview':
-    default:
-      return [
-        c('o-proj', '🚀 Featured Projects (9 Studies)', 'tell me about your featured projects'),
-        c('o-tech', '⚡ Tech Stack & Skills', 'what is your core tech stack and skills?'),
-        c('o-exp', '💼 10+ Years Career Experience', 'summarize your professional experience'),
-        c('o-pricing', '💰 Quotation & Service Fees', 'estimate quotation and service fees'),
-        c('o-resume', '📄 Download Verified Resume', 'download verified professional resume'),
-        c('o-gst', '📊 GST, ITR & Tax Advisory', 'tell me about gst and tax consulting'),
-        c('o-pbi', '📈 Power BI & Excel Automation', 'tell me about power bi dashboards'),
-        c('o-ai', '🤖 AI SaaS & Agent Workflows', 'tell me about ai prompt-to-saas and multi-agent workflows'),
-        c('o-contact', '📬 How to Contact & Hire', 'how can i get in touch or hire you?'),
-        c('o-avail', '🟢 Immediate Joining Availability', 'what is your notice period and joining availability'),
-        c('o-wa', '💬 WhatsApp Atul Directly', 'how can i contact atul on whatsapp'),
-        c('o-bio', '💍 Family & Matrimonial Bio', 'view family background and matrimonial biodata')
-      ];
+  case 'accountant':
+  return [
+  c('r-gst', '📊 GST Filing & GSTR-2B'),
+  c('r-tally', '📑 Tally ERP & BRS'),
+  c('r-itr', '📝 Income Tax Returns (ITR 1-4)'),
+  c('r-audit', '💼 Balance Sheet & Audit Dossier'),
+  c('r-fee', '💰 Tax & Tally Retainer Rates'),
+  c('r-cs01', '🧮 GST Case Study #01'),
+  c('r-cs02', '📑 Tally Case Study #02'),
+  c('r-dl', '📄 Accountant Resume'),
+  c('r-wa', '💬 WhatsApp Tax Chat'),
+  c('r-pbi', '📈 Power BI Fiscal Telemetry'),
+  c('r-avail', '🟢 Immediate Availability'),
+  c('r-ref', '🏢 Zero Penalty Track Record')
+  ];
+  case 'mis':
+  return [
+  c('m-nulm', '🏛️ DAY-NULM Portal MIS'),
+  c('m-vba', '⚡ Excel VBA Macro Pipelines'),
+  c('m-sc', '💳 50k+ Biometric Smart Cards'),
+  c('m-pbi', '📈 Power BI Analytics Dashboard'),
+  c('m-cs03', '📊 MIS Case Study #03'),
+  c('m-cs04', '💳 Smart Card Case #04'),
+  c('m-dl', '📄 MIS Operations Resume'),
+  c('m-fee', '💰 MIS Project Quotation'),
+  c('m-wa', '💬 WhatsApp Operations Chat'),
+  c('m-exp', '💼 10+ Years Operations Tenure'),
+  c('m-clean', '🧹 Large Data Cleaning (10k+ Rows)'),
+  c('m-avail', '⏱️ Notice & Immediate Hire')
+  ];
+  case 'vibe_coding':
+  return [
+  c('v-saas', '🤖 AI SaaS MVP Prototype #07'),
+  c('v-agent', '⚡ Autonomous Multi-Agent Loops'),
+  c('v-sdk', '🚀 Google Antigravity SDK'),
+  c('v-claude', '🧠 Claude Code & Cursor Flows'),
+  c('v-cs07', '🤖 Case Study #07: AI SaaS MVP'),
+  c('v-cs08', '⚡ Case Study #08: Multi-Agent Engine'),
+  c('v-cs09', '📄 Case Study #09: Doc Synthesizer'),
+  c('v-fee', '💰 AI MVP Prototype Pricing'),
+  c('v-dl', '📄 Vibe Coder Resume'),
+  c('v-stack', '🛠️ React 19, Vite & Tailwind v4'),
+  c('v-wa', '💬 WhatsApp Tech Discussion'),
+  c('v-avail', '🟢 Ready for Full-Stack Roles')
+  ];
+  case 'overview':
+  default:
+  return [
+  c('o-proj', '🚀 Featured Projects (9 Studies)'),
+  c('o-tech', '⚡ Tech Stack & Skills'),
+  c('o-exp', '💼 10+ Years Career Experience'),
+  c('o-pricing', '💰 Quotation & Service Fees'),
+  c('o-resume', '📄 Download Verified Resume'),
+  c('o-gst', '📊 GST, ITR & Tax Advisory'),
+  c('o-pbi', '📈 Power BI & Excel Automation'),
+  c('o-ai', '🤖 AI SaaS & Agent Workflows'),
+  c('o-contact', '📬 How to Contact & Hire'),
+  c('o-avail', '🟢 Immediate Joining Availability'),
+  c('o-wa', '💬 WhatsApp Atul Directly'),
+  c('o-bio', '💍 Family & Matrimonial Bio')
+  ];
   }
 }
 
 export const AUDIENCE_EMOJI_PRESETS = {
-  recruiter: {
-    primary: '💼',
-    document: '📄',
-    target: '🎯',
-    action: '🚀',
-    emojis: ['💼', '📄', '🎯', '🚀']
-  },
-  client: {
-    primary: '💡',
-    chart: '📊',
-    speed: '⚡',
-    partnership: '🤝',
-    emojis: ['💡', '📊', '⚡', '🤝']
-  },
-  marriage: {
-    primary: '🌸',
-    document: '📜',
-    blessing: '✨',
-    traditional: '🌿',
-    emojis: ['🌸', '📜', '✨', '🌿']
-  },
-  all: {
-    primary: '💻',
-    speed: '⚡',
-    tools: '🛠️',
-    global: '🌐',
-    emojis: ['💻', '⚡', '🛠️', '🌐']
-  },
-  explorer: {
-    primary: '💻',
-    speed: '⚡',
-    tools: '🛠️',
-    global: '🌐',
-    emojis: ['💻', '⚡', '🛠️', '🌐']
-  }
+  recruiter: { primary: '💼', document: '📄', target: '🎯', action: '🚀', emojis: ['💼', '📄', '🎯', '🚀'] },
+  client: { primary: '💡', chart: '📊', speed: '⚡', partnership: '🤝', emojis: ['💡', '📊', '⚡', '🤝'] },
+  marriage: { primary: '🌸', document: '📜', blessing: '✨', traditional: '🌿', emojis: ['🌸', '📜', '✨', '🌿'] },
+  all: { primary: '💻', speed: '⚡', tools: '🛠️', global: '🌐', emojis: ['💻', '⚡', '🛠️', '🌐'] }
 };
+AUDIENCE_EMOJI_PRESETS.explorer = AUDIENCE_EMOJI_PRESETS.all;
 
 export function getAudienceEmojiPreset(audience = 'all') {
   const key = String(audience || 'all').toLowerCase();
@@ -1440,24 +1476,24 @@ export function getAudienceEmojiPreset(audience = 'all') {
 export function cleanMarkdownAsterisks(text) {
   if (typeof text !== 'string') return '';
   return text
-    .replace(/[•\u2022]/g, '')
-    .replace(/^[\s]*[-*]\s+/gm, '')
-    .replace(/\*{3}(.*?)\*{3}/g, '$1')
-    .replace(/\*{2}(.*?)\*{2}/g, '$1')
-    .replace(/\*(.*?)\*/g, '$1')
-    .replace(/\*/g, '')
-    .replace(/\n\s*\n\s*\n/g, '\n\n')
-    .trim();
+  .replace(/[•\u2022]/g, '')
+  .replace(/^[\s]*[-*]\s+/gm, '')
+  .replace(/\*{3}(.*?)\*{3}/g, '$1')
+  .replace(/\*{2}(.*?)\*{2}/g, '$1')
+  .replace(/\*(.*?)\*/g, '$1')
+  .replace(/\*/g, '')
+  .replace(/\n\s*\n\s*\n/g, '\n\n')
+  .trim();
 }
 
 export function tuneResponseEmojis(text, audience = 'all', options = { enabled: true }) {
   if (typeof text !== 'string') return '';
   const enabled = options?.enabled !== false && options?.emojis !== false;
   if (!enabled) {
-    return text
-      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]|\u{FE0F}/gu, '')
-      .replace(/[ ]{2,}/g, ' ')
-      .trim();
+  return text
+  .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]|\u{FE0F}/gu, '')
+  .replace(/[ ]{2,}/g, ' ')
+  .trim();
   }
   const key = String(audience || 'all').toLowerCase();
   const preset = getAudienceEmojiPreset(key);
@@ -1471,33 +1507,33 @@ export function tuneResponseEmojis(text, audience = 'all', options = { enabled: 
 
 export const ONBOARDING_DECISION_TREE = {
   step1: {
-    id: 'step_audience',
-    step: 1,
-    title: 'Select Your Audience Context',
-    title_hi: 'अपना दर्शक संदर्भ चुनें',
-    options: [
-      { id: 'recruiter', label: '💼 Recruiter / Hiring', label_hi: '💼 रिक्रूटर / हायरिंग', value: 'recruiter' },
-      { id: 'client', label: '💡 Client / Consulting', label_hi: '💡 क्लाइंट / कंसल्टिंग', value: 'client' },
-      { id: 'all', label: '🌐 General Explorer', label_hi: '🌐 सामान्य एक्सप्लोरर', value: 'all' },
-      { id: 'marriage', label: '🌸 Matrimonial Inquiry', label_hi: '🌸 वैवाहिक पूछताछ', value: 'marriage' },
-      { id: 'skip', label: '⏭️ Skip', label_hi: '⏭️ स्किप करें', isSkip: true },
-      { id: 'other', label: '✏️ Other / Specify', label_hi: '✏️ अन्य / निर्दिष्ट करें', isOther: true }
-    ]
+  id: 'step_audience',
+  step: 1,
+  title: 'Select Your Audience Context',
+  title_hi: 'अपना दर्शक संदर्भ चुनें',
+  options: [
+  { id: 'recruiter', label: '💼 Recruiter / Hiring', label_hi: '💼 रिक्रूटर / हायरिंग', value: 'recruiter' },
+  { id: 'client', label: '💡 Client / Consulting', label_hi: '💡 क्लाइंट / कंसल्टिंग', value: 'client' },
+  { id: 'all', label: '🌐 General Explorer', label_hi: '🌐 सामान्य एक्सप्लोरर', value: 'all' },
+  { id: 'marriage', label: '🌸 Matrimonial Inquiry', label_hi: '🌸 वैवाहिक पूछताछ', value: 'marriage' },
+  { id: 'skip', label: '⏭️ Skip', label_hi: '⏭️ स्किप करें', isSkip: true },
+  { id: 'other', label: '✏️ Other / Specify', label_hi: '✏️ अन्य / निर्दिष्ट करें', isOther: true }
+  ]
   },
   step2: {
-    id: 'step_role',
-    step: 2,
-    title: 'Select Track or Specialization',
-    title_hi: 'ट्रैक या विशेषज्ञता चुनें',
-    options: [
-      { id: 'accountant', label: '📊 Senior Accountant & Tax', label_hi: '📊 सीनियर अकाउंटेंट एवं टैक्स', value: 'accountant' },
-      { id: 'mis', label: '⚡ MIS & Operations Lead', label_hi: '⚡ MIS एवं ऑपरेशंस लीड', value: 'mis' },
-      { id: 'vibe_coding', label: '🤖 AI Vibe Coder & Full-Stack', label_hi: '🤖 AI Vibe Coder एवं फुल-स्टैक', value: 'vibe_coding' },
-      { id: 'other', label: '📈 BI & Corporate Controller', label_hi: '📈 BI एवं कॉर्पोरेट कंट्रोलर', value: 'other' },
-      { id: 'overview', label: '🧭 All-Track Overview', label_hi: '🧭 संपूर्ण ओवरव्यू', value: 'overview' },
-      { id: 'skip', label: '⏭️ Skip', label_hi: '⏭️ स्किप करें', isSkip: true },
-      { id: 'other_custom', label: '✏️ Other / Specify', label_hi: '✏️ अन्य / निर्दिष्ट करें', isOther: true }
-    ]
+  id: 'step_role',
+  step: 2,
+  title: 'Select Track or Specialization',
+  title_hi: 'ट्रैक या विशेषज्ञता चुनें',
+  options: [
+  { id: 'accountant', label: '📊 Senior Accountant & Tax', label_hi: '📊 सीनियर अकाउंटेंट एवं टैक्स', value: 'accountant' },
+  { id: 'mis', label: '⚡ MIS & Operations Lead', label_hi: '⚡ MIS एवं ऑपरेशंस लीड', value: 'mis' },
+  { id: 'vibe_coding', label: '🤖 AI Vibe Coder & Full-Stack', label_hi: '🤖 AI Vibe Coder एवं फुल-स्टैक', value: 'vibe_coding' },
+  { id: 'other', label: '📈 BI & Corporate Controller', label_hi: '📈 BI एवं कॉर्पोरेट कंट्रोलर', value: 'other' },
+  { id: 'overview', label: '🧭 All-Track Overview', label_hi: '🧭 संपूर्ण ओवरव्यू', value: 'overview' },
+  { id: 'skip', label: '⏭️ Skip', label_hi: '⏭️ स्किप करें', isSkip: true },
+  { id: 'other_custom', label: '✏️ Other / Specify', label_hi: '✏️ अन्य / निर्दिष्ट करें', isOther: true }
+  ]
   }
 };
 
@@ -1507,47 +1543,47 @@ export function getOnboardingDecisionTree(context = {}) {
   const currentViewMode = (context?.viewMode || 'modern').toLowerCase();
 
   const step3 = {
-    id: 'step_view_mode',
-    step: 3,
-    title: 'Select Portfolio View Mode',
-    title_hi: 'पोर्टफोलियो व्यू मोड चुनें',
-    options: [
-      { id: 'modern', label: '⚡ Modern / Interactive', label_hi: '⚡ मॉडर्न / इंटरैक्टिव', value: 'modern', viewMode: 'modern', emoji: '⚡' },
-      { id: 'simple', label: '🍃 Simple / Classic', label_hi: '🍃 सिंपल / क्लासिक', value: 'simple', viewMode: 'simple', emoji: '🍃' },
-      { id: 'basic', label: '📄 Basic / PDF', label_hi: '📄 बेसिक / PDF', value: 'basic', viewMode: 'basic', emoji: '📄' },
-      { id: 'terminal', label: '💻 Terminal / Developer', label_hi: '💻 टर्मिनल / डेवलपर', value: 'terminal', viewMode: 'terminal', emoji: '💻' }
-    ].map((opt) => ({
-      ...opt,
-      isHighlighted: opt.value === currentViewMode || opt.viewMode === currentViewMode
-    }))
+  id: 'step_view_mode',
+  step: 3,
+  title: 'Select Portfolio View Mode',
+  title_hi: 'पोर्टफोलियो व्यू मोड चुनें',
+  options: [
+  { id: 'modern', label: '⚡ Modern / Interactive', label_hi: '⚡ मॉडर्न / इंटरैक्टिव', value: 'modern', viewMode: 'modern', emoji: '⚡' },
+  { id: 'simple', label: '🍃 Simple / Classic', label_hi: '🍃 सिंपल / क्लासिक', value: 'simple', viewMode: 'simple', emoji: '🍃' },
+  { id: 'basic', label: '📄 Basic / PDF', label_hi: '📄 बेसिक / PDF', value: 'basic', viewMode: 'basic', emoji: '📄' },
+  { id: 'terminal', label: '💻 Terminal / Developer', label_hi: '💻 टर्मिनल / डेवलपर', value: 'terminal', viewMode: 'terminal', emoji: '💻' }
+  ].map((opt) => ({
+  ...opt,
+  isHighlighted: opt.value === currentViewMode || opt.viewMode === currentViewMode
+  }))
   };
 
   const step1 = {
-    ...ONBOARDING_DECISION_TREE.step1,
-    options: ONBOARDING_DECISION_TREE.step1.options.map((opt) => ({
-      ...opt,
-      isHighlighted: opt.value === currentAudience || (opt.id === 'all' && currentAudience === 'all')
-    }))
+  ...ONBOARDING_DECISION_TREE.step1,
+  options: ONBOARDING_DECISION_TREE.step1.options.map((opt) => ({
+  ...opt,
+  isHighlighted: opt.value === currentAudience || (opt.id === 'all' && currentAudience === 'all')
+  }))
   };
 
   const step2 = {
-    ...ONBOARDING_DECISION_TREE.step2,
-    options: ONBOARDING_DECISION_TREE.step2.options.map((opt) => ({
-      ...opt,
-      isHighlighted: opt.value === currentRole || (opt.id === 'overview' && currentRole === 'overview')
-    }))
+  ...ONBOARDING_DECISION_TREE.step2,
+  options: ONBOARDING_DECISION_TREE.step2.options.map((opt) => ({
+  ...opt,
+  isHighlighted: opt.value === currentRole || (opt.id === 'overview' && currentRole === 'overview')
+  }))
   };
 
   return {
-    currentAudience,
-    currentRole,
-    currentViewMode,
-    step1,
-    step2,
-    step3,
-    audienceStep: step1,
-    roleStep: step2,
-    viewModeStep: step3
+  currentAudience,
+  currentRole,
+  currentViewMode,
+  step1,
+  step2,
+  step3,
+  audienceStep: step1,
+  roleStep: step2,
+  viewModeStep: step3
   };
 }
 
@@ -1555,199 +1591,318 @@ export function generateResponseDecisionTree(intent, context = {}, lang = 'en') 
   const isHi = lang === 'hi';
   const chips = createFollowupChips(intent, context);
   const baseItems = chips.slice(0, 4).map((c) => ({
-    id: c.id,
-    label: c.label,
-    query: c.query || c.label
+  id: c.id,
+  label: c.label,
+  query: c.query || c.label,
+  category: c.category || inferChipCategory(c.id, c.label, c.query)
   }));
 
   return [
-    ...baseItems,
-    { id: 'skip', label: isHi ? '⏭️ छोड़ें' : '⏭️ Skip', isSkip: true },
-    { id: 'other', label: isHi ? '✏️ अन्य / विवरण' : '✏️ Other / Specify', isOther: true }
+  ...baseItems,
+  { id: 'skip', label: isHi ? '⏭️ छोड़ें' : '⏭️ Skip', isSkip: true },
+  { id: 'other', label: isHi ? '✏️ अन्य / विवरण' : '✏️ Other / Specify', isOther: true }
   ];
 }
 
 function formatAssistantResponse(data, safeContext, rawContext) {
-  const cleanedText = cleanMarkdownAsterisks(data.text);
-  const finalEmojiText = tuneResponseEmojis(cleanedText, safeContext.audience, {
-    enabled: rawContext?.enableEmojis !== false && rawContext?.emojis !== false
+  const rawText = typeof data.text === 'string' ? data.text : '';
+  const finalEmojiText = tuneResponseEmojis(rawText, safeContext.audience, {
+  enabled: rawContext?.enableEmojis !== false && rawContext?.emojis !== false
   });
   const decisionTree = generateResponseDecisionTree(data.intent, safeContext, data.language);
 
   return {
-    id: data.id,
-    intent: data.intent,
-    language: data.language,
-    text: finalEmojiText,
-    chips: data.chips,
-    suggestionChips: data.chips,
-    actions: data.actions,
-    confidence: data.confidence,
-    isRelaxed: !!data.isRelaxed,
-    isFallback: !!data.isFallback,
-    ...(data.relaxationBanner ? { relaxationBanner: cleanMarkdownAsterisks(data.relaxationBanner) } : {}),
-    decisionTree,
-    followUps: decisionTree
+  id: data.id,
+  intent: data.intent,
+  language: data.language,
+  text: finalEmojiText,
+  chips: data.chips,
+  suggestionChips: data.chips,
+  actions: data.actions,
+  confidence: data.confidence,
+  isRelaxed: !!data.isRelaxed,
+  isFallback: !!data.isFallback,
+  ...(data.relaxationBanner ? { relaxationBanner: data.relaxationBanner } : {}),
+  decisionTree,
+  followUps: decisionTree
   };
 }
 
 // 7. PUBLIC EXPORTED ASSISTANT API CONTRACTS & SLASH COMMAND ENGINE
 
-export { CHAT_SLASH_COMMANDS, handleSlashCommand } from '../data/chatSlashCommands.js';
 import { CHAT_SLASH_COMMANDS, handleSlashCommand } from '../data/chatSlashCommands.js';
+export { CHAT_SLASH_COMMANDS, handleSlashCommand };
 
 export function queryAssistant(query, context = { role: 'overview', audience: 'all' }) {
   const safeQuery = typeof query === 'string' ? query.trim() : '';
   const safeContext = {
-    role: context?.role || 'overview',
-    audience: context?.audience || 'all'
+  role: context?.role || 'overview',
+  audience: context?.audience || 'all'
   };
 
   const responseId = `resp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
   // Handle empty query: return prompt chips and welcome message
   if (!safeQuery) {
-    const chips = getInitialSuggestions(safeContext);
-    return {
-      id: responseId,
-      intent: 'suggestions',
-      language: 'en',
-      text: "Hi there! 👋 I am Atul's AI Assistant. Feel free to ask about Atul's projects, experience, tech stack, tax consulting, or matrimonial bio-data!",
-      chips,
-      suggestionChips: chips,
-      actions: createActionButtons('suggestions', {}, safeContext, 'en'),
-      confidence: 1.0,
-      isRelaxed: false,
-      isFallback: false
-    };
+  const chips = getInitialSuggestions(safeContext);
+  return {
+  id: responseId,
+  intent: 'suggestions',
+  language: 'en',
+  text: "Hi there! 👋 I am Atul's AI Assistant. Feel free to ask about Atul's projects, experience, tech stack, tax consulting, or matrimonial bio-data!",
+  chips,
+  suggestionChips: chips,
+  actions: createActionButtons('suggestions', {}, safeContext, 'en'),
+  confidence: 1.0,
+  isRelaxed: false,
+  isFallback: false
+  };
   }
+  // Helper to record context and return
+  const respond = (res, intentOverride, topicOverride, caseStudyIdOverride) => {
+  try {
+  const activeIntent = intentOverride || res.intent;
+  const activeCaseId = caseStudyIdOverride || (res.actions?.find(a => a.payload?.id)?.payload?.id) || null;
+  const activeTopic = topicOverride || (activeCaseId ? getTopicForCaseStudy(activeCaseId) : activeIntent);
+  updateConversationalContext(activeIntent, activeTopic, activeCaseId, safeContext.role, {});
+  } catch {
+  // safe fallback
+  }
+  return res;
+  };
+
   // Handle Slash Commands (e.g. /help, /projects, /gst, /quote, /resume, etc.)
   if (safeQuery.startsWith('/')) {
-    const slashRes = handleSlashCommand(safeQuery, safeContext, responseId);
-    if (slashRes) return slashRes;
+  const slashRes = handleSlashCommand(safeQuery, safeContext, responseId);
+  if (slashRes) return respond(slashRes);
   }
 
-      const { lang, normalized } = normalizeQuery(safeQuery);
+  // Phase 6: Comparative Queries
+  const compRes = detectComparativeQuery(safeQuery, safeContext);
+  if (compRes) {
+  updateConversationalContext('compare', 'comparative', null, safeContext.role, {});
+  return compRes;
+  }
+
+  // Phase 6: Compound Queries
+  const compoundRes = detectCompoundQuery(safeQuery, safeContext);
+  if (compoundRes) {
+  updateConversationalContext(compoundRes.intent, 'compound', null, safeContext.role, {});
+  return compoundRes;
+  }
+
+  // Phase 6: Coreference & Anaphoric Reference Resolution
+  const anaphora = resolveAnaphoricReferences(safeQuery, getConversationalContext());
+  if (anaphora.isAnaphoric && anaphora.resolvedEntity) {
+  const { lang } = normalizeQuery(safeQuery);
+  const contextualRes = synthesizeContextualResponse(anaphora.resolvedEntity, safeContext, lang);
+  updateConversationalContext(contextualRes.intent, anaphora.resolvedEntity.topic, anaphora.resolvedEntity.caseStudyId, anaphora.resolvedEntity.role, {});
+  return contextualRes;
+  }
+  const { lang, normalized } = normalizeQuery(safeQuery);
   const isHi = lang === 'hi';
-      const faqHit = matchAuthoritativeFAQ(safeQuery, safeContext);
+  const faqHit = matchAuthoritativeFAQ(safeQuery, safeContext);
   if (faqHit && faqHit.score >= 75) {
-    const faq = faqHit.faq;
-    const answerText = isHi || lang === 'hinglish' ? (faq.answer_hi || faq.answer) : faq.answer;
-    const actions = [];
-    if (faq.actionCTA) {
-      const cta = faq.actionCTA;
-      if (cta.type === 'case_study') {
-      actions.push({
-      type: 'open-case-study',
-      label: isHi ? cta.label_hi : cta.label,
-      label_hi: cta.label_hi,
-      target: cta.target,
-      payload: { id: cta.target }
-      });
-      } else if (cta.type === 'quote') {
-      actions.push({
-      type: 'switch-contact-tab',
-      label: isHi ? cta.label_hi : cta.label,
-      label_hi: cta.label_hi,
-      target: 'quote',
-      payload: { tab: 'quote' }
-      });
-      } else if (cta.type === 'contact') {
-      actions.push({
-      type: 'scroll',
-      label: isHi ? cta.label_hi : cta.label,
-      label_hi: cta.label_hi,
-      target: '#contact',
-      payload: { selector: '#contact' }
-      });
-      } else if (cta.type === 'credentials') {
-      actions.push({
-      type: 'scroll',
-      label: isHi ? cta.label_hi : cta.label,
-      label_hi: cta.label_hi,
-      target: '#about',
-      payload: { selector: '#about' }
-      });
-      }
-    }
-
-    const chips = createFollowupChips('faq_hit', safeContext, safeQuery, { faq: faqHit.faq });
-
-    return {
-      id: responseId,
-      intent: 'faq',
-      language: lang,
-      text: answerText,
-      chips,
-      suggestionChips: chips,
-      actions,
-      confidence: Math.round(faqHit.score) / 100,
-      isRelaxed: false,
-      isFallback: false
-    };
+  const faq = faqHit.faq;
+  const answerText = isHi || lang === 'hinglish' ? (faq.answer_hi || faq.answer) : faq.answer;
+  const actions = [];
+  if (faq.actionCTA) {
+  const cta = faq.actionCTA;
+  if (cta.type === 'case_study') {
+  actions.push({
+  type: 'open-case-study',
+  label: isHi ? cta.label_hi : cta.label,
+  label_hi: cta.label_hi,
+  target: cta.target,
+  payload: { id: cta.target }
+  });
+  } else if (cta.type === 'quote') {
+  actions.push({
+  type: 'switch-contact-tab',
+  label: isHi ? cta.label_hi : cta.label,
+  label_hi: cta.label_hi,
+  target: 'quote',
+  payload: { tab: 'quote' }
+  });
+  } else if (cta.type === 'contact') {
+  actions.push({
+  type: 'scroll',
+  label: isHi ? cta.label_hi : cta.label,
+  label_hi: cta.label_hi,
+  target: '#contact',
+  payload: { selector: '#contact' }
+  });
+  } else if (cta.type === 'credentials') {
+  actions.push({
+  type: 'scroll',
+  label: isHi ? cta.label_hi : cta.label,
+  label_hi: cta.label_hi,
+  target: '#about',
+  payload: { selector: '#about' }
+  });
   }
-      const classification = classifyIntent(safeQuery, safeContext);
+  }
+  const chips = createFollowupChips('faq_hit', safeContext, safeQuery, { faq: faqHit.faq });
+  return respond({
+  id: responseId,
+  intent: 'faq',
+  language: lang,
+  text: answerText,
+  chips,
+  suggestionChips: chips,
+  actions,
+  confidence: Math.round(faqHit.score) / 100,
+  isRelaxed: false,
+  isFallback: false
+  });
+  }
+  const classification = classifyIntent(safeQuery, safeContext);
   const { intent, confidence, entities } = classification;
 
   // 4. Handle Specific Functional Intents
-  if (intent === 'filter_toggles') {
-    const targetRole = entities.role || 'overview';
-    const actions = [
-      {
-      type: 'switch-role-tab',
-      label: isHi ? `🔄 ${targetRole.toUpperCase()} ट्रैक पर जाएं` : `🔄 Switch to ${targetRole.toUpperCase()} Track`,
-      label_hi: `🔄 ${targetRole.toUpperCase()} ट्रैक पर जाएं`,
-      target: targetRole,
-      payload: { role: targetRole }
-      }
-    ];
-    const text = isHi
-      ? `✅ ट्रैक अपडेट: मैंने आपका सक्रिय संदर्भ **${targetRole.toUpperCase()}** पर सेट कर दिया है।`
-      : `✅ Active Track Updated: Successfully aligned your session to the **${targetRole.toUpperCase()}** track.`;
+  // Phase 10: Guided Tour Intent Handling
+  if (intent === 'tour') {
+  const qLower = safeQuery.toLowerCase();
+  let tourId = 'recruiter-fast-track';
+  if (qLower.includes('gst') || qLower.includes('tax') || qLower.includes('corporate')) {
+  tourId = 'corporate-tax-gst';
+  } else if (qLower.includes('ai') || qLower.includes('vibe') || qLower.includes('code') || qLower.includes('saas')) {
+  tourId = 'ai-vibe-coding';
+  } else if (qLower.includes('exec') || qLower.includes('flash') || qLower.includes('accomplish')) {
+  tourId = 'executive-flash-tour';
+  }
+  const text = isHi
+  ? `🧭 **गाइडेड पोर्टफोलियो टूर:**\n\nअतुल वर्मा के पोर्टफोलियो का निर्देशित इंटरएक्टिव वॉकथ्रू प्रारंभ करने के लिए तैयार है। नीचे दिए गए टूर पर क्लिक करके शुरू करें:`
+  : `🧭 **Interactive Guided Portfolio Tour:**\n\nReady to explore Atul's verified expertise, case studies, and career milestones. Click below to start the interactive walkthrough:`;
+  const actions = [
+  { type: 'start-tour', tourId, label: '🚀 Start Guided Tour' },
+  { type: 'next-tour-step', label: '➡️ Next Step' },
+  { type: 'end-tour', label: '⏹️ End Tour' }
+  ];
+  const chips = [
+  { id: 'c-tour-recruiter', label: '💼 Recruiter Tour', query: '/tour recruiter' },
+  { id: 'c-tour-tax', label: '📊 GST & Tax Tour', query: '/tour gst' },
+  { id: 'c-tour-ai', label: '⚡ AI Vibe Tour', query: '/tour ai' },
+  { id: 'c-tour-exec', label: '👔 Executive Tour', query: '/tour executive' }
+  ];
+  return respond({
+  id: responseId,
+  intent: 'tour',
+  language: lang,
+  text,
+  card: {
+  type: 'tour-controller',
+  tourId
+  },
+  chips,
+  suggestionChips: chips,
+  actions,
+  confidence: 0.95,
+  isRelaxed: false,
+  isFallback: false
+  }, 'tour', 'tour', null);
+  }
 
-    const chips = createFollowupChips('roles', { role: targetRole }, safeQuery, { role: targetRole });
-    return {
-      id: responseId,
-      intent,
-      language: lang,
-      text,
-      chips,
-      suggestionChips: chips,
-      actions,
-      confidence: 0.95,
-      isRelaxed: false,
-      isFallback: false
-    };
+  // Phase 10: Deep Semantic Search Intent Handling
+  if (intent === 'search') {
+  const cleanSearchTerm = safeQuery
+  .replace(/^(?:search for|search|find|look up|खोजें|ढूंढो|सर्च)\s+/i, '')
+  .trim();
+  const queryTerm = cleanSearchTerm || safeQuery;
+  const searchResults = searchPortfolio(queryTerm, { limit: 5 });
+  const text = searchResults.length > 0
+  ? (isHi
+  ? `🔍 **"${queryTerm}" के लिए खोज परिणाम:**\n\nअतुल वर्मा के पोर्टफोलियो से **${searchResults.length}** प्रासंगिक परिणाम मिले:`
+  : `🔍 **Semantic Search Results for "${queryTerm}":**\n\nFound **${searchResults.length}** matching items across Case Studies, Skills, and Resources:`)
+  : (isHi
+  ? `🔍 **"${queryTerm}" के लिए कोई सीधा परिणाम नहीं मिला।**\n\nकृपया \`gst\`, \`tally\`, \`excel\`, या \`projects\` जैसे कीवर्ड्स खोजें।`
+  : `🔍 **No exact matches found for "${queryTerm}".**\n\nTry searching for keywords like \`gst\`, \`tally\`, \`excel\`, \`power bi\`, or \`ai\`.`);
+  const actions = searchResults.length > 0
+  ? searchResults.slice(0, 3).map(r => r.action || { type: 'scroll', target: r.targetId, label: r.title })
+  : [
+  { type: 'scroll', target: '#projects', payload: { selector: '#projects' }, label: '🚀 View Case Studies' },
+  { type: 'scroll', target: '#skills', payload: { selector: '#skills' }, label: '⚡ View Skills' }
+  ];
+  const chips = [
+  { id: 'c-s-gst', label: '🔍 GST Engine', query: '/search gst' },
+  { id: 'c-s-tally', label: '🔍 Tally Prime', query: '/search tally' },
+  { id: 'c-s-ai', label: '🔍 AI SaaS', query: '/search ai' }
+  ];
+  return respond({
+  id: responseId,
+  intent: 'search',
+  language: lang,
+  text,
+  card: {
+  type: 'search-results',
+  query: queryTerm,
+  results: searchResults
+  },
+  chips,
+  suggestionChips: chips,
+  actions,
+  confidence: 0.95,
+  isRelaxed: false,
+  isFallback: false
+  }, 'search', 'search', null);
+  }
+
+  if (intent === 'filter_toggles') {
+  const targetRole = entities.role || 'overview';
+  const actions = [
+  {
+  type: 'switch-role-tab',
+  label: isHi ? `🔄 ${targetRole.toUpperCase()} ट्रैक पर जाएं` : `🔄 Switch to ${targetRole.toUpperCase()} Track`,
+  label_hi: `🔄 ${targetRole.toUpperCase()} ट्रैक पर जाएं`,
+  target: targetRole,
+  payload: { role: targetRole }
+  }
+  ];
+  const text = isHi
+  ? `✅ ट्रैक अपडेट: मैंने आपका सक्रिय संदर्भ **${targetRole.toUpperCase()}** पर सेट कर दिया है।`
+  : `✅ Active Track Updated: Successfully aligned your session to the **${targetRole.toUpperCase()}** track.`;
+  const chips = createFollowupChips('roles', { role: targetRole }, safeQuery, { role: targetRole });
+  return respond({
+  id: responseId,
+  intent,
+  language: lang,
+  text,
+  chips,
+  suggestionChips: chips,
+  actions,
+  confidence: 0.95,
+  isRelaxed: false,
+  isFallback: false
+  }, intent, targetRole, null);
   }
 
   if (intent === 'navigation' && entities.section) {
-    const targetSelector = `#${entities.section}`;
-    const actions = [
-      {
-      type: 'scroll',
-      label: isHi ? `📍 #${entities.section} पर जाएं` : `📍 Jump to #${entities.section}`,
-      label_hi: `📍 #${entities.section} पर जाएं`,
-      target: targetSelector,
-      payload: { selector: targetSelector }
-      }
-    ];
-    const text = isHi
-      ? `📍 नेविगेशन: आपको **#${entities.section}** अनुभाग पर ले जाया जा रहा है।`
-      : `📍 Navigation: Smoothly scrolling down to the **#${entities.section}** section.`;
-
-    const chips = createFollowupChips(intent, safeContext, safeQuery, entities);
-    return {
-      id: responseId,
-      intent,
-      language: lang,
-      text,
-      chips,
-      suggestionChips: chips,
-      actions,
-      confidence: 0.95,
-      isRelaxed: false,
-      isFallback: false
-    };
+  const targetSelector = `#${entities.section}`;
+  const actions = [
+  {
+  type: 'scroll',
+  label: isHi ? `📍 #${entities.section} पर जाएं` : `📍 Jump to #${entities.section}`,
+  label_hi: `📍 #${entities.section} पर जाएं`,
+  target: targetSelector,
+  payload: { selector: targetSelector }
+  }
+  ];
+  const text = isHi
+  ? `📍 नेविगेशन: आपको **#${entities.section}** अनुभाग पर ले जाया जा रहा है।`
+  : `📍 Navigation: Smoothly scrolling down to the **#${entities.section}** section.`;
+  const chips = createFollowupChips(intent, safeContext, safeQuery, entities);
+  return respond({
+  id: responseId,
+  intent,
+  language: lang,
+  text,
+  chips,
+  suggestionChips: chips,
+  actions,
+  confidence: 0.95,
+  isRelaxed: false,
+  isFallback: false
+  }, intent, entities.section, null);
   }
 
   // 5. Layer C, D, E: Search Catalog with Dynamic Relaxation Pre-Check
@@ -1756,108 +1911,103 @@ export function queryAssistant(query, context = { role: 'overview', audience: 'a
 
   // If High-Confidence Core Intent recognized (>= 0.75) and NOT a relaxed cross-track match, synthesize authoritative response
   if (confidence >= 0.75 && intent !== 'fallback' && !isRelaxedSearchMatch) {
-    const text = buildIntentText(intent, entities, safeContext, lang, searchResult.results, safeQuery);
-    const actions = createActionButtons(intent, entities, safeContext, lang, searchResult.results, safeQuery);
-    const chips = createFollowupChips(intent, safeContext, safeQuery, entities);
-
-    return {
-      id: responseId,
-      intent,
-      language: lang,
-      text,
-      chips,
-      suggestionChips: chips,
-      actions,
-      confidence,
-      isRelaxed: false,
-      isFallback: false
-    };
+  const text = buildIntentText(intent, entities, safeContext, lang, searchResult.results, safeQuery);
+  const actions = createActionButtons(intent, entities, safeContext, lang, searchResult.results, safeQuery);
+  const chips = createFollowupChips(intent, safeContext, safeQuery, entities);
+  return respond({
+  id: responseId,
+  intent,
+  language: lang,
+  text,
+  chips,
+  suggestionChips: chips,
+  actions,
+  confidence,
+  isRelaxed: false,
+  isFallback: false
+  }, intent, entities?.projectId ? getTopicForCaseStudy(entities.projectId) : intent, entities?.projectId || matchProjectKeyword(safeQuery));
   }
 
   // 6. Handle Search Results (Strict or Relaxed)
   const { results, relaxed, relaxationLevel } = searchResult;
 
   if (results.length > 0) {
-    let relaxationBanner = '';
-    if (relaxed) {
-      if (relaxationLevel === 'phase_2_relax_role') {
-      relaxationBanner = isHi
-      ? '*(सक्रिय रोल में कोई सीधा मिलान नहीं मिला; सभी पोर्टफोलियो ट्रैक्स से परिणाम दिखाए जा रहे हैं)*'
-      : '*(Note: Expanded search across all professional tracks — relaxed role filter)*';
-      } else if (relaxationLevel === 'phase_3_relax_audience') {
-      relaxationBanner = isHi
-      ? '*(संपूर्ण प्रमाणित पोर्टफोलियो निर्देशिका में खोज विस्तारित की गई)*'
-      : '*(Note: Expanded search across the entire verified portfolio directory)*';
-      }
-    }
-
-    const topItem = results[0].item;
-    let caseId = getCaseStudyId(topItem);
-    const resolvedIntent = topItem.category === 'Projects' ? 'projects' : (topItem.category === 'Skills' ? 'skills' : 'services');
-    if (!caseId && resolvedIntent === 'skills') {
-      const matched = findMatchedSkill(safeQuery, results);
-      if (matched?.relatedCaseStudy) {
-        caseId = matched.relatedCaseStudy;
-      }
-    }
-    let text = buildIntentText(resolvedIntent, { ...entities, projectId: caseId || entities.projectId }, safeContext, lang, results, safeQuery);
-    if (relaxationBanner) {
-      text = `${relaxationBanner}\n\n${text}`;
-    }
-
-    const actions = [];
-    if (caseId) {
-      actions.push({
-        type: 'open-case-study',
-        label: isHi ? `🔍 केस स्टडी #${caseId} खोलें` : `🔍 Inspect Case Study #${caseId}`,
-        label_hi: `🔍 केस स्टडी #${caseId} खोलें`,
-        target: caseId,
-        payload: { id: caseId }
-      });
-    }
-    if (topItem.targetId) {
-      actions.push({
-        type: 'scroll',
-        label: isHi ? `📍 ${topItem.title_hi || topItem.title}` : `📍 View ${topItem.title}`,
-        label_hi: `📍 ${topItem.title_hi || topItem.title}`,
-        target: `#${topItem.targetId}`,
-        payload: { selector: `#${topItem.targetId}` }
-      });
-    }
-
-    const chips = createFollowupChips(resolvedIntent, safeContext, safeQuery, { ...entities, projectId: caseId });
-
-    return {
-      id: responseId,
-      intent: resolvedIntent,
-      language: lang,
-      text,
-      chips,
-      suggestionChips: chips,
-      actions,
-      confidence: Math.min(0.85, Math.max(0.60, results[0].score / 100)),
-      isRelaxed: relaxed,
-      isFallback: false,
-      relaxationBanner
-    };
+  let relaxationBanner = '';
+  if (relaxed) {
+  if (relaxationLevel === 'phase_2_relax_role') {
+  relaxationBanner = isHi
+  ? '*(सक्रिय रोल में कोई सीधा मिलान नहीं मिला; सभी पोर्टफोलियो ट्रैक्स से परिणाम दिखाए जा रहे हैं)*'
+  : '*(Note: Expanded search across all professional tracks — relaxed role filter)*';
+  } else if (relaxationLevel === 'phase_3_relax_audience') {
+  relaxationBanner = isHi
+  ? '*(संपूर्ण प्रमाणित पोर्टफोलियो निर्देशिका में खोज विस्तारित की गई)*'
+  : '*(Note: Expanded search across the entire verified portfolio directory)*';
   }
-      const finalIntent = intent === 'ambiguous' ? 'ambiguous' : 'fallback';
+  }
+  const topItem = results[0].item;
+  let caseId = getCaseStudyId(topItem);
+  const resolvedIntent = topItem.category === 'Projects' ? 'projects' : (topItem.category === 'Skills' ? 'skills' : 'services');
+  if (!caseId && resolvedIntent === 'skills') {
+  const matched = findMatchedSkill(safeQuery, results);
+  if (matched?.relatedCaseStudy) {
+  caseId = matched.relatedCaseStudy;
+  }
+  }
+  let text = buildIntentText(resolvedIntent, { ...entities, projectId: caseId || entities.projectId }, safeContext, lang, results, safeQuery);
+  if (relaxationBanner) {
+  text = `${relaxationBanner}\n\n${text}`;
+  }
+  const actions = [];
+  if (caseId) {
+  actions.push({
+  type: 'open-case-study',
+  label: isHi ? `🔍 केस स्टडी #${caseId} खोलें` : `🔍 Inspect Case Study #${caseId}`,
+  label_hi: `🔍 केस स्टडी #${caseId} खोलें`,
+  target: caseId,
+  payload: { id: caseId }
+  });
+  }
+  if (topItem.targetId) {
+  actions.push({
+  type: 'scroll',
+  label: isHi ? `📍 ${topItem.title_hi || topItem.title}` : `📍 View ${topItem.title}`,
+  label_hi: `📍 ${topItem.title_hi || topItem.title}`,
+  target: `#${topItem.targetId}`,
+  payload: { selector: `#${topItem.targetId}` }
+  });
+  }
+  const chips = createFollowupChips(resolvedIntent, safeContext, safeQuery, { ...entities, projectId: caseId });
+  return respond({
+  id: responseId,
+  intent: resolvedIntent,
+  language: lang,
+  text,
+  chips,
+  suggestionChips: chips,
+  actions,
+  confidence: Math.min(0.85, Math.max(0.60, results[0].score / 100)),
+  isRelaxed: relaxed,
+  isFallback: false,
+  relaxationBanner
+  }, resolvedIntent, caseId ? getTopicForCaseStudy(caseId) : resolvedIntent, caseId);
+  }
+  const finalIntent = intent === 'ambiguous' ? 'ambiguous' : 'fallback';
   const fallbackText = buildIntentText(finalIntent, entities, safeContext, lang, [], safeQuery);
   const fallbackActions = createActionButtons(finalIntent, entities, safeContext, lang);
   const fallbackChips = createFollowupChips(finalIntent, safeContext, safeQuery, entities);
 
-  return {
-    id: responseId,
-    intent: finalIntent,
-    language: lang,
-    text: fallbackText,
-    chips: fallbackChips,
-    suggestionChips: fallbackChips,
-    actions: fallbackActions,
-    confidence: finalIntent === 'ambiguous' ? 0.95 : 0.20,
-    isRelaxed: false,
-    isFallback: true
-  };
+  return respond({
+  id: responseId,
+  intent: finalIntent,
+  language: lang,
+  text: fallbackText,
+  chips: fallbackChips,
+  suggestionChips: fallbackChips,
+  actions: fallbackActions,
+  confidence: finalIntent === 'ambiguous' ? 0.95 : 0.20,
+  isRelaxed: false,
+  isFallback: true
+  }, finalIntent, 'fallback', null);
 }
 
 export function getInitialSuggestions(context = { role: 'overview', audience: 'all' }) {
@@ -1865,14 +2015,15 @@ export function getInitialSuggestions(context = { role: 'overview', audience: 'a
 }
 
 export function clearSessionMemory() {
+  resetConversationalContext();
   if (typeof window !== 'undefined' && window.sessionStorage) {
-    try {
-      window.sessionStorage.removeItem('portfolio_assistant_messages');
-      window.sessionStorage.removeItem('portfolio_assistant_session');
-      window.sessionStorage.removeItem('portfolio_ai_chat_state');
-    } catch {
-      // Safe no-op on restricted environments
-    }
+  try {
+  window.sessionStorage.removeItem('portfolio_assistant_messages');
+  window.sessionStorage.removeItem('portfolio_assistant_session');
+  window.sessionStorage.removeItem('portfolio_ai_chat_state');
+  } catch {
+  // Safe no-op on restricted environments
+  }
   }
   return true;
 }
@@ -1889,6 +2040,14 @@ export default {
   queryAssistant,
   getInitialSuggestions,
   clearSessionMemory,
+  createSessionMemory,
+  getConversationalContext,
+  updateConversationalContext,
+  resetConversationalContext,
+  resolveAnaphoricReferences,
+  detectComparativeQuery,
+  detectCompoundQuery,
+  getDynamicContextualChips,
   detectLanguage,
   normalizeQuery,
   classifyIntent,

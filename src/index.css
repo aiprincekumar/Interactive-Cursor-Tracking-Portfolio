@@ -130,10 +130,13 @@
 
 /* Smooth Theme Transitions */
 html.theme-transition,
-html.theme-transition *,
-html.theme-transition *::before,
-html.theme-transition *::after {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease !important;
+html.theme-transition body,
+html.theme-transition nav,
+html.theme-transition main,
+html.theme-transition footer,
+html.theme-transition section,
+html.theme-transition .glass-panel {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease !important;
 }
 
 /* Hide scrollbar utility for clean horizontal scroll ribbons */

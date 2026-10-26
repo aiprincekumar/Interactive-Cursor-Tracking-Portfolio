@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, Suspense } from 'react';
+import React, { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import DynamicCursorManager from './components/DynamicCursorManager';
@@ -9,7 +9,7 @@ import BasicPDFViewer from './components/BasicPDFViewer';
 import { Terminal, Maximize2, X } from 'lucide-react';
 
 import { soundFX } from './utils/audio';
-import { useLab } from './context/LabContext';
+import { useLabAudio } from './context/LabContext';
 import { RoleProvider, useRoleTab } from './context/RoleContext';
 import { useSimpleMode } from './context/SimpleModeContext';
 import { HighContrastProvider } from './context/HighContrastContext';
@@ -22,7 +22,9 @@ import { TESTIMONIALS_CONFIG } from './data/testimonialsConfig';
 import { lazyWithRetry } from './utils/lazyWithRetry';
 import SectionSkeleton from './components/SectionSkeleton';
 import { useScrollRestoration } from './hooks/useScrollRestoration';
+import { initCursorPersistenceTracker } from './utils/cursorPersistence';
 import ErrorBoundary from './components/ErrorBoundary';
+import { localAIService } from './services/localAIService';
 
 // Static reference markers for test harness verification:
 // import AIChatWidget from './components/AIChatWidget';
@@ -37,6 +39,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 // Modals & Drawers (Tier 1) - Lazy loaded
 const TerminalCLI = lazyWithRetry(() => import('./components/TerminalCLI'), 'TerminalCLI');
 const TerminalFullView = lazyWithRetry(() => import('./components/TerminalFullView'), 'TerminalFullView');
+const ControlCenterFullView = lazyWithRetry(() => import('./components/ControlCenterFullView'), 'ControlCenterFullView');
 const CaseStudyDrawer = lazyWithRetry(() => import('./components/CaseStudyDrawer'), 'CaseStudyDrawer');
 const CredentialLightboxModal = lazyWithRetry(() => import('./components/CredentialLightboxModal'), 'CredentialLightboxModal');
 const LabStudioDrawer = lazyWithRetry(() => import('./components/LabStudioDrawer'), 'LabStudioDrawer');
@@ -58,9 +61,15 @@ const Footer = lazyWithRetry(() => import('./components/Footer'), 'Footer');
 
 export default function App() {
   useScrollRestoration();
+
+  useEffect(() => {
+    const cleanup = initCursorPersistenceTracker();
+    return cleanup;
+  }, []);
+
   const { isSimpleMode } = useSimpleMode();
   const heroRef = useRef(null);
-  const [isInsideHero, setIsInsideHero] = useState(false);
+  const isInsideHeroRef = useRef(false);
   const [capturedPhotos, setCapturedPhotos] = useState([]);
   const [forcedState] = useState(null);
   const [reducedMotion, setReducedMotion] = useState(() => {
@@ -70,18 +79,7 @@ export default function App() {
     return false;
   });
 
-  const {
-    cursorScale,
-    flightSpeed,
-    wingDynamics,
-    gravity,
-    trailEnabled,
-    particleColor,
-    soundEnabled,
-    setSoundEnabled,
-    customCursorEnabled,
-    reducedMotion: labReducedMotion
-  } = useLab();
+  const { soundEnabled, setSoundEnabled } = useLabAudio();
 
   const [activeCursor, setActiveCursor] = useState(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -97,7 +95,7 @@ export default function App() {
   const [isCredentialOpen, setIsCredentialOpen] = useState(false);
   const [activeCredentialId, setActiveCredentialId] = useState('edu-adca');
 
-  const handleOpenCaseStudy = (id) => {
+  const handleOpenCaseStudy = useCallback((id) => {
     const cleanId = String(id || '01');
     setActiveCaseStudyId(cleanId);
     setIsCaseStudyOpen(true);
@@ -106,9 +104,9 @@ export default function App() {
       url.searchParams.set('casestudy', cleanId);
       window.history.replaceState(null, '', url);
     }
-  };
+  }, []);
 
-  const handleCloseCaseStudy = () => {
+  const handleCloseCaseStudy = useCallback(() => {
     setIsCaseStudyOpen(false);
     if (typeof window !== 'undefined') {
       const url = new URL(window.location);
@@ -117,7 +115,7 @@ export default function App() {
       url.searchParams.delete('project');
       window.history.replaceState(null, '', url);
     }
-  };
+  }, []);
 
   // URL deep-linking on initial load and global event listener
   useEffect(() => {
@@ -184,12 +182,6 @@ export default function App() {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  useEffect(() => {
-    if (labReducedMotion !== undefined) {
-      setReducedMotion(Boolean(labReducedMotion));
-    }
-  }, [labReducedMotion]);
-
   // Preload hybrid offline map vector assets non-blockingly during idle time
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -220,6 +212,71 @@ export default function App() {
     }
   }, []);
 
+  // Always-On AI: Autonomous Silent Preload hook after page load or idle (guarded against duplicate triggers)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const startAIPreload = () => {
+      try {
+        const currentState = localAIService.getState();
+        let isConsentDeclined = false;
+        try {
+          const consent = localStorage.getItem('portfolio_ai_model_consent');
+          if (consent === 'disabled' || consent === 'declined') {
+            isConsentDeclined = true;
+          }
+        } catch {
+          // ignore
+        }
+
+        // Strictly only trigger if completely idle, no model is loaded or downloading/in-flight,
+        // and AI is enabled by user / not declined
+        if (
+          currentState.status === 'idle' &&
+          !currentState.activeModel &&
+          !currentState.downloadingModel &&
+          !currentState.isModelLoading &&
+          currentState.isAiEnabled !== false &&
+          !isConsentDeclined
+        ) {
+          localAIService.initSilentDownload();
+        }
+      } catch (err) {
+        console.warn('[App] Autonomous AI silent preload warning:', err);
+      }
+    };
+
+    if (document.readyState === 'complete') {
+      if ('requestIdleCallback' in window) {
+        const idleId = window.requestIdleCallback(startAIPreload, { timeout: 3000 });
+        return () => {
+          if ('cancelIdleCallback' in window) window.cancelIdleCallback(idleId);
+        };
+      } else {
+        const timerId = setTimeout(startAIPreload, 1500);
+        return () => clearTimeout(timerId);
+      }
+    } else {
+      let idleId = null;
+      let timerId = null;
+
+      const handleLoad = () => {
+        if ('requestIdleCallback' in window) {
+          idleId = window.requestIdleCallback(startAIPreload, { timeout: 3000 });
+        } else {
+          timerId = setTimeout(startAIPreload, 1500);
+        }
+      };
+
+      window.addEventListener('load', handleLoad, { once: true });
+      return () => {
+        window.removeEventListener('load', handleLoad);
+        if (idleId && 'cancelIdleCallback' in window) window.cancelIdleCallback(idleId);
+        if (timerId) clearTimeout(timerId);
+      };
+    }
+  }, []);
+
   // Sync activeCursor to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -231,7 +288,7 @@ export default function App() {
     }
   }, [activeCursor]);
 
-  const handleSelectCursor = (cursorId) => {
+  const handleSelectCursor = useCallback((cursorId) => {
     setActiveCursor(cursorId);
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -241,7 +298,7 @@ export default function App() {
       // Ignore
     }
     soundFX.playCursorSelect(cursorId);
-  };
+  }, []);
 
   const effectiveSoundEnabled = isSimpleMode ? false : soundEnabled;
 
@@ -253,8 +310,48 @@ export default function App() {
     }
   }, [isSimpleMode, soundEnabled]);
 
-  const handlePhotoCaptured = (newPhoto) => {
+  const handlePhotoCaptured = useCallback((newPhoto) => {
     setCapturedPhotos((prev) => [newPhoto, ...prev]);
+  }, []);
+
+  // Standalone Control Center View Detection via URL query parameter: ?view=control or ?panel=control
+  const [isStandaloneControl, setIsStandaloneControl] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view');
+    const panel = params.get('panel');
+    return view === 'control' || panel === 'control';
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleUrlChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      const view = params.get('view');
+      const panel = params.get('panel');
+      setIsStandaloneControl(view === 'control' || panel === 'control');
+    };
+    window.addEventListener('popstate', handleUrlChange);
+    return () => window.removeEventListener('popstate', handleUrlChange);
+  }, []);
+
+  // When standalone control view is active, render isolated studio early without mounting heavy portfolio DOM
+  if (isStandaloneControl) {
+    return (
+      <HighContrastProvider>
+        <AnnouncerProvider>
+          <AudienceProvider>
+            <ViewModeProvider>
+              <RoleProvider soundEnabled={effectiveSoundEnabled}>
+                <Suspense fallback={<SectionSkeleton variant="section" minHeight="min-h-screen" />}>
+                  <ControlCenterFullView />
+                </Suspense>
+              </RoleProvider>
+            </ViewModeProvider>
+          </AudienceProvider>
+        </AnnouncerProvider>
+      </HighContrastProvider>
+    );
   };
 
   return (
@@ -282,8 +379,8 @@ export default function App() {
                 soundEnabled={soundEnabled}
                 setSoundEnabled={setSoundEnabled}
                 heroRef={heroRef}
-                isInsideHero={isInsideHero}
-                setIsInsideHero={setIsInsideHero}
+                isInsideHeroRef={isInsideHeroRef}
+                
                 handlePhotoCaptured={handlePhotoCaptured}
                 forcedState={forcedState}
                 capturedPhotos={capturedPhotos}
@@ -315,8 +412,8 @@ function AppContent({
   soundEnabled,
   setSoundEnabled,
   heroRef,
-  isInsideHero,
-  setIsInsideHero,
+  isInsideHeroRef,
+
   handlePhotoCaptured,
   forcedState,
   capturedPhotos
@@ -328,6 +425,18 @@ function AppContent({
   const { selectRole } = useRoleTab();
   const { selectAudience, setAudience } = useAudience();
   const chooseAudience = selectAudience || setAudience;
+
+  const handleOpenTerminal = useCallback(() => selectViewMode('terminal'), [selectViewMode]);
+  const handleToggleTerminal = useCallback(() => selectViewMode(isTerminalMode ? 'modern' : 'terminal'), [selectViewMode, isTerminalMode]);
+  const handleMinimizeTerminal = useCallback(() => {
+    setIsTerminalMinimized(true);
+    selectViewMode('modern');
+  }, [selectViewMode]);
+  const handleRestoreTerminal = useCallback(() => {
+    setIsTerminalMinimized(false);
+    selectViewMode('terminal');
+  }, [selectViewMode]);
+  const handleToggleSound = useCallback(() => setSoundEnabled(!soundEnabled), [setSoundEnabled, soundEnabled]);
 
   // Auto-close floating terminal when not in terminal view mode, and clean up minimized state
   useEffect(() => {
@@ -513,15 +622,8 @@ function AppContent({
               <DynamicCursorManager
                 activeCursor={activeCursor}
                 heroRef={heroRef}
-                isInsideHero={isInsideHero}
-                customCursorEnabled={true}
-                speed={1.0}
-                trailEnabled={true}
-                scale={1.0}
+                isInsideHeroRef={isInsideHeroRef}
                 reducedMotion={reducedMotion}
-                gravity={0.5}
-                particleColor="#FF4D6D"
-                wingDynamics={1.0}
               />
             )}
 
@@ -533,8 +635,8 @@ function AppContent({
                 activeCursor={activeCursor}
                 onSelectCursor={handleSelectCursor}
                 isTerminalOpen={isTerminalMode}
-                onOpenTerminal={() => selectViewMode('terminal')}
-                onToggleTerminal={() => selectViewMode(isTerminalMode ? 'modern' : 'terminal')}
+                onOpenTerminal={handleOpenTerminal}
+                onToggleTerminal={handleToggleTerminal}
               />
             )}
 
@@ -558,8 +660,8 @@ function AppContent({
                   {/* 1. Interactive Cursor-Tracking Hero Section (Reel t=0s - 7.5s) */}
                   <HeroSection
                     heroRef={heroRef}
-                    isInsideHero={isInsideHero}
-                    setIsInsideHero={setIsInsideHero}
+                    isInsideHeroRef={isInsideHeroRef}
+                    
                     onPhotoCaptured={handlePhotoCaptured}
                     soundEnabled={effectiveSoundEnabled}
                     setSoundEnabled={setSoundEnabled}
@@ -653,7 +755,7 @@ function AppContent({
                     isOpen={isTerminalOpen}
                     onClose={() => setIsTerminalOpen(false)}
                     soundEnabled={effectiveSoundEnabled}
-                    onToggleSound={() => setSoundEnabled(!soundEnabled)}
+                    onToggleSound={handleToggleSound}
                     activeCursor={activeCursor}
                     onSelectCursor={handleSelectCursor}
                   />
@@ -723,8 +825,7 @@ function AppContent({
                     aria-label="Restore Terminal"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setIsTerminalMinimized(false);
-                      selectViewMode('terminal');
+                      handleRestoreTerminal();
                     }}
                   >
                     <Maximize2 className="w-3.5 h-3.5" />

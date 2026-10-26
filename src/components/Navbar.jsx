@@ -55,6 +55,18 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { TESTIMONIALS_CONFIG } from '../data/testimonialsConfig';
 import { useAnnounce } from '../context/AnnouncerContext';
 
+export const NAV_SECTION_IDS = [
+  'hero',
+  'about',
+  'skills',
+  'experience',
+  'projects',
+  'achievements',
+  'testimonials',
+  'faq',
+  'contact'
+];
+
 export function IndiaFlag({ className = "w-[18px] h-[18px]", ...props }) {
   return (
     <svg
@@ -191,6 +203,24 @@ export default function Navbar({
   const toggleLanguage = languageContext?.toggleLanguage ?? (() => {});
   const t = languageContext?.t ?? ((key, fallback) => fallback || key);
 
+  const navLinks = React.useMemo(() => [
+    { label: t('nav.home', 'Home'), href: '#hero', id: 'hero' },
+    { label: t('nav.about', 'About'), href: '#about', id: 'about' },
+    { label: t('nav.skills', 'Skills'), href: '#skills', id: 'skills' },
+    { label: t('nav.experience', 'Experience'), href: '#experience', id: 'experience' },
+    { label: t('nav.projects', 'Projects'), href: '#projects', id: 'projects' },
+    { label: t('nav.achievements', 'Achievements'), href: '#achievements', id: 'achievements' },
+    ...(TESTIMONIALS_CONFIG?.enabled ? [{
+      label: t('nav.testimonials', 'Testimonials'),
+      href: `#${TESTIMONIALS_CONFIG.sectionId || 'testimonials'}`,
+      id: TESTIMONIALS_CONFIG.sectionId || 'testimonials'
+    }] : []),
+    { label: t('nav.faq', 'FAQ'), href: '#faq', id: 'faq' },
+    { label: t('nav.contact', 'Contact'), href: '#contact', id: 'contact' }
+  ], [t]);
+
+
+
   let simpleContext = null;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -291,7 +321,81 @@ export default function Navbar({
       return '';
     }
   });
-  const [activeSection, setActiveSection] = useState('hero');
+  const [activeSection, setActiveSection] = useState(() => {
+    if (typeof window === 'undefined') return 'hero';
+    try {
+      const autoScrollEnabled =
+        localStorage.getItem('portfolio_auto_scroll_on_refresh') !== 'false' &&
+        sessionStorage.getItem('portfolio_auto_scroll_on_refresh') !== 'false';
+
+      if (autoScrollEnabled) {
+        // 1. Check window.location.hash
+        const hash = window.location.hash.replace(/^#/, '').trim();
+        if (hash && NAV_SECTION_IDS.includes(hash)) {
+          return hash;
+        }
+
+        // 2. Check sessionStorage portfolio_last_active_section
+        const sessActive = sessionStorage.getItem('portfolio_last_active_section');
+        if (sessActive && NAV_SECTION_IDS.includes(sessActive)) {
+          return sessActive;
+        }
+
+        // 3. Check localStorage portfolio_last_active_section
+        const localActive = localStorage.getItem('portfolio_last_active_section');
+        if (localActive && NAV_SECTION_IDS.includes(localActive)) {
+          return localActive;
+        }
+
+        // 4. Check portfolio_last_url in localStorage
+        const rawLastUrl = localStorage.getItem('portfolio_last_url');
+        if (rawLastUrl) {
+          try {
+            const parsed = JSON.parse(rawLastUrl);
+            const targetUrl = (parsed?.url || '').replace(/^#/, '').trim();
+            if (targetUrl && NAV_SECTION_IDS.includes(targetUrl)) {
+              return targetUrl;
+            }
+          } catch {}
+        }
+      }
+    } catch {}
+    return 'hero';
+  });
+
+  // Synchronize active section when URL hash or restored state changes
+  useEffect(() => {
+    const syncActiveFromUrlOrRestored = () => {
+      try {
+        const autoScrollEnabled =
+          localStorage.getItem('portfolio_auto_scroll_on_refresh') !== 'false' &&
+          sessionStorage.getItem('portfolio_auto_scroll_on_refresh') !== 'false';
+        if (!autoScrollEnabled) return;
+
+        const hash = window.location.hash.replace(/^#/, '').trim();
+        const sessActive = sessionStorage.getItem('portfolio_last_active_section');
+        const localActive = localStorage.getItem('portfolio_last_active_section');
+        const target = (hash && NAV_SECTION_IDS.includes(hash))
+          ? hash
+          : (sessActive && NAV_SECTION_IDS.includes(sessActive))
+          ? sessActive
+          : (localActive && NAV_SECTION_IDS.includes(localActive))
+          ? localActive
+          : null;
+
+        if (target && navLinks.some((l) => l.id === target)) {
+          setActiveSection(target);
+        }
+      } catch {}
+    };
+
+    window.addEventListener('hashchange', syncActiveFromUrlOrRestored);
+    window.addEventListener('popstate', syncActiveFromUrlOrRestored);
+    return () => {
+      window.removeEventListener('hashchange', syncActiveFromUrlOrRestored);
+      window.removeEventListener('popstate', syncActiveFromUrlOrRestored);
+    };
+  }, [navLinks]);
   const navContainerRef = useRef(null);
   const isDesktopCursor = useDesktopCursorSupport();
 
@@ -420,21 +524,7 @@ export default function Navbar({
     }
   };
 
-  const navLinks = React.useMemo(() => [
-    { label: t('nav.home', 'Home'), href: '#hero', id: 'hero' },
-    { label: t('nav.about', 'About'), href: '#about', id: 'about' },
-    { label: t('nav.skills', 'Skills'), href: '#skills', id: 'skills' },
-    { label: t('nav.experience', 'Experience'), href: '#experience', id: 'experience' },
-    { label: t('nav.projects', 'Projects'), href: '#projects', id: 'projects' },
-    { label: t('nav.achievements', 'Achievements'), href: '#achievements', id: 'achievements' },
-    ...(TESTIMONIALS_CONFIG?.enabled ? [{
-      label: t('nav.testimonials', 'Testimonials'),
-      href: `#${TESTIMONIALS_CONFIG.sectionId || 'testimonials'}`,
-      id: TESTIMONIALS_CONFIG.sectionId || 'testimonials'
-    }] : []),
-    { label: t('nav.faq', 'FAQ'), href: '#faq', id: 'faq' },
-    { label: t('nav.contact', 'Contact'), href: '#contact', id: 'contact' }
-  ], [t]);
+
 
   const handleNavClick = (sectionId, sectionLabel) => {
     isClickNavigatingRef.current = true;
@@ -447,11 +537,20 @@ export default function Navbar({
     setActiveSection(sectionId);
     setActiveSubBar(null);
     try {
-      if (typeof window !== 'undefined' && window.sessionStorage) {
-        sessionStorage.setItem('portfolio_last_active_section', sectionId);
+      if (typeof window !== 'undefined') {
+        const url = (!sectionId || sectionId === 'hero') ? '#hero' : '#' + sectionId;
+        if (window.localStorage) {
+          localStorage.setItem('portfolio_last_url', JSON.stringify({
+            url,
+            timestamp: Date.now()
+          }));
+        }
+        if (window.sessionStorage) {
+          sessionStorage.setItem('portfolio_last_active_section', sectionId);
+        }
       }
     } catch {
-      // Ignore sessionStorage errors
+      // Ignore storage errors
     }
     if (soundEnabled) soundFX.playFocusBeep();
     if (announce) {
@@ -471,11 +570,20 @@ export default function Navbar({
     setActiveSubBar(null);
     setMobileMenuOpen(false);
     try {
-      if (typeof window !== 'undefined' && window.sessionStorage) {
-        sessionStorage.setItem('portfolio_last_active_section', sectionId);
+      if (typeof window !== 'undefined') {
+        const url = (!sectionId || sectionId === 'hero') ? '#hero' : '#' + sectionId;
+        if (window.localStorage) {
+          localStorage.setItem('portfolio_last_url', JSON.stringify({
+            url,
+            timestamp: Date.now()
+          }));
+        }
+        if (window.sessionStorage) {
+          sessionStorage.setItem('portfolio_last_active_section', sectionId);
+        }
       }
     } catch {
-      // Ignore sessionStorage errors
+      // Ignore storage errors
     }
     if (soundEnabled) soundFX.playFocusBeep();
     if (announce) {
@@ -518,6 +626,11 @@ export default function Navbar({
           }
           return next;
         });
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+        if (soundEnabled && soundFX?.playSparkle) soundFX.playSparkle();
+        window.dispatchEvent(new CustomEvent('portfolio:open-ai-chat'));
       }
     };
 
@@ -593,7 +706,7 @@ export default function Navbar({
     };
   }, [activeSubBar, mobileMenuOpen, soundEnabled]);
 
-  // ScrollSpy listener to highlight active section in Navbar
+  // ScrollSpy observer to highlight active section in Navbar without forced synchronous reflow
   useEffect(() => {
     const sectionIds = [
       'hero',
@@ -603,27 +716,32 @@ export default function Navbar({
       'projects',
       'achievements',
       ...(TESTIMONIALS_CONFIG?.enabled ? [TESTIMONIALS_CONFIG.sectionId || 'testimonials'] : []),
-      'gallery',
-      'playground',
       'faq',
       'contact'
     ];
-
-    const SECTION_TO_NAV_MAP = {
-      gallery: 'projects',
-      playground: 'projects'
-    };
 
     let ticking = false;
     let cachedElements = null;
     let rafId = null;
     let lastScanTime = 0;
+    const intersectingMap = new Map();
+    const observedElements = new Set();
 
     const isElementConnected = (el) => {
       if (!el) return false;
       if (typeof el.isConnected === 'boolean') return el.isConnected;
       if (typeof document !== 'undefined' && document.body) return document.body.contains(el);
       return true;
+    };
+
+    const isSkeletonElement = (el) => {
+      if (!el) return false;
+      return (
+        el.getAttribute?.('role') === 'status' ||
+        el.getAttribute?.('aria-busy') === 'true' ||
+        el.classList?.contains('animate-pulse') ||
+        Boolean(el.querySelector && el.querySelector('[role="status"], [aria-busy="true"], .animate-pulse'))
+      );
     };
 
     const getCachedElements = () => {
@@ -643,6 +761,63 @@ export default function Navbar({
       cachedElements = null;
     };
 
+    const updateActiveSection = () => {
+      // Guard: If navigation was triggered by a user click, lock the selection strictly until scroll arrives
+      if (isClickNavigatingRef.current) {
+        ticking = false;
+        return;
+      }
+
+      // Filter/prune detached entries from intersectingMap so stale skeleton entries do not linger
+      for (const [id, entry] of intersectingMap.entries()) {
+        if (!entry.target || !isElementConnected(entry.target)) {
+          intersectingMap.delete(id);
+        }
+      }
+
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      if (scrollY < 50) {
+        setActiveSection((prev) => (prev !== 'hero' ? 'hero' : prev));
+        ticking = false;
+        return;
+      }
+
+      // Refine bottom / Contact detection: scrolled near bottom or contact element in viewport
+      const contactEl = document.getElementById('contact');
+      const isNearBottom = window.innerHeight + scrollY >= document.documentElement.scrollHeight - 180;
+      const isContactInView = Boolean(
+        contactEl &&
+        isElementConnected(contactEl) &&
+        contactEl.getBoundingClientRect().top <= window.innerHeight * 0.75 &&
+        contactEl.getBoundingClientRect().bottom > 0
+      );
+
+      if (isNearBottom || isContactInView) {
+        setActiveSection((prev) => (prev !== 'contact' ? 'contact' : prev));
+        ticking = false;
+        return;
+      }
+
+      let current = null;
+      for (const id of sectionIds) {
+        const el = document.getElementById(id);
+        if (el && isElementConnected(el)) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 250 && rect.bottom > 100) {
+            current = id;
+          }
+        }
+      }
+
+      if (current) {
+        const isNavSection = navLinks.some((link) => link.id === current);
+        if (isNavSection) {
+          setActiveSection((prev) => (prev !== current ? current : prev));
+        }
+      }
+      ticking = false;
+    };
+
     const releaseClickLock = () => {
       if (isClickNavigatingRef.current) {
         isClickNavigatingRef.current = false;
@@ -650,6 +825,7 @@ export default function Navbar({
           clearTimeout(clickNavTimeoutRef.current);
           clickNavTimeoutRef.current = null;
         }
+        updateActiveSection();
       }
     };
 
@@ -659,45 +835,109 @@ export default function Navbar({
       }
     };
 
-    const updateActiveSection = () => {
-      // Guard: If navigation was triggered by a user click, lock the selection strictly until scroll arrives
-      if (isClickNavigatingRef.current) {
-        ticking = false;
-        return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            intersectingMap.set(entry.target.id, entry);
+          } else {
+            intersectingMap.delete(entry.target.id);
+          }
+        }
+        updateActiveSection();
+      },
+      {
+        rootMargin: '-80px 0px -60% 0px',
+        threshold: [0, 0.25, 0.5, 0.75, 1.0]
       }
+    );
 
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 60) {
-        setActiveSection((prev) => (prev !== 'contact' ? 'contact' : prev));
-        ticking = false;
-        return;
-      }
-
-      let current = 'hero';
-      const elements = getCachedElements();
-      for (const { id, el } of elements) {
-        const rect = el.getBoundingClientRect();
-        if (rect.top <= 180) {
-          current = id;
+    const observeSections = () => {
+      // Clean up stale/disconnected elements from observedElements and intersectingMap
+      for (const el of observedElements) {
+        if (!isElementConnected(el)) {
+          try {
+            observer.unobserve(el);
+          } catch {}
+          observedElements.delete(el);
+          if (el.id) {
+            intersectingMap.delete(el.id);
+          }
         }
       }
-      current = SECTION_TO_NAV_MAP[current] || current;
-      setActiveSection((prev) => (prev !== current ? current : prev));
-      ticking = false;
+
+      cachedElements = null;
+      const elements = getCachedElements();
+      for (const { el } of elements) {
+        if (!observedElements.has(el)) {
+          observer.observe(el);
+          observedElements.add(el);
+        }
+      }
+      updateActiveSection();
     };
 
+    // Lightweight scroll listener strictly for extreme top/bottom edges without element reflow
     const handleScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        rafId = window.requestAnimationFrame(updateActiveSection);
+      if (isClickNavigatingRef.current) return;
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      if (scrollY < 50 || window.innerHeight + scrollY >= document.documentElement.scrollHeight - 180) {
+        if (!ticking) {
+          ticking = true;
+          rafId = window.requestAnimationFrame(updateActiveSection);
+        }
       }
     };
 
-    updateActiveSection();
+    observeSections();
     // Schedule staggered updates to discover sections as React Suspense finishes mounting them
-    const timer1 = setTimeout(updateActiveSection, 400);
-    const timer2 = setTimeout(updateActiveSection, 1200);
-    const timer3 = setTimeout(updateActiveSection, 2500);
+    const timer1 = setTimeout(updateActiveSection ? () => observeSections() : updateActiveSection, 400);
+    const timer2 = setTimeout(updateActiveSection ? () => observeSections() : updateActiveSection, 1200);
+    const timer3 = setTimeout(() => observeSections(), 2500);
 
+    let mutationObserver = null;
+    if (typeof MutationObserver !== 'undefined' && document.body) {
+      mutationObserver = new MutationObserver(() => {
+        observeSections();
+        const allRealSectionsMounted = sectionIds.every((id) => {
+          const el = document.getElementById(id);
+          return el && isElementConnected(el) && !isSkeletonElement(el);
+        });
+        if (allRealSectionsMounted) {
+          mutationObserver.disconnect();
+          mutationObserver = null;
+        }
+      });
+      mutationObserver.observe(document.body, { childList: true, subtree: true });
+    }
+
+    const handleScrollRestorationSettle = (e) => {
+      const targetId = e?.detail?.target || e?.detail?.section;
+      if (!targetId || targetId === 'hero') {
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        if (scrollY < 80) {
+          setActiveSection('hero');
+          return;
+        }
+      }
+      if (targetId) {
+        const el = document.getElementById(targetId);
+        if (el && isElementConnected(el)) {
+          const rect = el.getBoundingClientRect();
+          const inView = rect.top <= window.innerHeight * 0.8 && rect.bottom >= 0;
+          if (inView) {
+            const isNavSection = navLinks.some((link) => link.id === targetId);
+            if (isNavSection) {
+              setActiveSection(targetId);
+              return;
+            }
+          }
+        }
+        updateActiveSection();
+      }
+    };
+
+    window.addEventListener('portfolio:scroll-restoration-settle', handleScrollRestorationSettle);
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleResize, { passive: true });
     window.addEventListener('scrollend', releaseClickLock, { passive: true });
@@ -708,16 +948,22 @@ export default function Navbar({
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
+      observer.disconnect();
+      if (mutationObserver) {
+        mutationObserver.disconnect();
+        mutationObserver = null;
+      }
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scrollend', releaseClickLock);
       window.removeEventListener('wheel', handleManualScrollInterrupt);
       window.removeEventListener('touchstart', handleManualScrollInterrupt);
+      window.removeEventListener('portfolio:scroll-restoration-settle', handleScrollRestorationSettle);
       if (rafId) {
         window.cancelAnimationFrame(rafId);
       }
     };
-  }, []);
+  }, [navLinks]);
 
   // Announce active section change during user scrolling (guarded against initial render and click navigation)
   useEffect(() => {

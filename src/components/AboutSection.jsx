@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, memo } from 'react';
 import { 
   User, 
   Calendar, 
@@ -663,7 +663,7 @@ function getA11yText(node) {
   return '';
 }
 
-export default function AboutSection({ soundEnabled = true }) {
+function AboutSection({ soundEnabled = true }) {
   const { activeRole, isOverview, isMIS, isOther, isVibeCoding } = useRoleTab();
   const isVibe = Boolean(isVibeCoding || activeRole === 'vibe_coding');
   const [activeTab, setActiveTab] = useState('story');
@@ -1433,3 +1433,6 @@ export default function AboutSection({ soundEnabled = true }) {
     </section>
   );
 }
+
+AboutSection.displayName = 'AboutSection';
+export default memo(AboutSection);

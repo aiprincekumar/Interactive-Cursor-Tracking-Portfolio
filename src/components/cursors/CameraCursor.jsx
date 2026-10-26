@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { getInitialCursorPosition, saveCursorPosition } from '../../utils/cursorPersistence';
 
 /**
  * CameraCursor Component (व्यूफाइंडर / Camera Focus Ring & Shutter Aperture)
@@ -12,24 +13,29 @@ import React, { useEffect, useRef } from 'react';
 export default function CameraCursor({
   heroRef,
   isInsideHero,
+  isInsideHeroRef: propIsInsideHeroRef,
   speed = 0.16,
   trailEnabled = true,
-  scale = 1
+  scale = 1,
+  initialPosition
 }) {
   const cameraRef = useRef(null);
+  const focusRingRef = useRef(null);
   const canvasRef = useRef(null);
-  const isInsideHeroRef = useRef(isInsideHero);
+  const fallbackHeroRef = useRef(false);
+  const isInsideHeroRef = propIsInsideHeroRef || (isInsideHero && typeof isInsideHero === 'object' && 'current' in isInsideHero ? isInsideHero : fallbackHeroRef);
   const speedRef = useRef(speed);
   const scaleRef = useRef(scale);
   const trailEnabledRef = useRef(trailEnabled);
 
+  const resolvedInitialPos = initialPosition || getInitialCursorPosition();
   const posRef = useRef({
-    currentX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    currentY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    targetX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    targetY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    lastEmitX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    lastEmitY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
+    currentX: resolvedInitialPos.clientX,
+    currentY: resolvedInitialPos.clientY,
+    targetX: resolvedInitialPos.clientX,
+    targetY: resolvedInitialPos.clientY,
+    lastEmitX: resolvedInitialPos.clientX,
+    lastEmitY: resolvedInitialPos.clientY,
     isShutterSnapping: false,
     shutterTimer: 0,
     flashRings: [],
@@ -39,8 +45,10 @@ export default function CameraCursor({
   const particlesRef = useRef([]);
 
   useEffect(() => {
-    isInsideHeroRef.current = isInsideHero;
-  }, [isInsideHero]);
+    if (isInsideHeroRef === fallbackHeroRef) {
+      fallbackHeroRef.current = Boolean(isInsideHero);
+    }
+  }, [isInsideHero, isInsideHeroRef]);
 
   useEffect(() => {
     speedRef.current = speed;
@@ -63,6 +71,7 @@ export default function CameraCursor({
         posRef.current.targetX = clientX;
         posRef.current.targetY = clientY;
         posRef.current.isVisible = true;
+        saveCursorPosition(clientX, clientY, false);
       }
     };
 
@@ -172,9 +181,8 @@ export default function CameraCursor({
         c.style.transform = `translate3d(${posX}px, ${posY}px, 0) scale(${finalScale})`;
         c.style.opacity = state.isVisible ? '1' : '0';
 
-        const ring = c.querySelector('.focus-ring');
-        if (ring) {
-          ring.style.borderColor = state.isShutterSnapping ? '#FF4D6D' : '#18181B';
+        if (focusRingRef.current) {
+          focusRingRef.current.style.borderColor = state.isShutterSnapping ? '#FF4D6D' : '#18181B';
         }
       }
 
@@ -291,7 +299,10 @@ export default function CameraCursor({
           <div className="absolute bottom-0 right-0 w-[7px] h-[7px] border-b-2 border-r-2 border-[#18181B]" />
 
           {/* Central Circular Focus Ring with Crosshair ticks */}
-          <div className="focus-ring w-[18px] h-[18px] rounded-full border border-dashed border-[#18181B] flex items-center justify-center transition-colors duration-150">
+          <div
+            ref={focusRingRef}
+            className="focus-ring w-[18px] h-[18px] rounded-full border border-dashed border-[#18181B] flex items-center justify-center transition-colors duration-150"
+          >
             {/* Center target dot */}
             <div className="w-[3px] h-[3px] rounded-full bg-[#FF4D6D]" />
           </div>

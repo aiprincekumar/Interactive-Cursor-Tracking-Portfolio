@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Sliders, RotateCcw, ExternalLink, ChevronDown } from 'lucide-react';
-import { useLab } from '../context/LabContext';
+import { useLabAudio, useLabDrawer, useLab } from '../context/LabContext';
+import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { soundFX } from '../utils/audio';
 import ControlCenterPanel from './ControlCenterPanel';
 
-export default function InteractivePlayground() {
-  const { soundEnabled, resetDefaults, openDrawer } = useLab();
+function InteractivePlayground() {
+  const { soundEnabled } = useLabAudio();
+  const { openDrawer } = useLabDrawer();
+  const { resetDefaults } = useLab();
+  const { theme } = useTheme();
+  const { language } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [hasOpened, setHasOpened] = useState(false);
 
   useEffect(() => {
     const handleHash = () => {
       if (typeof window !== 'undefined' && (window.location.hash === '#playground' || window.location.hash === '#lab')) {
         setIsExpanded(true);
+        setHasOpened(true);
       }
     };
     handleHash();
@@ -19,9 +27,37 @@ export default function InteractivePlayground() {
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
+  useEffect(() => {
+    if (isExpanded) {
+      setHasOpened(true);
+    }
+  }, [isExpanded]);
+
   const toggleAccordion = () => {
-    setIsExpanded((prev) => !prev);
+    setIsExpanded((prev) => {
+      const next = !prev;
+      if (next) setHasOpened(true);
+      return next;
+    });
     if (soundEnabled) soundFX.playHapticClick();
+  };
+
+  const handleOpenNewTab = (e) => {
+    e.stopPropagation();
+    if (soundEnabled) {
+      if (typeof soundFX?.playBubblePop === 'function') {
+        soundFX.playBubblePop();
+      } else if (typeof soundFX?.playHapticClick === 'function') {
+        soundFX.playHapticClick();
+      }
+    }
+    if (typeof window !== 'undefined') {
+      window.open(
+        `${window.location.origin}${window.location.pathname}?view=control&mode=all&theme=${theme}&lang=${language}`,
+        '_blank',
+        'noopener,noreferrer'
+      );
+    }
   };
 
   return (
@@ -72,7 +108,8 @@ export default function InteractivePlayground() {
               type="button"
               title="Reset Defaults"
               aria-label="Reset Defaults"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 resetDefaults();
                 if (soundEnabled) soundFX.playCrystalChime();
               }}
@@ -86,7 +123,8 @@ export default function InteractivePlayground() {
               type="button"
               title="Open Quick Drawer"
               aria-label="Open Quick Drawer"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 openDrawer();
               }}
               className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl bg-[#FF4D6D] hover:bg-[#E03554] text-white transition-all cursor-pointer shadow-xs active:scale-95 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
@@ -94,10 +132,24 @@ export default function InteractivePlayground() {
               <ExternalLink className="w-4 h-4" />
             </button>
 
+            {/* Open in New Tab Launcher Button */}
+            <button
+              type="button"
+              title="Open in New Tab"
+              aria-label="Open in New Tab"
+              onClick={handleOpenNewTab}
+              className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-[#181226]/80 text-stone-700 dark:text-stone-300 hover:border-[#FF4D6D]/50 hover:text-[#FF4D6D] transition-all cursor-pointer shadow-2xs active:scale-95 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </button>
+
             {/* Chevron Toggle Button */}
             <button
               type="button"
-              onClick={toggleAccordion}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleAccordion();
+              }}
               aria-label={isExpanded ? 'Collapse Control Center' : 'Expand Control Center'}
               className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-[#181226]/80 text-stone-600 dark:text-stone-300 hover:text-[#FF4D6D] hover:border-[#FF4D6D]/40 transition-all flex items-center justify-center shadow-2xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
             >
@@ -119,10 +171,12 @@ export default function InteractivePlayground() {
           }`}
         >
           <div className="overflow-hidden min-h-0">
-            <ControlCenterPanel variant="workbench" />
+            {hasOpened ? <ControlCenterPanel variant="workbench" /> : null}
           </div>
         </div>
       </div>
     </section>
   );
 }
+
+export default React.memo(InteractivePlayground);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { Briefcase, Calendar, Sparkles, CheckCircle2 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useRoleTab } from '../context/RoleContext';
@@ -330,7 +330,7 @@ const EXPERIENCES = [
   }
 ];
 
-export default function ExperienceSection() {
+function ExperienceSection() {
   const [activeCard, setActiveCard] = useState(null);
   let roleContext = null;
   try {
@@ -661,3 +661,6 @@ export default function ExperienceSection() {
     </section>
   );
 }
+
+ExperienceSection.displayName = 'ExperienceSection';
+export default memo(ExperienceSection);

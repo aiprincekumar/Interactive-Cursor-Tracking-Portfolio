@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { getInitialCursorPosition, saveCursorPosition } from '../utils/cursorPersistence';
 
 /**
  * High-Performance Butterfly Cursor System
@@ -99,18 +100,21 @@ function createParticlePool() {
 export default function ButterflyCursor({
   heroRef,
   isInsideHero,
+  isInsideHeroRef: propIsInsideHeroRef,
   speed = 0.14,
   trailEnabled = true,
   scale = 1,
   gravity = 0,
   particleColor = '#FF4D6D',
-  wingDynamics = 1.0
+  wingDynamics = 1.0,
+  initialPosition
 }) {
   const butterflyRef = useRef(null);
   const canvasRef = useRef(null);
   const ctxRef = useRef(null);
   const isCanvasDirtyRef = useRef(false);
-  const isInsideHeroRef = useRef(isInsideHero);
+  const fallbackHeroRef = useRef(false);
+  const isInsideHeroRef = propIsInsideHeroRef || (isInsideHero && typeof isInsideHero === 'object' && 'current' in isInsideHero ? isInsideHero : fallbackHeroRef);
   const speedRef = useRef(speed);
   const scaleRef = useRef(scale);
   const trailEnabledRef = useRef(trailEnabled);
@@ -119,13 +123,14 @@ export default function ButterflyCursor({
   const wingDynamicsRef = useRef(wingDynamics);
 
   // Kinematic state store (persists across frames without triggering React re-renders)
+  const resolvedInitialPos = initialPosition || getInitialCursorPosition();
   const posRef = useRef({
-    currentX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    currentY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    targetX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    targetY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    lastEmitX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    lastEmitY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
+    currentX: resolvedInitialPos.clientX,
+    currentY: resolvedInitialPos.clientY,
+    targetX: resolvedInitialPos.clientX,
+    targetY: resolvedInitialPos.clientY,
+    lastEmitX: resolvedInitialPos.clientX,
+    lastEmitY: resolvedInitialPos.clientY,
     vx: 0,
     vy: 0,
     speedPxPerSec: 0,
@@ -133,6 +138,7 @@ export default function ButterflyCursor({
     bankAngle: 0,
     idleTime: 0,
     flutterDuration: 0.12,
+    lastFlutterDuration: 0,
     hasHoverState: false,
     lastOpacity: null,
     isVisible: true
@@ -142,8 +148,10 @@ export default function ButterflyCursor({
 
   // Sync controls into refs to allow seamless 120 FPS dynamic tuning without restarting rAF loop
   useEffect(() => {
-    isInsideHeroRef.current = isInsideHero;
-  }, [isInsideHero]);
+    if (isInsideHeroRef === fallbackHeroRef) {
+      fallbackHeroRef.current = Boolean(isInsideHero);
+    }
+  }, [isInsideHero, isInsideHeroRef]);
 
   useEffect(() => {
     speedRef.current = speed;
@@ -202,6 +210,7 @@ export default function ButterflyCursor({
         posRef.current.targetX = clientX;
         posRef.current.targetY = clientY;
         posRef.current.isVisible = true;
+        saveCursorPosition(clientX, clientY, false);
       }
     };
 
@@ -350,7 +359,12 @@ export default function ButterflyCursor({
 
         // Hardware-accelerated 3D transform combining translate, heading rotation, and bank roll
         b.style.transform = `translate3d(${posX}px, ${posY}px, 0) rotate(${rotZ}deg) rotateY(${rollY}deg) scale(${scaleRef.current || 1})`;
-        b.style.setProperty('--flutter-duration', `${state.flutterDuration.toFixed(3)}s`);
+        
+        // Deadband check: mutate CSS variable only when change exceeds 0.015s threshold
+        if (Math.abs(state.flutterDuration - state.lastFlutterDuration) > 0.015) {
+          b.style.setProperty('--flutter-duration', `${state.flutterDuration.toFixed(3)}s`);
+          state.lastFlutterDuration = state.flutterDuration;
+        }
 
         // Maintain full visibility across the entire page
         const nextOpacity = '1';

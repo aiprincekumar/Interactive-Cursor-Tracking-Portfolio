@@ -75,8 +75,8 @@ check('LeafletOfflineMap has clean solid container styling without static backgr
   assert.ok(leafletCode.includes('background-color: #f2efe9') && leafletCode.includes('background-color: #12161f'), 'Missing clean solid container background styling');
 });
 
-check('LeafletOfflineMap has keepBuffer: 6, updateWhenZooming: true, minZoom: 12, maxZoom: 15, minNativeZoom: 12', () => {
-  assert.ok(leafletCode.includes('keepBuffer: 6'), 'Missing keepBuffer: 6');
+check('LeafletOfflineMap has keepBuffer: 2 or 6, updateWhenZooming: true, minZoom: 12, maxZoom: 15, minNativeZoom: 12', () => {
+  assert.ok(leafletCode.includes('keepBuffer: 6') || leafletCode.includes('keepBuffer: 2'), 'Missing keepBuffer (2 or 6)');
   assert.ok(leafletCode.includes('updateWhenZooming: true'), 'Missing updateWhenZooming: true');
   assert.ok(leafletCode.includes('minZoom: 12'), 'Missing minZoom: 12');
   assert.ok(leafletCode.includes('maxZoom: 15'), 'Missing maxZoom: 15');

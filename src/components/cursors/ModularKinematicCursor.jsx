@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import CursorIcon from '../CursorIcon';
 import { getKinematicProfile } from './kinematicProfiles';
+import { getInitialCursorPosition, saveCursorPosition } from '../../utils/cursorPersistence';
 
 /**
  * ModularKinematicCursor
@@ -96,15 +97,18 @@ export default function ModularKinematicCursor({
   cursorId = 'butterfly',
   heroRef: _heroRef,
   isInsideHero = false,
+  isInsideHeroRef: propIsInsideHeroRef,
   speed = 0.14,
   trailEnabled = true,
   scale = 1,
   gravity = 0,
-  particleColor = null
+  particleColor = null,
+  initialPosition
 }) {
   const avatarRef = useRef(null);
   const canvasRef = useRef(null);
-  const isInsideHeroRef = useRef(isInsideHero);
+  const fallbackHeroRef = useRef(false);
+  const isInsideHeroRef = propIsInsideHeroRef || (isInsideHero && typeof isInsideHero === 'object' && 'current' in isInsideHero ? isInsideHero : fallbackHeroRef);
   const speedRef = useRef(speed);
   const scaleRef = useRef(scale);
   const trailEnabledRef = useRef(trailEnabled);
@@ -113,13 +117,14 @@ export default function ModularKinematicCursor({
 
   const profile = getKinematicProfile(cursorId);
 
+  const resolvedInitialPos = initialPosition || getInitialCursorPosition();
   const posRef = useRef({
-    currentX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    currentY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    targetX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    targetY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
-    lastEmitX: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-    lastEmitY: typeof window !== 'undefined' ? window.innerHeight / 2 : 300,
+    currentX: resolvedInitialPos.clientX,
+    currentY: resolvedInitialPos.clientY,
+    targetX: resolvedInitialPos.clientX,
+    targetY: resolvedInitialPos.clientY,
+    lastEmitX: resolvedInitialPos.clientX,
+    lastEmitY: resolvedInitialPos.clientY,
     vx: 0,
     vy: 0,
     angle: profile.rotationMode === 'fixed_tilt' ? (profile.tiltAngle || 0) : 0,
@@ -162,8 +167,10 @@ export default function ModularKinematicCursor({
   };
 
   useEffect(() => {
-    isInsideHeroRef.current = isInsideHero;
-  }, [isInsideHero]);
+    if (isInsideHeroRef === fallbackHeroRef) {
+      fallbackHeroRef.current = Boolean(isInsideHero);
+    }
+  }, [isInsideHero, isInsideHeroRef]);
 
   useEffect(() => {
     speedRef.current = speed;
@@ -195,6 +202,7 @@ export default function ModularKinematicCursor({
         posRef.current.targetX = clientX;
         posRef.current.targetY = clientY;
         posRef.current.isVisible = true;
+        saveCursorPosition(clientX, clientY, false);
       }
     };
 

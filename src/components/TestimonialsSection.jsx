@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useContext } from 'react';
+import React, { memo, useState, useMemo, useCallback, useContext } from 'react';
 import {
   Quote,
   Star,
@@ -141,7 +141,7 @@ function TestimonialCard({ item, accentColor, isSimpleMode, isHindi = false }) {
  * Standalone Zero-Code Pure Configuration Testimonials Section
  * Returns null if config.enabled is false (zero DOM footprint).
  */
-export default function TestimonialsSection({
+function TestimonialsSection({
   config = TESTIMONIALS_CONFIG
 }) {
   const { isSimpleMode } = useSimpleMode();
@@ -307,3 +307,6 @@ export default function TestimonialsSection({
     </section>
   );
 }
+
+TestimonialsSection.displayName = 'TestimonialsSection';
+export default memo(TestimonialsSection);

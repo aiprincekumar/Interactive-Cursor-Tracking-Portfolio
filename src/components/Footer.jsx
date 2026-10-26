@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Heart, ArrowUp } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useLanguage } from '../context/LanguageContext';
 
-export default function Footer() {
+function Footer() {
   const { isHindi } = useLanguage();
 
   const scrollToTop = () => {
@@ -84,3 +84,6 @@ export default function Footer() {
     </footer>
   );
 }
+
+Footer.displayName = 'Footer';
+export default memo(Footer);

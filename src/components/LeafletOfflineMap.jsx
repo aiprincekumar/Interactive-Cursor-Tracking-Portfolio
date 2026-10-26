@@ -54,8 +54,8 @@ export default function LeafletOfflineMap({
       minNativeZoom: 12,
       maxNativeZoom: 15,
       bounds: MEDININAGAR_BOUNDS,
-      keepBuffer: 6,
-      updateWhenIdle: false,
+      keepBuffer: 2,
+      updateWhenIdle: true,
       updateWhenZooming: true,
       errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
       attribution: '&copy; OpenStreetMap contributors'
@@ -117,7 +117,8 @@ export default function LeafletOfflineMap({
           background-color: #12161f !important;
         }
         .dark .leaflet-tile-pane {
-          filter: brightness(0.72) invert(1) contrast(2.6) hue-rotate(200deg) saturate(0.25);
+          filter: invert(0.92) hue-rotate(180deg) contrast(1.1);
+          will-change: transform;
         }
         .leaflet-tile {
           transition: opacity 0.15s ease-in-out;

@@ -321,6 +321,23 @@ export function RoleProvider({ children, soundEnabled = true }) {
     return () => window.removeEventListener('switch-role-tab', handleInboundSwitch);
   }, [selectRole]);
 
+  // 5. Cross-Tab Storage Synchronization
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorage = (e) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        const validRole = normalizeRole(e.newValue);
+        if (validRole && validRole !== activeRoleRef.current) {
+          selectRole(validRole, { playSound: false, updateUrl: true });
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [selectRole]);
+
   // 5. Memoized Context Value
   const value = useMemo(() => ({
     activeRole,

@@ -129,7 +129,7 @@ test('useScrollRestoration implements layout expansion observer / retry loop for
 
 test('useScrollRestoration passively persists active section to sessionStorage during normal browsing', () => {
   assert(hookContent.includes('sessionStorage.setItem(RESTORATION_STORAGE_KEY'), 'Must save active section to sessionStorage');
-  assert(hookContent.includes("sessionStorage.setItem(RESTORATION_STORAGE_KEY, 'contact')"), 'Must accurately capture bottom-of-page contact section');
+  assert(hookContent.includes("current = 'contact'") || hookContent.includes("sessionStorage.setItem(RESTORATION_STORAGE_KEY, 'contact')"), 'Must accurately capture bottom-of-page contact section');
 });
 
 // ========================================================================
@@ -158,6 +158,55 @@ test('App.jsx mounts useScrollRestoration and passes id to all Suspense section 
   assert(appContent.includes('<SectionSkeleton id="playground"'), 'InteractivePlayground fallback must have id="playground"');
   assert(appContent.includes('<SectionSkeleton id="faq"'), 'FAQSection fallback must have id="faq"');
   assert(appContent.includes('<SectionSkeleton id="contact"'), 'ContactSection fallback must have id="contact"');
+});
+
+// ========================================================================
+// Suite 4: Hero-by-Default, 24h TTL & Early Shield Specification
+// ========================================================================
+console.log('\n--- Suite 4: Hero-by-Default, 24h TTL & Early Shield Specification ---');
+
+const indexHtmlPath = path.join(rootDir, 'index.html');
+const indexHtmlContent = fs.readFileSync(indexHtmlPath, 'utf8');
+
+test('index.html contains early head shield neutralizing native scroll jump', () => {
+  assert(indexHtmlContent.includes("localStorage.getItem('portfolio_last_url')"), 'Early shield must check portfolio_last_url');
+  assert(indexHtmlContent.includes("history.scrollRestoration = 'manual'"), 'Early shield must set history.scrollRestoration = manual');
+  assert(indexHtmlContent.includes('window.scrollTo(0, 0)'), 'Early shield must reset to top when no valid unexpired URL');
+});
+
+test('useScrollRestoration strictly adheres to 24-hour TTL and portfolio_last_url format', () => {
+  assert(hookContent.includes('portfolio_last_url'), 'Hook must declare and use portfolio_last_url key');
+  assert(hookContent.includes('SCROLL_RESTORATION_TTL_MS = 24 * 60 * 60 * 1000') || hookContent.includes('24 * 60 * 60 * 1000'), 'Hook must enforce 24-hour TTL');
+  assert(hookContent.includes('!validatedTarget') && hookContent.includes('return;'), 'Hook must return immediately to keep page at Hero without starting scroll loop when target is absent/expired');
+});
+
+test('useScrollRestoration debounces persistence to 300ms', () => {
+  assert(hookContent.includes('300'), 'Persistence and hash change must be debounced with 300ms');
+  assert(hookContent.includes("url: cleanId === 'hero' ? '#hero' : `#${cleanId}`") || hookContent.includes('#hero'), 'Hero must be stored with #hero');
+});
+
+test('Navbar synchronizes clicks with portfolio_last_url and timestamp', () => {
+  assert(navbarContent.includes("localStorage.setItem('portfolio_last_url'"), 'Navbar must save active section to portfolio_last_url');
+  assert(navbarContent.includes('timestamp: Date.now()'), 'Navbar must record timestamp when saving portfolio_last_url');
+});
+
+test('Navbar does NOT contain SECTION_TO_NAV_MAP and does not falsely highlight Projects for Gallery or Playground', () => {
+  assert(!navbarContent.includes('SECTION_TO_NAV_MAP'), 'Navbar must NOT contain SECTION_TO_NAV_MAP');
+  assert(!navbarContent.includes("gallery: 'projects'"), 'Navbar must not map gallery to projects');
+  assert(!navbarContent.includes("playground: 'projects'"), 'Navbar must not map playground to projects');
+});
+
+test('index.html early head shield detects reload and clears non-hero hash', () => {
+  assert(indexHtmlContent.includes("performance.getEntriesByType('navigation')[0]?.type === 'reload'"), 'index.html must detect reload navigation type');
+  assert(indexHtmlContent.includes("history.replaceState(null, '', window.location.pathname + window.location.search)"), 'index.html must clear non-hero hash on reload');
+  assert(indexHtmlContent.includes("window.scrollTo(0, 0)"), 'index.html must reset to (0,0) on reload');
+});
+
+test('useScrollRestoration allows reload to restore saved active section with smooth auto-scroll', () => {
+  assert(!hookContent.includes('isReload || !validatedTarget'), 'Hook must not force hero cancellation on reload');
+  assert(hookContent.includes('targetSectionRef.current = validatedTarget;'), 'Hook must set target section for valid target');
+  assert(hookContent.includes("behavior: 'smooth'"), 'Hook must perform smooth scroll animation');
+  assert(hookContent.includes('cancelEvents'), 'Hook must register user interaction cancellation events');
 });
 
 console.log('========================================================================');

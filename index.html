@@ -7,6 +7,127 @@
     <title>Atul Verma • Accountant &amp; Tax Consultant | Interactive Portfolio</title>
     <meta name="description" content="Official interactive portfolio of Atul Verma — Accountant &amp; Tax Consultant, Business Development &amp; Office Administrator featuring real-time interactive tracking." />
     <meta name="theme-color" content="#FF4D6D" />
+    <!-- Early Scroll Restoration Shield: Neutralize native jumps and enforce Hero by default -->
+    <script>
+      (function() {
+        try {
+          if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+          }
+          var isReload = false;
+          if (typeof performance !== 'undefined') {
+            if (performance.getEntriesByType('navigation')[0]?.type === 'reload') {
+              isReload = true;
+            } else if (performance.navigation && performance.navigation.type === 1) {
+              isReload = true;
+            }
+          }
+
+          // Check portfolio_auto_scroll_on_refresh toggle
+          var autoScrollPref = null;
+          try {
+            autoScrollPref = sessionStorage.getItem('portfolio_auto_scroll_on_refresh');
+            if (autoScrollPref === null) {
+              autoScrollPref = localStorage.getItem('portfolio_auto_scroll_on_refresh');
+            }
+          } catch (e) {}
+
+          if (autoScrollPref === 'false') {
+            if (window.location.hash && window.location.hash !== '#hero') {
+              try {
+                history.replaceState(null, '', window.location.pathname + window.location.search);
+              } catch (e) {}
+            }
+            window.scrollTo(0, 0);
+            return;
+          }
+
+          // Invalidate stale or non-nav target (e.g. gallery, playground) stuck in storage
+          try {
+            var rawTarget = sessionStorage.getItem('portfolio_last_url') || localStorage.getItem('portfolio_last_url');
+            if (rawTarget) {
+              var parsedData = JSON.parse(rawTarget);
+              var storedUrl = (parsedData && parsedData.url) || '';
+              if (
+                storedUrl === '#gallery' ||
+                storedUrl === '#playground' ||
+                storedUrl.indexOf('gallery') !== -1 ||
+                storedUrl.indexOf('playground') !== -1
+              ) {
+                var resetHero = JSON.stringify({
+                  url: '#hero',
+                  timestamp: Date.now()
+                });
+                localStorage.setItem('portfolio_last_url', resetHero);
+                sessionStorage.setItem('portfolio_last_url', resetHero);
+                sessionStorage.setItem('portfolio_last_active_section', 'hero');
+              }
+            }
+          } catch (e) {}
+
+          if (window.location.hash === '#gallery' || window.location.hash === '#playground') {
+            try {
+              history.replaceState(null, '', window.location.pathname + window.location.search);
+            } catch (e) {}
+          }
+
+          var TTL = 24 * 60 * 60 * 1000;
+          var shouldResetToHero = true;
+          var savedPos = null;
+
+          // Check portfolio_scroll_position in sessionStorage and localStorage
+          try {
+            var rawPos = sessionStorage.getItem('portfolio_scroll_position') || localStorage.getItem('portfolio_scroll_position');
+            if (rawPos) {
+              var parsedPos = JSON.parse(rawPos);
+              if (parsedPos && typeof parsedPos === 'object' && typeof parsedPos.timestamp === 'number') {
+                if (Date.now() - parsedPos.timestamp < TTL) {
+                  var posSec = parsedPos.section ? parsedPos.section.replace(/^#/, '').trim() : '';
+                  if (posSec && posSec !== 'hero' && posSec !== 'gallery' && posSec !== 'playground') {
+                    savedPos = parsedPos;
+                    shouldResetToHero = false;
+                  } else if (typeof parsedPos.y === 'number' && parsedPos.y > 100) {
+                    savedPos = parsedPos;
+                    shouldResetToHero = false;
+                  }
+                }
+              }
+            }
+          } catch (e) {}
+
+          // Check portfolio_last_url in sessionStorage and localStorage
+          if (shouldResetToHero) {
+            try {
+              var raw = sessionStorage.getItem('portfolio_last_url') || localStorage.getItem('portfolio_last_url');
+              if (raw) {
+                var data = JSON.parse(raw);
+                if (data && typeof data === 'object' && data.url && typeof data.timestamp === 'number') {
+                  if (Date.now() - data.timestamp < TTL) {
+                    var target = data.url.replace(/^#/, '').trim();
+                    if (target && target !== 'hero' && target !== 'gallery' && target !== 'playground') {
+                      shouldResetToHero = false;
+                    }
+                  }
+                }
+              }
+            } catch (e) {}
+          }
+
+          if (shouldResetToHero) {
+            if (window.location.hash && window.location.hash !== '#hero') {
+              history.replaceState(null, '', window.location.pathname + window.location.search);
+            }
+            window.scrollTo(0, 0);
+          } else if (savedPos && typeof savedPos.x === 'number' && typeof savedPos.y === 'number' && savedPos.y > 0) {
+            try {
+              window.scrollTo(savedPos.x, savedPos.y);
+            } catch (e) {}
+          }
+        } catch (e) {
+          window.scrollTo(0, 0);
+        }
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <script>

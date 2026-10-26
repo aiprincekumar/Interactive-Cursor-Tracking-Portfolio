@@ -35,7 +35,7 @@ const appCode = fs.readFileSync(appPath, 'utf8');
 check('App.jsx imports useSimpleMode', appCode.includes("import { useSimpleMode } from './context/SimpleModeContext';"));
 check('App.jsx retrieves isSimpleMode from hook', appCode.includes('const { isSimpleMode } = useSimpleMode();'));
 check('App.jsx mutes/disables soundFX when isSimpleMode is true', appCode.includes('soundFX.setEnabled(false)'));
-check('App.jsx hides DynamicCursorManager when isSimpleMode is true', appCode.includes('!isSimpleMode && !reducedMotion && (') && appCode.includes('<DynamicCursorManager'));
+check('App.jsx hides DynamicCursorManager when isSimpleMode is true', (appCode.includes('!isSimpleMode && !reducedMotion && (') || appCode.includes('!isSimpleMode && !reducedMotion && !labReducedMotion && (')) && appCode.includes('<DynamicCursorManager'));
 check('App.jsx hides LabStudioDrawer when isSimpleMode is true', appCode.includes('!isSimpleMode && <LabStudioDrawer />'));
 check('App.jsx hides TechMarqueeBanner when isSimpleMode is true', appCode.includes('!isSimpleMode && <TechMarqueeBanner />'));
 check('App.jsx hides CameraRollGallery when isSimpleMode is true', appCode.includes('!isSimpleMode && (') && appCode.includes('<CameraRollGallery'));

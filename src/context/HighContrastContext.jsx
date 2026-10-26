@@ -63,6 +63,21 @@ export function HighContrastProvider({ children }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleHighContrast]);
 
+  // Listen for cross-tab storage synchronization
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorage = (e) => {
+      if (e.key === HIGH_CONTRAST_STORAGE_KEY && e.newValue !== null) {
+        const nextVal = e.newValue === 'true';
+        setIsHighContrast((prev) => (prev !== nextVal ? nextVal : prev));
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   const value = {
     isHighContrast,
     setIsHighContrast,

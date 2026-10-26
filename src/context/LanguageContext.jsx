@@ -1,5 +1,5 @@
 /* oxlint-disable react/only-export-components */
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { TRANSLATIONS } from '../data/translations';
 
 const LANGUAGE_STORAGE_KEY = 'portfolio_language';
@@ -31,6 +31,26 @@ export function getLocalized(item, field = 'description', isHindi = false) {
 
 export function LanguageProvider({ children }) {
   const [language, setLanguageState] = useState(() => {
+    // 0. Check URL search params first (?lang=en or ?lang=hi)
+    if (typeof window !== 'undefined' && window.location) {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlLang = params.get('lang');
+        if (urlLang === 'en' || urlLang === 'hi') {
+          try {
+            if (window.localStorage) {
+              localStorage.setItem(LANGUAGE_STORAGE_KEY, urlLang);
+            }
+          } catch {
+            // Ignore storage write error in restricted mode
+          }
+          return urlLang;
+        }
+      } catch {
+        // Fallback on restricted/SSR contexts
+      }
+    }
+    // 1. Check localStorage next
     if (typeof window !== 'undefined' && window.localStorage) {
       try {
         const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
@@ -69,6 +89,22 @@ export function LanguageProvider({ children }) {
       document.documentElement.lang = language;
     }
   }, [language]);
+
+  // Listen for cross-tab storage synchronization
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorage = (e) => {
+      if (e.key === LANGUAGE_STORAGE_KEY && (e.newValue === 'en' || e.newValue === 'hi')) {
+        setLanguageState((prev) => (prev !== e.newValue ? e.newValue : prev));
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
 
   /**
    * Translate key with optional fallback
@@ -131,14 +167,14 @@ export function LanguageProvider({ children }) {
     [language]
   );
 
-  const value = {
+  const value = useMemo(() => ({
     language,
     isHindi: language === 'hi',
     setLanguage,
     toggleLanguage,
     t,
     getLocalized: getLocalizedBound
-  };
+  }), [language, setLanguage, toggleLanguage, t, getLocalizedBound]);
 
   return (
     <LanguageContext.Provider value={value}>

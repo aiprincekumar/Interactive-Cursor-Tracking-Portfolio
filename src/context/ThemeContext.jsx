@@ -1,5 +1,5 @@
 /* oxlint-disable react/only-export-components */
-import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { soundFX } from '../utils/audio.js';
 
 const THEME_STORAGE_KEY = 'portfolio_theme';
@@ -8,7 +8,24 @@ const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    // 1. Check localStorage first
+    // 0. Check URL search params first (?theme=light or ?theme=dark)
+    if (typeof window !== 'undefined' && window.location) {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlTheme = params.get('theme');
+        if (urlTheme === 'light' || urlTheme === 'dark') {
+          try {
+            localStorage.setItem(THEME_STORAGE_KEY, urlTheme);
+          } catch {
+            // localStorage may fail in restricted/private contexts
+          }
+          return urlTheme;
+        }
+      } catch {
+        // Fallback on restricted/SSR contexts
+      }
+    }
+    // 1. Check localStorage next
     try {
       const stored = localStorage.getItem(THEME_STORAGE_KEY);
       if (stored === 'light' || stored === 'dark') {
@@ -83,6 +100,22 @@ export function ThemeProvider({ children }) {
     };
   }, []);
 
+  // Listen for cross-tab storage synchronization
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorage = (e) => {
+      if (e.key === THEME_STORAGE_KEY && (e.newValue === 'light' || e.newValue === 'dark')) {
+        setTheme((prev) => (prev !== e.newValue ? e.newValue : prev));
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
       const nextTheme = prev === 'dark' ? 'light' : 'dark';
@@ -105,12 +138,12 @@ export function ThemeProvider({ children }) {
     });
   }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     theme,
     isDark: theme === 'dark',
     toggleTheme,
     setTheme,
-  };
+  }), [theme, toggleTheme, setTheme]);
 
   return (
     <ThemeContext.Provider value={value}>

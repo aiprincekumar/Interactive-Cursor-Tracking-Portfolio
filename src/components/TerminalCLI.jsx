@@ -616,7 +616,7 @@ const getPromptString = (os) => {
   return 'guest@atul-mac:~ % ';
 };
 
-export default function TerminalCLI({
+function TerminalCLI({
   isOpen,
   onClose,
   soundEnabled = true,
@@ -2592,3 +2592,5 @@ function MatrixDigitalRain({ onClose }) {
     </div>
   );
 }
+
+export default React.memo(TerminalCLI);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useContext } from 'react';
+import React, { memo, useState, useMemo, useCallback, useContext } from 'react';
 import {
   Zap,
   Layers,
@@ -137,7 +137,7 @@ function ImpactMetricCard({ metric, accentColor, isSimpleMode, currentRole, isHi
 /**
  * Key Achievements & Production Impact Metrics Section
  */
-export default function SocialProofSection({
+function SocialProofSection({
   config = DEFAULT_SOCIAL_PROOF_CONFIG
 }) {
   const { isSimpleMode } = useSimpleMode();
@@ -280,3 +280,6 @@ export default function SocialProofSection({
     </section>
   );
 }
+
+SocialProofSection.displayName = 'SocialProofSection';
+export default memo(SocialProofSection);

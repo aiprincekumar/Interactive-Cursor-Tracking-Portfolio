@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Trophy, Zap, ShieldCheck, Award, Database, Server } from 'lucide-react';
 import { useRoleTab } from '../context/RoleContext';
 import { useAnnounce } from '../context/AnnouncerContext';
@@ -319,7 +319,7 @@ const VIBE_CODING_TICKER_ITEMS_HI = [
   'एज कंप्यूट एवं LLM स्ट्रीमिंग'
 ];
 
-export default function CodingAchievementsSection() {
+function CodingAchievementsSection() {
   const { isAccountant, isMIS, isOther, isVibeCoding } = useRoleTab();
   const roleTabContext = useRoleTab();
   const activeRole = roleTabContext?.activeRole || (isOther ? 'other' : isMIS ? 'mis' : isVibeCoding ? 'vibe_coding' : 'accountant');
@@ -677,3 +677,6 @@ export default function CodingAchievementsSection() {
     </section>
   );
 }
+
+CodingAchievementsSection.displayName = 'CodingAchievementsSection';
+export default memo(CodingAchievementsSection);

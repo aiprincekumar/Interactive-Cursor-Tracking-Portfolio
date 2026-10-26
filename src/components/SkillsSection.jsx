@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { soundFX } from '../utils/audio';
 import { useRoleTab } from '../context/RoleContext';
 import { useAnnounce } from '../context/AnnouncerContext';
@@ -581,7 +581,7 @@ const CATEGORY_NAMES_HI = {
   'Corporate Controls, Strategy & Leadership': 'कॉर्पोरेट कंट्रोल्स, रणनीति व नेतृत्व'
 };
 
-export default function SkillsSection() {
+function SkillsSection() {
   let languageContext = null;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -873,3 +873,5 @@ export default function SkillsSection() {
   );
 }
 
+SkillsSection.displayName = 'SkillsSection';
+export default memo(SkillsSection);

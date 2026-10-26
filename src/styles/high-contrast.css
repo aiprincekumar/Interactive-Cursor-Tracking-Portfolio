@@ -49,13 +49,15 @@ body.dark.high-contrast {
 html.high-contrast .glass-panel,
 html.high-contrast .glass-card,
 html.high-contrast .obsidian-card,
-html.high-contrast [class*="backdrop-blur"],
-html.high-contrast [class*="bg-white/"],
-html.high-contrast [class*="bg-black/"],
-html.high-contrast [class*="bg-slate-900/"],
-html.high-contrast [class*="bg-stone-900/"],
-html.high-contrast [class*="bg-[#0B0813]/"],
-html.high-contrast [class*="bg-[#FAF8F5]/"] {
+html.high-contrast .backdrop-blur,
+html.high-contrast .backdrop-blur-none,
+html.high-contrast .backdrop-blur-xs,
+html.high-contrast .backdrop-blur-sm,
+html.high-contrast .backdrop-blur-md,
+html.high-contrast .backdrop-blur-lg,
+html.high-contrast .backdrop-blur-xl,
+html.high-contrast .backdrop-blur-2xl,
+html.high-contrast .backdrop-blur-3xl {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -164,25 +166,22 @@ html.high-contrast.dark [role="radio"][aria-checked="true"],
 }
 
 /* 6. Ultra-Prominent Focus Rings in High-Contrast Mode */
-html.high-contrast :focus-visible,
-html.high-contrast *:focus-visible {
+html.high-contrast :focus-visible {
   outline: 3px solid #000000 !important;
   outline-offset: 3px !important;
 }
 
 html.high-contrast.dark :focus-visible,
-html.high-contrast.dark *:focus-visible,
-.dark.high-contrast :focus-visible,
-.dark.high-contrast *:focus-visible {
+.dark.high-contrast :focus-visible {
   outline: 3px solid #FFFF00 !important;
   outline-offset: 3px !important;
 }
 
 /* 7. Hide non-essential ambient background blobs and decorative textures */
 html.high-contrast .bg-dot-pattern,
-html.high-contrast [class*="blur-3xl"],
-html.high-contrast [class*="blur-2xl"],
-html.high-contrast [class*="blur-xl"] {
+html.high-contrast .blur-xl,
+html.high-contrast .blur-2xl,
+html.high-contrast .blur-3xl {
   opacity: 0 !important;
   visibility: hidden !important;
 }

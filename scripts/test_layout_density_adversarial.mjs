@@ -248,33 +248,14 @@ console.log('✅ PASS: CSS base variables and adaptive layout classes verified.'
 // --------------------------------------------------------------------------
 console.log('\n--- Suite 7: Self-Healing DOM Resilience & Extension Safeguards ---');
 
-// 7.1 Source verification for MutationObserver and self-healing mechanisms
+// 7.1 Source verification for clean attribute synchronization and elimination of MutationObserver layout thrashing (Phase 2 Performance Suite)
 assert(
-  labContextSource.includes('healDensityDOM'),
-  '❌ FAIL: LabContext must define healDensityDOM recovery mechanism'
+  !labContextSource.includes('fallbackInterval = setInterval(healDensityDOM, 2000)'),
+  '❌ FAIL: LabContext must eliminate aggressive 2000ms polling fallback interval'
 );
 assert(
-  labContextSource.includes('MutationObserver') &&
-  labContextSource.includes("attributeFilter: ['class', 'style']"),
-  '❌ FAIL: LabContext must observe class and style attribute mutations on documentElement'
-);
-assert(
-  labContextSource.includes('isStyleDrifted'),
-  '❌ FAIL: LabContext must actively evaluate multi-property drift across spacing, padding, and gap'
-);
-assert(
-  labContextSource.includes('fallbackInterval = setInterval(healDensityDOM, 2000)'),
-  '❌ FAIL: LabContext must establish fallback polling interval when MutationObserver is undefined'
-);
-assert(
-  labContextSource.includes('observer.disconnect()') &&
-  labContextSource.includes('clearInterval(fallbackInterval)'),
-  '❌ FAIL: LabContext must disconnect MutationObserver and clear fallback interval on cleanup'
-);
-assert(
-  labContextSource.includes("window.addEventListener('focus'") &&
-  labContextSource.includes("document.addEventListener('visibilitychange'"),
-  '❌ FAIL: LabContext must re-verify density styles on window focus and visibilitychange'
+  labContextSource.includes('root.classList.add(`density-${density}`)'),
+  '❌ FAIL: LabContext must directly synchronize density class on state changes'
 );
 
 // 7.2 Functional simulation of extension wiping DOM and self-healing recovery
