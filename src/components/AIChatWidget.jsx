@@ -2436,7 +2436,7 @@ function AIChatWidget() {
       const isAlreadyCached = localAiState?.cachedModels?.includes(chip.modelId);
       const isBareMinimum = chip.modelId === MODEL_CATALOG.BARE_MINIMUM.id || chip.modelId?.includes('SmolLM2-135M') || (chip.sizeMB && chip.sizeMB <= 100);
       if (!isAlreadyCached && !isBareMinimum && chatSettings?.consentMode === 'always_ask') {
-        const targetModel = MODEL_CATALOG[chip.modelId] || { id: chip.modelId, name: chip.label, approxSizeMB: chip.sizeMB || 90 };
+        const targetModel = Object.values(MODEL_CATALOG).find(m => m.id === chip.modelId) || localAIService.getModelDetails(chip.modelId) || { id: chip.modelId, name: chip.label, approxSizeMB: chip.sizeMB || 90 };
         handleRequestNeuralModel(targetModel, '');
         return;
       }

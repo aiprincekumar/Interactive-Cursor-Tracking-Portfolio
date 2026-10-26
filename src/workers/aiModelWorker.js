@@ -150,8 +150,8 @@ export async function probeModelPerformance(generator, modelId, device = 'webgpu
     const isBareMinimumModel = String(modelId || '').toLowerCase().includes('135m') ||
                                String(modelId || '').toLowerCase().includes('smollm2-135m');
 
-    // Thresholds: TTFT > 7000ms OR TPS < 3.5 (only enforced for heavier models)
-    const isSlow = !isBareMinimumModel && (ttftMs > 7000 || tps < 3.5);
+    // Thresholds: TTFT > 30000ms OR TPS < 0.2 (relaxed to prevent false flagging during first-time compilation)
+    const isSlow = !isBareMinimumModel && (ttftMs > 30000 || tps < 0.2);
 
     return {
       ok: !isSlow,
@@ -307,7 +307,7 @@ export async function initPipeline(modelId, device = 'webgpu', dtype = 'q4', ses
       });
     }
   } catch (primaryErr) {
-    console.warn(`[AI Worker] Failed to load ${modelId} with device=${device}:`, primaryErr);
+    console.warn(`[AI Worker] Failed to load ${modelId} with device=${device}:`, primaryErr.message);
     const errMsg = String(primaryErr?.message || '').toLowerCase();
     const isAllocationFailed = errMsg.includes('allocation') || errMsg.includes('out of memory') || errMsg.includes('oom') || errMsg.includes('buffer');
     const isContextLost = errMsg.includes('context lost') || errMsg.includes('device lost');

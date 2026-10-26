@@ -46,8 +46,8 @@ export const MODEL_CATALOG = {
     description: 'Balanced powerhouse for laptops and multi-core desktops'
   },
   HIGH: {
-    id: 'onnx-community/Qwen2.5-3B-Instruct',
-    name: 'Qwen2.5-3B-Instruct',
+    id: 'onnx-community/Qwen2.5-Coder-3B-Instruct',
+    name: 'Qwen2.5-Coder-3B-Instruct',
     shortcut: '[Qwen-3B]',
     approxSizeMB: 1900,
     dtype: 'q4',
@@ -75,7 +75,7 @@ export function getNextDowngradeModel(modelId) {
   if (!modelId) return null;
   const idStr = String(modelId).toLowerCase();
 
-  if (idStr.includes('3b')) {
+  if (idStr.includes('3b') || idStr.includes('coder-3b')) {
     return { ...MODEL_CATALOG.MEDIUM };
   }
   if (idStr.includes('1.5b')) {

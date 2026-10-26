@@ -35,8 +35,8 @@ class LocalAIService {
     this.lastHeartbeatTime = 0;
     this.lastHeartbeatLoadedBytes = 0;
     this.lastHeartbeatProgress = 0;
-    this.watchdogDurationMs = 45000;      // 45s stall threshold during download (prevents false-positive aborts)
-    this.compilationWatchdogMs = 30000;  // 30s budget for WebGPU compile & probe
+    this.watchdogDurationMs = 60000;      // 60s network chunk stall threshold
+    this.compilationWatchdogMs = 120000;  // 120s budget for WebGPU/WASM graph and shader compilation
     this.currentLoadSessionId = 0;
     this.isModelLoading = false;
     this.chatSettings = null;
@@ -264,25 +264,14 @@ class LocalAIService {
   }
 
   /**
-   * Dual-layer Cache Verification:
-   * 1. localStorage key 'portfolio_ai_cached_' + modelId
-   * 2. Browser Cache API ('transformers-cache') for cached ONNX/tokenizer weights
+   * Strict Cache Verification:
+   * 1. CacheStorage ('transformers-cache') MUST contain actual ONNX model weights (.onnx or .onnx_data)
+   * 2. Do not blindly trust localStorage; if weight files are missing in CacheStorage, purge stale localStorage key
    */
   async isModelCached(modelId) {
     if (!modelId) return false;
 
-    // Layer 1: Fast localStorage check
-    if (typeof window !== 'undefined' && window.localStorage) {
-      try {
-        if (localStorage.getItem('portfolio_ai_cached_' + modelId) === 'true') {
-          return true;
-        }
-      } catch {
-        // ignore storage access restrictions
-      }
-    }
-
-    // Layer 2: CacheStorage API ('transformers-cache') check
+    // CacheStorage API ('transformers-cache') check
     try {
       const cacheStorage =
         typeof window !== 'undefined' && window.caches
@@ -300,16 +289,19 @@ class LocalAIService {
             const cleanModelId = modelId.toLowerCase();
             const modelShortName = (modelId.split('/').pop() || modelId).toLowerCase();
 
-            const hasModelFiles = keys.some((req) => {
+            // Strict weight verification: must contain actual ONNX weights, not just metadata
+            const hasWeightFiles = keys.some((req) => {
               const url = (req?.url || '').toLowerCase();
-              return (
+              const matchesModel = (
                 url.includes(cleanModelId) ||
                 url.includes(encodeURIComponent(cleanModelId)) ||
                 url.includes(modelShortName)
               );
+              const isWeight = url.includes('.onnx') || url.includes('.onnx_data');
+              return matchesModel && isWeight;
             });
 
-            if (hasModelFiles) {
+            if (hasWeightFiles) {
               if (typeof window !== 'undefined' && window.localStorage) {
                 try {
                   localStorage.setItem('portfolio_ai_cached_' + modelId, 'true');
@@ -318,8 +310,34 @@ class LocalAIService {
                 }
               }
               return true;
+            } else {
+              // Purge stale or corrupted localStorage flag when weight files are missing
+              if (typeof window !== 'undefined' && window.localStorage) {
+                try {
+                  localStorage.removeItem('portfolio_ai_cached_' + modelId);
+                } catch {
+                  // ignore
+                }
+              }
+              return false;
             }
+          } else {
+            if (typeof window !== 'undefined' && window.localStorage) {
+              try {
+                localStorage.removeItem('portfolio_ai_cached_' + modelId);
+              } catch {
+                // ignore
+              }
+            }
+            return false;
           }
+        }
+      } else if (typeof window !== 'undefined' && window.localStorage) {
+        // Fallback for non-browser/test environments without CacheStorage
+        try {
+          return localStorage.getItem('portfolio_ai_cached_' + modelId) === 'true';
+        } catch {
+          // ignore
         }
       }
     } catch (err) {
@@ -459,24 +477,31 @@ class LocalAIService {
 
     switch (type) {
       case 'PROGRESS': {
-        // Silent cache loading safeguard: ignore progress events when loading from cache
-        if (this.status === 'loading_cache' || this.isCurrentModelCached) {
+        const loaded = payload.loaded || 0;
+        const progress = payload.progress || 0;
+
+        // If actual bytes are downloading or progress is in-flight, it's NOT purely cached
+        if (loaded > 0 || (progress > 0 && progress < 100)) {
+          this.isCurrentModelCached = false;
+          this.status = 'downloading';
+        }
+
+        // Only break/drop progress if genuinely loading from cache with no network download bytes
+        if (this.isCurrentModelCached && (!loaded || loaded === 0) && progress >= 100) {
           break;
         }
+
         this.status = 'downloading';
-        this.downloadProgress = payload.progress || 0;
+        this.downloadProgress = progress;
         this.downloadFile = payload.file || '';
-        this.downloadLoaded = payload.loaded || 0;
+        this.downloadLoaded = loaded;
         this.downloadTotal = payload.total || 0;
         if (payload.modelId && (!this.downloadingModel || this.downloadingModel.id !== payload.modelId)) {
           this.downloadingModel = this.getModelDetails(payload.modelId);
         }
 
-        const loaded = payload.loaded || 0;
-        const progress = payload.progress || 0;
-
         // Check if progress or bytes have actually advanced
-        const hasAdvanced = loaded > this.lastLoadedBytes || progress > this.lastProgressPercent;
+        const hasAdvanced = loaded > this.lastLoadedBytes || progress > this.lastProgressPercent || (payload.file && payload.file !== this.downloadFile);
         if (hasAdvanced) {
           this.lastLoadedBytes = loaded;
           this.lastProgressPercent = progress;
@@ -489,7 +514,7 @@ class LocalAIService {
           if (progress >= 100) {
             this.armProgressWatchdog(payload.modelId || this.downloadingModel?.id, this.compilationWatchdogMs, 'compilation_timeout');
           } else {
-            // Reset the 10s stall watchdog
+            // Reset stall watchdog so download never aborts as long as bytes or progress advance
             this.resetWatchdogHeartbeat(payload.modelId || this.downloadingModel?.id, this.watchdogDurationMs, 'timeout_watchdog_stalled');
           }
         }
@@ -508,14 +533,9 @@ class LocalAIService {
         this.isSilentLoad = false;
         const { modelId, healthCheck } = payload;
 
-        // Exempt bare-minimum SmolLM2-135M from slow kill-switch: NEVER downgrade the baseline fallback model!
-        const isBareMinimum = modelId.includes('135M') || modelId.includes('SmolLM2-135M');
-
-        // Health-Check evaluation: If probe flagged as SLOW (TTFT > 7s or TPS < 3.5), trigger cascading downgrade ONLY for non-baseline models
-        if (!isBareMinimum && healthCheck && healthCheck.isSlow) {
-          console.warn(`[LocalAIService] Model ${modelId} flagged as SLOW by warm-up health check (TTFT: ${healthCheck.ttftMs}ms, TPS: ${healthCheck.tps}). Triggering cascading fallback ladder...`);
-          this.handleModelDowngrade(modelId, 'slow_performance');
-          break;
+        // Health-Check evaluation: Log warm-up latency without triggering downgrades
+        if (healthCheck && healthCheck.isSlow) {
+          console.warn(`[LocalAIService] Model ${modelId} warm-up latency: TTFT ${healthCheck.ttftMs}ms, TPS ${healthCheck.tps}. Model ready.`);
         }
 
         const wasCached = this.status === 'loading_cache' || this.isCurrentModelCached;
@@ -721,7 +741,7 @@ class LocalAIService {
     if (id.includes('SmolLM2-360M')) return '[SmolLM-360M]';
     if (id.includes('Qwen2.5-0.5B')) return '[Qwen-0.5B]';
     if (id.includes('Qwen2.5-1.5B')) return '[Qwen-1.5B]';
-    if (id.includes('Qwen2.5-3B')) return '[Qwen-3B]';
+    if (id.includes('Coder-3B') || id.includes('Qwen2.5-3B')) return '[Qwen-3B]';
     return `[${id.split('/').pop()}]`;
   }
 
