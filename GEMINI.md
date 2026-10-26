@@ -209,7 +209,7 @@ npm run preview
 
 - **Technical Memory Dossier (WHAT):** [`memory.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/memory.md)
 - **Detailed Features Specifications:** [`docs/FEATURES_MEMORY.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/docs/FEATURES_MEMORY.md)
-- **Phase Execution Directory (Universal Rule 22):** [`temp_prompt/README.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/temp_prompt/README.md)
+- **Ephemeral Workspace & Prompts (Universal Rule 22):** [`vibe_coding_temp/prompts/`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/vibe_coding_temp/prompts/)
 - **Phase Prompt Architect Skill (Universal Rule 22):** [`phase-prompt-architect`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/.agents/skills/phase-prompt-architect/SKILL.md)
 - **Memory Sync Sentinel Skill (Universal Rule 23):** [`memory-sync-sentinel`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/.agents/skills/memory-sync-sentinel/SKILL.md)
 - **Global Antigravity Memory Ledger:** [`C:\Users\Atul Verma\.gemini\memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md)
