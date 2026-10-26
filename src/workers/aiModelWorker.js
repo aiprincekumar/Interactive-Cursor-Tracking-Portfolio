@@ -145,8 +145,12 @@ export async function probeModelPerformance(generator, modelId, device = 'webgpu
 
     const tps = Number((tokensCount / (Math.max(1, elapsedMs) / 1000)).toFixed(2));
 
-    // Thresholds: TTFT > 7000ms OR TPS < 3.5
-    const isSlow = ttftMs > 7000 || tps < 3.5;
+    // Bare-minimum SmolLM2-135M is the baseline fallback model and is NEVER flagged as slow!
+    const isBareMinimumModel = String(modelId || '').toLowerCase().includes('135m') ||
+                               String(modelId || '').toLowerCase().includes('smollm2-135m');
+
+    // Thresholds: TTFT > 7000ms OR TPS < 3.5 (only enforced for heavier models)
+    const isSlow = !isBareMinimumModel && (ttftMs > 7000 || tps < 3.5);
 
     return {
       ok: !isSlow,

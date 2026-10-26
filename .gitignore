@@ -44,6 +44,7 @@ changes_log
 extracted_character_data.json
 frame_analysis.json
 extract_frames.cjs
+vibe_coding_temp/
 
 # Playwright CLI output (may contain credentials)
 .playwright-cli/

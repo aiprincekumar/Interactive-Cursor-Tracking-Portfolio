@@ -72,13 +72,21 @@ Every single change to repository files must be logged with full forensic diffs 
 
 ### 2.4 Dedicated GitHub Operations, Auto-Sync & Zero-Hallucination Verification Standard (Universal Rule 15)
 - **1. Dedicated Specialist & 1-Click Automation:** All Git & GitHub operations (staging, commits, pushes, PRs, branching) are strictly executed by `github_operations_specialist`. For token economy and 1-shot execution across models, the automated runner scripts `scripts/git/git_sync.ps1` (and `git_sync.bat`) and `scripts/git/verify_git_sync.ps1` are mandatory.
-- **2. Smart Staging & Security Filter:** Uncommitted files are tracked using concise 1-line `git status --short` (zero token waste). Immediate exclusion of `.env`, `.env.*`, API keys, passwords, credentials, and sensitive assets (Zero Sensitive Leakage). The staged file set is strictly cross-verified against `changes_log` and `memory.md`.
+- **2. Smart Staging & Security Filter:** Uncommitted files are tracked using concise 1-line `git status --short` (zero token waste). Immediate exclusion of `.env`, `.env.*`, API keys, passwords, credentials, sensitive assets, and ephemeral workspace `vibe_coding_temp/` (Zero Sensitive Leakage). The staged file set is strictly cross-verified against `changes_log` and `memory.md`.
 - **3. Zero-Token Conventional Commit Generation:** Commit messages are automatically generated without additional LLM token overhead, derived strictly from the latest entry in `changes_log/summary/changes_summary.md` and modified file scope in conventional format (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, `test:`).
 - **4. Zero-Hallucination Terminal Proof Mandate:** Verbal claims ("Changes committed and pushed successfully") are strictly forbidden. An operation is only complete when accompanied by the raw terminal 3-point proof block:
   1. `git log -1` raw commit hash and message
   2. `git push` successful remote server response
   3. `git status` clean working tree and up-to-date branch confirmation
 - **5. Safe Rebase & Zero Data-Loss Conflict Policy:** When remote branches diverge, safe `git pull --rebase` is enforced. Destructive `--force` pushes are unconditionally banned. Conflicts trigger automatic stashing or backup branching to ensure zero code loss.
+- **6. मानक 1-लाइन AI प्रॉम्प्ट एवं 1-क्लिक मैनुअल कमांड (Standardized Prompts & Runners):**
+  - **किसी भी अन्य AI एजेंट/मॉडल को देने हेतु 1-लाइन यूनिवर्सल प्रॉम्प्ट (1-Line Universal Prompt for Any AI):**
+    > `यूनिवर्सल रूल 15 के अनुसार 'powershell -ExecutionPolicy Bypass -File .\scripts\git\git_sync.ps1' चलाकर सभी बदलाव GitHub पर कमिट व पुश करो और टर्मिनल का 3-पॉइंट वेरिफिकेशन आउटपुट दिखाओ।`  
+    *(English alternative):*  
+    > `Execute 'powershell -ExecutionPolicy Bypass -File .\scripts\git\git_sync.ps1' per Universal Rule 15 to stage, commit, and push all changes to GitHub, and return the 3-point terminal verification proof.`
+  - **यूजर द्वारा टर्मिनल में 1-क्लिक डायरेक्ट निष्पादन (Direct 1-Click Manual Execution by User):**
+    > Windows CMD / Terminal: `.\scripts\git\git_sync.bat`  
+    > PowerShell: `powershell -ExecutionPolicy Bypass -File .\scripts\git\git_sync.ps1`
 
 ### 2.5 Git Metadata Standard (Universal Rule 16)
 - **Git Author Name:** `aiprincekumar`
@@ -94,14 +102,22 @@ Every single change to repository files must be logged with full forensic diffs 
   3. **Mandatory 7-Column Diagnostic Problem-Solution & Impact Matrix Table:**
      | S.No. / ID | Target File / Location | Root Cause & Failure Mechanism (क्यों और कैसे) | Proposed Fix (दुरुस्त कैसे किया जाएगा) | Post-Fix Impact & System Value (इम्पैक्ट) | Assigned Phase # | Verification Test Gate |
 
-### 2.7 Universal Rule 22: temp_prompt/ Phase Execution Management & Automated Prompt Generation
-- **Standard Purpose:** High-complexity architectural tasks, multi-stage feature rollouts, and multi-step refactorings must never be implemented as monolithic, untracked changes. They must be partitioned into sequential, verified phases stored in `temp_prompt/<task_or_feature_name>/`.
-- **Directory Hierarchy & Layout:**
-  - [`temp_prompt/README.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/temp_prompt/README.md): Permanent directory anchor and protocol guide.
-  - `temp_prompt/<task_or_feature_name>/INDEX.md`: Master phase orchestration board, diagnostic matrix, subagent assignment matrix, and Definition of Done (DoD).
-  - `temp_prompt/<task_or_feature_name>/phase_<NN>_<step_name>.md`: Standalone, granular instruction decks with automated verification scripts.
+### 2.7 Universal Rule 22: vibe_coding_temp/ Ephemeral Workspace, Phase Prompts & Automation Scripts Standard
+- **Standard Purpose & Root Container:** High-complexity architectural tasks, vibe coding sessions, multi-stage feature rollouts, experimental automations, and multi-step refactorings must never be implemented as monolithic, untracked changes or scattered across arbitrary folders. They are strictly isolated in a single dedicated ephemeral root container: `vibe_coding_temp/`.
+- **Naming Invariant (No Redundant 'temp'):** Because the parent directory already carries `_temp`, no subfolder within it may include the word 'temp' in its name.
+- **Standard 6-Subfolder Architecture:**
+  1. `prompts/`: Phase orchestration decks, master control boards (`INDEX.md` with mandatory 7-column diagnostic matrix), and granular instruction suites (`phase_*.md`).
+  2. `scripts/`: Temporary token-saving runners, experimental automation, one-off migration scripts, and tool incubation before promotion to permanent repository tooling (`scripts/`).
+  3. `docs/`: Temporary technical notes, scratchpads, working API specs, and architectural draft notes strictly needed during active vibe coding.
+  4. `media/`: Temporary UI screenshots, wireframes, mockups, and visual reference assets utilized during implementation.
+  5. `sandbox/`: Isolated proof-of-concepts (POCs), throwaway prototypes, and scratch execution environments.
+  6. `benchmarks/`: Ephemeral test logs, profiling metrics, render/animation frames, and latency benchmarks.
+- **Two-Tier Hierarchical Subagent Model:**
+  - **Lead Subagent (`vibe_coding_architect`):** Controls the overall `vibe_coding_temp/` workspace, scripts incubation, docs, media, sandbox, benchmarks, and enforces `.gitignore` protection.
+  - **Delegated Specialist (`phase_prompt_architect`):** Invoked by `vibe_coding_architect` specifically for prompt decomposition, drafting self-contained `phase_*.md` files, and managing the 7-column matrix in `INDEX.md`.
+  - **Chain of Delegation:** CEO (Main Agent) ➔ `vibe_coding_architect` ➔ `phase_prompt_architect`.
 - **Top Section Diagnostic Specification for `INDEX.md`:**
-  When generating `temp_prompt/<task_name>/INDEX.md` or any phase prompt suite, as well as documenting major issues/refactoring in memory files (`project_feature_memory.md` / `memory.md`), the top section MUST include:
+  When generating `vibe_coding_temp/prompts/<task_name>/INDEX.md` or documenting major issues/refactoring in memory files (`project_feature_memory.md` / `memory.md`), the top section MUST include:
   1. **Problem Summary (संक्षिप्त सारांश) & Problem Detailed Bullet Points (विस्तृत समस्या बिंदु)**
   2. **Solution Summary (संक्षिप्त समाधान) & Solution Detailed Bullet Points (विस्तृत समाधान बिंदु)**
   3. **Mandatory 7-Column Diagnostic Problem-Solution & Impact Matrix Table:**
@@ -114,14 +130,12 @@ Every single change to repository files must be logged with full forensic diffs 
   1. **Prompt the user interactively** (via `ask_question` or clear confirmation):  
      *"क्या अब मैं फेज 1 से लेकर फेज [Last] तक का काम स्टार्ट कर दूं फेज-वाइज़ मैनर में?"*
   2. **Provide a standardized, copy-pasteable Universal 1-Line Execution Prompt:**  
-     `temp_prompt/<task_name>/INDEX.md और phase_*.md को पढ़कर फेज 1 से अंतिम फेज तक क्रमिक रूप से लागू (implement) और सत्यापित करो।`
+     `vibe_coding_temp/prompts/<task_name>/INDEX.md और phase_*.md को पढ़कर फेज 1 से अंतिम फेज तक क्रमिक रूप से लागू (implement) और सत्यापित करो।`
   3. **Autonomous Sequential Execution Pipeline:** When the user confirms with "हाँ", "OK", "Proceed", or executes the prompt, the agent starts an Autonomous Phase-by-Phase Pipeline executing Phase 1 through the final Phase sequentially with intermediate test gates, followed by independent QA Grade A+ signoff.
-- **Dedicated Orchestration Subagent (`phase_prompt_architect`):** Dispatched by the CEO (Main Agent) to scaffold phase directories, craft isolated prompt contracts, maintain the 7-column matrix in `INDEX.md`, handle user execution handoff, and track multi-phase execution.
-- **Dedicated Skill:** [`phase-prompt-architect`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/.agents/skills/phase-prompt-architect/SKILL.md) provides complete standards, contracts, and templates for phase decomposition.
-- **Ephemeral Lifecycle & Post-Verification Cleanup Protocol:**
-  - `temp_prompt/` stores only active, in-flight execution prompts.
-  - Upon 100% completion of all phases and **QA Grade A+ signoff** (all test scripts passing with zero errors), the architectural knowledge is permanently committed to [`memory.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/memory.md) and [`docs/FEATURES_MEMORY.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/docs/FEATURES_MEMORY.md), and changes are audited in `changes_log/`.
-  - Once synchronized, the ephemeral subfolder `temp_prompt/<task_or_feature_name>/` is **safely deleted/pruned**. The root file [`temp_prompt/README.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/temp_prompt/README.md) remains permanently anchored.
+- **Git Policy & Ephemeral Lifecycle:**
+  - **Strict Git Exclusion (.gitignore & Rule 15 Protection):** `vibe_coding_temp/` is strictly excluded via `.gitignore` and protected by Universal Rule 15. Zero leakage to GitHub remote.
+  - **Knowledge Crystallization:** Upon 100% completion of all phases and **QA Grade A+ signoff** (all test scripts passing with zero errors), the architectural knowledge is permanently committed to [`memory.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/memory.md) and [`docs/FEATURES_MEMORY.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/docs/FEATURES_MEMORY.md), and changes are audited in `changes_log/`.
+  - **Safe Pruning:** Once synchronized, the ephemeral active task subfolder under `vibe_coding_temp/prompts/<task_or_feature_name>/` is **safely deleted/pruned**. The root container `vibe_coding_temp/` structure and permanent anchor guide remain intact.
 
 ### 2.8 Universal Rule 23: Mandatory Stage-by-Stage Memory Synchronization & Zero-Scan State Preservation
 - **Standard Purpose:** Prevent context loss, stale handoff states, and redundant repo scanning by maintaining [`memory.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/memory.md) as a live, continuously updated operational ledger.

@@ -10,7 +10,7 @@
 
 ## 1. Purpose of `temp_prompt/`
 
-The `temp_prompt/` directory serves as the centralized, project-level staging ground for **ephemeral phase execution documents**, multi-stage architectural blueprints, and prompt decks. 
+The `temp_prompt/` directory serves as the centralized, project-level staging ground for **ephemeral phase execution documents**, multi-stage architectural blueprints, and prompt decks.
 
 In complex software ecosystems with rigorous zero-regression requirements, large-scale feature developments or architectural refactors (such as 3D Viewport Sandboxes, Multimodal Audio Engines, On-Device Neural Model Workers, or Accessibility Sweeps) must never be performed blindly or as single massive changes. Instead, they are broken down into discrete, sequential, and testable phases.
 
@@ -47,50 +47,16 @@ temp_prompt/<task_or_feature_name>/
 └── phase_03_<step_descriptor>.md   # Granular prompt deck & technical contract for Phase 3
 ```
 
-### 3.1 `INDEX.md` Structure
-`INDEX.md` serves as the roadmap and live status board for the task. It contains:
-- **Title & Metadata:** Task name, target version, author agent, timestamp.
-- **Executive Summary:** Objective, scope, architectural impact, and Mermaid flow diagrams.
-- **System Architecture & Technical Contracts:** Scoped CSS variables, state isolation boundaries, memory and performance budgets.
-- **Phase Execution Matrix:**
-  | Phase | Name / Focus | Target Files | Subagent Specialist | Verification Command | Status |
-  | :---: | :--- | :--- | :--- | :--- | :---: |
-  | 01 | Scoped CSS & State Isolation | `src/context/LabContext.jsx` | `css_styling_specialist` | `node scripts/verify_phase1.mjs` | `[x] PASS` |
-  | 02 | Viewport Container Scaffold | `src/components/Sandbox.jsx` | `typescript_language_specialist` | `node scripts/verify_phase2.mjs` | `[ ] PENDING` |
-- **Definition of Done (DoD):** Verification commands, linter checks, and acceptance invariants.
-
-### 3.2 Phase File Structure (`phase_01_<step_descriptor>.md`)
-Each phase file is an executable, standalone prompt for a designated worker subagent. It contains:
-- **Phase Header:** Phase number, title, subagent specialization, target files, and pre-conditions.
-- **Detailed Step Instructions:** Precise code modifications, props, interfaces, styling tokens, and invariants.
-- **Automated Verification Harness:** Exact script path to validate code correctness (e.g., `node scripts/verify_phase_01.mjs`).
-- **Rollback Procedure:** Precise instructions for reverting the phase if regression occurs.
-
 ---
 
 ## 4. Lifecycle & Auto-Cleanup Policy (Universal Rule 22)
 
 Files in `temp_prompt/` are **strictly ephemeral**. They exist solely to guide the agent through multi-phase engineering tasks and must be safely pruned once verified:
 
-```
-┌────────────────────────┐      ┌────────────────────────┐      ┌────────────────────────┐
-│ 1. Phase Scaffolding   │ ──►  │ 2. Phased Execution    │ ──►  │ 3. Automated QA Pass   │
-│ `temp_prompt/<task>/`  │      │ Specialist Subagents   │      │ Grade A+ (0 errors)    │
-└────────────────────────┘      └────────────────────────┘      └───────────┬────────────┘
-                                                                            │
-┌────────────────────────┐      ┌────────────────────────┐                  │
-│ 5. Safe Pruning        │ ◄──  │ 4. Master Dossier Sync │ ◄────────────────┘
-│ Remove `<task>/` only  │      │ Update `memory.md`     │
-│ Keep `README.md` intact│      │ Update `changes_log/`  │
-└────────────────────────┘      └────────────────────────┘
-```
-
-### Safe Pruning Protocol:
+### Mandatory Cleanup Checklist:
 1. **Automated Verification:** All phase verification test scripts and overall test harness (`npm test`) must pass with 100% success.
 2. **QA Grade A+ Signoff:** Independent QA subagent confirms zero regressions, valid styling, and clean syntax.
-3. **Master Ledger Update:** Core architecture, features, and quick entry points are documented in:
-   - [`memory.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/memory.md)
-   - [`docs/FEATURES_MEMORY.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/docs/FEATURES_MEMORY.md)
+3. **Master Ledger Update:** Core architecture, features, and quick entry points are documented in `memory.md` and `docs/FEATURES_MEMORY.md`.
 4. **Changes Log Entry:** Change record is documented under `changes_log/` per Universal Rule 6.
 5. **Deletion of Feature Subfolder:** The specific subfolder `temp_prompt/<task_or_feature_name>/` is permanently removed.
 6. **Immutable Anchor:** This root file (`temp_prompt/README.md`) must **NEVER** be deleted; it permanently anchors the directory structure.

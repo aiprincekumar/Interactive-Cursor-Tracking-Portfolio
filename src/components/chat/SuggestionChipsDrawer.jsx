@@ -1,26 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const CATEGORY_TABS = [
-  { id: 'all', label: 'All' },
-  { id: 'projects', label: '🚀 Projects' },
-  { id: 'tax', label: '📊 Tax & MIS' },
-  { id: 'tech', label: '⚡ Tech & AI' },
-  { id: 'experience', label: '💼 Experience' },
-  { id: 'hire', label: '📬 Hire' }
-];
-
 /**
  * SuggestionChipsDrawer
- * Fixed single-row carousel with compact category filter tabs, smooth mouse drag & touch scroll,
- * subtle chevron navigation, and roving keyboard navigation.
+ * Pure single-row horizontal carousel of prompt suggestion chips.
+ * Features smooth mouse drag, touch scroll, subtle chevron navigation,
+ * roving keyboard navigation, and 100% chip deduplication.
  */
 export default function SuggestionChipsDrawer({
   chips = [],
   onSelectChip,
   isTyping = false
 }) {
-  const [activeCategory, setActiveCategory] = useState('all');
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -30,23 +21,17 @@ export default function SuggestionChipsDrawer({
   const chipRefs = useRef([]);
   const dragStartRef = useRef({ x: 0, scrollLeft: 0, hasMoved: false });
 
-  // Filter chips based on active category & deduplicate
+  // Deduplicate chips by unique ID / label / query to ensure zero duplicate rendered elements
   const visibleChips = useMemo(() => {
     if (!Array.isArray(chips) || chips.length === 0) return [];
-    const filtered = activeCategory === 'all'
-      ? chips
-      : chips.filter((c) => c.category === activeCategory);
-    const list = filtered.length > 0 ? filtered : chips;
-
-    // Deduplicate chips by unique ID / label to ensure zero duplicate rendered elements
     const seen = new Set();
-    return list.filter((chip) => {
+    return chips.filter((chip) => {
       const key = (chip.id || chip.label || chip.query || '').trim().toLowerCase();
       if (!key || seen.has(key)) return false;
       seen.add(key);
       return true;
     });
-  }, [chips, activeCategory]);
+  }, [chips]);
 
   const updateScrollBoundaries = useCallback(() => {
     const el = scrollRef.current;
@@ -161,40 +146,8 @@ export default function SuggestionChipsDrawer({
   }
 
   return (
-    <div className="px-2.5 py-1.5 border-t border-[#E7E2D8]/60 dark:border-[#2D2340]/60 bg-stone-50/70 dark:bg-[#120D1D]/60 shrink-0 select-none">
-      {/* Category Tabs Header */}
-      <div className="flex items-center justify-between gap-1 mb-1 px-0.5">
-        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
-          {CATEGORY_TABS.map((tab) => {
-            const isActive = activeCategory === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => {
-                  setActiveCategory(tab.id);
-                  setFocusedIndex(0);
-                  if (scrollRef.current) {
-                    scrollRef.current.scrollLeft = 0;
-                  }
-                }}
-                className={`text-[9px] px-2 py-0.5 rounded-full font-medium transition-all duration-150 cursor-pointer whitespace-nowrap active:scale-95 ${
-                  isActive
-                    ? 'bg-[#FF4D6D] text-white shadow-2xs font-semibold'
-                    : 'bg-stone-200/50 dark:bg-stone-800/50 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200 dark:hover:bg-stone-700/80'
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-        <span className="text-[9px] font-mono text-stone-400 dark:text-stone-500 shrink-0 hidden sm:inline">
-          {visibleChips.length} prompts
-        </span>
-      </div>
-
-      {/* Fixed Single-Row Carousel Track */}
+    <div className="px-2 py-1 border-t border-[#E7E2D8]/60 dark:border-[#2D2340]/60 bg-stone-50/70 dark:bg-[#120D1D]/60 shrink-0 select-none">
+      {/* Pure Single-Row Horizontal Carousel Track */}
       <div className="relative flex items-center w-full">
         {/* Left Arrow Button */}
         <button
@@ -209,7 +162,7 @@ export default function SuggestionChipsDrawer({
           <ChevronLeft size={12} />
         </button>
 
-        {/* Single-Row Horizontal Carousel Container */}
+        {/* Single-Row Horizontal Chips Container */}
         <div
           ref={scrollRef}
           role="toolbar"
@@ -218,8 +171,8 @@ export default function SuggestionChipsDrawer({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
-          className={`flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-1 w-full touch-pan-x select-none ${
-            isDragging ? 'cursor-grabbing' : 'cursor-grab'
+          className={`flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5 w-full touch-pan-x ${
+            isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'
           }`}
         >
           {visibleChips.map((chip, idx) => {

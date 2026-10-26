@@ -6,7 +6,7 @@
 // Model Catalog for On-Device Execution
 export const MODEL_CATALOG = {
   BARE_MINIMUM: {
-    id: 'HuggingFaceTB/SmolLM2-135M-Instruct',
+    id: 'onnx-community/SmolLM2-135M-Instruct',
     name: 'SmolLM2-135M-Instruct',
     shortcut: '[SmolLM-135M]',
     approxSizeMB: 90,
@@ -26,7 +26,7 @@ export const MODEL_CATALOG = {
     description: 'Fast, highly accurate compact model for mobile and light devices'
   },
   SMOLLM_360M: {
-    id: 'HuggingFaceTB/SmolLM2-360M-Instruct',
+    id: 'onnx-community/SmolLM2-360M-Instruct',
     name: 'SmolLM2-360M-Instruct',
     shortcut: '[SmolLM-360M]',
     approxSizeMB: 230,

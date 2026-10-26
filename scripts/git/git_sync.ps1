@@ -60,6 +60,9 @@ function Test-IsSensitiveFile {
     if ($fileName -match 'credential' -or $normalizedPath -match '/credentials?/') { return $true }
     if ($fileName -match 'token' -and ($fileName -like '*.json' -or $fileName -like '*.txt' -or $fileName -like '*.env*')) { return $true }
 
+    # Ephemeral and scratch workspace directories (zero-leakage policy)
+    if ($normalizedPath -match '(^|/)vibe_coding_temp(/|$)' -or $fileName -eq 'vibe_coding_temp') { return $true }
+
     return $false
 }
 
@@ -255,7 +258,7 @@ if ([string]::IsNullOrWhiteSpace($porcelain)) {
 # -----------------------------------------------------------------------------
 
 Write-Host "  Staging modified and untracked changes (excluding sensitive patterns)..." -ForegroundColor Cyan
-$null = & git add -A -- ":(exclude)*.env*" ":(exclude)*.pem" ":(exclude)*.key" ":(exclude)*secret*" ":(exclude)*credential*" ":(exclude)id_rsa*" ":(exclude)id_ed25519*" 2>&1
+$null = & git add -A -- ":(exclude)*.env*" ":(exclude)*.pem" ":(exclude)*.key" ":(exclude)*secret*" ":(exclude)*credential*" ":(exclude)id_rsa*" ":(exclude)id_ed25519*" ":(exclude)*vibe_coding_temp*" 2>&1
 
 # Failsafe: check index for any accidentally staged sensitive files and unstage them immediately
 $stagedFiles = (& git diff --name-only --cached 2>&1)

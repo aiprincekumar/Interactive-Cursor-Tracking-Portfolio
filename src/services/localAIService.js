@@ -35,8 +35,8 @@ class LocalAIService {
     this.lastHeartbeatTime = 0;
     this.lastHeartbeatLoadedBytes = 0;
     this.lastHeartbeatProgress = 0;
-    this.watchdogDurationMs = 10000;      // 10s stall threshold during download
-    this.compilationWatchdogMs = 15000;  // 15s budget for WebGPU compile & probe
+    this.watchdogDurationMs = 45000;      // 45s stall threshold during download (prevents false-positive aborts)
+    this.compilationWatchdogMs = 30000;  // 30s budget for WebGPU compile & probe
     this.currentLoadSessionId = 0;
     this.isModelLoading = false;
     this.chatSettings = null;
@@ -508,8 +508,11 @@ class LocalAIService {
         this.isSilentLoad = false;
         const { modelId, healthCheck } = payload;
 
-        // Health-Check evaluation: If probe flagged as SLOW (TTFT > 7s or TPS < 3.5), trigger cascading downgrade
-        if (healthCheck && healthCheck.isSlow) {
+        // Exempt bare-minimum SmolLM2-135M from slow kill-switch: NEVER downgrade the baseline fallback model!
+        const isBareMinimum = modelId.includes('135M') || modelId.includes('SmolLM2-135M');
+
+        // Health-Check evaluation: If probe flagged as SLOW (TTFT > 7s or TPS < 3.5), trigger cascading downgrade ONLY for non-baseline models
+        if (!isBareMinimum && healthCheck && healthCheck.isSlow) {
           console.warn(`[LocalAIService] Model ${modelId} flagged as SLOW by warm-up health check (TTFT: ${healthCheck.ttftMs}ms, TPS: ${healthCheck.tps}). Triggering cascading fallback ladder...`);
           this.handleModelDowngrade(modelId, 'slow_performance');
           break;
@@ -794,10 +797,8 @@ class LocalAIService {
       this.deviceProfile = await profileDevice();
     }
 
-    let targetModel = this.deviceProfile?.recommendedModel;
-    if (!targetModel || targetModel.id === MODEL_CATALOG.BARE_MINIMUM.id) {
-      targetModel = MODEL_CATALOG.MEDIUM;
-    }
+    // Default strictly to MODEL_CATALOG.BARE_MINIMUM (SmolLM2-135M, ~90MB) for ultra-fast, zero-friction load
+    let targetModel = MODEL_CATALOG.BARE_MINIMUM || getBareMinimumModel();
 
     // If target model is already loaded and ready, skip redundant reload
     if (this.activeModel && this.activeModel.id === targetModel.id && this.status === 'ready') {
@@ -946,10 +947,7 @@ class LocalAIService {
     }
     let target = targetModelId
       ? this.getModelDetails(targetModelId)
-      : (this.deviceProfile?.recommendedModel || MODEL_CATALOG.MEDIUM);
-    if (target.id === MODEL_CATALOG.BARE_MINIMUM.id) {
-      target = MODEL_CATALOG.MEDIUM;
-    }
+      : (MODEL_CATALOG.BARE_MINIMUM || getBareMinimumModel());
     const isCached = await this.isModelCached(target.id);
     await this.loadModelInWorker(target.id, target.dtype || 'q4', isCached);
   }
@@ -1035,11 +1033,12 @@ class LocalAIService {
    * 7. नया मॉडल लोड करें: await this.loadModelInWorker(modelId, dtype);
    */
   async switchModel(modelId, dtype = 'q4') {
-    if (!modelId || modelId === 'portfolio-engine' || modelId === 'off') {
+    const id = (typeof modelId === 'object' && modelId !== null) ? modelId.id : modelId;
+    if (!id || id === 'portfolio-engine' || id === 'off') {
       this.turnOffAI();
       return;
     }
-    const details = this.getModelDetails(modelId);
+    const details = this.getModelDetails(id);
 
     // Guard: If requested model is already active and ready, no-op
     if (this.activeModel && this.activeModel.id === details.id && this.status === 'ready') {
@@ -1107,7 +1106,8 @@ class LocalAIService {
    * Alias for switchModel with options support
    */
   async loadModel(modelId, options = {}) {
-    return this.switchModel(modelId, options.dtype || 'q4');
+    const id = (typeof modelId === 'object' && modelId !== null) ? modelId.id : modelId;
+    return this.switchModel(id, options.dtype || 'q4');
   }
 
   /**

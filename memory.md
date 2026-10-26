@@ -21,11 +21,11 @@
 
 | State Dimension | Live Status & Forensic Value |
 | :--- | :--- |
-| **Current Active Milestone** | **Clean, Minimal & Informative Chat Redesign v2.4.2 (Production Master Sign-Off A+)** |
-| **Where the Agent is Right Now (अभी तक कहाँ पहुँचा है एजेंट)** | • **All 16 Architecture Modules** fully developed, calibrated, and running in production.<br>• **Clean, Minimal & Informative Chat Redesign (All 4 Phases Fully Completed & Verified A+)**:<br>  - Phase 1: Header & Sub-Header Minimalism (`AIChatWidget.jsx`) — Consolidated 8 header icon buttons into single `•••` Quick Tools popover menu (`showQuickTools`), retained 3 essential sub-header pills (Audience, Role Track, AI Model), and removed the permanent 36px rainbow Meta-Prompt strip.<br>  - Phase 2: Message Bubbles & Inline Micro-Toolbar (`AIChatWidget.jsx`) — Excised in-bubble option button stacks and bulky banners. Introduced single-row micro-toolbar with monospace timestamp, Copy button, TTS speech button, Thumbs up/down buttons, and dynamic model attribution badge (`msg.modelShortcut || '[Portfolio-Engine]'`).<br>  - Phase 3: Single-Row Flex Carousel & Input Polish (`AIChatWidget.jsx`, `SuggestionChipsDrawer.jsx`) — Converted suggestion drawer into single-row horizontal flex carousel with category tabs (`CATEGORY_TABS`) and composite Set deduplication; input composer upgraded with Sparkles Prompt Studio launcher, focus glow ring, and WCAG AA 44px minimum touch targets.<br>  - Phase 4: Full-Suite Verification & Safe Pruning (`scripts/verify_clean_minimal_chat.mjs`, `changes_log/`, `memory.md`) — Automated verification harness (6/6 PASS, 100%), full 58-harness regression suite under `npm test` (58/58 PASS, 100% Green), 0 oxlint errors across 319 files, and 1.88s clean production build.<br>• **Chat UI Resilience & Suggestion Deduplication (All 3 Phases Fully Completed & Verified A+)**.<br>• **AI & Chat Studio Settings Tab (Tab 7: `id: 'chat'`) (All 4 Phases Fully Completed & Verified A+)**.<br>• **Single Model Memory Lock & Concurrency Preload Mutex (All 4 Phases Fully Completed & Verified A+)**.<br>• **3D Studio Split Sandbox Suite (All Phases 1–5 Fully Completed & Verified)**.<br>• **All 35 Custom Cursors** across 7 distinct families active.<br>• **Pure Procedural Web Audio Engine** (8 procedural sounds, zero external mp3/wav files) verified.<br>• **0 Oxlint errors** across entire codebase.<br>• **Production Build Passing** in 1.88s. |
-| **Last Agent Action Completed** | **`CHG-20261026-082`** (2026-10-26 08:25:00 IST) — Clean, Minimal & Informative Chat Redesign (Phases 1 - 4): Consolidated 8 header icon buttons into a single minimalist `•••` Quick Tools popover menu (`showQuickTools`), streamlined message micro-toolbars, converted Suggestion Drawer into a single-row flex carousel with category tabs and composite Set deduplication, added Sparkles Prompt Studio launcher and 44px touch targets; verified 6/6 tests in `scripts/verify_clean_minimal_chat.mjs`, 58/58 master regression suite (100% green), 0 oxlint errors, and 1.88s clean build. |
-| **Next Immediate Recommended Action (अगला तत्काल कार्य)** | Safe post-verification cleanup of `temp_prompt/clean_minimal_chat_redesign/` per Universal Rule 22 while preserving `temp_prompt/README.md`. |
-| **Universal Protocol Adherence** | Full compliance with Rule 1 (CEO Model), Rule 2 (Atomic Parallel Aggregation), Rule 6 (Changes Log Ledger), Rule 16 (Git Metadata: `aiprincekumar`), Rule 21 (Zero-Scan Boot Protocol), Rule 22 (`temp_prompt/` Phase Execution & Cleanup Management), and Rule 23 (Mandatory Stage-by-Stage Memory Synchronization & Zero-Scan State Preservation via `memory-sync-sentinel`). |  
+| **Current Active Milestone** | **SmolLM2-135M Bare-Minimum Permanent Fix & Pure % Badge Architecture v2.4.6 (Production Master Sign-Off A+)** |
+| **Where the Agent is Right Now (अभी तक कहाँ पहुँचा है एजेंट)** | • **All 16 Architecture Modules** fully developed, calibrated, and running in production.<br>• **SmolLM2-135M Bare-Minimum Permanent Fix & Pure Percentage Badge (All 3 Phases Fully Completed & Verified A+)**:<br>  - Phase 1: Core Service & Worker Fixes (`localAIService.js`, `aiModelWorker.js`) — Excised hardcoded 950MB overrides (`target = MODEL_CATALOG.MEDIUM;`) in `upgradeToRecommendedModel` and `turnOnAI`; added slow performance kill-switch exemption for SmolLM2-135M (`!isBareMinimumModel`) in `probeModelPerformance`.<br>  - Phase 2: Widget Trigger & UI Polish (`AIChatWidget.jsx`) — Directly wired consent modal confirmation and sub-header ⚡ toggle to `loadModel(bareModel)`; eliminated contradictory `isAiOn &&` gate from `isOpen` download hook; formatted sub-header download badge as pure percentage `${progress}%` without word labels.<br>  - Phase 3: Comprehensive Verification, Full Regression & Memory Sync (`scripts/verify_smollm_permanent_fix.mjs`, `memory.md`, `docs/FEATURES_MEMORY.md`) — Dedicated verification harness (11/11 PASS, 100%), full 58-harness regression suite under `npm test` (58/58 PASS, 100% Green), 0 oxlint errors/warnings across 322 files, and 2.29s clean production build.<br>• **In-Bubble Decision Tree Restoration & SmolLM2 On-Device Reliability (All 3 Phases Fully Completed & Verified A+)**.<br>• **Universal Rule 15 Enhancement (Pillar 6: Standardized 1-Line AI Prompt & 1-Click Manual Execution Commands Fully Codified & Verified A+)**.<br>• **Pure Icon-Only Sub-Header Strip & Pure Single-Row Chips Carousel (All 3 Phases Fully Completed & Verified A+)**.<br>• **Universal Rule 15 5-Pillar Git Automation Architecture Suite (Fully Completed & Verified A+)**.<br>• **Clean, Minimal & Informative Chat Redesign (All 4 Phases Fully Completed & Verified A+)**.<br>• **Chat UI Resilience & Suggestion Deduplication (All 3 Phases Fully Completed & Verified A+)**.<br>• **AI & Chat Studio Settings Tab (Tab 7: `id: 'chat'`) (All 4 Phases Fully Completed & Verified A+)**.<br>• **Single Model Memory Lock & Concurrency Preload Mutex (All 4 Phases Fully Completed & Verified A+)**.<br>• **3D Studio Split Sandbox Suite (All Phases 1–5 Fully Completed & Verified)**.<br>• **All 35 Custom Cursors** across 7 distinct families active.<br>• **Pure Procedural Web Audio Engine** (8 procedural sounds, zero external mp3/wav files) verified.<br>• **0 Oxlint errors/warnings** across entire codebase.<br>• **Production Build Passing** in 2.29s. |
+| **Last Agent Action Completed** | **`CHG-20261026-085`** (2026-10-26 10:25:00 IST) — SmolLM2-135M Bare-Minimum Permanent Fix & Pure Percentage Badge (Phases 1 - 3): Excised hardcoded 950MB overrides from localAIService.js; exempted SmolLM2-135M from slow performance auto-downgrade kill-switch in aiModelWorker.js and localAIService.js; removed contradictory isAiOn && check from isOpen useEffect; directly wired consent modal and ⚡ toggle to loadModel(bareModel); formatted sub-header download badge as pure percentage without word labels; verified 11/11 tests in scripts/verify_smollm_permanent_fix.mjs, 58/58 master regression suite (100% green), 0 oxlint errors/warnings, and clean 2.29s build. |
+| **Next Immediate Recommended Action (अगला तत्काल कार्य)** | Safe post-verification cleanup of `temp_prompt/smollm_bare_minimum_permanent_fix/` per Universal Rule 22 while preserving `temp_prompt/README.md`, followed by Git sync via Universal Rule 15 runner (`scripts/git/git_sync.ps1`). |
+| **Universal Protocol Adherence** | Full compliance with Rule 1 (CEO Model), Rule 2 (Atomic Parallel Aggregation), Rule 6 (Changes Log Ledger), Rule 15 (Dedicated GitHub Operations, Auto-Sync & Zero-Hallucination Verification Standard — with Pillar 6 Standardized AI Prompts & 1-Click Runners), Rule 16 (Git Metadata: `aiprincekumar`), Rule 21 (Zero-Scan Boot Protocol), Rule 22 (`temp_prompt/` Phase Execution & Cleanup Management), and Rule 23 (Mandatory Stage-by-Stage Memory Synchronization & Zero-Scan State Preservation via `memory-sync-sentinel`). |  
 
 ---
 
@@ -93,6 +93,64 @@ The **Interactive Cursor-Tracking Portfolio** is a high-performance web platform
 | **Oxlint** | `1.81.0` | Static Analysis | Rust-based ultra-fast linter enforcing clean syntax and code hygiene across 70+ files. |
 | **Playwright** | `1.64.1` | Headless Verification | End-to-end browser autoscroll testing validating 100% layout and interactive stability. |
 
+## 1.3 Git & Repository Automation Architecture (Universal Rule 15)
+
+The repository implements a token-efficient, zero-hallucination Git synchronization architecture strictly governed by Universal Rule 15 and executed via dedicated runner scripts:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│              UNIVERSAL RULE 15: 6-PILLAR GIT AUTOMATION ARCHITECTURE        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 1. Dedicated Specialist & 1-Click Runners:                                  │
+│    • Delegated strictly to `github_operations_specialist`                   │
+│    • 1-Click execution: `scripts/git/git_sync.ps1` & `git_sync.bat`        │
+│    • Automated health check: `scripts/git/verify_git_sync.ps1`              │
+│                                                                             │
+│ 2. Smart Staging & Security Filter:                                         │
+│    • Concise `git status --short` (zero token waste)                        │
+│    • Automatic exclusion of `.env*`, API keys, passwords, credentials       │
+│    • Cross-verified against `changes_log` and `memory.md`                   │
+│                                                                             │
+│ 3. Zero-Token Conventional Commit Generation:                               │
+│    • Auto-derived from `changes_log/summary/changes_summary.md` latest entry│
+│    • Conventional format (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`)  │
+│                                                                             │
+│ 4. Zero-Hallucination Terminal Proof Mandate:                               │
+│    • Verbal claims prohibited; raw 3-point terminal proof block required:   │
+│      1. `git log -1` raw commit hash and message                            │
+│      2. `git push` live remote server response                              │
+│      3. `git status` clean working tree & up-to-date branch confirmation    │
+│                                                                             │
+│ 5. Safe Rebase & Zero Data-Loss Conflict Policy:                            │
+│    • Mandatory `git pull --rebase` on divergence                            │
+│    • Permanent ban on destructive `--force` push                            │
+│    • Automatic stashing / backup branching on merge conflict                │
+│                                                                             │
+│ 6. Standardized 1-Line AI Prompt & 1-Click Manual Execution Commands:        │
+│    • Universal 1-Line AI Prompt (Any AI Agent/Model):                       │
+│      - Hindi: 'यूनिवर्सल रूल 15 के अनुसार powershell -ExecutionPolicy        │
+│        Bypass -File .\scripts\git\git_sync.ps1 चलाकर सभी बदलाव कमिट व      │
+│        पुश करो और 3-पॉइंट वेरिफिकेशन आउटपुट दिखाओ।'                          │
+│      - English: 'Execute powershell -ExecutionPolicy Bypass -File            │
+│        .\scripts\git\git_sync.ps1 per Universal Rule 15 to stage, commit,   │
+│        and push all changes, and return 3-point terminal verification proof'│
+│    • Direct 1-Click Manual Commands (User Execution):                       │
+│      - Windows CMD / Terminal: .\scripts\git\git_sync.bat                    │
+│      - PowerShell: powershell -ExecutionPolicy Bypass -File                  │
+│        .\scripts\git\git_sync.ps1                                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+| Script / Command Interface | Purpose | Execution Syntax |
+| :--- | :--- | :--- |
+| [`scripts/git/git_sync.ps1`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/scripts/git/git_sync.ps1) | Primary PowerShell runner for staging, commit extraction, rebase, push, and proof emission. | `powershell -ExecutionPolicy Bypass -File scripts/git/git_sync.ps1` |
+| [`scripts/git/git_sync.bat`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/scripts/git/git_sync.bat) | Windows 1-click batch launcher wrapping `git_sync.ps1`. | `.\scripts\git\git_sync.bat` |
+| [`scripts/git/verify_git_sync.ps1`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/scripts/git/verify_git_sync.ps1) | Automated verification script asserting clean tree and remote tracking branch hash parity with JSON output. | `powershell -ExecutionPolicy Bypass -File scripts/git/verify_git_sync.ps1` |
+| **Universal 1-Line AI Prompt (Hindi)** | Standard copy-pasteable prompt for any AI model to execute Rule 15 Git sync autonomously. | `यूनिवर्सल रूल 15 के अनुसार 'powershell -ExecutionPolicy Bypass -File .\scripts\git\git_sync.ps1' चलाकर सभी बदलाव GitHub पर कमिट व पुश करो और टर्मिनल का 3-पॉइंट वेरिफिकेशन आउटपुट दिखाओ।` |
+| **Universal 1-Line AI Prompt (English)** | English alternative prompt for any AI model to execute Rule 15 Git sync autonomously. | `Execute 'powershell -ExecutionPolicy Bypass -File .\scripts\git\git_sync.ps1' per Universal Rule 15 to stage, commit, and push all changes to GitHub, and return the 3-point terminal verification proof.` |
+| **Direct 1-Click CMD Runner** | 1-click execution for human user directly in Windows Command Prompt. | `.\scripts\git\git_sync.bat` |
+| **Direct 1-Click PowerShell Runner** | 1-click execution for human user directly in PowerShell terminal. | `powershell -ExecutionPolicy Bypass -File .\scripts\git\git_sync.ps1` |
+
 ---
 
 # ═════════════════════════════════════════════════════════════════════
@@ -116,6 +174,7 @@ The **Interactive Cursor-Tracking Portfolio** is a high-performance web platform
 - [x] **40-Item Bilingual FAQ System:** Searchable and category-filtered accordion FAQ with automated Schema.org `FAQPage` JSON-LD injection for rich search indexing.
 - [x] **RFC 6350 vCard & Pure SVG QR Engine:** Client-side dynamic QR generation and contact card export (`vcardGenerator.js`) with zero network API reliance.
 - [x] **Audience Persona Filter & View Mode Switcher:** 4 tailored visitor perspectives (All, Recruiter, Client, Matrimonial) and 4 presentation tiers (Basic/PDF, Simple, Modern, CLI).
+- [x] **Git Automation Architecture Suite (Universal Rule 15):** 6-pillar Git operation system with 1-click execution runners (`git_sync.ps1`, `git_sync.bat`), automated verification (`verify_git_sync.ps1`), smart staging with zero sensitive leakage, mandatory 3-point terminal proof, and standardized 1-line AI prompts & 1-click manual execution commands.
 
 ## 2.2 Pending & Engineering Roadmap (`[ ]`)
 
@@ -149,6 +208,7 @@ The **Interactive Cursor-Tracking Portfolio** is a high-performance web platform
 | **Phase Staging (Rule 22)** | [`temp_prompt/README.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/temp_prompt/README.md) | `temp_prompt/<task>/INDEX.md` | Ephemeral prompt execution staging, phase decomposition, auto-cleanup protocol |
 | **Phase Architect Skill** | [`.agents/skills/phase-prompt-architect/SKILL.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/.agents/skills/phase-prompt-architect/SKILL.md) | `phase_prompt_architect` agent | Master skill protocol for structuring, tracking, and pruning phase prompt documents |
 | **Memory Sentinel Skill (Rule 23)** | [`.agents/skills/memory-sync-sentinel/SKILL.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/.agents/skills/memory-sync-sentinel/SKILL.md) | `memory_sync_sentinel` agent | Continuous two-tier Section 0 sync, parallel aggregation, failure logging & zero-scan state preservation |
+| **Git Automation Suite (Rule 15)** | [`scripts/git/git_sync.ps1`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/scripts/git/git_sync.ps1) | [`scripts/git/verify_git_sync.ps1`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/scripts/git/verify_git_sync.ps1) | 1-click token-efficient sync runner, security filter, auto-conventional commits, 3-point proof, and JSON status verifier |
 | **Verification & Tests**| [`scripts/run_all_tests.mjs`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/scripts/run_all_tests.mjs) | [`package.json`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/package.json) | 58 test harnesses, Oxlint linter, Playwright autoscroll |
 
 ---
@@ -334,6 +394,20 @@ The **Interactive Cursor-Tracking Portfolio** is a high-performance web platform
     - Fixed Single-Row Carousel: Converted `<SuggestionChipsDrawer>` into a single-row horizontal flex carousel with category filtering tabs (`CATEGORY_TABS`) and composite Set deduplication.
     - Polished Input Dock: Integrated Sparkles Prompt Studio trigger, focus-within glow ring (`focus-within:ring-1 focus-within:ring-[#FF4D6D]/30`), and WCAG 2.1 AA 44px minimum mobile touch targets.
     - Automated Certification: Authored dedicated verification harness `scripts/verify_clean_minimal_chat.mjs` passing 6/6 tests (100% Green); full 58-harness regression suite under `npm test` passing 100% (58/58 PASS); 0 oxlint errors across 319 files; clean 1.88s production build.
+  - *Phase 15: Pure Icon-Only Sub-Header Strip & Pure Single-Row Chips Carousel (Phases 1 - 3):*
+    - Pure Icon-Only Sub-Header: Stripped all text label spans from sub-header buttons leaving 10 pure icon-only buttons (`28px` square footprint, rich tooltips via `title`, active state indicator halos, non-clipping overflow `overflow-x-auto no-scrollbar`) partitioned into Left Perspective (4 buttons: Audience, Role, View Mode, AI Model) and Right Quick Tools (6 buttons: Prompt Studio, AI Toggle, Emoji, History, Export, Clear).
+    - Pure Single-Row Suggestion Chips Carousel: Excised `CATEGORY_TABS` and category header tabs from `SuggestionChipsDrawer.jsx` leaving a pure single-row horizontal flex carousel track with smooth chevron navigation and Set-based composite chip deduplication (`id || label.trim().toLowerCase()`).
+    - Automated Certification: Authored dedicated verification harness `scripts/verify_icon_only_chat.mjs` passing 6/6 tests (100% Green); full 58-harness regression suite under `npm test` passing 100% (58/58 PASS); 0 oxlint errors across 320 files; clean 2.04s production build.
+  - *Phase 16: In-Bubble Decision Tree Restoration & SmolLM2 On-Device Reliability (Phases 1 - 3):*
+    - In-Bubble Interactive Decision Tree Cards: Restored rich, accessible in-bubble cards inside `AIChatWidget.jsx` for `preferences_prompt`, audience selection, role track switcher, view mode switcher, and `ai_model_switch`; guaranteed persistent initial welcome message Yes/No customization prompt (`✨ हाँ, प्राथमिकताएं बदलें / Yes, Customize` and `✓ नहीं, यही रहने दें / No, Keep Current`).
+    - SmolLM2 ONNX Weights & Watchdog Hardening: Updated `MODEL_CATALOG` in `deviceProfiler.js` to official `onnx-community/SmolLM2-135M-Instruct` and `onnx-community/SmolLM2-360M-Instruct` repositories; increased download stall watchdog to 45s and shader compilation grace watchdog to 30s in `localAIService.js`; enabled zero-prompt background warmup for bare-minimum model.
+    - Automated Certification: Authored dedicated verification harness `scripts/verify_decision_tree_and_smollm.mjs` passing 6/6 tests (100% Green); full 58-harness regression suite under `npm test` passing 100% (58/58 PASS); 0 oxlint errors/warnings across 321 files; clean 2.09s production build.
+  - *Phase 17: SmolLM2-135M Bare-Minimum Permanent Fix & Pure Percentage Badge Architecture (Phases 1 - 3):*
+    - Hardcoded Override Removal: Excised `target = MODEL_CATALOG.MEDIUM;` lines from `upgradeToRecommendedModel` and `turnOnAI` in `localAIService.js`. The bare-minimum SmolLM2-135M model (~90MB) remains strictly active unless explicitly chosen by user.
+    - Worker Slow Kill-Switch Exemption: In `aiModelWorker.js` and `localAIService.js`, `probeModelPerformance` calculates `isSlow: true` only if `!isBareMinimumModel`, permanently preventing 135M auto-downgrades.
+    - Direct Consent & ⚡ Wiring: In `AIChatWidget.jsx`, wired consent modal confirmation and sub-header ⚡ toggle directly to `localAIService.loadModel(bareModel)`. Removed contradictory `isAiOn &&` gate from `isOpen` download trigger.
+    - Pure Percentage Badge: Formatted sub-header download badge as pure percentage `${progress}%` (e.g. `45%`) without word labels like `AI Loading`.
+    - Automated Certification: Authored dedicated verification harness `scripts/verify_smollm_permanent_fix.mjs` passing 11/11 tests (100% Green); full 58-harness regression suite under `npm test` passing 100% (58/58 PASS); 0 oxlint errors/warnings across 322 files; clean 2.29s production build.
 
 ---
 
@@ -442,6 +516,7 @@ npm run preview
 | Test Suite Script | Primary Architectural Focus | Coverage & Invariants |
 | :--- | :--- | :--- |
 | [`verify_gap1_orbital_sun_compass.mjs`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/scripts/verify_gap1_orbital_sun_compass.mjs) | Phase 1: 360° Circular orbital sun compass, 8-point cardinal nav, inverted shadow | 10/10 PASS |
+| [`verify_smollm_permanent_fix.mjs`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/scripts/verify_smollm_permanent_fix.mjs) | Phase 17: SmolLM2-135M bare-minimum permanent fix & pure % badge | 11/11 PASS |
 | [`verify_gap2_material_shader_orbs.mjs`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/scripts/verify_gap2_material_shader_orbs.mjs) | Phase 2: 4 material shader orbs (Glass, Metallic, Clay, Wireframe), bevel chamfer | 11/11 PASS |
 | [`verify_gap3_sandbox_hud.mjs`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/scripts/verify_gap3_sandbox_hud.mjs) | Phase 3: Interactive 3D cube sandbox HUD, A/B comparison slider, expand viewport | PASS |
 | [`verify_gap4_blueprint_wireframe.mjs`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/scripts/verify_gap4_blueprint_wireframe.mjs) | Phase 3: Mini portfolio layout blueprint wireframe, 10 element toggles, batch HUD | 15/15 PASS |
