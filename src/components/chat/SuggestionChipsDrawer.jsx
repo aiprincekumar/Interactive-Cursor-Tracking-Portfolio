@@ -12,8 +12,8 @@ const CATEGORY_TABS = [
 
 /**
  * SuggestionChipsDrawer
- * 2-row sliding grid with category filter tabs, smooth mouse drag & touch scroll,
- * visible scroll arrows, and roving keyboard navigation.
+ * Fixed single-row carousel with compact category filter tabs, smooth mouse drag & touch scroll,
+ * subtle chevron navigation, and roving keyboard navigation.
  */
 export default function SuggestionChipsDrawer({
   chips = [],
@@ -30,12 +30,22 @@ export default function SuggestionChipsDrawer({
   const chipRefs = useRef([]);
   const dragStartRef = useRef({ x: 0, scrollLeft: 0, hasMoved: false });
 
-  // Filter chips based on active category
+  // Filter chips based on active category & deduplicate
   const visibleChips = useMemo(() => {
     if (!Array.isArray(chips) || chips.length === 0) return [];
-    if (activeCategory === 'all') return chips;
-    const filtered = chips.filter((c) => c.category === activeCategory);
-    return filtered.length > 0 ? filtered : chips;
+    const filtered = activeCategory === 'all'
+      ? chips
+      : chips.filter((c) => c.category === activeCategory);
+    const list = filtered.length > 0 ? filtered : chips;
+
+    // Deduplicate chips by unique ID / label to ensure zero duplicate rendered elements
+    const seen = new Set();
+    return list.filter((chip) => {
+      const key = (chip.id || chip.label || chip.query || '').trim().toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }, [chips, activeCategory]);
 
   const updateScrollBoundaries = useCallback(() => {
@@ -69,7 +79,7 @@ export default function SuggestionChipsDrawer({
   const handleScrollClick = (direction) => {
     const el = scrollRef.current;
     if (!el) return;
-    const delta = direction === 'left' ? -200 : 200;
+    const delta = direction === 'left' ? -180 : 180;
     el.scrollBy({ left: delta, behavior: 'smooth' });
   };
 
@@ -153,7 +163,7 @@ export default function SuggestionChipsDrawer({
   return (
     <div className="px-2.5 py-1.5 border-t border-[#E7E2D8]/60 dark:border-[#2D2340]/60 bg-stone-50/70 dark:bg-[#120D1D]/60 shrink-0 select-none">
       {/* Category Tabs Header */}
-      <div className="flex items-center justify-between gap-1 mb-1 px-1">
+      <div className="flex items-center justify-between gap-1 mb-1 px-0.5">
         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
           {CATEGORY_TABS.map((tab) => {
             const isActive = activeCategory === tab.id;
@@ -168,10 +178,10 @@ export default function SuggestionChipsDrawer({
                     scrollRef.current.scrollLeft = 0;
                   }
                 }}
-                className={`text-[9.5px] px-2 py-0.5 rounded-full font-medium transition-all duration-150 cursor-pointer whitespace-nowrap active:scale-95 ${
+                className={`text-[9px] px-2 py-0.5 rounded-full font-medium transition-all duration-150 cursor-pointer whitespace-nowrap active:scale-95 ${
                   isActive
                     ? 'bg-[#FF4D6D] text-white shadow-2xs font-semibold'
-                    : 'bg-stone-200/60 dark:bg-stone-800/60 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200 dark:hover:bg-stone-700/80'
+                    : 'bg-stone-200/50 dark:bg-stone-800/50 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200 dark:hover:bg-stone-700/80'
                 }`}
               >
                 {tab.label}
@@ -179,12 +189,12 @@ export default function SuggestionChipsDrawer({
             );
           })}
         </div>
-        <span className="text-[9px] font-mono uppercase tracking-wider text-stone-400 dark:text-stone-500 shrink-0 hidden sm:inline">
-          {visibleChips.length} Chips
+        <span className="text-[9px] font-mono text-stone-400 dark:text-stone-500 shrink-0 hidden sm:inline">
+          {visibleChips.length} prompts
         </span>
       </div>
 
-      {/* 2-Row Sliding Grid Track with Left/Right Arrows */}
+      {/* Fixed Single-Row Carousel Track */}
       <div className="relative flex items-center w-full">
         {/* Left Arrow Button */}
         <button
@@ -192,14 +202,14 @@ export default function SuggestionChipsDrawer({
           onClick={() => handleScrollClick('left')}
           disabled={!canScrollLeft}
           aria-label="Scroll suggestions left"
-          className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 z-10 mr-1 cursor-pointer bg-white dark:bg-[#251B38] border border-[#FF4D6D]/40 text-[#FF4D6D] shadow-xs active:scale-90 ${
-            canScrollLeft ? 'opacity-100 hover:bg-[#FF4D6D] hover:text-white' : 'opacity-25 pointer-events-none'
+          className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200 z-10 mr-1 cursor-pointer bg-white dark:bg-[#251B38] border border-[#FF4D6D]/40 text-[#FF4D6D] shadow-xs active:scale-90 ${
+            canScrollLeft ? 'opacity-100 hover:bg-[#FF4D6D] hover:text-white' : 'opacity-20 pointer-events-none'
           }`}
         >
-          <ChevronLeft size={14} />
+          <ChevronLeft size={12} />
         </button>
 
-        {/* 2-Row Horizontal Sliding Grid */}
+        {/* Single-Row Horizontal Carousel Container */}
         <div
           ref={scrollRef}
           role="toolbar"
@@ -208,8 +218,8 @@ export default function SuggestionChipsDrawer({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
-          className={`grid grid-rows-2 grid-flow-col auto-cols-max gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-1 w-full touch-pan-x ${
-            isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'
+          className={`flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-1 w-full touch-pan-x select-none ${
+            isDragging ? 'cursor-grabbing' : 'cursor-grab'
           }`}
         >
           {visibleChips.map((chip, idx) => {
@@ -225,10 +235,12 @@ export default function SuggestionChipsDrawer({
                 disabled={isTyping}
                 onClick={() => handleChipClick(chip)}
                 onKeyDown={(e) => handleChipKeyDown(e, idx)}
-                className={`shrink-0 h-[26px] min-h-[26px] px-2.5 py-0.5 rounded-lg text-[10.5px] font-sans font-medium inline-flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer shadow-2xs whitespace-nowrap active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                className={`shrink-0 h-[26px] min-h-[26px] px-2.5 py-0.5 rounded-lg text-[10.5px] font-sans font-medium inline-flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer shadow-2xs whitespace-nowrap active:scale-95 focus-visible:ring-1.5 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
                   isTyping
                     ? 'opacity-40 pointer-events-none'
-                    : 'bg-white/90 dark:bg-[#1E162B]/90 backdrop-blur-xs border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 hover:text-[#FF4D6D] dark:hover:text-[#FF758F] hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20 hover:border-[#FF4D6D]/60'
+                    : chip.isDecisionOption
+                      ? 'bg-linear-to-r from-[#FF4D6D]/15 to-[#9333EA]/15 dark:from-[#FF4D6D]/25 dark:to-[#9333EA]/25 border border-[#FF4D6D]/50 text-stone-800 dark:text-stone-100 hover:border-[#FF4D6D] hover:bg-[#FF4D6D]/20 font-semibold'
+                      : 'bg-white/90 dark:bg-[#1E162B]/90 backdrop-blur-xs border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 hover:text-[#FF4D6D] dark:hover:text-[#FF758F] hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20 hover:border-[#FF4D6D]/60'
                 }`}
               >
                 {chip.label}
@@ -243,11 +255,11 @@ export default function SuggestionChipsDrawer({
           onClick={() => handleScrollClick('right')}
           disabled={!canScrollRight}
           aria-label="Scroll suggestions right"
-          className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 z-10 ml-1 cursor-pointer bg-white dark:bg-[#251B38] border border-[#FF4D6D]/40 text-[#FF4D6D] shadow-xs active:scale-90 ${
-            canScrollRight ? 'opacity-100 hover:bg-[#FF4D6D] hover:text-white' : 'opacity-25 pointer-events-none'
+          className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200 z-10 ml-1 cursor-pointer bg-white dark:bg-[#251B38] border border-[#FF4D6D]/40 text-[#FF4D6D] shadow-xs active:scale-90 ${
+            canScrollRight ? 'opacity-100 hover:bg-[#FF4D6D] hover:text-white' : 'opacity-20 pointer-events-none'
           }`}
         >
-          <ChevronRight size={14} />
+          <ChevronRight size={12} />
         </button>
       </div>
     </div>

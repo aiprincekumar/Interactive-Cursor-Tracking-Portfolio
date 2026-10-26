@@ -6,6 +6,39 @@ export const CONTROL_CENTER_STORAGE_KEY = 'portfolio_control_center';
 export const LAB_STORAGE_KEY = 'portfolio_lab_config'; // Legacy mirror key
 export const LEGACY_STUDIO_STORAGE_KEY = 'lab_studio_state'; // Legacy studio drawer state key
 export const AUTO_SCROLL_STORAGE_KEY = 'portfolio_auto_scroll_on_refresh';
+export const STORAGE_KEY_AI_CHAT = 'portfolio_ai_chat_settings';
+
+export const DEFAULT_AI_CHAT_SETTINGS = Object.freeze({
+  // Cluster 1: Model & Execution Engine
+  modelId: 'auto', // 'auto' | 'offline_rag' | 'HuggingFaceTB/SmolLM2-135M-Instruct' | 'onnx-community/Qwen2.5-0.5B-Instruct' | 'onnx-community/Qwen2.5-1.5B-Instruct'
+  loadTrigger: 'on_demand', // 'on_demand' (Default) | 'on_page_load' | 'on_open' | 'manual'
+  consentMode: 'always_ask', // 'always_ask' (Default) | 'auto_confirm' | 'wifi_only'
+  executionBackend: 'webgpu', // 'webgpu' (Default) | 'wasm'
+  cacheRetentionDays: 30, // Retention period in days
+
+  // Cluster 2: Generation & Personality Controls
+  streamResponse: true, // Token streaming typewriter effect
+  temperature: 0.7, // 0.0 (Strict/Deterministic) to 1.2 (Creative)
+  maxTokens: 512, // Maximum output tokens (128 - 2048)
+  personaTone: 'helpful_pro', // 'helpful_pro' | 'concise_technical' | 'creative_mentor' | 'casual_peer'
+
+  // Cluster 3: Voice & Sound Studio
+  ttsEnabled: false, // Speech synthesis enabled
+  voicePitch: 1.0, // 0.5 to 1.5
+  voiceRate: 1.0, // 0.7 to 1.5
+  voiceId: 'default', // System speech voice URI or 'default'
+  chatSoundEffects: true, // Zero-audio-asset procedural sound effects
+
+  // Cluster 4: Privacy & Storage Tools
+  sessionRetention: 'until_closed', // 'ephemeral' | 'until_closed' | 'persistent_7d' | 'persistent_30d'
+  anonymizeTelemetry: true, // Keep telemetry anonymized
+
+  // Cluster 5: UI & Ergonomics
+  defaultWindowSize: 'normal', // 'compact' | 'normal' | 'expanded' | 'fullscreen'
+  autoGreetOnOpen: true, // Greet on chat panel open
+  suggestionChipsEnabled: true, // Display interactive quick suggestion chips
+  slashCommandsEnabled: true // Display slash '/' command autocomplete palette
+});
 
 export const FACTORY_DEFAULTS = {
   version: 2,
@@ -375,6 +408,141 @@ export function clampDepthIntensity(val) {
   if (isNaN(num)) return 1.0;
   return parseFloat(clamp(num, 0.2, 2.5, 1.0).toFixed(2));
 }
+
+export function sanitizeChatSettings(raw) {
+  if (!raw || typeof raw !== 'object') {
+    return { ...DEFAULT_AI_CHAT_SETTINGS };
+  }
+
+  const validModelIds = [
+    'auto',
+    'offline_rag',
+    'HuggingFaceTB/SmolLM2-135M-Instruct',
+    'onnx-community/Qwen2.5-0.5B-Instruct',
+    'onnx-community/Qwen2.5-1.5B-Instruct'
+  ];
+  const modelId = typeof raw.modelId === 'string' && (validModelIds.includes(raw.modelId) || raw.modelId.length > 0)
+    ? raw.modelId
+    : DEFAULT_AI_CHAT_SETTINGS.modelId;
+
+  const validLoadTriggers = ['on_demand', 'on_page_load', 'on_open', 'manual'];
+  const loadTrigger = typeof raw.loadTrigger === 'string' && validLoadTriggers.includes(raw.loadTrigger)
+    ? raw.loadTrigger
+    : DEFAULT_AI_CHAT_SETTINGS.loadTrigger;
+
+  const validConsentModes = ['always_ask', 'auto_confirm', 'wifi_only'];
+  const consentMode = typeof raw.consentMode === 'string' && validConsentModes.includes(raw.consentMode)
+    ? raw.consentMode
+    : DEFAULT_AI_CHAT_SETTINGS.consentMode;
+
+  const validBackends = ['webgpu', 'wasm'];
+  const executionBackend = typeof raw.executionBackend === 'string' && validBackends.includes(raw.executionBackend)
+    ? raw.executionBackend
+    : DEFAULT_AI_CHAT_SETTINGS.executionBackend;
+
+  const cacheRetentionDays = typeof raw.cacheRetentionDays === 'number' && !isNaN(raw.cacheRetentionDays)
+    ? Math.round(clamp(raw.cacheRetentionDays, 1, 365, DEFAULT_AI_CHAT_SETTINGS.cacheRetentionDays))
+    : DEFAULT_AI_CHAT_SETTINGS.cacheRetentionDays;
+
+  const streamResponse = typeof raw.streamResponse === 'boolean'
+    ? raw.streamResponse
+    : DEFAULT_AI_CHAT_SETTINGS.streamResponse;
+
+  const temperature = typeof raw.temperature === 'number' && !isNaN(raw.temperature)
+    ? parseFloat(clamp(raw.temperature, 0.0, 1.2, DEFAULT_AI_CHAT_SETTINGS.temperature).toFixed(2))
+    : DEFAULT_AI_CHAT_SETTINGS.temperature;
+
+  const maxTokens = typeof raw.maxTokens === 'number' && !isNaN(raw.maxTokens)
+    ? Math.round(clamp(raw.maxTokens, 128, 2048, DEFAULT_AI_CHAT_SETTINGS.maxTokens))
+    : DEFAULT_AI_CHAT_SETTINGS.maxTokens;
+
+  const validTones = ['helpful_pro', 'concise_technical', 'creative_mentor', 'casual_peer'];
+  const personaTone = typeof raw.personaTone === 'string' && validTones.includes(raw.personaTone)
+    ? raw.personaTone
+    : DEFAULT_AI_CHAT_SETTINGS.personaTone;
+
+  const ttsEnabled = typeof raw.ttsEnabled === 'boolean'
+    ? raw.ttsEnabled
+    : DEFAULT_AI_CHAT_SETTINGS.ttsEnabled;
+
+  const voicePitch = typeof raw.voicePitch === 'number' && !isNaN(raw.voicePitch)
+    ? parseFloat(clamp(raw.voicePitch, 0.5, 1.5, DEFAULT_AI_CHAT_SETTINGS.voicePitch).toFixed(2))
+    : DEFAULT_AI_CHAT_SETTINGS.voicePitch;
+
+  const voiceRate = typeof raw.voiceRate === 'number' && !isNaN(raw.voiceRate)
+    ? parseFloat(clamp(raw.voiceRate, 0.5, 1.5, DEFAULT_AI_CHAT_SETTINGS.voiceRate).toFixed(2))
+    : DEFAULT_AI_CHAT_SETTINGS.voiceRate;
+
+  const voiceId = typeof raw.voiceId === 'string' && raw.voiceId.trim().length > 0
+    ? raw.voiceId
+    : DEFAULT_AI_CHAT_SETTINGS.voiceId;
+
+  const chatSoundEffects = typeof raw.chatSoundEffects === 'boolean'
+    ? raw.chatSoundEffects
+    : DEFAULT_AI_CHAT_SETTINGS.chatSoundEffects;
+
+  const validRetentions = ['ephemeral', 'until_closed', 'persistent_7d', 'persistent_30d'];
+  const sessionRetention = typeof raw.sessionRetention === 'string' && validRetentions.includes(raw.sessionRetention)
+    ? raw.sessionRetention
+    : DEFAULT_AI_CHAT_SETTINGS.sessionRetention;
+
+  const anonymizeTelemetry = typeof raw.anonymizeTelemetry === 'boolean'
+    ? raw.anonymizeTelemetry
+    : DEFAULT_AI_CHAT_SETTINGS.anonymizeTelemetry;
+
+  const validWindowSizes = ['compact', 'normal', 'expanded', 'fullscreen'];
+  const defaultWindowSize = typeof raw.defaultWindowSize === 'string' && validWindowSizes.includes(raw.defaultWindowSize)
+    ? raw.defaultWindowSize
+    : DEFAULT_AI_CHAT_SETTINGS.defaultWindowSize;
+
+  const autoGreetOnOpen = typeof raw.autoGreetOnOpen === 'boolean'
+    ? raw.autoGreetOnOpen
+    : DEFAULT_AI_CHAT_SETTINGS.autoGreetOnOpen;
+
+  const suggestionChipsEnabled = typeof raw.suggestionChipsEnabled === 'boolean'
+    ? raw.suggestionChipsEnabled
+    : DEFAULT_AI_CHAT_SETTINGS.suggestionChipsEnabled;
+
+  const slashCommandsEnabled = typeof raw.slashCommandsEnabled === 'boolean'
+    ? raw.slashCommandsEnabled
+    : DEFAULT_AI_CHAT_SETTINGS.slashCommandsEnabled;
+
+  return {
+    modelId,
+    loadTrigger,
+    consentMode,
+    executionBackend,
+    cacheRetentionDays,
+    streamResponse,
+    temperature,
+    maxTokens,
+    personaTone,
+    ttsEnabled,
+    voicePitch,
+    voiceRate,
+    voiceId,
+    chatSoundEffects,
+    sessionRetention,
+    anonymizeTelemetry,
+    defaultWindowSize,
+    autoGreetOnOpen,
+    suggestionChipsEnabled,
+    slashCommandsEnabled
+  };
+}
+
+export const getInitialChatSettings = () => {
+  if (typeof window === 'undefined') return { ...DEFAULT_AI_CHAT_SETTINGS };
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_AI_CHAT);
+    if (!raw) return { ...DEFAULT_AI_CHAT_SETTINGS };
+    const parsed = JSON.parse(raw);
+    return sanitizeChatSettings({ ...DEFAULT_AI_CHAT_SETTINGS, ...parsed });
+  } catch (err) {
+    console.warn('[LabContext] Failed to parse chat settings, falling back to defaults:', err);
+    return { ...DEFAULT_AI_CHAT_SETTINGS };
+  }
+};
 
 export function normalizeStylePreset(val) {
   if (typeof val === 'string') {
@@ -1100,6 +1268,7 @@ export const LabHeroContext = createContext(null);
 export const LabThreeDContext = createContext(null);
 export const LabVisualsContext = createContext(null);
 export const LabDrawerContext = createContext(null);
+export const LabChatContext = createContext(null);
 
 export function LabProvider({ children, initialSoundEnabled }) {
   const initialConfig = useMemo(() => loadSavedControlCenterConfig(), []);
@@ -1169,6 +1338,32 @@ export function LabProvider({ children, initialSoundEnabled }) {
   // Phase 1: State Isolation & Scoped CSS 3D Architecture
   // Controls whether 3D CSS variables and datasets bleed into live document root
   const [isLive3DApplied, setIsLive3DApplied] = useState(false);
+
+  // Tab 7: AI & Chat Studio State
+  const [chatSettings, setChatSettings] = useState(getInitialChatSettings);
+
+  const updateChatSettings = useCallback((patch) => {
+    setChatSettings((prev) => {
+      const updated = sanitizeChatSettings(typeof patch === 'function' ? patch(prev) : { ...prev, ...patch });
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(STORAGE_KEY_AI_CHAT, JSON.stringify(updated));
+          window.dispatchEvent(
+            new CustomEvent('ai-chat-settings-changed', {
+              detail: { settings: updated, source: 'lab-context' }
+            })
+          );
+        } catch (err) {
+          console.error('[LabContext] Failed to persist chat settings:', err);
+        }
+      }
+      return updated;
+    });
+  }, []);
+
+  const resetChatSettings = useCallback(() => {
+    updateChatSettings(DEFAULT_AI_CHAT_SETTINGS);
+  }, [updateChatSettings]);
 
   // Runtime UI State
   const [activeTab, setActiveTab] = useState('audio');
@@ -1459,8 +1654,8 @@ export function LabProvider({ children, initialSoundEnabled }) {
         glassBlur,
         motionSpeed,
         accentColor,
-        layoutDensity,
-        autoScrollOnRefresh
+        autoScrollOnRefresh,
+        layoutDensity
       },
       threeD
     };
@@ -2210,7 +2405,10 @@ export function LabProvider({ children, initialSoundEnabled }) {
     } catch {
       // Ignore
     }
-  }, [recenterCharacter]);
+
+    // Reset AI & Chat Studio Settings (Tab 7)
+    resetChatSettings();
+  }, [recenterCharacter, resetChatSettings]);
 
   // --- Drawer Actions ---
   const openDrawer = useCallback(() => {
@@ -2430,6 +2628,14 @@ export function LabProvider({ children, initialSoundEnabled }) {
       if (e.key === 'portfolio_auto_scroll_on_refresh' && e.newValue !== null) {
         setAutoScrollOnRefreshState(e.newValue !== 'false');
       }
+      if (e.key === STORAGE_KEY_AI_CHAT) {
+        try {
+          const newSettings = e.newValue ? JSON.parse(e.newValue) : DEFAULT_AI_CHAT_SETTINGS;
+          setChatSettings(sanitizeChatSettings({ ...DEFAULT_AI_CHAT_SETTINGS, ...newSettings }));
+        } catch {
+          // Graceful fallback
+        }
+      }
     };
 
     window.addEventListener('storage', handleStorage);
@@ -2605,6 +2811,11 @@ export function LabProvider({ children, initialSoundEnabled }) {
     resetToDefaults: resetDefaults,
     resetToFactoryDefaults: resetDefaults,
 
+    // Tab 7: AI & Chat Studio State & Actions
+    chatSettings,
+    updateChatSettings,
+    resetChatSettings,
+
     // Legacy Aliases & Safety Fallbacks
     audioPitch: pitchMultiplier,
     setAudioPitch: setPitchMultiplier,
@@ -2755,7 +2966,10 @@ export function LabProvider({ children, initialSoundEnabled }) {
     openDrawer,
     closeDrawer,
     toggleDrawer,
-    resetDefaults
+    resetDefaults,
+    chatSettings,
+    updateChatSettings,
+    resetChatSettings
   ]);
 
   // Granular Slice Memoizations for Zero-Jank Isolated Subscriptions
@@ -3026,6 +3240,12 @@ export function LabProvider({ children, initialSoundEnabled }) {
     toggleDrawer
   ]);
 
+  const chatValue = useMemo(() => ({
+    chatSettings,
+    updateChatSettings,
+    resetChatSettings
+  }), [chatSettings, updateChatSettings, resetChatSettings]);
+
   return (
     <LabContext.Provider value={value}>
       <LabCursorContext.Provider value={cursorValue}>
@@ -3034,7 +3254,9 @@ export function LabProvider({ children, initialSoundEnabled }) {
             <LabThreeDContext.Provider value={threeDValue}>
               <LabVisualsContext.Provider value={visualsValue}>
                 <LabDrawerContext.Provider value={drawerValue}>
-                  {children}
+                  <LabChatContext.Provider value={chatValue}>
+                    {children}
+                  </LabChatContext.Provider>
                 </LabDrawerContext.Provider>
               </LabVisualsContext.Provider>
             </LabThreeDContext.Provider>
@@ -3099,6 +3321,14 @@ export function useLabDrawer() {
   const context = useContext(LabDrawerContext);
   if (!context) {
     throw new Error('useLabDrawer must be used within a LabProvider');
+  }
+  return context;
+}
+
+export function useLabChat() {
+  const context = useContext(LabChatContext);
+  if (!context) {
+    throw new Error('useLabChat must be used within a LabProvider');
   }
   return context;
 }

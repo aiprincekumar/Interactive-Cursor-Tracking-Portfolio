@@ -62,12 +62,19 @@ import {
   Upload,
   Copy,
   Code,
-  Shield
+  Shield,
+  BotMessageSquare,
+  BrainCircuit,
+  ShieldCheck,
+  Trash2,
+  Flame,
+  MessageSquare,
+  ExternalLink
 } from 'lucide-react';
 import UniversalMiniPortfolio from './3d-sandbox/UniversalMiniPortfolio';
 import StickySandboxColumn from './3d-sandbox/StickySandboxColumn';
 import useSandboxAutoSwitch from '../hooks/useSandboxAutoSwitch';
-import { useLab, useLabVisuals, POSE_INDEX_MAP } from '../context/LabContext';
+import { useLab, useLabVisuals, useLabChat, DEFAULT_AI_CHAT_SETTINGS, POSE_INDEX_MAP } from '../context/LabContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useHighContrast } from '../context/HighContrastContext';
@@ -281,9 +288,58 @@ const FPS_PRESETS = [
   { id: 120, name: '120 FPS', badge: 'ProMotion Ultra', desc: 'Uncapped ultra-high-refresh rate rendering for Pro displays' }
 ];
 
+const AI_MODEL_CARDS = [
+  {
+    id: 'auto',
+    name: 'Auto-Detect Hardware Tier',
+    badge: 'Recommended',
+    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+    size: 'Auto Tier',
+    desc: 'SmolLM-135M / Qwen-0.5B / Qwen-1.5B based on WebGPU & RAM.',
+    spec: 'Adaptive Neural Engine'
+  },
+  {
+    id: 'offline_rag',
+    name: 'Deterministic Offline RAG Only',
+    badge: '0 MB Instant',
+    badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+    size: '0 MB',
+    desc: 'Instant keyword and pattern matcher without neural model weights.',
+    spec: 'Zero Download Retrieval'
+  },
+  {
+    id: 'HuggingFaceTB/SmolLM2-135M-Instruct',
+    name: 'SmolLM2-135M Instruct',
+    badge: '~90 MB',
+    badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+    size: '~90 MB',
+    desc: 'Ultra-compact neural model for lightweight mobile devices and low RAM.',
+    spec: 'Fastest Local Inference'
+  },
+  {
+    id: 'onnx-community/Qwen2.5-0.5B-Instruct',
+    name: 'Qwen2.5-0.5B Instruct',
+    badge: '~350 MB',
+    badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+    size: '~350 MB',
+    desc: 'Balanced precision model with fluent reasoning and low latency.',
+    spec: 'Balanced Reasoning'
+  },
+  {
+    id: 'onnx-community/Qwen2.5-1.5B-Instruct',
+    name: 'Qwen2.5-1.5B Instruct',
+    badge: '~950 MB',
+    badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+    size: '~950 MB',
+    desc: 'High-precision reasoning, complex code generation, and long context.',
+    spec: 'High-Precision Neural'
+  }
+];
+
 export default function ControlCenterPanel({ variant = 'workbench', isStandalone = false, mode = 'all', singleTab = null }) {
   const lab = useLab();
   const labVisuals = useLabVisuals();
+  const { chatSettings, updateChatSettings, resetChatSettings } = useLabChat();
 
   const {
     // Audio
@@ -627,6 +683,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
   const setAutoScrollOnRefresh = labVisuals?.setAutoScrollOnRefresh || lab?.setAutoScrollOnRefresh;
   const effectiveActiveTab = (mode === 'single' && singleTab) ? singleTab : activeTab;
 
+  const handlePopoutTab = (targetTab, e) => {
+    if (e) e.stopPropagation();
+    const url = `${window.location.origin}${window.location.pathname}?view=control&mode=single&tab=${targetTab}&theme=${theme}&lang=${language}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   const isDrawer = variant === 'drawer';
 
   const handleSelectDensity = (densityId) => {
@@ -803,13 +865,164 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
     e.target.value = '';
   }, [import3DConfig, soundEnabled]);
 
+  const [availableVoices, setAvailableVoices] = useState([]);
+  const [purgeStatus, setPurgeStatus] = useState(null);
+  const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      const updateVoices = () => {
+        try {
+          const v = window.speechSynthesis.getVoices();
+          if (v && v.length > 0) setAvailableVoices(v);
+        } catch {}
+      };
+      updateVoices();
+      window.speechSynthesis.onvoiceschanged = updateVoices;
+      return () => {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.onvoiceschanged = null;
+        }
+      };
+    }
+  }, []);
+
+  const getModelTag = useCallback(() => {
+    const mId = chatSettings?.modelId;
+    if (mId === 'offline_rag') return '0MB RAG';
+    if (mId === 'auto') return 'Auto Tier';
+    if (mId && mId.includes('SmolLM2-135M')) return '135M';
+    if (mId && mId.includes('Qwen2.5-0.5B')) return '0.5B';
+    if (mId && mId.includes('Qwen2.5-1.5B')) return '1.5B';
+    return 'Neural';
+  }, [chatSettings?.modelId]);
+
+  const handleTestVoice = useCallback(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance("Hello! I am Atul's AI portfolio assistant.");
+        utterance.rate = chatSettings?.voiceRate || 1.0;
+        utterance.pitch = chatSettings?.voicePitch || 1.0;
+        if (chatSettings?.voiceId && chatSettings?.voiceId !== 'default' && availableVoices.length > 0) {
+          const selectedVoice = availableVoices.find(
+            (v) => v.voiceURI === chatSettings.voiceId || v.name === chatSettings.voiceId
+          );
+          if (selectedVoice) utterance.voice = selectedVoice;
+        }
+        window.speechSynthesis.speak(utterance);
+        if (soundEnabled) {
+          try { soundFX.playCosmicSparkle?.(); } catch {}
+        }
+      } catch (err) {
+        console.error('Speech synthesis test failed', err);
+      }
+    }
+  }, [chatSettings, availableVoices, soundEnabled]);
+
+  const handleClearModelCache = useCallback(async () => {
+    try {
+      if (typeof window !== 'undefined' && 'caches' in window) {
+        const keys = await caches.keys();
+        const modelKeys = keys.filter(
+          (k) => k.includes('transformers') || k.includes('onnx') || k.includes('web-llm') || k.includes('model')
+        );
+        await Promise.all(modelKeys.map((k) => caches.delete(k)));
+        setPurgeStatus('Model cache cleared successfully!');
+        if (soundEnabled) {
+          try { soundFX.playTerminalSuccess?.(); } catch {}
+        }
+        setTimeout(() => setPurgeStatus(null), 3500);
+      }
+    } catch {
+      setPurgeStatus('Could not clear cache.');
+      setTimeout(() => setPurgeStatus(null), 3500);
+    }
+  }, [soundEnabled]);
+
+  const handlePurgeChatMemory = useCallback(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('portfolio_ai_chat_history');
+        localStorage.removeItem('portfolio_chat_messages');
+        localStorage.removeItem('portfolio_ai_session_id');
+        window.dispatchEvent(new CustomEvent('ai-chat-memory-purged'));
+      }
+      setShowPurgeConfirm(false);
+      setPurgeStatus('Chat memory wiped clean.');
+      if (soundEnabled) {
+        try { soundFX.playTerminalSuccess?.(); } catch {}
+      }
+      setTimeout(() => setPurgeStatus(null), 3500);
+    } catch {
+      setShowPurgeConfirm(false);
+    }
+  }, [soundEnabled]);
+
+  const handleExportChatHistory = useCallback((format = 'json') => {
+    try {
+      let history = [];
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('portfolio_ai_chat_history') || localStorage.getItem('portfolio_chat_messages');
+        if (stored) {
+          try {
+            history = JSON.parse(stored);
+          } catch {
+            history = [];
+          }
+        }
+      }
+      if (!Array.isArray(history) || history.length === 0) {
+        history = [
+          { role: 'assistant', content: 'Welcome to Atul Verma’s AI Portfolio Assistant.' },
+          { role: 'system', content: 'No recorded user messages in active session history.' }
+        ];
+      }
+      let dataStr = '';
+      let fileName = '';
+      let mimeType = '';
+      if (format === 'md') {
+        dataStr = '# AI Chat Conversation Transcript\n\n' +
+          history.map((m) => `**${m.role === 'user' ? 'User' : 'Assistant'}:**\n${m.content || m.text || ''}\n`).join('\n---\n\n');
+        fileName = `chat-history-${Date.now()}.md`;
+        mimeType = 'text/markdown';
+      } else {
+        dataStr = JSON.stringify(history, null, 2);
+        fileName = `chat-history-${Date.now()}.json`;
+        mimeType = 'application/json';
+      }
+      const blob = new Blob([dataStr], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      if (soundEnabled) {
+        try { soundFX.playTerminalSuccess?.(); } catch {}
+      }
+    } catch (err) {
+      console.error('Export failed', err);
+    }
+  }, [soundEnabled]);
+
+  const getTemperatureBadge = (temp) => {
+    const t = Number(temp ?? 0.7);
+    if (t <= 0.2) return 'Deterministic / Code';
+    if (t <= 0.8) return 'Balanced';
+    return 'Highly Creative';
+  };
+
   const tabs = [
     { id: 'audio', label: 'Audio Studio', icon: Volume2, tag: soundEnabled ? `${Math.round(masterVolume * 100)}%` : 'Muted' },
     { id: 'cursor', label: 'Cursor & Dynamics', icon: Sparkles, tag: customCursorEnabled ? `${cursorScale.toFixed(1)}x` : 'Native' },
     { id: 'hero', label: 'Hero & Character', icon: User, tag: gazeMode === 'fixed' ? 'Fixed' : 'Auto' },
     { id: 'threed', label: '3D Controls', icon: Box, tag: isMaster3DOn ? `${active3DCount}/10 On` : '2D Mode' },
     { id: 'preferences', label: 'Startup & Preferences', icon: Settings, tag: defaultStartupRole },
-    { id: 'visuals', label: 'Display & Visuals', icon: Palette, tag: getAccentName(accentColor) }
+    { id: 'visuals', label: 'Display & Visuals', icon: Palette, tag: getAccentName(accentColor) },
+    { id: 'chat', label: 'AI & Chat Studio', icon: BotMessageSquare, tag: getModelTag() }
   ];
 
   const tablistRef = useRef(null);
@@ -861,11 +1074,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
     if (!tablistRef.current) return;
     const activeTabBtn = tablistRef.current.querySelector(`#tab-${activeTab}`);
     if (activeTabBtn) {
-      activeTabBtn.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center'
-      });
+      const container = tablistRef.current;
+      const tabLeft = activeTabBtn.offsetLeft;
+      const tabWidth = activeTabBtn.offsetWidth;
+      const containerWidth = container.clientWidth;
+      const scrollLeft = tabLeft - (containerWidth / 2) + (tabWidth / 2);
+      container.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'smooth' });
     }
     const timer = setTimeout(() => {
       updateScrollIndicator();
@@ -924,6 +1138,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
   };
 
   const handleTabKeyDown = (e, currentId) => {
+    if (mode === 'single') return;
     const tabIds = tabs.map((t) => t.id);
     const currentIndex = tabIds.indexOf(currentId);
     let targetIndex = -1;
@@ -961,6 +1176,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
   return (
     <div className="w-full flex flex-col gap-6">
       {/* Tab Navigation Header with Chevrons and Edge Fade Gradients */}
+      {mode !== 'single' && !isStandalone && (
       <div className="relative w-full overflow-hidden rounded-2xl group/tabnav">
         {/* Left Edge Fade Gradient & Button */}
         {canScrollLeft && (
@@ -1048,6 +1264,23 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
           </div>
         )}
       </div>
+      )}
+
+      {/* Active Tab Header Popout Banner */}
+      {!isStandalone && mode !== 'single' && (
+        <div className="flex items-center justify-end px-1 -mt-3 mb-1">
+          <button
+            type="button"
+            onClick={(e) => handlePopoutTab(effectiveActiveTab, e)}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+            aria-label="Popout Tab to Standalone Window"
+            title="Popout Tab to Standalone Window"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Popout Tab</span>
+          </button>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* TAB 1: AUDIO STUDIO                                                       */}
@@ -4712,6 +4945,952 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             >
               <RotateCcw className="w-4 h-4" />
               <span>Reset Visuals to Default</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 7: AI & CHAT STUDIO                                                   */}
+      {/* ========================================================================= */}
+      {(effectiveActiveTab === 'chat' || activeTab === 'chat') && (
+        <div
+          role="tabpanel"
+          id="panel-chat"
+          aria-labelledby="tab-chat"
+          tabIndex={0}
+          className="flex flex-col gap-6 focus:outline-none animate-fadeIn"
+        >
+          {/* Tab Header Banner */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 dark:text-indigo-400">
+                <BotMessageSquare className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-[#18181B] dark:text-white">
+                    AI & On-Device Chat Studio
+                  </h3>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                    {getModelTag()}
+                  </span>
+                </div>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Configure local neural models, trigger strategies, generation parameters, voice, and privacy.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (soundEnabled) {
+                  try { soundFX.playReset?.(); } catch {}
+                  try { soundFX.playCrystalChime?.(); } catch {}
+                }
+                resetChatSettings();
+              }}
+              className="self-start sm:self-center px-3 py-1.5 text-xs font-bold rounded-xl bg-stone-100 hover:bg-indigo-600 hover:text-white text-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-indigo-600 dark:hover:text-white transition-all flex items-center gap-1.5 border border-stone-200 dark:border-stone-700 cursor-pointer shadow-xs active:scale-95"
+              title="Reset Chat Settings to Factory Defaults"
+              aria-label="Reset AI Chat Settings to Default"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Chat Settings</span>
+            </button>
+          </div>
+
+          {/* CLUSTER 1: MODEL & EXECUTION ENGINE */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-100 dark:border-stone-800/80">
+              <div>
+                <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                  <BrainCircuit className="w-4 h-4 text-indigo-500" />
+                  <span>Model & Execution Engine</span>
+                  <span className="text-xs font-normal text-stone-500 dark:text-stone-400">/ मॉडल और निष्पादन इंजन</span>
+                </h4>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Choose between zero-download deterministic RAG, auto tier detection, or dedicated on-device neural weights.
+                </p>
+              </div>
+              <div className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700">
+                Backend: {(chatSettings?.executionBackend || 'webgpu').toUpperCase()}
+              </div>
+            </div>
+
+            {/* Model Selection Cards */}
+            <div>
+              <label className="text-xs font-semibold text-stone-700 dark:text-stone-300 mb-2.5 block">
+                Model Selector & Hardware Tier:
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {AI_MODEL_CARDS.map((card) => {
+                  const isSelected = (chatSettings?.modelId || 'auto') === card.id;
+                  return (
+                    <button
+                      key={card.id}
+                      type="button"
+                      onClick={() => {
+                        updateChatSettings({ modelId: card.id });
+                        if (soundEnabled) soundFX.playHapticClick?.();
+                      }}
+                      className={`p-3.5 rounded-2xl text-left transition-all cursor-pointer relative flex flex-col justify-between border ${
+                        isSelected
+                          ? 'bg-indigo-50/70 dark:bg-indigo-950/30 border-indigo-500 ring-2 ring-indigo-500/30 shadow-xs'
+                          : 'bg-white/60 dark:bg-white/[0.03] border-stone-200 dark:border-stone-800 hover:border-indigo-300 dark:hover:border-indigo-800 hover:bg-white dark:hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <span className="text-xs font-bold text-[#18181B] dark:text-white leading-tight">
+                            {card.name}
+                          </span>
+                          <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border shrink-0 ${card.badgeColor}`}>
+                            {card.badge}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-snug">
+                          {card.desc}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-3 mt-3 border-t border-stone-100 dark:border-stone-800/80 text-[10px]">
+                        <span className="font-mono text-stone-400 dark:text-stone-500">{card.spec}</span>
+                        <span className={`font-bold ${isSelected ? 'text-indigo-600 dark:text-indigo-400' : 'text-stone-400'}`}>
+                          {isSelected ? '✓ Selected' : card.size}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Load Trigger Strategy (Segmented Radio Bar) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-stone-700 dark:text-stone-300">
+                  Load Trigger Strategy:
+                </label>
+                <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
+                  {(chatSettings?.loadTrigger || 'on_demand') === 'on_demand' && 'Smart fallback on 1st message'}
+                  {chatSettings?.loadTrigger === 'on_page_load' && 'Pre-warms weights on page load'}
+                  {chatSettings?.loadTrigger === 'on_open' && 'Starts loading on chat open'}
+                  {chatSettings?.loadTrigger === 'manual' && 'Manual user trigger only'}
+                </span>
+              </div>
+              <div
+                className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-stone-100 dark:bg-black/40 rounded-xl border border-stone-200 dark:border-stone-800"
+                role="radiogroup"
+                aria-label="Load Trigger Strategy"
+              >
+                {[
+                  { id: 'on_demand', label: 'On-Demand', subtitle: 'Smart Fallback' },
+                  { id: 'on_page_load', label: 'On Page Load', subtitle: 'Pre-warm' },
+                  { id: 'on_open', label: 'On Chat Open', subtitle: 'Window Open' },
+                  { id: 'manual', label: 'Manual Only', subtitle: 'Explicit' }
+                ].map((trig) => {
+                  const isSelected = (chatSettings?.loadTrigger || 'on_demand') === trig.id;
+                  return (
+                    <button
+                      key={trig.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      onClick={() => {
+                        updateChatSettings({ loadTrigger: trig.id });
+                        if (soundEnabled) soundFX.playHapticClick?.();
+                      }}
+                      className={`px-3 py-2 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
+                        isSelected
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      <div>{trig.label}</div>
+                      <div className={`text-[10px] font-normal ${isSelected ? 'text-indigo-200' : 'text-stone-400 dark:text-stone-500'}`}>
+                        {trig.subtitle}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Download Consent Policy & Hardware Acceleration Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-stone-100 dark:border-stone-800/80">
+              {/* Consent Policy */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-stone-700 dark:text-stone-300 block">
+                  Download Consent Policy:
+                </label>
+                <div
+                  className="grid grid-cols-3 gap-1.5 p-1 bg-stone-100 dark:bg-black/40 rounded-xl border border-stone-200 dark:border-stone-800"
+                  role="radiogroup"
+                  aria-label="Download Consent Policy"
+                >
+                  {[
+                    { id: 'always_ask', label: 'Always Ask' },
+                    { id: 'auto_confirm', label: 'Auto-Confirm' },
+                    { id: 'wifi_only', label: 'Wi-Fi Only' }
+                  ].map((pol) => {
+                    const isSelected = (chatSettings?.consentMode || 'always_ask') === pol.id;
+                    return (
+                      <button
+                        key={pol.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={isSelected}
+                        onClick={() => {
+                          updateChatSettings({ consentMode: pol.id });
+                          if (soundEnabled) soundFX.playHapticClick?.();
+                        }}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
+                          isSelected
+                            ? 'bg-indigo-600 text-white shadow-sm'
+                            : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'
+                        }`}
+                      >
+                        {pol.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Hardware Acceleration (WebGPU vs WASM) Switch */}
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200/70 dark:border-white/5">
+                <div>
+                  <div className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                    <Cpu className="w-3.5 h-3.5 text-indigo-500" />
+                    <span>WebGPU Acceleration</span>
+                  </div>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
+                    {(chatSettings?.executionBackend || 'webgpu') === 'webgpu'
+                      ? 'GPU Shader Pipeline Active'
+                      : 'Fallback to CPU WASM / Int8'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={(chatSettings?.executionBackend || 'webgpu') === 'webgpu'}
+                  aria-label="Toggle WebGPU Hardware Acceleration"
+                  onClick={() => {
+                    const nextBackend = (chatSettings?.executionBackend || 'webgpu') === 'webgpu' ? 'wasm' : 'webgpu';
+                    updateChatSettings({ executionBackend: nextBackend });
+                    if (soundEnabled) soundFX.playHapticClick?.();
+                  }}
+                  className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 ${
+                    (chatSettings?.executionBackend || 'webgpu') === 'webgpu' ? 'bg-indigo-600' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                >
+                  <span
+                    className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                      (chatSettings?.executionBackend || 'webgpu') === 'webgpu' ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Cache Management Info & Clear Button */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-stone-100 dark:border-stone-800/80">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="text-xs text-stone-600 dark:text-stone-300">
+                  Cache Retention: <strong className="font-mono text-stone-900 dark:text-white">{chatSettings?.cacheRetentionDays || 30} Days</strong> (Browser CacheStorage)
+                </span>
+                {purgeStatus && (
+                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 animate-fadeIn">
+                    • {purgeStatus}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleClearModelCache}
+                className="px-3 py-1.5 text-xs font-bold rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 transition-all flex items-center gap-1.5 border border-stone-200 dark:border-stone-700 cursor-pointer shadow-xs active:scale-95"
+                title="Clear cached ONNX / Web-LLM model weights from browser storage"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                <span>Clear Model Cache</span>
+              </button>
+            </div>
+          </div>
+
+          {/* CLUSTER 2: GENERATION & PERSONALITY CONTROLS */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-100 dark:border-stone-800/80">
+              <div>
+                <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span>Generation & Personality Controls</span>
+                  <span className="text-xs font-normal text-stone-500 dark:text-stone-400">/ जेनरेशन और व्यक्तित्व नियंत्रण</span>
+                </h4>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Fine-tune response streaming, creativity temperature, maximum output length, and assistant tone.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Response Streaming Toggle */}
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200/70 dark:border-white/5">
+                <div>
+                  <div className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Response Streaming</span>
+                  </div>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
+                    {(chatSettings?.streamResponse ?? true) ? 'Typewriter token-by-token effect' : 'Immediate full-block message output'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={chatSettings?.streamResponse ?? true}
+                  aria-label="Toggle Response Streaming"
+                  onClick={() => {
+                    updateChatSettings({ streamResponse: !(chatSettings?.streamResponse ?? true) });
+                    if (soundEnabled) soundFX.playHapticClick?.();
+                  }}
+                  className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-amber-500/40 ${
+                    (chatSettings?.streamResponse ?? true) ? 'bg-amber-500' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                >
+                  <span
+                    className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                      (chatSettings?.streamResponse ?? true) ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Max Tokens Slider */}
+              <div className="flex flex-col justify-between p-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200/70 dark:border-white/5">
+                <div className="flex items-center justify-between mb-2">
+                  <label htmlFor="slider-max-tokens" className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Max Output Tokens:</span>
+                  </label>
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-stone-200/60 dark:bg-stone-800 text-stone-800 dark:text-stone-200">
+                    {chatSettings?.maxTokens || 512} tokens
+                  </span>
+                </div>
+                <input
+                  id="slider-max-tokens"
+                  type="range"
+                  min={128}
+                  max={1024}
+                  step={64}
+                  value={chatSettings?.maxTokens || 512}
+                  onChange={(e) => {
+                    updateChatSettings({ maxTokens: Number(e.target.value) });
+                  }}
+                  className="w-full h-2 bg-stone-200 dark:bg-stone-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                  aria-label="Max Output Tokens"
+                />
+                <div className="flex justify-between text-[10px] text-stone-400 mt-1">
+                  <span>128 (Snappy)</span>
+                  <span>512 (Standard)</span>
+                  <span>1024 (Deep)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Creativity / Temperature Slider */}
+            <div className="p-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200/70 dark:border-white/5 space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor="slider-temperature" className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                  <Flame className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Creativity / Temperature:</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    {getTemperatureBadge(chatSettings?.temperature)}
+                  </span>
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-stone-200/60 dark:bg-stone-800 text-stone-800 dark:text-stone-200">
+                    {(chatSettings?.temperature ?? 0.7).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+              <input
+                id="slider-temperature"
+                type="range"
+                min={0.0}
+                max={1.2}
+                step={0.05}
+                value={chatSettings?.temperature ?? 0.7}
+                onChange={(e) => {
+                  updateChatSettings({ temperature: Number(e.target.value) });
+                }}
+                className="w-full h-2 bg-stone-200 dark:bg-stone-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                aria-label="Creativity / Temperature"
+              />
+              <div className="flex justify-between text-[10px] text-stone-400">
+                <span>0.0 (Deterministic / Code)</span>
+                <span>0.7 (Balanced)</span>
+                <span>1.2 (Highly Creative)</span>
+              </div>
+            </div>
+
+            {/* Tone & Persona Selector */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-stone-700 dark:text-stone-300 block">
+                Tone & Persona Style:
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { id: 'helpful_pro', label: 'Helpful Pro', desc: 'Polite, structured & concise' },
+                  { id: 'concise_technical', label: 'Concise Technical', desc: 'Code-first & direct' },
+                  { id: 'creative_mentor', label: 'Creative Mentor', desc: 'Insightful & pedagogical' },
+                  { id: 'casual_peer', label: 'Casual Peer', desc: 'Friendly & conversational' }
+                ].map((tone) => {
+                  const isSelected = (chatSettings?.personaTone || 'helpful_pro') === tone.id;
+                  return (
+                    <button
+                      key={tone.id}
+                      type="button"
+                      onClick={() => {
+                        updateChatSettings({ personaTone: tone.id });
+                        if (soundEnabled) soundFX.playHapticClick?.();
+                      }}
+                      className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-amber-500/10 border-amber-500/60 ring-1 ring-amber-500/40 text-[#18181B] dark:text-white'
+                          : 'bg-white/40 dark:bg-white/[0.02] border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:bg-white/80 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      <div className="text-xs font-bold">{tone.label}</div>
+                      <div className="text-[10px] text-stone-500 dark:text-stone-400 mt-0.5">{tone.desc}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* CLUSTER 3: VOICE & SOUND STUDIO */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-100 dark:border-stone-800/80">
+              <div>
+                <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                  <Volume2 className="w-4 h-4 text-emerald-500" />
+                  <span>Voice & Sound Studio</span>
+                  <span className="text-xs font-normal text-stone-500 dark:text-stone-400">/ आवाज और ऑडियो स्टूडियो</span>
+                </h4>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Configure Web Speech API text-to-speech narration, voice timbre, speech rate, and chat sound effects.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Speech Synthesis (TTS) Toggle */}
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200/70 dark:border-white/5">
+                <div>
+                  <div className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                    <Mic className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Speech Synthesis (TTS)</span>
+                  </div>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
+                    {chatSettings?.ttsEnabled ? 'Reads assistant replies aloud' : 'Text-only silent reading mode'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={chatSettings?.ttsEnabled ?? false}
+                  aria-label="Toggle Speech Synthesis"
+                  onClick={() => {
+                    updateChatSettings({ ttsEnabled: !(chatSettings?.ttsEnabled ?? false) });
+                    if (soundEnabled) soundFX.playHapticClick?.();
+                  }}
+                  className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 ${
+                    chatSettings?.ttsEnabled ? 'bg-emerald-500' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                >
+                  <span
+                    className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                      chatSettings?.ttsEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Chat Sound Effects Toggle */}
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200/70 dark:border-white/5">
+                <div>
+                  <div className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                    <Headphones className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Chat Sound Effects</span>
+                  </div>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
+                    {(chatSettings?.chatSoundEffects ?? true)
+                      ? 'Synthesizer blips on send/receive/chips'
+                      : 'Silent message interaction'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={chatSettings?.chatSoundEffects ?? true}
+                  aria-label="Toggle Chat Sound Effects"
+                  onClick={() => {
+                    updateChatSettings({ chatSoundEffects: !(chatSettings?.chatSoundEffects ?? true) });
+                    if (soundEnabled) soundFX.playHapticClick?.();
+                  }}
+                  className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 ${
+                    (chatSettings?.chatSoundEffects ?? true) ? 'bg-emerald-500' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                >
+                  <span
+                    className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                      (chatSettings?.chatSoundEffects ?? true) ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Voice Selection & Test Button */}
+            <div className="p-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200/70 dark:border-white/5 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <label htmlFor="select-chat-voice" className="text-xs font-bold text-[#18181B] dark:text-white">
+                  System Speech Voice:
+                </label>
+                <button
+                  type="button"
+                  onClick={handleTestVoice}
+                  className="self-start sm:self-center px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all flex items-center gap-1.5 border border-emerald-500/30 cursor-pointer shadow-xs active:scale-95"
+                >
+                  <Volume2 className="w-3.5 h-3.5" />
+                  <span>Test Voice Sample</span>
+                </button>
+              </div>
+              <select
+                id="select-chat-voice"
+                value={chatSettings?.voiceId || 'default'}
+                onChange={(e) => {
+                  updateChatSettings({ voiceId: e.target.value });
+                }}
+                className="w-full text-xs p-2 rounded-lg bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="default">Default System Voice</option>
+                {availableVoices.map((v, i) => (
+                  <option key={v.voiceURI || `${v.name}-${i}`} value={v.voiceURI || v.name}>
+                    {v.name} ({v.lang}) {v.default ? '★' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Pitch & Rate Sliders */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Voice Speed / Rate */}
+              <div className="p-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200/70 dark:border-white/5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="slider-voice-rate" className="text-xs font-bold text-[#18181B] dark:text-white">
+                    Voice Speed:
+                  </label>
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-stone-200/60 dark:bg-stone-800 text-stone-800 dark:text-stone-200">
+                    {(chatSettings?.voiceRate || 1.0).toFixed(2)}x
+                  </span>
+                </div>
+                <input
+                  id="slider-voice-rate"
+                  type="range"
+                  min={0.7}
+                  max={1.5}
+                  step={0.05}
+                  value={chatSettings?.voiceRate || 1.0}
+                  onChange={(e) => {
+                    updateChatSettings({ voiceRate: Number(e.target.value) });
+                  }}
+                  className="w-full h-2 bg-stone-200 dark:bg-stone-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                  aria-label="Voice Speed"
+                />
+                <div className="flex justify-between text-[10px] text-stone-400">
+                  <span>0.7x (Deliberate)</span>
+                  <span>1.0x (Normal)</span>
+                  <span>1.5x (Brisk)</span>
+                </div>
+              </div>
+
+              {/* Voice Pitch */}
+              <div className="p-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200/70 dark:border-white/5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="slider-voice-pitch" className="text-xs font-bold text-[#18181B] dark:text-white">
+                    Voice Pitch:
+                  </label>
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-stone-200/60 dark:bg-stone-800 text-stone-800 dark:text-stone-200">
+                    {(chatSettings?.voicePitch || 1.0).toFixed(2)}x
+                  </span>
+                </div>
+                <input
+                  id="slider-voice-pitch"
+                  type="range"
+                  min={0.5}
+                  max={1.5}
+                  step={0.05}
+                  value={chatSettings?.voicePitch || 1.0}
+                  onChange={(e) => {
+                    updateChatSettings({ voicePitch: Number(e.target.value) });
+                  }}
+                  className="w-full h-2 bg-stone-200 dark:bg-stone-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                  aria-label="Voice Pitch"
+                />
+                <div className="flex justify-between text-[10px] text-stone-400">
+                  <span>0.5x (Deep)</span>
+                  <span>1.0x (Balanced)</span>
+                  <span>1.5x (Bright)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CLUSTER 4: PRIVACY & STORAGE TOOLS */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-100 dark:border-stone-800/80">
+              <div>
+                <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-cyan-500" />
+                  <span>Privacy & Storage Tools</span>
+                  <span className="text-xs font-normal text-stone-500 dark:text-stone-400">/ गोपनीयता और स्टोरेज टूल्स</span>
+                </h4>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Control conversation persistence, wipe local chat memory, or export transcripts as Markdown/JSON.
+                </p>
+              </div>
+            </div>
+
+            {/* Session Retention Strategy */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-stone-700 dark:text-stone-300 block">
+                Session History Retention:
+              </label>
+              <div
+                className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-stone-100 dark:bg-black/40 rounded-xl border border-stone-200 dark:border-stone-800"
+                role="radiogroup"
+                aria-label="Session Retention Policy"
+              >
+                {[
+                  { id: 'ephemeral', label: 'Ephemeral', sub: 'In-memory only' },
+                  { id: 'until_closed', label: 'Until Tab Closed', sub: 'SessionStorage' },
+                  { id: 'persistent_7d', label: '7 Days', sub: 'Auto-expires' },
+                  { id: 'persistent_30d', label: '30 Days', sub: 'Extended' }
+                ].map((ret) => {
+                  const isSelected = (chatSettings?.sessionRetention || 'until_closed') === ret.id;
+                  return (
+                    <button
+                      key={ret.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      onClick={() => {
+                        updateChatSettings({ sessionRetention: ret.id });
+                        if (soundEnabled) soundFX.playHapticClick?.();
+                      }}
+                      className={`px-3 py-2 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
+                        isSelected
+                          ? 'bg-cyan-600 text-white shadow-sm'
+                          : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      <div>{ret.label}</div>
+                      <div className={`text-[10px] font-normal ${isSelected ? 'text-cyan-200' : 'text-stone-400 dark:text-stone-500'}`}>
+                        {ret.sub}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Anonymize Telemetry Switch */}
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200/70 dark:border-white/5">
+              <div>
+                <div className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-cyan-500" />
+                  <span>Anonymize Local Telemetry</span>
+                </div>
+                <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
+                  {(chatSettings?.anonymizeTelemetry ?? true)
+                    ? 'Zero PII transmitted; queries processed strictly on-device'
+                    : 'Standard diagnostic logs'}
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={chatSettings?.anonymizeTelemetry ?? true}
+                aria-label="Toggle Anonymize Telemetry"
+                onClick={() => {
+                  updateChatSettings({ anonymizeTelemetry: !(chatSettings?.anonymizeTelemetry ?? true) });
+                  if (soundEnabled) soundFX.playHapticClick?.();
+                }}
+                className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 ${
+                  (chatSettings?.anonymizeTelemetry ?? true) ? 'bg-cyan-600' : 'bg-stone-300 dark:bg-stone-700'
+                }`}
+              >
+                <span
+                  className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                    (chatSettings?.anonymizeTelemetry ?? true) ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Actions: Purge Memory + Export Transcripts */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-stone-100 dark:border-stone-800/80">
+              <div className="flex items-center gap-2">
+                {showPurgeConfirm ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
+                      Confirm purge?
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handlePurgeChatMemory}
+                      className="px-2.5 py-1 text-xs font-bold rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-all cursor-pointer shadow-xs"
+                    >
+                      Yes, Wipe
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowPurgeConfirm(false)}
+                      className="px-2.5 py-1 text-xs font-bold rounded-lg bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-300 transition-all cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowPurgeConfirm(true)}
+                    className="px-3 py-1.5 text-xs font-bold rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white transition-all flex items-center gap-1.5 border border-rose-500/20 cursor-pointer shadow-xs active:scale-95"
+                    title="Permanently erase chat message history and embeddings"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Purge All Chat Memory</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-stone-500 dark:text-stone-400 hidden sm:inline">Export:</span>
+                <button
+                  type="button"
+                  onClick={() => handleExportChatHistory('md')}
+                  className="px-3 py-1.5 text-xs font-bold rounded-xl bg-stone-100 hover:bg-cyan-600 hover:text-white text-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-cyan-600 dark:hover:text-white transition-all flex items-center gap-1.5 border border-stone-200 dark:border-stone-700 cursor-pointer shadow-xs active:scale-95"
+                  title="Download conversation transcript as Markdown file"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export (.md)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleExportChatHistory('json')}
+                  className="px-3 py-1.5 text-xs font-bold rounded-xl bg-stone-100 hover:bg-cyan-600 hover:text-white text-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-cyan-600 dark:hover:text-white transition-all flex items-center gap-1.5 border border-stone-200 dark:border-stone-700 cursor-pointer shadow-xs active:scale-95"
+                  title="Download conversation data as structured JSON file"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export (.json)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* CLUSTER 5: UI & ERGONOMICS */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-100 dark:border-stone-800/80">
+              <div>
+                <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                  <LayoutGrid className="w-4 h-4 text-purple-500" />
+                  <span>UI & Ergonomics</span>
+                  <span className="text-xs font-normal text-stone-500 dark:text-stone-400">/ यूजर इंटरफेस और एर्गोनॉमिक्स</span>
+                </h4>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Customize chat modal dimensions, greeting behaviors, interactive prompt chips, and slash command palette.
+                </p>
+              </div>
+            </div>
+
+            {/* Default Window Size Selector */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-stone-700 dark:text-stone-300 block">
+                Default Window Size:
+              </label>
+              <div
+                className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-stone-100 dark:bg-black/40 rounded-xl border border-stone-200 dark:border-stone-800"
+                role="radiogroup"
+                aria-label="Default Window Size"
+              >
+                {[
+                  { id: 'compact', label: 'Compact', sub: '360px' },
+                  { id: 'normal', label: 'Normal', sub: '420px (Default)' },
+                  { id: 'expanded', label: 'Expanded 2-Col', sub: '640px' },
+                  { id: 'fullscreen', label: 'Fullscreen', sub: 'Viewport' }
+                ].map((size) => {
+                  const isSelected = (chatSettings?.defaultWindowSize || 'normal') === size.id;
+                  return (
+                    <button
+                      key={size.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      onClick={() => {
+                        updateChatSettings({ defaultWindowSize: size.id });
+                        if (soundEnabled) soundFX.playHapticClick?.();
+                      }}
+                      className={`px-3 py-2 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
+                        isSelected
+                          ? 'bg-purple-600 text-white shadow-sm'
+                          : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      <div>{size.label}</div>
+                      <div className={`text-[10px] font-normal ${isSelected ? 'text-purple-200' : 'text-stone-400 dark:text-stone-500'}`}>
+                        {size.sub}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 3 Interactive Toggles: Auto-Greet, Suggestion Chips, Slash Commands */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Auto-Greet on Open */}
+              <div className="p-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200/70 dark:border-white/5 flex flex-col justify-between gap-3">
+                <div>
+                  <div className="text-xs font-bold text-[#18181B] dark:text-white">Auto-Greet on Open</div>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-1">
+                    Displays friendly greeting and contextual intro on open
+                  </p>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-stone-200/50 dark:border-white/5">
+                  <span className="text-[10px] font-mono text-stone-400">
+                    {(chatSettings?.autoGreetOnOpen ?? true) ? 'Active' : 'Silent'}
+                  </span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={chatSettings?.autoGreetOnOpen ?? true}
+                    aria-label="Toggle Auto-Greet on Open"
+                    onClick={() => {
+                      updateChatSettings({ autoGreetOnOpen: !(chatSettings?.autoGreetOnOpen ?? true) });
+                      if (soundEnabled) soundFX.playHapticClick?.();
+                    }}
+                    className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500/40 ${
+                      (chatSettings?.autoGreetOnOpen ?? true) ? 'bg-purple-600' : 'bg-stone-300 dark:bg-stone-700'
+                    }`}
+                  >
+                    <span
+                      className={`block w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                        (chatSettings?.autoGreetOnOpen ?? true) ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Suggestion Chips */}
+              <div className="p-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200/70 dark:border-white/5 flex flex-col justify-between gap-3">
+                <div>
+                  <div className="text-xs font-bold text-[#18181B] dark:text-white">Suggestion Chips</div>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-1">
+                    Quick prompt pills: Projects, Resume, Tech Stack, Hire
+                  </p>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-stone-200/50 dark:border-white/5">
+                  <span className="text-[10px] font-mono text-stone-400">
+                    {(chatSettings?.suggestionChipsEnabled ?? true) ? 'Visible' : 'Hidden'}
+                  </span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={chatSettings?.suggestionChipsEnabled ?? true}
+                    aria-label="Toggle Suggestion Chips"
+                    onClick={() => {
+                      updateChatSettings({ suggestionChipsEnabled: !(chatSettings?.suggestionChipsEnabled ?? true) });
+                      if (soundEnabled) soundFX.playHapticClick?.();
+                    }}
+                    className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500/40 ${
+                      (chatSettings?.suggestionChipsEnabled ?? true) ? 'bg-purple-600' : 'bg-stone-300 dark:bg-stone-700'
+                    }`}
+                  >
+                    <span
+                      className={`block w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                        (chatSettings?.suggestionChipsEnabled ?? true) ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Slash Commands */}
+              <div className="p-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200/70 dark:border-white/5 flex flex-col justify-between gap-3">
+                <div>
+                  <div className="text-xs font-bold text-[#18181B] dark:text-white">Slash Commands</div>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-1">
+                    Autocomplete palette on typing &apos;/&apos; (/help, /skills, /theme)
+                  </p>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-stone-200/50 dark:border-white/5">
+                  <span className="text-[10px] font-mono text-stone-400">
+                    {(chatSettings?.slashCommandsEnabled ?? true) ? 'Enabled' : 'Disabled'}
+                  </span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={chatSettings?.slashCommandsEnabled ?? true}
+                    aria-label="Toggle Slash Commands"
+                    onClick={() => {
+                      updateChatSettings({ slashCommandsEnabled: !(chatSettings?.slashCommandsEnabled ?? true) });
+                      if (soundEnabled) soundFX.playHapticClick?.();
+                    }}
+                    className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500/40 ${
+                      (chatSettings?.slashCommandsEnabled ?? true) ? 'bg-purple-600' : 'bg-stone-300 dark:bg-stone-700'
+                    }`}
+                  >
+                    <span
+                      className={`block w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                        (chatSettings?.slashCommandsEnabled ?? true) ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 1-Click Reset to Factory Defaults for AI & Chat Studio */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                <RotateCcw className="w-4 h-4 text-indigo-500" />
+                <span>Reset AI & Chat Studio to Default</span>
+              </h4>
+              <p className="text-xs text-stone-500 dark:text-stone-400">
+                Atomically restore all neural model, generation parameters, voice studio, privacy, and ergonomics to defaults
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                resetChatSettings();
+                if (soundEnabled) {
+                  try { soundFX.playCrystalChime?.(); } catch {}
+                }
+              }}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-indigo-600 text-stone-700 hover:text-white dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-indigo-600 dark:hover:text-white font-bold text-xs transition-all cursor-pointer shadow-xs active:scale-97"
+              aria-label="Reset AI & Chat Studio to Default"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Reset AI & Chat Studio</span>
             </button>
           </div>
         </div>

@@ -39,6 +39,10 @@ class LocalAIService {
     this.compilationWatchdogMs = 15000;  // 15s budget for WebGPU compile & probe
     this.currentLoadSessionId = 0;
     this.isModelLoading = false;
+    this.chatSettings = null;
+    this.executionBackend = 'webgpu';
+    this.consentMode = 'always_ask';
+    this.loadTrigger = 'on_demand';
 
     // Listen for network online/offline events for zero-delay offline fallback
     if (typeof window !== 'undefined') {
@@ -59,6 +63,21 @@ class LocalAIService {
       } catch {
         // ignore
       }
+
+      // Initial read of AI & Chat settings
+      try {
+        const raw = localStorage.getItem('portfolio_ai_chat_settings');
+        if (raw) this.syncWithChatSettings(JSON.parse(raw));
+      } catch {
+        // ignore
+      }
+
+      // Listen for live updates
+      window.addEventListener('ai-chat-settings-changed', (e) => {
+        if (e?.detail?.settings) {
+          this.syncWithChatSettings(e.detail.settings);
+        }
+      });
     }
   }
 
@@ -111,6 +130,44 @@ class LocalAIService {
       lastHeartbeatProgress: this.lastHeartbeatProgress,
       lastHeartbeatLoadedBytes: this.lastHeartbeatLoadedBytes
     };
+  }
+
+  /**
+   * Synchronize service runtime options with LabContext chat settings
+   */
+  syncWithChatSettings(settings) {
+    if (!settings || typeof settings !== 'object') return;
+
+    this.chatSettings = settings;
+
+    // 1. Execution backend preference (webgpu vs wasm)
+    if (settings.executionBackend === 'wasm' || settings.executionBackend === 'webgpu') {
+      this.executionBackend = settings.executionBackend;
+    }
+
+    // 2. Consent mode preference
+    if (settings.consentMode) {
+      this.consentMode = settings.consentMode;
+      if (settings.consentMode === 'auto_confirm') {
+        this.hasUserConsented = true;
+      }
+    }
+
+    // 3. Model ID / Offline RAG
+    if (settings.modelId === 'offline_rag') {
+      this.isAiEnabled = false;
+      this.unloadCurrentModel();
+      return;
+    } else {
+      this.isAiEnabled = true;
+    }
+
+    // 4. Background prewarm if loadTrigger is 'on_page_load' and consentMode is 'auto_confirm'
+    if (settings.loadTrigger === 'on_page_load' && settings.consentMode === 'auto_confirm') {
+      if (this.status === 'idle' && !this.activeModel && !this.isModelLoading) {
+        this.initSilentDownload();
+      }
+    }
   }
 
   /**
@@ -803,7 +860,8 @@ class LocalAIService {
     const initialTimeout = isCached ? this.compilationWatchdogMs : this.watchdogDurationMs;
     this.armProgressWatchdog(modelId, initialTimeout, isCached ? 'compilation_timeout' : 'timeout_watchdog_stalled');
 
-    const device = this.deviceProfile?.webgpu?.supported ? 'webgpu' : 'wasm';
+    const devicePreference = this.executionBackend || 'webgpu';
+    const device = (devicePreference === 'wasm' || !this.deviceProfile?.webgpu?.supported) ? 'wasm' : 'webgpu';
 
     if (isCached) {
       // Silent cache loading: internal status 'loading_cache', no download progress, no UI download event
@@ -934,7 +992,7 @@ class LocalAIService {
       name: details.name,
       shortcut: details.shortcut,
       sizeMB: details.sizeMB,
-      device: this.deviceProfile?.webgpu?.supported ? 'webgpu' : 'wasm',
+      device: (this.executionBackend === 'wasm' || !this.deviceProfile?.webgpu?.supported) ? 'wasm' : 'webgpu',
       dtype: 'q4',
       ...(this.pendingActivationModel?.id === details.id ? this.pendingActivationModel : {})
     };
@@ -1043,6 +1101,20 @@ class LocalAIService {
 
     // 7. नया मॉडल लोड करें: await this.loadModelInWorker(modelId, dtype);
     await this.loadModelInWorker(details?.id || modelId, dtype);
+  }
+
+  /**
+   * Alias for switchModel with options support
+   */
+  async loadModel(modelId, options = {}) {
+    return this.switchModel(modelId, options.dtype || 'q4');
+  }
+
+  /**
+   * Alias for generateText
+   */
+  async generate(input) {
+    return this.generateText(input);
   }
 
   /**

@@ -73,7 +73,7 @@ function LabStudioDrawer() {
         aria-modal="true"
         aria-label="Portfolio Control Center Drawer"
         aria-hidden={!isDrawerOpen}
-        inert={!isDrawerOpen ? true : undefined}
+        inert={!isDrawerOpen ? '' : undefined}
         className={`fixed top-0 right-0 h-full w-[380px] sm:w-[440px] max-w-[95vw] z-[80] bg-[#FAF8F5]/98 dark:bg-[#120D1D]/98 backdrop-blur-2xl border-l border-[#E7E2D8] dark:border-[#2D2340] shadow-2xl flex flex-col transition-transform duration-300 ease-out will-change-transform ${
           isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
@@ -123,7 +123,7 @@ function LabStudioDrawer() {
           </div>
         </div>
 
-        {/* Scrollable Drawer Body with 6-Tab Control Center */}
+        {/* Scrollable Drawer Body with 7-Tab Control Center */}
         <div className="flex-1 overflow-y-auto px-4 py-4 no-scrollbar">
           {isDrawerOpen ? <ControlCenterPanel variant="drawer" /> : null}
         </div>

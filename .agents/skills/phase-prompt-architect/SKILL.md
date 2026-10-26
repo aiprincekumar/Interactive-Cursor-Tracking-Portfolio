@@ -43,41 +43,61 @@ temp_prompt/
 ## 3. Standards for `INDEX.md` and Phase Files
 
 ### 3.1 Standards for `INDEX.md`
-Every feature subfolder **must** contain a master `INDEX.md` acting as the single source of truth for the initiative. It must include:
-1. **Header Metadata:** Task name, target version, author/architect agent, creation timestamp (`YYYY-MM-DD HH:mm:ss`), and total phase count.
-2. **Executive Architecture Summary:** High-level problem statement, design approach, and Mermaid architecture/flow diagram.
-3. **Technical Contracts & Invariants:** Scoped CSS variables, state isolation boundaries, memory budgets, zero-layout-shift rules, and target file manifests.
-4. **Phase Tracking Matrix:**
+Every feature subfolder **must** contain a master `INDEX.md` acting as the single source of truth for the initiative. When creating `temp_prompt/<task_name>/INDEX.md` or any phase prompt suite, as well as documenting major issues/refactoring in memory files (`project_feature_memory.md` / `memory.md`), the top section MUST strictly include:
+1. **Problem Summary (संक्षिप्त सारांश) & Problem Detailed Bullet Points (विस्तृत समस्या बिंदु):** Itemized symptom, trigger, and root failure mechanisms.
+2. **Solution Summary (संक्षिप्त समाधान) & Solution Detailed Bullet Points (विस्तृत समाधान बिंदु):** Surgical fix strategy, invariant protections, and test gates.
+3. **Mandatory 7-Column Diagnostic Problem-Solution & Impact Matrix Table:**
+   | S.No. / ID | Target File / Location | Root Cause & Failure Mechanism (क्यों और कैसे) | Proposed Fix (दुरुस्त कैसे किया जाएगा) | Post-Fix Impact & System Value (इम्पैक्ट) | Assigned Phase # | Verification Test Gate |
+4. **Header Metadata:** Task name, target version, author/architect agent, creation timestamp (`YYYY-MM-DD HH:mm:ss`), and total phase count.
+5. **Phase Tracking Matrix:**
    | Phase # | Phase Descriptor | Target Files | Specialized Subagent | Verification Command | Status |
    | :---: | :--- | :--- | :--- | :--- | :---: |
    | 01 | Scoped CSS & State Isolation | `LabContext.jsx`, `...` | `css_styling_specialist` | `npm run test:phase1` | `[x] PASS` |
    | 02 | Viewport Container | `SandboxViewport.jsx` | `typescript_language_specialist` | `npm run test:phase2` | `[ ] PENDING` |
-5. **Execution Order & Dependencies:** Strict sequencing rules and parallelization opportunities (Universal Rule 2).
-6. **Acceptance Criteria & DoD:** Exhaustive checklist for Grade A+ completion.
+6. **Execution Order & Dependencies:** Strict sequencing rules and parallelization opportunities (Universal Rule 2).
+7. **Acceptance Criteria & DoD:** Exhaustive checklist for Grade A+ completion.
 
-### 3.2 Standards for `phase_01_<step>.md` Files
-Each individual phase file is a self-contained, standalone prompt crafted for a scoped specialist subagent. It must contain:
-1. **Phase Objectives & Scope:** Explicitly what will be created or modified, and what must NOT be touched.
-2. **Exact Target Files:** Absolute and relative workspace paths.
-3. **Step-by-Step Implementation Instructions:** Precise code blocks, props definitions, hook contracts, and styling tokens.
-4. **Edge Cases & Invariants:** Reduced motion, dark/light contrast, mobile breakpoints, null/undefined safety.
-5. **Automated Verification Harness:** Dedicated Node.js ESM verification script (`scripts/verify_*.mjs`) validating syntax, DOM attributes, exports, and state invariants.
-6. **Rollback & Safety Instructions:** How to revert the phase cleanly if verification fails.
+### 3.2 Standards for `phase_01_<step>.md` Files (Self-Contained Granular Prompts)
+Each individual phase file is a completely self-contained, standalone prompt crafted so that **ANY model (old/new, Gemini, Claude, GPT, local) in a fresh or existing session can execute it reliably from a single 1-line prompt**. It must contain the 7 core sections:
+1. **Objective:** Explicit 1-2 sentence statement of what this phase accomplishes.
+2. **Prerequisites & Dependencies:** Prior phases and packages required.
+3. **Technical Context & Problem Context:** Problem context, affected symbols, and explicit clickable file links.
+4. **Step-by-Step Surgical Instructions:** Precise code blocks, props definitions, hook contracts, and styling tokens.
+5. **Constraints & Invariants:** Reduced motion, dark/light contrast, mobile breakpoints, null/undefined safety, CLS = 0.00, 60+ FPS.
+6. **Expected Outputs & Deliverables:** Concrete list of created/modified files.
+7. **Verification Gate:** Dedicated Node.js ESM verification script (`scripts/verify_*.mjs`) or test command.
 
 ---
 
-## 4. Integration with Subagent `phase_prompt_architect`
+## 4. User Execution Handoff & Autonomous Pipeline Protocol
+
+Once all phase documents (`INDEX.md` and all `phase_*.md` files) are generated, the agent MUST:
+1. **Prompt the User Interactively:**
+   Prompt the user directly via `ask_question` modal or explicit interaction prompt:  
+   *"क्या अब मैं फेज 1 से लेकर फेज [Last] तक का काम स्टार्ट कर दूं फेज-वाइज़ मैनर में?"*
+2. **Provide Universal 1-Line Execution Prompt:**
+   Provide a standardized, copy-pasteable execution command:
+   ```text
+   temp_prompt/<task_name>/INDEX.md और phase_*.md को पढ़कर फेज 1 से अंतिम फेज तक क्रमिक रूप से लागू (implement) और सत्यापित करो।
+   ```
+3. **Autonomous Sequential Execution Pipeline:**
+   When the user confirms with "हाँ", "OK", "Proceed", or triggers the command, execute Phase 1 through the final Phase sequentially with intermediate test gates, concluding with independent QA Grade A+ signoff.
+
+---
+
+## 5. Integration with Subagent `phase_prompt_architect`
 
 When an architectural feature, multi-step optimization, or complex refactor is initiated:
-1. **CEO Delegation (Universal Rule 1):** The Main Agent (CEO) invokes `phase_prompt_architect` to analyze the scope and create the execution plan.
-2. **Scaffold Directory & Files:** `phase_prompt_architect` creates `temp_prompt/<task_or_feature_name>/`, generates `INDEX.md`, and drafts the granular phase files (`phase_01_*.md`, etc.).
-3. **Parallel Dispatch Optimization (Universal Rule 2):** Identifies phases that can run concurrently versus those requiring strict sequential execution.
-4. **Specialist Subagent Assignment:** Maps each phase to its language/domain specialist (e.g., `javascript_language_specialist`, `css_styling_specialist`, `qa_verification_tester`).
-5. **Status Tracking:** Updates `INDEX.md` as each phase completes and passes verification.
+1. **CEO Delegation (Universal Rule 1):** The Main Agent (CEO) invokes `phase_prompt_architect` to analyze the scope and create the execution plan. No new subagents or rules are created.
+2. **Scaffold Directory & Files:** `phase_prompt_architect` creates `temp_prompt/<task_or_feature_name>/`, generates `INDEX.md` with the 7-column diagnostic matrix, and drafts self-contained phase files (`phase_01_*.md`, etc.).
+3. **Execution Handoff:** Executes the User Execution Handoff Protocol with interactive trigger and 1-line prompt.
+4. **Parallel Dispatch Optimization (Universal Rule 2):** Identifies phases that can run concurrently versus those requiring strict sequential execution.
+5. **Specialist Subagent Assignment:** Maps each phase to its language/domain specialist (e.g., `javascript_language_specialist`, `css_styling_specialist`, `qa_verification_tester`).
+6. **Status Tracking:** Updates `INDEX.md` as each phase completes and passes verification.
 
 ---
 
-## 5. Safe Post-Verification Cleanup Protocol (Universal Rule 22)
+## 6. Safe Post-Verification Cleanup Protocol (Universal Rule 22)
 
 The `temp_prompt/` directory is designed for **ephemeral execution** to prevent repository clutter. Once an initiative has successfully landed, it must be safely pruned according to the following protocol:
 

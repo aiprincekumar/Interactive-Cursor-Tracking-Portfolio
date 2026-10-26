@@ -345,7 +345,12 @@ export function speakText(text, options = {}) {
 
     const voices = options.voices || window.speechSynthesis.getVoices() || [];
     const profile = options.voiceProfile || config.voiceProfile;
-    const selectedVoice = resolveVoice(voices, profile, clean);
+    const selectedVoice =
+      options.selectedVoice ||
+      (options.voiceId && options.voiceId !== 'default'
+        ? voices.find((v) => v.voiceURI === options.voiceId || v.name === options.voiceId)
+        : null) ||
+      resolveVoice(voices, profile, clean);
     if (selectedVoice) {
       utterance.voice = selectedVoice;
       utterance.lang = selectedVoice.lang || 'en-US';

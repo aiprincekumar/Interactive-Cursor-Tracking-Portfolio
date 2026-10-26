@@ -38,7 +38,43 @@ export default class ErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
-      if (this.props.fallback) {
+      // 1. If explicit fallback is provided and it is a valid React node (and not null), or if it is a function:
+      if (this.props.fallback && typeof this.props.fallback === 'function') {
+        return this.props.fallback({ error: this.state.error, reset: this.handleReset });
+      }
+
+      // 2. Resilient Chat Widget Recovery Mode:
+      // If this error boundary wraps AIChatWidget (or name === 'AIChatWidget'), do NOT vanish to null!
+      if (this.props.name === 'AIChatWidget') {
+        return (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="fixed bottom-6 right-6 z-[9999] p-3.5 rounded-2xl bg-white/95 dark:bg-[#1A1225]/95 border border-[#FF4D6D]/40 shadow-2xl backdrop-blur-md flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200 select-none"
+          >
+            <div className="w-8 h-8 rounded-xl bg-[#FF4D6D]/15 text-[#FF4D6D] flex items-center justify-center text-sm font-bold shrink-0">
+              💬
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-stone-900 dark:text-white">
+                Chat Assistant Reset
+              </span>
+              <span className="text-[10px] text-stone-500 dark:text-stone-400">
+                चैट रीसेट / पुनः खोलें
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={this.handleReset}
+              className="ml-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-linear-to-r from-[#FF4D6D] to-[#9333EA] text-white hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs whitespace-nowrap"
+            >
+              Reopen Chat
+            </button>
+          </div>
+        );
+      }
+
+      if (this.props.fallback !== undefined && this.props.fallback !== null) {
         return this.props.fallback;
       }
 

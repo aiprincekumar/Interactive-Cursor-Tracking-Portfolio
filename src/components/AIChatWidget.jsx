@@ -1,5 +1,5 @@
 /* oxlint-disable react-hooks/rules-of-hooks */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   BotMessageSquare,
   X,
@@ -39,11 +39,13 @@ import {
   Trash2,
   Plus,
   Compass,
-  Zap
+  Zap,
+  Settings,
+  MoreHorizontal
 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
-import { useLabAudio, useLabDrawer } from '../context/LabContext';
+import { useLab, useLabChat, useLabAudio, useLabDrawer, DEFAULT_AI_CHAT_SETTINGS } from '../context/LabContext';
 import { useRole } from '../context/RoleContext';
 import { useAudience } from '../context/AudienceContext';
 import { useViewMode, VIEW_MODES } from '../context/ViewModeContext';
@@ -102,6 +104,8 @@ import {
   pauseSpeech,
   resumeSpeech
 } from '../utils/voiceAgentEngine.js';
+
+const cleanPlainText = (text) => cleanTextForSpeech(text);
 
 /**
  * Detects domain classification from query text for zero-cloud telemetry
@@ -343,14 +347,42 @@ function generateBotReply(userText) {
 }
 
 function AIChatWidget() {
-  // Safe access to Lab Context for drawer offset and sound settings
+  // Safe access to Lab Context for drawer offset, sound settings, and AI chat settings
   let soundEnabled = true;
   let isDrawerOpen = false;
+  let openDrawer = null;
+  let setActiveTab = null;
+  let chatSettings = DEFAULT_AI_CHAT_SETTINGS;
+  let updateChatSettings = () => {};
+
+  try {
+    const labContext = useLab();
+    if (labContext?.openDrawer) openDrawer = labContext.openDrawer;
+    if (labContext?.setActiveTab) setActiveTab = labContext.setActiveTab;
+  } catch {
+    // safe fallback
+  }
+
+  try {
+    const labDrawer = useLabDrawer();
+    isDrawerOpen = labDrawer?.isDrawerOpen ?? false;
+    if (!openDrawer && labDrawer?.openDrawer) openDrawer = labDrawer.openDrawer;
+    if (!setActiveTab && labDrawer?.setActiveTab) setActiveTab = labDrawer.setActiveTab;
+  } catch {
+    // safe fallback
+  }
+
   try {
     const labAudio = useLabAudio();
-    const labDrawer = useLabDrawer();
     soundEnabled = labAudio?.soundEnabled ?? true;
-    isDrawerOpen = labDrawer?.isDrawerOpen ?? false;
+  } catch {
+    // safe fallback
+  }
+
+  try {
+    const labChat = useLabChat();
+    if (labChat?.chatSettings) chatSettings = labChat.chatSettings;
+    if (labChat?.updateChatSettings) updateChatSettings = labChat.updateChatSettings;
   } catch {
     // safe fallback
   }
@@ -533,6 +565,37 @@ function AIChatWidget() {
   const [voiceConfig, setVoiceConfigState] = useState(() => getVoiceConfig());
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
 
+  // Phase 1: Quick Tools Popover State & Ref
+  const [showQuickTools, setShowQuickTools] = useState(false);
+  const quickToolsRef = useRef(null);
+
+  // Close Quick Tools popover & Export menu on outside click or Escape
+  useEffect(() => {
+    if (!showQuickTools && !showExportMenu) return;
+    const handleClickOutside = (e) => {
+      if (quickToolsRef.current && !quickToolsRef.current.contains(e.target)) {
+        setShowQuickTools(false);
+        setShowExportMenu(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowQuickTools(false);
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showQuickTools, showExportMenu]);
+
+  // Phase 3: Model Download Confirmation Dialog & Consent State
+  const [pendingModelDownload, setPendingModelDownload] = useState(null);
+  const [rememberConsentChoice, setRememberConsentChoice] = useState(false);
+
   useEffect(() => {
     const unsub = subscribeVoiceState(({ state, config }) => {
       setVoiceEngineState(state);
@@ -551,7 +614,7 @@ function AIChatWidget() {
     }
   }, [showHistoryDrawer]);
 
-  // Trigger silent on-device model background download when chat opens (guarded against duplicate triggers)
+  // Trigger silent on-device model background download when chat opens (guarded against duplicate triggers & unconsented downloads)
   useEffect(() => {
     if (isOpen) {
       try {
@@ -566,7 +629,10 @@ function AIChatWidget() {
           // ignore
         }
 
+        const shouldLoadOnOpen = (chatSettings?.loadTrigger === 'on_open') && (chatSettings?.consentMode === 'auto_confirm');
+
         if (
+          shouldLoadOnOpen &&
           currentState.status === 'idle' &&
           !currentState.activeModel &&
           !currentState.downloadingModel &&
@@ -580,7 +646,7 @@ function AIChatWidget() {
         console.warn('[AIChatWidget] Silent preload on open warning:', err);
       }
     }
-  }, [isOpen]);
+  }, [isOpen, chatSettings?.loadTrigger, chatSettings?.consentMode]);
 
   // Subscribe to On-Device AI events and notifications (deferred until chat opened)
   useEffect(() => {
@@ -727,7 +793,7 @@ function AIChatWidget() {
   };
 
   /**
-   * Resilient Read-Aloud / TTS implementation using Phase 11 Voice Agent Engine
+   * Resilient Read-Aloud / TTS implementation using Phase 11 Voice Agent Engine & LabChatContext
    */
   const handleToggleSpeech = (msgId, text) => {
     if (soundEnabled && soundFX?.playTap) soundFX.playTap();
@@ -739,13 +805,25 @@ function AIChatWidget() {
       return;
     }
 
+    const activeRate = chatSettings?.voiceRate ?? voiceConfig.rate ?? 1.0;
+    const activePitch = chatSettings?.voicePitch ?? voiceConfig.pitch ?? 1.0;
+    const activeVoiceId = chatSettings?.voiceId;
+
+    let targetVoice = null;
+    if (activeVoiceId && activeVoiceId !== 'default') {
+      const availableVoices = availableVoicesRef.current?.length ? availableVoicesRef.current : window.speechSynthesis.getVoices();
+      targetVoice = availableVoices.find((v) => v.voiceURI === activeVoiceId || v.name === activeVoiceId);
+    }
+
     setSpeakingMsgId(msgId);
     const success = speakText(text, {
       voices: availableVoicesRef.current,
-      rate: voiceConfig.rate,
-      pitch: voiceConfig.pitch,
+      selectedVoice: targetVoice,
+      voiceId: activeVoiceId,
+      rate: activeRate,
+      pitch: activePitch,
       volume: voiceConfig.volume,
-      voiceProfile: voiceConfig.voiceProfile,
+      voiceProfile: targetVoice ? undefined : voiceConfig.voiceProfile,
       onStart: () => setSpeakingMsgId(msgId),
       onEnd: () => setSpeakingMsgId(null),
       onError: () => setSpeakingMsgId(null)
@@ -761,8 +839,27 @@ function AIChatWidget() {
    */
   const triggerAutoSpeak = (msgId, text) => {
     const cfg = getVoiceConfig();
-    if (cfg.autoSpeakResponses && text) {
-      handleToggleSpeech(msgId, text);
+    const shouldSpeak = Boolean(chatSettings?.ttsEnabled || cfg.autoSpeakResponses);
+    if (shouldSpeak && text) {
+      if (chatSettings?.ttsEnabled && typeof window !== 'undefined' && window.speechSynthesis) {
+        const assistantResponseText = text;
+        const utterance = new SpeechSynthesisUtterance(cleanPlainText(assistantResponseText));
+        utterance.pitch = chatSettings.voicePitch || 1.0;
+        utterance.rate = chatSettings.voiceRate || 1.0;
+
+        if (chatSettings.voiceId && chatSettings.voiceId !== 'default') {
+          const availableVoices = window.speechSynthesis.getVoices();
+          const chosen = availableVoices.find((v) => v.voiceURI === chatSettings.voiceId || v.name === chatSettings.voiceId);
+          if (chosen) utterance.voice = chosen;
+        }
+
+        utterance.onstart = () => setSpeakingMsgId(msgId);
+        utterance.onend = () => setSpeakingMsgId(null);
+        utterance.onerror = () => setSpeakingMsgId(null);
+        window.speechSynthesis.speak(utterance);
+      } else {
+        handleToggleSpeech(msgId, text);
+      }
     }
   };
 
@@ -1125,14 +1222,48 @@ function AIChatWidget() {
   }, [messages, activeSessionId, activeRole, audience, viewMode, localAiState?.activeModel?.name]);
 
   // Current active suggestion chips derived from latest assistant message or defaults
-  const currentChips = (() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].sender === 'assistant' && Array.isArray(messages[i].chips) && messages[i].chips.length > 0) {
-        return messages[i].chips;
-      }
+  const currentChips = useMemo(() => {
+    // Find latest assistant message
+    const latestAssistant = [...messages].reverse().find(
+      (m) => m.role === 'assistant' || m.sender === 'assistant'
+    );
+
+    let rawChips = [];
+
+    // If latest message has an active decision tree, feed its options to the suggestion drawer!
+    if (
+      latestAssistant?.decisionTree?.options &&
+      !skippedDecisionTreeMsgIds.has(latestAssistant.id)
+    ) {
+      const isSequential = Boolean(latestAssistant.decisionTree.isSequential);
+      const step = latestAssistant.decisionTree.step;
+
+      rawChips = latestAssistant.decisionTree.options.map((opt) => ({
+        ...opt,
+        category: 'all',
+        isDecisionOption: true,
+        decisionStep: step,
+        isSequential,
+        messageId: latestAssistant.id
+      }));
+    } else if (
+      Array.isArray(latestAssistant?.chips) &&
+      latestAssistant.chips.length > 0
+    ) {
+      rawChips = latestAssistant.chips;
+    } else {
+      rawChips = PROMPT_CHIPS;
     }
-    return PROMPT_CHIPS;
-  })();
+
+    // Deduplicate by unique ID or normalized label
+    const seen = new Set();
+    return rawChips.filter((chip) => {
+      const key = (chip.id || chip.label || chip.query || '').trim().toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [messages, skippedDecisionTreeMsgIds]);
 
   // Scroll to bottom of message list smoothly (respects prefers-reduced-motion)
   const scrollToBottom = useCallback(() => {
@@ -2214,6 +2345,88 @@ function AIChatWidget() {
     setTimeout(scrollToBottom, 50);
   };
 
+  /**
+   * Phase 3: Fallback to 0MB Deterministic Engine
+   */
+  const runDeterministicRag = useCallback((query) => {
+    let res = null;
+    try {
+      if (typeof queryAssistant === 'function') {
+        res = queryAssistant(query, { role: activeRole, audience });
+      }
+    } catch (err) {
+      console.warn('runDeterministicRag queryAssistant error:', err);
+    }
+    const replyText = (res && res.text) ? res.text : generateBotReply(query);
+    const assistantMsgId = (res && res.id) || `assistant-${Date.now()}`;
+    const assistantMessage = {
+      id: assistantMsgId,
+      role: 'assistant',
+      sender: 'assistant',
+      modelShortcut: '[Portfolio-Engine]',
+      text: replyText,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      chips: (res && res.chips) || PROMPT_CHIPS,
+      actions: (res && res.actions) || [],
+      decisionTree: (res && res.decisionTree) || null,
+      card: (res && res.card) || null,
+      intent: (res && res.intent) || null
+    };
+
+    setMessages((prev) => [...prev, assistantMessage]);
+    setIsTyping(false);
+    setIsStreaming(false);
+    triggerAutoSpeak(assistantMsgId, replyText);
+    scrollToBottom();
+  }, [activeRole, audience]);
+
+  /**
+   * Phase 3: Neural Model Request & Consent Interception
+   */
+  const handleRequestNeuralModel = useCallback((targetModel, query) => {
+    // If user disabled neural or chose 0MB RAG
+    if (chatSettings?.modelId === 'offline_rag') {
+      return runDeterministicRag(query);
+    }
+
+    // If consent policy is auto_confirm
+    if (chatSettings?.consentMode === 'auto_confirm') {
+      if (typeof localAIService.loadModel === 'function') {
+        return localAIService.loadModel(targetModel?.id, { triggerQuery: query });
+      }
+      return localAIService.switchModel(targetModel?.id);
+    }
+
+    // If Wi-Fi only and user is on cellular/metered connection
+    if (chatSettings?.consentMode === 'wifi_only' && typeof navigator !== 'undefined' && navigator.connection?.saveData) {
+      if (typeof announce === 'function') {
+        announce('Cellular data saver detected. Using 0MB Offline RAG.', 'polite');
+      }
+      return runDeterministicRag(query);
+    }
+
+    // Otherwise, present interactive consent modal
+    setPendingModelDownload({
+      model: targetModel,
+      query: query,
+      onConfirm: (rememberChoice) => {
+        if (rememberChoice && typeof updateChatSettings === 'function') {
+          updateChatSettings({ consentMode: 'auto_confirm' });
+        }
+        setPendingModelDownload(null);
+        if (typeof localAIService.loadModel === 'function') {
+          localAIService.loadModel(targetModel?.id, { triggerQuery: query });
+        } else {
+          localAIService.switchModel(targetModel?.id);
+        }
+      },
+      onDecline: () => {
+        setPendingModelDownload(null);
+        runDeterministicRag(query);
+      }
+    });
+  }, [chatSettings, updateChatSettings, runDeterministicRag, announce]);
+
   const handleAiModelSwitchSelect = (chip) => {
     if (soundEnabled && soundFX?.playTap) soundFX.playTap();
 
@@ -2252,6 +2465,14 @@ function AIChatWidget() {
       if (soundEnabled && soundFX?.playSuccess) soundFX.playSuccess();
       announce('On-Device AI turned off. Running on offline knowledge engine.', 'polite');
     } else {
+      // Check consent before model switch download if consentMode === 'always_ask'
+      const isAlreadyCached = localAiState?.cachedModels?.includes(chip.modelId);
+      if (!isAlreadyCached && chatSettings?.consentMode === 'always_ask') {
+        const targetModel = MODEL_CATALOG[chip.modelId] || { id: chip.modelId, name: chip.label, approxSizeMB: chip.sizeMB || 90 };
+        handleRequestNeuralModel(targetModel, '');
+        return;
+      }
+
       // Debounce rapid model switcher clicks (250ms window) to safely cancel prior requests
       modelSwitchDebounceTimerRef.current = setTimeout(() => {
         localAIService.switchModel(chip.modelId);
@@ -2308,6 +2529,11 @@ function AIChatWidget() {
       setMessages((prev) => [...prev, userMsg, assistantMsg]);
       announce('On-Device AI turned off', 'polite');
     } else {
+      if (chatSettings?.consentMode === 'always_ask') {
+        const targetModel = localAiState?.deviceProfile?.recommendedModel || getBareMinimumModel();
+        handleRequestNeuralModel(targetModel, '');
+        return;
+      }
       localAIService.turnOnAI();
       const userMsg = {
         id: `user-ai-toggle-on-${Date.now()}`,
@@ -2476,21 +2702,24 @@ function AIChatWidget() {
 
           try {
             const systemPrompt = "You are Atul's AI Assistant for Atul Verma's portfolio. Provide helpful, accurate, concise answers.";
-            const genResult = await localAIService.generateText({
+            const genFn = typeof localAIService.generate === 'function' ? localAIService.generate.bind(localAIService) : localAIService.generateText.bind(localAIService);
+            const genResult = await genFn({
               prompt: trimmed,
               systemPrompt,
-              maxTokens: 120,
-              temperature: 0.7,
+              maxTokens: chatSettings?.maxTokens || 512,
+              temperature: chatSettings?.temperature ?? 0.7,
               requestId,
               onToken: (chunk, accumulatedText) => {
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === assistantMsgId
-                      ? { ...m, text: accumulatedText }
-                      : m
-                  )
-                );
-                scrollToBottom();
+                if (chatSettings?.streamResponse !== false) {
+                  setMessages((prev) =>
+                    prev.map((m) =>
+                      m.id === assistantMsgId
+                        ? { ...m, text: accumulatedText }
+                        : m
+                    )
+                  );
+                  scrollToBottom();
+                }
               }
             });
 
@@ -2551,6 +2780,13 @@ function AIChatWidget() {
           return;
         }
 
+        // Phase 3: Check if on-device model should be requested with consent when offline engine is not forced
+        if (!isOnDeviceReady && (isFallbackQuery || !botReplyText) && chatSettings?.modelId !== 'offline_rag' && localAiState?.status === 'idle' && chatSettings?.consentMode === 'always_ask') {
+          const recModel = localAiState?.deviceProfile?.recommendedModel || getBareMinimumModel();
+          handleRequestNeuralModel(recModel, trimmed);
+          return;
+        }
+
         // 2. Offline knowledge engine (queryAssistant) with typewriter stream
         if (!botReplyText) {
           botReplyText = generateBotReply(trimmed);
@@ -2565,7 +2801,7 @@ function AIChatWidget() {
           role: 'assistant',
           sender: 'assistant',
           modelShortcut: activeShortcut,
-          text: prefersReducedMotion ? fullText : '',
+          text: (prefersReducedMotion || chatSettings?.streamResponse === false) ? fullText : '',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           chips: (response && response.chips) || botChips || PROMPT_CHIPS,
           actions: (response && response.actions) || botActions || [],
@@ -2577,7 +2813,7 @@ function AIChatWidget() {
         setMessages((prev) => [...prev, assistantMessage]);
         setIsTyping(false);
 
-        if (prefersReducedMotion) {
+        if (prefersReducedMotion || chatSettings?.streamResponse === false) {
           const latencyMs = Date.now() - sendStartTime;
           recordMessageLatency(latencyMs, 'portfolio-engine', Math.max(1, Math.round(fullText.length / 4)));
           recordDomainInteraction(detectDomainFromQuery(trimmed));
@@ -2637,7 +2873,7 @@ function AIChatWidget() {
 
     // Handle keyboard submission, slash autocomplete navigation & Escape minimization
   const handleKeyDown = (e) => {
-    if (inputValue.startsWith('/') && filteredSlashCommands.length > 0) {
+    if (chatSettings?.slashCommandsEnabled !== false && inputValue.startsWith('/') && filteredSlashCommands.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         setActiveSlashIndex((prev) => (prev + 1) % filteredSlashCommands.length);
@@ -2755,6 +2991,92 @@ function AIChatWidget() {
         <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-stone-600 mx-auto mt-2 mb-1 shrink-0" aria-hidden="true" />
       )}
 
+      {/* Model Download Confirmation Dialog (Phase 3) */}
+      {pendingModelDownload && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="consent-modal-title"
+          className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
+        >
+          <div className="w-full max-w-sm p-5 bg-stone-900 border border-white/10 rounded-2xl shadow-2xl text-white space-y-4">
+            {/* Icon & Title */}
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                <DownloadCloud className="w-6 h-6 animate-pulse" />
+              </div>
+              <div>
+                <h4 id="consent-modal-title" className="text-sm font-semibold text-white">
+                  Download On-Device AI Model?
+                </h4>
+                <p className="text-xs text-white/60">
+                  100% Client-Side Neural LLM
+                </p>
+              </div>
+            </div>
+
+            {/* Model Spec Card */}
+            <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-white/60">Model:</span>
+                <span className="font-mono font-medium text-indigo-300">
+                  {pendingModelDownload.model?.name || pendingModelDownload.model?.id || 'SmolLM2-135M'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/60">Download Size:</span>
+                <span className="font-medium text-emerald-400">
+                  ~{pendingModelDownload.model?.approxSizeMB || pendingModelDownload.model?.sizeMB || 90} MB
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/60">RAM Requirement:</span>
+                <span className="font-medium text-amber-300">
+                  ~{pendingModelDownload.model?.ramMB || 500} MB
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/60">Execution:</span>
+                <span className="font-medium text-white/80">WebGPU / WASM</span>
+              </div>
+              <p className="text-[11px] text-white/50 pt-1 border-t border-white/5">
+                Downloads directly to browser cache. No server API calls or data tracking.
+              </p>
+            </div>
+
+            {/* Remember Choice Toggle */}
+            <label className="flex items-center gap-2 text-xs text-white/80 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberConsentChoice}
+                onChange={(e) => setRememberConsentChoice(e.target.checked)}
+                className="rounded border-white/20 text-indigo-600 focus:ring-indigo-500"
+              />
+              <span>Remember choice (Auto-confirm future downloads)</span>
+            </label>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => pendingModelDownload.onConfirm(rememberConsentChoice)}
+                className="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-lg shadow-indigo-600/30"
+              >
+                <Sparkles className="w-4 h-4" />
+                Download & Enable AI Engine
+              </button>
+              <button
+                type="button"
+                onClick={() => pendingModelDownload.onDecline()}
+                className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-xs transition-colors cursor-pointer"
+              >
+                Keep 0MB Offline RAG
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 1. Header with Avatar, Title, Status & Controls */}
       <div
         onPointerDown={handleWindowPointerDown}
@@ -2836,6 +3158,21 @@ function AIChatWidget() {
 
         {/* Windows 11 Style Window Controls: Dock/Reset, Minimize/Expand, Maximize/Restore, and Close */}
         <div className="flex items-center gap-0.5 shrink-0">
+          {/* Quick Shortcut to AI & Chat Studio Settings */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (soundEnabled && soundFX?.playClick) soundFX.playClick();
+              if (typeof setActiveTab === 'function') setActiveTab('chat');
+              if (typeof openDrawer === 'function') openDrawer('chat');
+            }}
+            aria-label="Open AI & Chat Studio Settings"
+            title="AI & Chat Studio Settings (Tab 7)"
+            className="min-w-[36px] min-h-[36px] sm:min-w-[28px] sm:min-h-[28px] sm:w-7 sm:h-7 rounded-md flex items-center justify-center text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-hidden"
+          >
+            <Settings className="w-3.5 h-3.5" />
+          </button>
           <button
             type="button"
             onClick={(e) => {
@@ -2939,66 +3276,62 @@ function AIChatWidget() {
               </button>
             </div>
           )}
-          {/* Dynamic Island Sub-Header: Clean Left-to-Right Single Row Action Strip */}
-          <div className="px-2 sm:px-2.5 py-1.5 bg-stone-100/90 dark:bg-[#150F22]/90 border-b border-[#E7E2D8]/60 dark:border-[#2D2340]/60 flex items-center justify-between gap-1 sm:gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
-            {/* Left Action Buttons: Segmented Perspective Group (Audience, Role, View Mode, AI Model Switcher) */}
-            <div className="flex items-center gap-0.5 sm:gap-1 p-0.5 rounded-lg bg-stone-200/50 dark:bg-stone-800/50 border border-stone-300/40 dark:border-stone-700/40 shrink-0">
+          {/* Streamlined Sub-Header: Clean Primary Toggles + Quick Tools Popover */}
+          <div className="px-2.5 py-1.5 bg-stone-100/90 dark:bg-[#150F22]/90 border-b border-[#E7E2D8]/60 dark:border-[#2D2340]/60 flex items-center justify-between gap-1.5 shrink-0">
+            {/* Left Action Buttons: Primary Perspective & AI Model Pills */}
+            <div className="flex items-center gap-1 shrink-0 overflow-x-auto no-scrollbar">
+              {/* Audience Trigger */}
               <button
                 type="button"
                 onClick={handleTriggerAudienceDecisionTree}
                 aria-label="Select Audience Perspective"
-                title={`Select Audience Perspective: ${getAudienceLabel(audience)}`}
-                className={`min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 sm:w-7 sm:h-7 rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getAudienceColorStyle(audience)}`}
+                title={`Audience: ${getAudienceLabel(audience)}`}
+                className={`px-2 py-1 rounded-lg text-[11px] font-sans font-medium flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 border ${getAudienceColorStyle(audience)}`}
               >
                 <Users className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline font-semibold">{activeAudienceData?.shortLabel || 'Audience'}</span>
               </button>
+
+              {/* Role Trigger */}
               <button
                 type="button"
                 onClick={handleTriggerRoleDecisionTree}
                 aria-label="Select Job Role Track"
-                title={`Select Job Role Track: ${getRoleLabel(activeRole)}`}
-                className={`min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 sm:w-7 sm:h-7 rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getRoleColorStyle(activeRole)}`}
+                title={`Role: ${getRoleLabel(activeRole)}`}
+                className={`px-2 py-1 rounded-lg text-[11px] font-sans font-medium flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 border ${getRoleColorStyle(activeRole)}`}
               >
                 <Briefcase className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline font-semibold">{roleData.shortLabel || 'Role'}</span>
               </button>
-              <button
-                type="button"
-                onClick={handleTriggerViewModeDecisionTree}
-                aria-label="Switch View Mode (Modern, Terminal, Simple, Basic)"
-                title={`Switch View Mode: ${getViewModeLabel(viewMode)}`}
-                className={`min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 sm:w-7 sm:h-7 rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getViewModeColorStyle(viewMode)}`}
-              >
-                <Monitor className="w-3.5 h-3.5" />
-              </button>
+
+              {/* AI Model Trigger Pill */}
               <button
                 type="button"
                 onClick={handleTriggerAIModelDecisionTree}
                 aria-label="Select AI Model"
-                title={`Select AI Model (${
+                title={`AI Model: ${
                   localAiState?.status === 'ready' && localAiState?.activeModel
                     ? localAiState.activeModel.shortcut
                     : (localAiState?.status === 'switching' || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache')
                     ? 'Loading Model...'
                     : 'Offline Engine'
-                })`}
-                className={`min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 sm:w-7 sm:h-7 rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getAIModelColorStyle(localAiState)}`}
+                }`}
+                className={`px-2 py-1 rounded-lg text-[11px] font-sans font-medium flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 border ${getAIModelColorStyle(localAiState)}`}
               >
                 <Bot className="w-3.5 h-3.5" />
+                <span className="text-[10px] font-mono font-semibold">
+                  {localAiState?.status === 'ready' && localAiState?.activeModel
+                    ? `⚡ ${localAiState.activeModel.shortcut}`
+                    : localAiState?.status === 'switching' || localAiState?.status === 'downloading'
+                    ? '⏳ Loading'
+                    : '📚 Offline'}
+                </span>
               </button>
             </div>
 
-            {/* Right Action Controls: AI On/Off Quick Toggle Pill, Emoji Toggle, Download Transcript, Clear Chat */}
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-              <button
-                type="button"
-                onClick={handleOpenPromptStudio}
-                aria-label="Meta-Prompt Studio"
-                title="Meta-Prompt Engineer & Studio (/engineer)"
-                className="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] font-sans font-semibold flex items-center gap-1 border border-purple-500/35 bg-purple-500/15 text-purple-700 dark:text-purple-300 hover:bg-purple-500/25 transition-all cursor-pointer whitespace-nowrap shrink-0 active:scale-95 shadow-2xs"
-              >
-                <Sparkles className="w-3 h-3 text-purple-500" />
-                <span>🎯 Prompt Studio</span>
-              </button>
+            {/* Right Action: Sleek AI Status Pill & Quick Tools Popover Menu */}
+            <div className="flex items-center gap-1.5 shrink-0 relative" ref={quickToolsRef}>
+              {/* Sleek AI On/Off Pill Badge */}
               <button
                 type="button"
                 onClick={handleToggleAIQuick}
@@ -3010,12 +3343,12 @@ function AIChatWidget() {
                     ? "Click to Turn Off On-Device AI (Switch to Offline Knowledge Engine)"
                     : "Click to Turn On On-Device AI"
                 }
-                className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] font-sans font-medium flex items-center gap-1 border transition-all cursor-pointer whitespace-nowrap shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${
+                className={`px-1.5 sm:px-2 py-1 rounded-lg text-[10px] font-sans font-medium flex items-center gap-1 border transition-all cursor-pointer whitespace-nowrap shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${
                   localAiState?.status === 'ready' && localAiState?.activeModel
-                    ? 'text-emerald-500 bg-emerald-500/15 ring-1 ring-emerald-500/40 border-emerald-500/40 hover:bg-emerald-500/25'
+                    ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 border-emerald-500/30 hover:bg-emerald-500/25'
                     : localAiState?.status === 'switching' || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache'
-                    ? 'text-amber-500 bg-amber-500/15 ring-1 ring-amber-500/40 animate-pulse border-amber-500/40'
-                    : 'text-stone-400 bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 hover:bg-stone-200 dark:hover:bg-stone-700'
+                    ? 'text-amber-600 dark:text-amber-400 bg-amber-500/15 border-amber-500/30 animate-pulse'
+                    : 'text-stone-500 dark:text-stone-400 bg-stone-200/50 dark:bg-stone-800/50 border-stone-300/50 dark:border-stone-700/50 hover:bg-stone-200 dark:hover:bg-stone-700'
                 }`}
               >
                 {localAiState?.status === 'ready' && localAiState?.activeModel
@@ -3024,137 +3357,244 @@ function AIChatWidget() {
                   ? '⏳ AI Loading'
                   : '🔌 AI Off'}
               </button>
-              <button
-                type="button"
-                onClick={() => setEmojiEnabled((prev) => !prev)}
-                className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] font-sans font-medium flex items-center gap-1 border transition-colors cursor-pointer whitespace-nowrap shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${
-                  emojiEnabled
-                    ? 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400'
-                    : 'bg-stone-100 dark:bg-stone-800 border-stone-300 dark:border-stone-700 text-stone-500'
-                }`}
-                title="Toggle Emojis (On/Off)"
-              >
-                😊 {emojiEnabled ? 'On' : 'Off'}
-              </button>
 
-              {/* Session History Drawer Button */}
+              {/* Unified ••• Quick Tools Menu Button */}
               <button
                 type="button"
                 onClick={() => {
-                  setShowHistoryDrawer((prev) => !prev);
+                  setShowQuickTools((prev) => !prev);
                   setShowExportMenu(false);
                 }}
-                aria-label="View conversation history & sessions"
-                title="Conversation History (Local Sessions Archive)"
-                className={`w-7 h-7 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${
-                  showHistoryDrawer
-                    ? 'bg-rose-500/20 text-[#FF4D6D]'
-                    : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
+                aria-label="Quick Tools Menu"
+                aria-haspopup="menu"
+                aria-expanded={showQuickTools}
+                title="Quick Tools (History, Export, Voice, Emojis, Clear)"
+                className={`px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer active:scale-95 border ${
+                  showQuickTools
+                    ? 'bg-[#FF4D6D] text-white border-[#FF4D6D] shadow-xs'
+                    : 'bg-white/80 dark:bg-stone-800/80 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:text-stone-900 dark:hover:text-white hover:border-[#FF4D6D]/40'
                 }`}
               >
-                <History className="w-3.5 h-3.5" />
+                <MoreHorizontal className="w-3.5 h-3.5" />
+                <span className="tracking-widest text-[11px] font-bold">•••</span>
+                <span className="text-[11px] hidden sm:inline">Tools</span>
               </button>
 
-              {/* Multi-Format Export Picker Popover */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowExportMenu((prev) => !prev);
-                    setShowHistoryDrawer(false);
-                  }}
-                  aria-label="Export Chat Transcript"
-                  title="Export Chat Transcript (Markdown, TXT, JSON, HTML, Copy)"
-                  className={`w-7 h-7 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${
-                    showExportMenu
-                      ? 'bg-rose-500/20 text-[#FF4D6D]'
-                      : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
-                  }`}
+              {/* Quick Tools Popover Dropdown */}
+              {showQuickTools && (
+                <div
+                  role="menu"
+                  aria-label="Quick tools menu"
+                  className="absolute right-0 top-full mt-1.5 w-56 py-1.5 bg-white/95 dark:bg-[#181124]/95 border border-stone-200 dark:border-stone-800 rounded-xl shadow-2xl z-50 text-xs backdrop-blur-md animate-in fade-in zoom-in-95 duration-150"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                </button>
+                  <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-stone-400 dark:text-stone-500 border-b border-stone-100 dark:border-stone-800/80 flex items-center justify-between">
+                    <span>Quick Tools</span>
+                    <span className="text-[9px]">Esc to close</span>
+                  </div>
 
-                {showExportMenu && (
-                  <div
-                    role="menu"
-                    aria-label="Export format options"
-                    className="absolute right-0 top-full mt-1.5 w-52 py-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-2xl z-50 text-xs animate-in fade-in zoom-in-95 duration-150 backdrop-blur-md"
+                  {/* 1. Meta-Prompt Studio */}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setShowQuickTools(false);
+                      handleOpenPromptStudio();
+                    }}
+                    className="w-full text-left px-3 py-2 text-stone-700 dark:text-stone-200 hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-2 cursor-pointer transition-colors"
                   >
-                    <div className="px-3 py-1 text-[10px] font-bold tracking-wider uppercase text-stone-500 dark:text-stone-400 border-b border-stone-100 dark:border-stone-800">
-                      Export Transcript
+                    <Sparkles className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                    <div className="flex-1">
+                      <span className="font-medium">Meta-Prompt Studio</span>
+                      <span className="block text-[10px] text-stone-400 font-mono">/engineer</span>
                     </div>
+                  </button>
+
+                  {/* 2. Voice Synthesis Studio */}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setShowQuickTools(false);
+                      setShowVoiceSettings(true);
+                    }}
+                    className="w-full text-left px-3 py-2 text-stone-700 dark:text-stone-200 hover:bg-[#FF4D6D]/10 hover:text-[#FF4D6D] flex items-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <Volume2 className="w-3.5 h-3.5 text-[#FF4D6D] shrink-0" />
+                    <div className="flex-1">
+                      <span className="font-medium">Voice Synthesis Studio</span>
+                      <span className="block text-[10px] text-stone-400 font-mono">/voicesettings</span>
+                    </div>
+                  </button>
+
+                  {/* 3. Session History Drawer */}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setShowQuickTools(false);
+                      setShowHistoryDrawer(true);
+                    }}
+                    className="w-full text-left px-3 py-2 text-stone-700 dark:text-stone-200 hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400 flex items-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <History className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <div className="flex-1">
+                      <span className="font-medium">Conversation History</span>
+                      <span className="block text-[10px] text-stone-400 font-mono">Session History & Archive</span>
+                    </div>
+                  </button>
+
+                  {/* 4. Emoji Toggle */}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setEmojiEnabled((prev) => !prev);
+                    }}
+                    className="w-full text-left px-3 py-2 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center justify-between cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>😊</span>
+                      <span className="font-medium">Expressive Emojis</span>
+                    </div>
+                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-bold ${
+                      emojiEnabled ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-stone-200 dark:bg-stone-800 text-stone-500'
+                    }`}>
+                      {emojiEnabled ? 'ON' : 'OFF'}
+                    </span>
+                  </button>
+
+                  {/* 5. Switch View Mode */}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setShowQuickTools(false);
+                      handleTriggerViewModeDecisionTree();
+                    }}
+                    aria-label="Switch View Mode (Modern, Terminal, Simple, Basic)"
+                    title={`Switch View Mode: ${getViewModeLabel(viewMode)}`}
+                    className="w-full text-left px-3 py-2 text-stone-700 dark:text-stone-200 hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-400 flex items-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <Monitor className="w-3.5 h-3.5 text-cyan-500 shrink-0" />
+                    <div className="flex-1">
+                      <span className="font-medium">Switch View Mode</span>
+                      <span className="block text-[10px] text-stone-400 font-mono">{getViewModeLabel(viewMode)}</span>
+                    </div>
+                  </button>
+
+                  <div className="my-1 border-t border-stone-100 dark:border-stone-800" />
+
+                  {/* 5. Export Transcript Popover / Modal trigger */}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setShowQuickTools(false);
+                      setShowExportMenu(true);
+                    }}
+                    className="w-full text-left px-3 py-2 text-stone-700 dark:text-stone-200 hover:bg-[#FF4D6D]/10 hover:text-[#FF4D6D] flex items-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5 text-[#FF4D6D] shrink-0" />
+                    <div className="flex-1">
+                      <span className="font-medium">Export Transcript</span>
+                      <span className="block text-[10px] text-stone-400 font-mono">MD, TXT, JSON, HTML</span>
+                    </div>
+                  </button>
+
+                  {/* 6. Clear Chat */}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setShowQuickTools(false);
+                      handleClearChat();
+                    }}
+                    className="w-full text-left px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-500/10 flex items-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+                    <div className="flex-1">
+                      <span className="font-semibold">Clear Conversation</span>
+                      <span className="block text-[10px] text-stone-400 font-mono">Reset memory</span>
+                    </div>
+                  </button>
+                </div>
+              )}
+
+              {/* Export Transcript Popover */}
+              {showExportMenu && (
+                <div
+                  role="menu"
+                  aria-label="Export format options"
+                  className="absolute right-0 top-full mt-1.5 w-52 py-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-2xl z-50 text-xs animate-in fade-in zoom-in-95 duration-150 backdrop-blur-md"
+                >
+                  <div className="px-3 py-1 text-[10px] font-bold tracking-wider uppercase text-stone-500 dark:text-stone-400 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between">
+                    <span>Export Transcript</span>
                     <button
                       type="button"
-                      onClick={() => handleExportFormat('markdown')}
-                      className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
+                      onClick={() => setShowExportMenu(false)}
+                      className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 p-0.5 cursor-pointer"
+                      aria-label="Close export menu"
                     >
-                      <span className="font-medium">📄 Markdown (.md)</span>
-                      <span className="text-[10px] text-stone-400">GH Flavored</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleExportFormat('txt')}
-                      className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
-                    >
-                      <span className="font-medium">📝 Plain Text (.txt)</span>
-                      <span className="text-[10px] text-stone-400">ASCII Log</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleExportFormat('json')}
-                      className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
-                    >
-                      <span className="font-medium">📊 JSON Transcript</span>
-                      <span className="text-[10px] text-stone-400">Raw Data</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleExportFormat('html')}
-                      className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
-                    >
-                      <span className="font-medium">🌐 HTML Print Page</span>
-                      <span className="text-[10px] text-stone-400">Self-Contained</span>
-                    </button>
-                    <div className="my-1 border-t border-stone-100 dark:border-stone-800" />
-                    <button
-                      type="button"
-                      onClick={handleCopyAllTranscript}
-                      className="w-full text-left px-3 py-1.5 text-[#FF4D6D] hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center justify-between font-bold cursor-pointer"
-                    >
-                      <span>📋 Copy All to Clipboard</span>
+                      <X className="w-3 h-3" />
                     </button>
                   </div>
-                )}
-              </div>
-
-              {/* Voice Settings Studio Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  setShowVoiceSettings((prev) => !prev);
-                  setShowHistoryDrawer(false);
-                  setShowExportMenu(false);
-                }}
-                aria-label="Configure Voice Agent Settings"
-                title="Voice Synthesis Studio (/voicesettings)"
-                className={`w-7 h-7 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${
-                  showVoiceSettings
-                    ? 'bg-rose-500/20 text-[#FF4D6D]'
-                    : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
-                }`}
-              >
-                <Volume2 className="w-3.5 h-3.5" />
-              </button>
-
-              <button
-                type="button"
-                onClick={handleClearChat}
-                aria-label="Clear chat history"
-                title="Clear chat history"
-                className="w-7 h-7 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleExportFormat('markdown');
+                      setShowExportMenu(false);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="font-medium">📄 Markdown (.md)</span>
+                    <span className="text-[10px] text-stone-400">GH Flavored</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleExportFormat('txt');
+                      setShowExportMenu(false);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="font-medium">📝 Plain Text (.txt)</span>
+                    <span className="text-[10px] text-stone-400">ASCII Log</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleExportFormat('json');
+                      setShowExportMenu(false);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="font-medium">📊 JSON Transcript</span>
+                    <span className="text-[10px] text-stone-400">Raw Data</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleExportFormat('html');
+                      setShowExportMenu(false);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="font-medium">🌐 HTML Print Page</span>
+                    <span className="text-[10px] text-stone-400">Self-Contained</span>
+                  </button>
+                  <div className="my-1 border-t border-stone-100 dark:border-stone-800" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleCopyAllTranscript();
+                      setShowExportMenu(false);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-[#FF4D6D] hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center justify-between font-bold cursor-pointer"
+                  >
+                    <span>📋 Copy All to Clipboard</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -3613,9 +4053,9 @@ function AIChatWidget() {
             onPointerDown={() => {
               if (inputValue.startsWith('/')) setInputValue('');
             }}
-            className="flex-1 min-h-0 p-3 overflow-y-auto space-y-3 overscroll-contain focus-visible:outline-hidden"
+            className="flex-1 min-h-0 p-3 pb-5 overflow-y-auto space-y-3 overscroll-contain focus-visible:outline-hidden"
           >
-            {messages.map((msg) => {
+            {messages.map((msg, idx) => {
               const isAssistant = msg.role === 'assistant' || msg.sender === 'assistant';
               const messageRoleLabel = (msg.role === 'assistant' || msg.sender === 'assistant') ? 'Assistant' : 'You';
               const formattedTime = formatTime(msg.timestamp);
@@ -3643,14 +4083,14 @@ function AIChatWidget() {
                     <div
                       role="article"
                       aria-label={messageAriaLabel}
-                      className={`px-3 py-2 text-xs leading-relaxed shadow-2xs ${
+                      className={`px-3.5 py-2.5 text-xs leading-relaxed shadow-xs transition-all duration-200 ${
                         isAssistant && Array.isArray(msg.actions) && msg.actions.length > 0
                           ? 'w-full'
                           : ''
                       } ${
                         isAssistant
-                          ? 'bg-white dark:bg-[#1F172E] text-stone-800 dark:text-stone-100 border border-[#E7E2D8] dark:border-[#2D2340] rounded-2xl rounded-tl-xs'
-                          : 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white rounded-2xl rounded-tr-xs'
+                          ? 'bg-white/90 dark:bg-[#1A1326]/90 text-stone-800 dark:text-stone-100 border border-stone-200/70 dark:border-stone-800/80 rounded-2xl rounded-tl-xs backdrop-blur-sm'
+                          : 'bg-linear-to-tr from-[#FF4D6D] to-[#FF758F] text-white rounded-2xl rounded-tr-xs shadow-sm font-normal'
                       }`}
                     >
                       <FormattedMessage
@@ -3688,286 +4128,13 @@ function AIChatWidget() {
                         </div>
                       )}
 
-                      {/* Decision Tree Rendering */}
-                      {isAssistant && msg.decisionTree && !skippedDecisionTreeMsgIds.has(msg.id) && (() => {
-                        const allOptions = msg.decisionTree.options || [];
-                        const regularOptions = allOptions.filter((chip) => !chip.isSkip);
-                        const skipOption = allOptions.find((chip) => chip.isSkip);
-
-                        const handleSkipClick = () => {
-                          if (msg.decisionTree.step === 'audience') {
-                            handleAudienceDecisionSkip(msg.decisionTree.isSequential);
-                          } else if (msg.decisionTree.step === 'role') {
-                            handleRoleDecisionSkip(msg.decisionTree.isSequential);
-                          } else if (msg.decisionTree.step === 'viewMode') {
-                            handleViewModeDecisionSkip(msg.decisionTree.isSequential);
-                          } else {
-                            setSkippedDecisionTreeMsgIds((prev) => new Set([...prev, msg.id]));
-                            inputRef.current?.focus();
-                          }
-                        };
-
-                        return (
-                          <div className="mt-2.5 pt-2 border-t border-stone-200/60 dark:border-stone-700/60 w-full flex flex-col gap-2">
-                            {msg.decisionTree.title && (
-                              <p className="text-[11px] font-semibold text-stone-700 dark:text-stone-300">
-                                {msg.decisionTree.title}
-                              </p>
-                            )}
-
-                            {/* 1-Column Vertical Stack for Decision Options */}
-                            <div className="flex flex-col gap-2 w-full">
-                              {regularOptions.map((chip) => {
-                                if (
-                                  msg.decisionTree.step === 'preferences_prompt' ||
-                                  chip.action === 'customize_yes' ||
-                                  chip.action === 'customize_no'
-                                ) {
-                                  const isYes = chip.id === 'customize_yes' || chip.action === 'customize_yes';
-                                  return (
-                                    <button
-                                      key={chip.id}
-                                      type="button"
-                                      onClick={() => handlePreferencesPromptSelect(chip.id, chip.label)}
-                                      className={`w-full py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer text-left flex items-center justify-between shadow-2xs border ${
-                                        isYes
-                                          ? 'bg-linear-to-r from-[#FF4D6D] to-[#9333EA] text-white border-transparent hover:opacity-95'
-                                          : 'bg-white dark:bg-[#1E162B] text-stone-800 dark:text-stone-200 border-stone-300 dark:border-stone-700 hover:border-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800'
-                                      }`}
-                                    >
-                                      <span>{chip.label}</span>
-                                      <ArrowRight className="w-3.5 h-3.5 opacity-80 shrink-0" />
-                                    </button>
-                                  );
-                                }
-
-                                if (chip.isAiConsent) {
-                                  const isYes = chip.consent === 'enabled';
-                                  return (
-                                    <button
-                                      key={chip.id}
-                                      type="button"
-                                      onClick={() => handleAiModelConsentSelect(chip.consent, chip.label)}
-                                      className={`w-full py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer text-left flex items-center justify-between shadow-2xs border ${
-                                        isYes
-                                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
-                                          : 'bg-white dark:bg-[#1E162B] text-stone-800 dark:text-stone-200 border-stone-300 dark:border-stone-700 hover:border-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800'
-                                      }`}
-                                    >
-                                      <span>{chip.label}</span>
-                                      <Sparkles className="w-3.5 h-3.5 opacity-80 shrink-0" />
-                                    </button>
-                                  );
-                                }
-
-                                if (chip.isOther) {
-                                  return (
-                                    <button
-                                      key={chip.id || 'other'}
-                                      type="button"
-                                      onClick={() => {
-                                        setInlineSpecifyMsgId((prev) => (prev === msg.id ? null : msg.id));
-                                      }}
-                                      className={`w-full py-2 px-3 rounded-xl text-[11px] font-medium transition-colors cursor-pointer border text-left flex items-center justify-between ${
-                                        inlineSpecifyMsgId === msg.id
-                                          ? 'bg-blue-600 text-white border-blue-600'
-                                          : 'bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 border-stone-300/80 dark:border-stone-700'
-                                      }`}
-                                    >
-                                      <span>✏️ Other / Specify</span>
-                                      <span className="text-[10px] opacity-75 font-mono">Custom Input</span>
-                                    </button>
-                                  );
-                                }
-
-                                if (chip.audience) {
-                                  const isSelected = chip.audience === audience;
-                                  return (
-                                    <button
-                                      key={chip.id}
-                                      type="button"
-                                      onClick={() => handleAudienceDecisionSelect(chip.audience, chip.label, msg.decisionTree?.isSequential)}
-                                      className={`w-full py-2 px-3 rounded-xl text-[11px] font-medium transition-all cursor-pointer border text-left flex items-center justify-between ${
-                                        isSelected
-                                          ? 'bg-[#FF4D6D] text-white border-[#FF4D6D] shadow-xs font-semibold'
-                                          : 'bg-white dark:bg-[#1E162B] text-stone-800 dark:text-stone-200 border-stone-300 dark:border-stone-700 hover:border-[#FF4D6D] hover:text-[#FF4D6D]'
-                                      }`}
-                                    >
-                                      <span>{chip.label}</span>
-                                      {isSelected && <span className="text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded">Current</span>}
-                                    </button>
-                                  );
-                                }
-
-                                if (chip.role) {
-                                  const isSelected = chip.role === activeRole;
-                                  return (
-                                    <button
-                                      key={chip.id}
-                                      type="button"
-                                      onClick={() => handleRoleDecisionSelect(chip.role, chip.label, msg.decisionTree?.isSequential)}
-                                      className={`w-full py-2 px-3 rounded-xl text-[11px] font-medium transition-all cursor-pointer border text-left flex items-center justify-between ${
-                                        isSelected
-                                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs font-semibold'
-                                          : 'bg-white dark:bg-[#1E162B] text-stone-800 dark:text-stone-200 border-stone-300 dark:border-stone-700 hover:border-emerald-500 hover:text-emerald-500'
-                                      }`}
-                                    >
-                                      <span>{chip.label}</span>
-                                      {isSelected && <span className="text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded">Current</span>}
-                                    </button>
-                                  );
-                                }
-
-                                if (chip.viewMode) {
-                                  const isViewModeCurrent = chip.viewMode === viewMode;
-                                  return (
-                                    <button
-                                      key={chip.id}
-                                      type="button"
-                                      onClick={() => handleViewModeDecisionSelect(chip.viewMode, chip.label, msg.decisionTree?.isSequential)}
-                                      className={`w-full py-2 px-3 rounded-xl text-[11px] font-medium transition-all cursor-pointer border text-left flex items-center justify-between ${
-                                        isViewModeCurrent
-                                          ? 'bg-cyan-600 text-white border-cyan-500 shadow-xs ring-1 ring-cyan-400 font-semibold'
-                                          : 'bg-white dark:bg-[#1E162B] text-stone-800 dark:text-stone-200 border-stone-300 dark:border-stone-700 hover:border-cyan-500 hover:text-cyan-500'
-                                      }`}
-                                    >
-                                      <span>{chip.label}</span>
-                                      {isViewModeCurrent && <span className="text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded">Current</span>}
-                                    </button>
-                                  );
-                                }
-
-                                if (msg.decisionTree?.step === 'model_activation') {
-                                  return (
-                                    <button
-                                      key={chip.id}
-                                      type="button"
-                                      onClick={() => handleModelActivationSelect(chip)}
-                                      className="w-full p-2.5 rounded-xl text-left transition-all cursor-pointer border flex flex-col gap-1 shadow-2xs bg-white dark:bg-[#1E162B] text-stone-800 dark:text-stone-200 border-stone-300 dark:border-stone-700 hover:border-emerald-500/80 hover:bg-stone-50 dark:hover:bg-stone-850"
-                                    >
-                                      <span className="text-[11px] font-semibold flex items-center gap-1.5 text-stone-900 dark:text-stone-100">
-                                        {chip.label}
-                                      </span>
-                                      {chip.sublabel && (
-                                        <p className="text-[10px] text-stone-500 dark:text-stone-400 font-mono leading-relaxed">
-                                          {chip.sublabel}
-                                        </p>
-                                      )}
-                                    </button>
-                                  );
-                                }
-
-                                if (msg.decisionTree?.step === 'ai_model_switch') {
-                                  const isTurnOff = chip.isTurnOff || chip.modelId === 'portfolio-engine';
-                                  const isCurrentActive = isTurnOff
-                                    ? (localAiState?.status !== 'downloading' && (!localAiState?.activeModel || localAiState?.isAiEnabled === false))
-                                    : (localAiState?.activeModel?.id === chip.modelId || localAiState?.activeModel?.shortcut === chip.shortcut);
-                                  const isCurrentDownloading = !isTurnOff && localAiState?.status === 'downloading' && (localAiState?.downloadingModel?.id === chip.modelId || localAiState?.downloadingModel?.shortcut === chip.shortcut);
-
-                                  return (
-                                    <button
-                                      key={chip.id}
-                                      type="button"
-                                      disabled={isCurrentActive || isCurrentDownloading}
-                                      aria-disabled={isCurrentActive || isCurrentDownloading}
-                                      onClick={() => handleAiModelSwitchSelect(chip)}
-                                      className={`w-full p-2.5 rounded-xl text-left transition-all border flex flex-col gap-1 shadow-2xs ${
-                                        isCurrentActive
-                                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 border-emerald-500 ring-2 ring-emerald-500/30 font-medium cursor-default opacity-90'
-                                          : isCurrentDownloading
-                                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-950 dark:text-amber-100 border-amber-500 ring-2 ring-amber-500/30 animate-pulse cursor-wait'
-                                            : 'bg-white dark:bg-[#1E162B] text-stone-800 dark:text-stone-200 border-stone-300 dark:border-stone-700 hover:border-emerald-500/80 hover:bg-stone-50 dark:hover:bg-stone-850 cursor-pointer'
-                                      }`}
-                                    >
-                                      <div className="flex items-center justify-between w-full">
-                                        <span className="text-[11px] font-semibold flex items-center gap-1.5">
-                                          {chip.label}
-                                        </span>
-                                        {isCurrentActive && (
-                                          <span className="text-[10px] font-bold font-mono bg-emerald-600 text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs shrink-0">
-                                            ✓ Active
-                                          </span>
-                                        )}
-                                        {isCurrentDownloading && (
-                                          <span className="text-[10px] font-bold font-mono bg-amber-600 text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs shrink-0">
-                                            ⏳ Downloading...
-                                          </span>
-                                        )}
-                                        {!isCurrentActive && !isCurrentDownloading && chip.isRecommended && (
-                                          <span className="text-[9.5px] font-medium font-mono bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded shrink-0">
-                                            Recommended
-                                          </span>
-                                        )}
-                                      </div>
-                                      {chip.sublabel && (
-                                        <p className="text-[10px] text-stone-500 dark:text-stone-400 font-mono leading-relaxed">
-                                          {chip.sublabel}
-                                        </p>
-                                      )}
-                                    </button>
-                                  );
-                                }
-
-                                return (
-                                  <button
-                                    key={chip.id || chip.label}
-                                    type="button"
-                                    onClick={() => handleSendMessage(chip.query || chip.label)}
-                                    className="w-full py-2 px-3 rounded-xl text-[11px] font-medium bg-white dark:bg-[#1E162B] text-stone-800 dark:text-stone-200 border border-stone-300 dark:border-stone-700 hover:border-[#FF4D6D] hover:text-[#FF4D6D] transition-all cursor-pointer text-left flex items-center justify-between"
-                                  >
-                                    <span>{chip.label}</span>
-                                    <ArrowRight className="w-3 h-3 opacity-60 shrink-0" />
-                                  </button>
-                                );
-                              })}
-                            </div>
-
-                            {/* Dedicated Full-Width Bottom Skip Button Container */}
-                            {skipOption && (
-                              <div className="pt-1.5 border-t border-stone-200/50 dark:border-stone-700/50 w-full">
-                                <button
-                                  key={skipOption.id || 'skip'}
-                                  type="button"
-                                  onClick={handleSkipClick}
-                                  className="w-full py-2 px-3 rounded-xl text-[11px] font-medium bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 border border-stone-300/80 dark:border-stone-700 transition-colors cursor-pointer text-center flex items-center justify-center gap-1 shadow-2xs"
-                                >
-                                  <span>{skipOption.label || '⏩ Skip'}</span>
-                                </button>
-                              </div>
-                            )}
-
-                            {/* Inline Specify Text Form */}
-                            {inlineSpecifyMsgId === msg.id && (
-                              <form
-                                onSubmit={(e) => {
-                                  e.preventDefault();
-                                  if (inlineSpecifyText.trim()) {
-                                    handleSendMessage(inlineSpecifyText.trim());
-                                    setInlineSpecifyText('');
-                                    setInlineSpecifyMsgId(null);
-                                  }
-                                }}
-                                className="mt-1 flex items-center gap-1.5 p-1.5 rounded-xl bg-stone-50 dark:bg-stone-900 border border-[#FF4D6D]/40 w-full"
-                              >
-                                <input
-                                  type="text"
-                                  value={inlineSpecifyText}
-                                  onChange={(e) => setInlineSpecifyText(e.target.value)}
-                                  placeholder="Type your query here..."
-                                  className="flex-1 bg-transparent text-xs text-stone-800 dark:text-stone-100 placeholder-stone-400 px-2 py-1 outline-hidden"
-                                  autoFocus
-                                />
-                                <button
-                                  type="submit"
-                                  className="px-2.5 py-1 bg-linear-to-r from-[#FF4D6D] to-[#9333EA] text-white rounded-lg text-xs font-medium flex items-center gap-1 shrink-0 hover:opacity-90 transition-opacity cursor-pointer"
-                                >
-                                  <Send className="w-3 h-3" /> Send
-                                </button>
-                              </form>
-                            )}
-                          </div>
-                        );
-                      })()}
+                      {/* In-Bubble Decision Tree Context Hint (Buttons moved to bottom Suggestion Bar) */}
+                      {isAssistant && msg.decisionTree && !skippedDecisionTreeMsgIds.has(msg.id) && msg.decisionTree.title && (
+                        <div className="mt-2 pt-1.5 border-t border-stone-200/50 dark:border-stone-700/50 flex items-center justify-between text-[11px] font-medium text-stone-500 dark:text-stone-400">
+                          <span className="italic">{msg.decisionTree.title}</span>
+                          <span className="text-[10px] font-mono opacity-80">👇 Choose below</span>
+                        </div>
+                      )}
 
                       {/* Phase 10: In-Chat Action Card */}
                       {isAssistant && (msg.card || (Array.isArray(msg.actions) && msg.actions.some(a => a.type === 'start-tour'))) && (
@@ -4017,76 +4184,103 @@ function AIChatWidget() {
                       )}
                     </div>
                   </div>
-                  <div className={`flex items-center gap-2 mt-1 px-1 ${isAssistant ? 'ml-6.5' : ''}`}>
-                    <span className="text-[9px] font-mono text-stone-500 dark:text-stone-400">
-                      {msg.timestamp}
-                    </span>
-                    {isAssistant && (
+                  {/* Unified Single-Row Micro-Toolbar */}
+                  {isAssistant ? (
+                    <div className="flex items-center justify-between w-full mt-1.5 px-1 pl-6.5 text-[10px] text-stone-400 select-none">
+                      {/* Left Sub-Group: Dynamic Model Pill + Monospace Timestamp */}
                       <div className="flex items-center gap-1.5">
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 text-[9.5px] font-mono font-bold rounded-md border select-none shadow-2xs mr-0.5 transition-all ${
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded font-mono text-[9px] font-semibold border transition-all ${
                             (msg.modelShortcut || '[Portfolio-Engine]').includes('SmolLM') ||
                             (msg.modelShortcut || '[Portfolio-Engine]').includes('Qwen')
-                              ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.2)]'
-                              : 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-700 shadow-[0_0_8px_rgba(99,102,241,0.15)]'
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25'
+                              : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/25'
                           }`}
-                          title={`Model: ${msg.modelShortcut || '[Portfolio-Engine]'}`}
-                          aria-label={`Model: ${msg.modelShortcut || '[Portfolio-Engine]'}`}
+                          title={`Inference Engine: ${msg.modelShortcut || '[Portfolio-Engine]'}`}
                         >
                           {(msg.modelShortcut || '[Portfolio-Engine]').includes('SmolLM') ||
                           (msg.modelShortcut || '[Portfolio-Engine]').includes('Qwen')
                             ? '⚡'
-                            : '📚'}{' '}
-                          {msg.modelShortcut || '[Portfolio-Engine]'}
+                            : '📚'}
+                          <span>{msg.modelShortcut || '[Portfolio-Engine]'}</span>
                         </span>
+
+                        <span className="font-mono text-[9px] text-stone-400 dark:text-stone-500">
+                          {formattedTime}
+                        </span>
+                      </div>
+
+                      {/* Right Sub-Group: Micro-Action Buttons (Copy, TTS, Feedback) */}
+                      <div className="flex items-center gap-0.5 opacity-80 hover:opacity-100 transition-opacity">
+                        {/* Copy Message Button */}
                         <button
                           type="button"
                           onClick={() => handleCopyMessage(msg.id, msg.text)}
                           aria-label="Copy message text"
-                          title="Copy message"
-                          className="p-1 rounded text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                          title="Copy text"
+                          className="p-1 rounded hover:bg-stone-200/60 dark:hover:bg-stone-800 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors cursor-pointer active:scale-95 focus-visible:ring-1 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                         >
-                          {copiedMsgId === msg.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                          {copiedMsgId === msg.id ? (
+                            <Check className="w-3 h-3 text-emerald-500" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
                         </button>
+
+                        {/* Speech TTS Button */}
                         <button
                           type="button"
                           onClick={() => handleToggleSpeech(msg.id, msg.text)}
                           aria-label={speakingMsgId === msg.id ? "Stop reading" : "Read aloud"}
                           title={speakingMsgId === msg.id ? "Stop TTS" : "Read Aloud (TTS)"}
-                          className="p-1 rounded text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                          className="p-1 rounded hover:bg-stone-200/60 dark:hover:bg-stone-800 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors cursor-pointer active:scale-95 focus-visible:ring-1 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
                         >
-                          {speakingMsgId === msg.id ? <VolumeX className="w-3 h-3 text-[#FF4D6D] animate-pulse" /> : <Volume2 className="w-3 h-3" />}
+                          {speakingMsgId === msg.id ? (
+                            <VolumeX className="w-3 h-3 text-[#FF4D6D] animate-pulse" />
+                          ) : (
+                            <Volume2 className="w-3 h-3" />
+                          )}
                         </button>
-                        {/* Phase 9: Feedback Ratings (Thumbs Up / Thumbs Down) */}
+
+                        {/* Thumbs Up Rating */}
                         <button
                           type="button"
                           onClick={() => handleRateMessage(msg.id, 'up')}
                           aria-label="Rate response helpful"
-                          title="Helpful response"
-                          className={`p-1 rounded transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${
+                          title="Helpful"
+                          className={`p-1 rounded transition-colors cursor-pointer active:scale-95 focus-visible:ring-1 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
                             msg.feedback === 'up'
-                              ? 'text-emerald-500 bg-emerald-500/10'
-                              : 'text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200'
+                              ? 'text-emerald-500 bg-emerald-500/15'
+                              : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/60 dark:hover:bg-stone-800'
                           }`}
                         >
                           <ThumbsUp className="w-3 h-3" />
                         </button>
+
+                        {/* Thumbs Down Rating */}
                         <button
                           type="button"
                           onClick={() => handleRateMessage(msg.id, 'down')}
                           aria-label="Rate response unhelpful"
-                          title="Needs improvement"
-                          className={`p-1 rounded transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${
+                          title="Unhelpful"
+                          className={`p-1 rounded transition-colors cursor-pointer active:scale-95 focus-visible:ring-1 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
                             msg.feedback === 'down'
-                              ? 'text-rose-500 bg-rose-500/10'
-                              : 'text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200'
+                              ? 'text-rose-500 bg-rose-500/15'
+                              : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/60 dark:hover:bg-stone-800'
                           }`}
                         >
                           <ThumbsDown className="w-3 h-3" />
                         </button>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    /* User Message Timestamp */
+                    <div className="mt-1 px-1 text-right">
+                      <span className="font-mono text-[9px] text-stone-400 dark:text-stone-500">
+                        {formattedTime}
+                      </span>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -4112,42 +4306,74 @@ function AIChatWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* 3. Suggestion Chips Drawer (2-Row Sliding Grid + Category Filtering) */}
-          <SuggestionChipsDrawer
-            chips={currentChips}
-            onSelectChip={(chip) => {
-              soundFX.triggerHaptic(20);
-              handleSendMessage(chip.query || chip.label);
-            }}
-            isTyping={isTyping || isStreaming}
-          />
+          {/* 3. Suggestion Chips Drawer (Fixed Single-Row Carousel + Category Filtering) */}
+          {chatSettings?.suggestionChipsEnabled !== false && (
+            <SuggestionChipsDrawer
+              chips={currentChips}
+              onSelectChip={(chip) => {
+                soundFX.triggerHaptic(20);
 
-          {/* Always Visible Meta-Prompt Engineer Option Strip */}
-          <div className="px-3 py-1.5 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-amber-500/10 border-t border-purple-500/20 flex items-center justify-between gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={handleOpenPromptStudio}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-semibold bg-gradient-to-r from-[#FF4D6D] to-[#9333EA] text-white shadow-2xs hover:shadow-xs hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer select-none"
-              title="Click to launch Prompt Studio or craft structured prompts (/engineer)"
-            >
-              <Zap className="w-3 h-3 fill-current" />
-              <span>⚡ Meta-Prompt Engineer</span>
-            </button>
-            <div className="flex items-center gap-1.5 text-[9.5px] font-mono text-stone-500 dark:text-stone-400">
-              <span className="hidden sm:inline">Craft CLI commands + Meta-Prompts</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setInputValue('/engineer ');
-                  inputRef.current?.focus();
-                }}
-                className="px-1.5 py-0.5 rounded bg-white/70 dark:bg-stone-850 border border-purple-300/60 dark:border-purple-800/60 hover:border-[#FF4D6D] text-stone-700 dark:text-stone-300 font-semibold cursor-pointer transition-colors"
-                title="Insert /engineer into chat input"
-              >
-                /engineer
-              </button>
-            </div>
-          </div>
+                // 1. Handle Decision Tree Skip
+                if (chip.isSkip) {
+                  if (chip.decisionStep === 'audience') {
+                    handleAudienceDecisionSkip(chip.isSequential);
+                  } else if (chip.decisionStep === 'role') {
+                    handleRoleDecisionSkip(chip.isSequential);
+                  } else if (chip.decisionStep === 'viewMode') {
+                    handleViewModeDecisionSkip(chip.isSequential);
+                  } else if (chip.messageId) {
+                    setSkippedDecisionTreeMsgIds((prev) => new Set([...prev, chip.messageId]));
+                    inputRef.current?.focus();
+                  }
+                  return;
+                }
+
+                // 2. Handle Decision Tree Options
+                if (
+                  chip.decisionStep === 'preferences_prompt' ||
+                  chip.action === 'customize_yes' ||
+                  chip.action === 'customize_no'
+                ) {
+                  handlePreferencesPromptSelect(chip.id, chip.label);
+                  return;
+                }
+
+                if (chip.isAiConsent) {
+                  handleAiModelConsentSelect(chip.consent, chip.label);
+                  return;
+                }
+
+                if (chip.audience) {
+                  handleAudienceDecisionSelect(chip.audience, chip.label, chip.isSequential);
+                  return;
+                }
+
+                if (chip.role) {
+                  handleRoleDecisionSelect(chip.role, chip.label, chip.isSequential);
+                  return;
+                }
+
+                if (chip.viewMode) {
+                  handleViewModeDecisionSelect(chip.viewMode, chip.label, chip.isSequential);
+                  return;
+                }
+
+                if (chip.decisionStep === 'model_activation') {
+                  handleModelActivationSelect(chip);
+                  return;
+                }
+
+                if (chip.decisionStep === 'ai_model_switch') {
+                  handleAiModelSwitchSelect(chip);
+                  return;
+                }
+
+                // 3. Standard prompt chips send query
+                handleSendMessage(chip.query || chip.label);
+              }}
+              isTyping={isTyping || isStreaming}
+            />
+          )}
 
           {/* Voice Waveform Visualizer HUD Banner (Phase 11) */}
           {voiceEngineState !== VOICE_STATES.IDLE && (
@@ -4169,9 +4395,9 @@ function AIChatWidget() {
             </div>
           )}
 
-          {/* 4. Input Bar & Send Action (Touch target >= 44px) */}
-          <div className="relative p-2.5 border-t border-[#E7E2D8]/80 dark:border-[#2D2340]/80 bg-white/80 dark:bg-[#120D1D]/80 flex items-center gap-2 shrink-0">
-            {inputValue.startsWith('/') && (
+          {/* Polished Input Bar & Symmetrical Action Cluster */}
+          <div className="relative p-2.5 border-t border-[#E7E2D8]/80 dark:border-[#2D2340]/80 bg-white/90 dark:bg-[#120D1D]/90 flex items-center gap-1.5 shrink-0 transition-all focus-within:ring-1 focus-within:ring-[#FF4D6D]/30">
+            {chatSettings?.slashCommandsEnabled !== false && inputValue.startsWith('/') && (
               <SlashCommandPalette
                 commands={filteredSlashCommands}
                 activeCommandIndex={activeSlashIndex}
@@ -4181,6 +4407,8 @@ function AIChatWidget() {
                 onClose={() => setInputValue('')}
               />
             )}
+
+            {/* Main Text Input */}
             <input
               ref={inputRef}
               type="text"
@@ -4192,13 +4420,26 @@ function AIChatWidget() {
               aria-label="Ask Atul AI Assistant"
               className="flex-1 bg-stone-100 dark:bg-[#1F172E] text-stone-900 dark:text-white placeholder-stone-400 text-xs rounded-xl px-3 py-2 border border-transparent focus:border-[#FF4D6D]/60 focus:bg-white dark:focus:bg-[#181224] focus:outline-hidden transition-all min-h-[44px]"
             />
+
+            {/* Sparkles Prompt Studio Trigger */}
+            <button
+              type="button"
+              onClick={handleOpenPromptStudio}
+              aria-label="Meta-Prompt Studio (/engineer)"
+              title="Prompt Studio (/engineer)"
+              className="min-w-[44px] min-h-[44px] sm:min-w-[36px] sm:min-h-[36px] rounded-xl flex items-center justify-center transition-all cursor-pointer bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-300/40 dark:border-purple-800/50 active:scale-95 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:outline-hidden shrink-0"
+            >
+              <Sparkles className="w-4 h-4 text-purple-500" />
+            </button>
+
+            {/* Voice Microphone Input */}
             <button
               type="button"
               onClick={handleToggleVoiceInput}
               aria-label={isListening ? "Stop voice input" : "Start voice input"}
               aria-pressed={isListening}
               title={isListening ? "Listening... Click to stop" : "Voice Input (Speech to Text)"}
-              className={`min-w-[44px] min-h-[44px] sm:min-w-[36px] sm:min-h-[36px] rounded-xl flex items-center justify-center transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${
+              className={`min-w-[44px] min-h-[44px] sm:min-w-[36px] sm:min-h-[36px] rounded-xl flex items-center justify-center transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden shrink-0 ${
                 isListening
                   ? 'bg-red-500 text-white animate-pulse'
                   : 'bg-stone-100 dark:bg-[#1F172E] text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-700'
@@ -4206,12 +4447,14 @@ function AIChatWidget() {
             >
               {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             </button>
+
+            {/* Send or Stop Generation Button */}
             {isStreaming ? (
               <button
                 type="button"
                 onClick={handleStopGenerating}
                 aria-label="Stop generating response"
-                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center bg-rose-500 hover:bg-rose-600 active:scale-95 text-white transition-all shadow-2xs cursor-pointer focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:outline-hidden shrink-0"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center bg-rose-500 hover:bg-rose-600 active:scale-95 text-white transition-all shadow-2xs cursor-pointer focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-hidden shrink-0"
               >
                 <Square className="w-4 h-4 fill-current" />
               </button>
@@ -4221,7 +4464,7 @@ function AIChatWidget() {
                 disabled={!inputValue.trim() || isTyping}
                 onClick={() => handleSendMessage()}
                 aria-label="Send message"
-                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center bg-linear-to-tr from-[#FF4D6D] to-[#9333EA] text-white hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-2xs cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden shrink-0"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center bg-linear-to-tr from-[#FF4D6D] to-[#9333EA] text-white hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-2xs cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden shrink-0"
               >
                 <Send className="w-4 h-4" />
               </button>
