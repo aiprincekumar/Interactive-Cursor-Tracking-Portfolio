@@ -5,6 +5,9 @@
  */
 
 import { pipeline, env, TextStreamer, InterruptableStoppingCriteria } from '@huggingface/transformers';
+import { MODEL_CATALOG } from '../utils/deviceProfiler.js';
+
+export { MODEL_CATALOG };
 
 // Optimize transformers environment for browser Web Worker
 env.allowLocalModels = false;

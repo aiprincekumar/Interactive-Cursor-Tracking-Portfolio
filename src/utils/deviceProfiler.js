@@ -13,6 +13,7 @@ export const MODEL_CATALOG = {
     dtype: 'q4',
     tier: 'bare-minimum',
     params: '135M',
+    category: 'ultra_lightweight',
     description: 'Ultra-lightweight fallback model (<100MB), instant load on any device'
   },
   LIGHT: {
@@ -23,16 +24,29 @@ export const MODEL_CATALOG = {
     dtype: 'q4',
     tier: 'light',
     params: '0.5B',
+    category: 'compact_balanced',
+    description: 'Fast, highly accurate compact model for mobile and light devices'
+  },
+  LOW: {
+    id: 'onnx-community/Qwen2.5-0.5B-Instruct',
+    name: 'Qwen2.5-0.5B-Instruct',
+    shortcut: '[Qwen-0.5B]',
+    approxSizeMB: 350,
+    dtype: 'q4',
+    tier: 'light',
+    params: '0.5B',
+    category: 'compact_balanced',
     description: 'Fast, highly accurate compact model for mobile and light devices'
   },
   SMOLLM_360M: {
-    id: 'onnx-community/SmolLM2-360M-Instruct-ONNX',
+    id: 'onnx-community/SmolLM2-360M-Instruct',
     name: 'SmolLM2-360M-Instruct',
-    shortcut: '[SmolLM-360M]',
-    approxSizeMB: 230,
-    dtype: 'q4',
+    shortcut: '[SmolLM2-360M]',
+    approxSizeMB: 240,
+    dtype: 'q4f16',
     tier: 'tier1-mid',
     params: '360M',
+    category: 'ultra_lightweight',
     description: 'Balanced lightweight instruct model for mid WebGPU/WASM'
   },
   MEDIUM: {
@@ -43,7 +57,19 @@ export const MODEL_CATALOG = {
     dtype: 'q4',
     tier: 'medium',
     params: '1.5B',
+    category: 'compact_balanced',
     description: 'Balanced powerhouse for laptops and multi-core desktops'
+  },
+  QWEN_CODER_05B: {
+    id: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
+    name: 'Qwen2.5-Coder-0.5B-Instruct',
+    shortcut: '[Qwen-Coder-0.5B]',
+    approxSizeMB: 350,
+    dtype: 'q4f16',
+    tier: 'specialized',
+    params: '0.5B',
+    category: 'specialized',
+    description: 'Specialized code and technical Q&A assistant'
   },
   HIGH: {
     id: 'onnx-community/Qwen2.5-Coder-3B-Instruct',
@@ -53,6 +79,7 @@ export const MODEL_CATALOG = {
     dtype: 'q4',
     tier: 'high',
     params: '3B',
+    category: 'specialized',
     description: 'Advanced reasoning model for high-end workstations with dedicated GPU'
   }
 };

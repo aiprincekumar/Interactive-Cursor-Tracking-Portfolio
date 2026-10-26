@@ -549,7 +549,7 @@ function AIChatWidget() {
   const [activeSlashIndex, setActiveSlashIndex] = useState(0);
   const [localAiState, setLocalAiState] = useState(() => localAIService.getState());
   const [modelToast, setModelToast] = useState(null);
-  const [isDownloadCollapsed, setIsDownloadCollapsed] = useState(false);
+  const [isDownloadCollapsed, setIsDownloadCollapsed] = useState(true);
   const isAiOn = (localAiState?.status === 'ready' && localAiState?.activeModel !== null) || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache';
 
   // Phase 9: Multi-session and Export UI states
@@ -2211,53 +2211,180 @@ function AIChatWidget() {
   };
 
   /**
-   * Triggers in-chat AI Model Decision Tree with 3 structured cards (SmolLM2 first)
+   * Triggers in-chat Hierarchical AI Model Decision Tree (Step 1: Categories)
    */
   const handleTriggerAIModelDecisionTree = () => {
     if (soundEnabled && soundFX?.playTap) soundFX.playTap();
 
     const options = [
-      // Position #1: SmolLM2-135M (Default & Recommended Baseline)
       {
-        id: MODEL_CATALOG.BARE_MINIMUM.id,
-        modelId: MODEL_CATALOG.BARE_MINIMUM.id,
-        shortcut: MODEL_CATALOG.BARE_MINIMUM.shortcut,
-        label: `🛡️ डिफ़ॉल्ट व अनुशंसित मॉडल (${MODEL_CATALOG.BARE_MINIMUM.shortcut})`,
-        sublabel: `${MODEL_CATALOG.BARE_MINIMUM.name} • ~${MODEL_CATALOG.BARE_MINIMUM.approxSizeMB || 90}MB • अल्ट्रा-लाइटवेट, तत्काल लोडिंग व ऑन-डिवाइस AI`,
-        isRecommended: true
+        id: 'cat_ultra_lightweight',
+        categoryId: 'ultra_lightweight',
+        label: '⚡ Ultra-Lightweight (अति-हल्के)',
+        description: '100M - 400M • 90MB - 240MB',
+        subtext: 'त्वरित रिस्पॉन्स, न्यूनतम रैम',
+        badge: '100M - 400M'
       },
-      // Position #2: Qwen2.5-0.5B (Balanced Light Model)
       {
-        id: MODEL_CATALOG.LIGHT.id,
-        modelId: MODEL_CATALOG.LIGHT.id,
-        shortcut: MODEL_CATALOG.LIGHT.shortcut,
-        label: `⚖️ बैलेंस्ड लाइट मॉडल (${MODEL_CATALOG.LIGHT.shortcut})`,
-        sublabel: `${MODEL_CATALOG.LIGHT.name} • ~${MODEL_CATALOG.LIGHT.approxSizeMB || 350}MB • उच्च गति व संतुलित रिस्पॉन्स`,
-        isMid: true
+        id: 'cat_compact_balanced',
+        categoryId: 'compact_balanced',
+        label: '⚖️ Compact & Balanced (संतुलित)',
+        description: '500M - 1.5B • 350MB - 900MB',
+        subtext: 'बहुभाषी हिंदी + इंग्लिश, डीप रीजनिंग',
+        badge: '500M - 1.5B'
       },
-      // Position #3: Qwen2.5-1.5B (Advanced High-Accuracy Model)
       {
-        id: MODEL_CATALOG.MEDIUM.id,
-        modelId: MODEL_CATALOG.MEDIUM.id,
-        shortcut: MODEL_CATALOG.MEDIUM.shortcut,
-        label: `🚀 एडवांस्ड मॉडल (${MODEL_CATALOG.MEDIUM.shortcut})`,
-        sublabel: `${MODEL_CATALOG.MEDIUM.name} • ~${MODEL_CATALOG.MEDIUM.approxSizeMB || 950}MB • उच्च सटीकता (सक्षम डिवाइसेज़ हेतु)`,
-        isAdvanced: true
+        id: 'cat_specialized',
+        categoryId: 'specialized',
+        label: '🎯 Code & Tech Specialist (विशिष्ट कार्य)',
+        description: 'कोडिंग व तकनीकी विशेषज्ञता • ~350MB',
+        subtext: 'कोड स्निपेट्स और तकनीकी Q&A के लिए श्रेष्ठ',
+        badge: '~350MB'
       }
     ];
 
     const newMsg = {
-      id: `assistant-ai-model-trigger-${Date.now()}`,
+      id: `assistant-ai-model-cat-${Date.now()}`,
       sender: 'assistant',
-      text: "🤖 **Select AI Model / AI मॉडल चुनें**\n\nअपनी डिवाइस क्षमता और नेटवर्क स्पीड के अनुसार उपयुक्त AI मॉडल चुनें:",
+      text: "🤖 **Select AI Model Category / AI मॉडल श्रेणी चुनें**\n\nअपनी आवश्यकता और डिवाइस क्षमता के अनुसार उपयुक्त श्रेणी चुनें:",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       decisionTree: {
-        step: 'ai_model_switch',
-        title: "🤖 Select AI Model / AI मॉडल चुनें:",
+        step: 'ai_model_categories',
+        title: "🤖 Select AI Category / श्रेणी चुनें:",
         options
       }
     };
     setMessages((prev) => [...prev, newMsg]);
+    if (soundEnabled && soundFX?.playFocusBeep) soundFX.playFocusBeep();
+    setTimeout(scrollToBottom, 50);
+  };
+
+  /**
+   * Handles user selection of an AI Model Category (Step 2 navigation)
+   */
+  const handleSelectModelCategory = (categoryChip) => {
+    if (soundEnabled && soundFX?.playTap) soundFX.playTap();
+
+    if (categoryChip.isBack || categoryChip.id === 'back_to_categories') {
+      handleTriggerAIModelDecisionTree();
+      return;
+    }
+
+    const categoryId = categoryChip.categoryId || categoryChip.id;
+
+    // 1. Post user message showing the selected category
+    const userMsg = {
+      id: `user-cat-select-${Date.now()}`,
+      sender: 'user',
+      text: categoryChip.label || 'Selected AI Category',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    let options = [];
+    let title = "🤖 Select Model / मॉडल चुनें:";
+    let assistantText = "";
+
+    if (categoryId === 'ultra_lightweight') {
+      assistantText = "⚡ **Ultra-Lightweight Models (अति-हल्के मॉडल)**\n\nत्वरित लोडिंग और न्यूनतम मेमोरी खपत के लिए मॉडल चुनें:";
+      title = "⚡ Ultra-Lightweight Models:";
+      options = [
+        {
+          id: MODEL_CATALOG.BARE_MINIMUM.id,
+          modelId: MODEL_CATALOG.BARE_MINIMUM.id,
+          shortcut: MODEL_CATALOG.BARE_MINIMUM.shortcut,
+          dtype: MODEL_CATALOG.BARE_MINIMUM.dtype || 'q4',
+          label: 'SmolLM2-135M (⚡ डिफॉल्ट बेयर मिनिमम, ~90MB)',
+          sublabel: `${MODEL_CATALOG.BARE_MINIMUM.name} • 100% क्रैश-प्रूफ, त्वरित लोडिंग`,
+          isRecommended: true,
+          badge: 'डिफ़ॉल्ट / Default'
+        },
+        {
+          id: MODEL_CATALOG.SMOLLM_360M.id,
+          modelId: MODEL_CATALOG.SMOLLM_360M.id,
+          shortcut: MODEL_CATALOG.SMOLLM_360M.shortcut,
+          dtype: MODEL_CATALOG.SMOLLM_360M.dtype || 'q4f16',
+          label: 'SmolLM2-360M (⭐ रेकमेंडेड अपग्रेड, ~240MB)',
+          sublabel: `${MODEL_CATALOG.SMOLLM_360M.name} • संतुलित क्षमता, अधिक समझ`,
+          isUpgrade: true,
+          badge: 'अपग्रेड / Recommended'
+        },
+        {
+          id: 'back_to_categories',
+          isBack: true,
+          label: '🔙 वापस श्रेणियाँ देखें (Back to Categories)',
+          sublabel: 'श्रेणी चयन पर वापस जाएं'
+        }
+      ];
+    } else if (categoryId === 'compact_balanced') {
+      assistantText = "⚖️ **Compact & Balanced Models (संतुलित मॉडल)**\n\nसटीक रिस्पॉन्स और बहुभाषी क्षमता के लिए मॉडल चुनें:";
+      title = "⚖️ Compact & Balanced Models:";
+      options = [
+        {
+          id: MODEL_CATALOG.LIGHT.id,
+          modelId: MODEL_CATALOG.LIGHT.id,
+          shortcut: MODEL_CATALOG.LIGHT.shortcut,
+          dtype: MODEL_CATALOG.LIGHT.dtype || 'q4',
+          label: 'Qwen2.5-0.5B (🌐 बहुभाषी हिंदी + इंग्लिश, ~350MB)',
+          sublabel: `${MODEL_CATALOG.LIGHT.name} • गति व सटीकता का सटीक संतुलन`,
+          isBalanced: true,
+          badge: 'संतुलित / Balanced'
+        },
+        {
+          id: MODEL_CATALOG.MEDIUM.id,
+          modelId: MODEL_CATALOG.MEDIUM.id,
+          shortcut: MODEL_CATALOG.MEDIUM.shortcut,
+          dtype: MODEL_CATALOG.MEDIUM.dtype || 'q4',
+          label: 'Qwen2.5-1.5B (🧠 डीप रीजनिंग, ~900MB)',
+          sublabel: `${MODEL_CATALOG.MEDIUM.name} • उच्च सटीकता (सक्षम डिवाइसेज़ हेतु)`,
+          isAdvanced: true,
+          badge: 'उच्च सटीकता / Deep Reasoning'
+        },
+        {
+          id: 'back_to_categories',
+          isBack: true,
+          label: '🔙 वापस श्रेणियाँ देखें (Back to Categories)',
+          sublabel: 'श्रेणी चयन पर वापस जाएं'
+        }
+      ];
+    } else if (categoryId === 'specialized') {
+      assistantText = "🎯 **Code & Tech Specialist (विशिष्ट कार्य)**\n\nकोडिंग, प्रोग्रामिंग और तकनीकी प्रश्नों के लिए विशेष मॉडल:";
+      title = "🎯 Code & Tech Specialist Models:";
+      options = [
+        {
+          id: MODEL_CATALOG.QWEN_CODER_05B.id,
+          modelId: MODEL_CATALOG.QWEN_CODER_05B.id,
+          shortcut: MODEL_CATALOG.QWEN_CODER_05B.shortcut,
+          dtype: MODEL_CATALOG.QWEN_CODER_05B.dtype || 'q4f16',
+          label: 'Qwen2.5-Coder-0.5B (💻 कोडिंग व तकनीकी विशेषज्ञ, ~350MB)',
+          sublabel: `${MODEL_CATALOG.QWEN_CODER_05B.name} • कोड स्निपेट्स और तकनीकी Q&A के लिए श्रेष्ठ`,
+          isCoder: true,
+          badge: 'कोड विशेषज्ञ / Coder'
+        },
+        {
+          id: 'back_to_categories',
+          isBack: true,
+          label: '🔙 वापस श्रेणियाँ देखें (Back to Categories)',
+          sublabel: 'श्रेणी चयन पर वापस जाएं'
+        }
+      ];
+    } else {
+      handleTriggerAIModelDecisionTree();
+      return;
+    }
+
+    const assistantMsg = {
+      id: `assistant-ai-model-step2-${Date.now()}`,
+      sender: 'assistant',
+      text: assistantText,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      decisionTree: {
+        step: 'ai_model_switch',
+        title,
+        options
+      }
+    };
+
+    setMessages((prev) => [...prev, userMsg, assistantMsg]);
     if (soundEnabled && soundFX?.playFocusBeep) soundFX.playFocusBeep();
     setTimeout(scrollToBottom, 50);
   };
@@ -2408,6 +2535,11 @@ function AIChatWidget() {
   const handleAiModelSwitchSelect = (chip) => {
     if (soundEnabled && soundFX?.playTap) soundFX.playTap();
 
+    if (chip.isBack || chip.id === 'back_to_categories') {
+      handleTriggerAIModelDecisionTree();
+      return;
+    }
+
     const currentState = localAIService.getState();
     const isAlreadyActive = currentState.activeModel?.id === chip.modelId && currentState.status === 'ready';
     const isAlreadyDownloading = !chip.isTurnOff && chip.modelId !== 'portfolio-engine' &&
@@ -2455,7 +2587,7 @@ function AIChatWidget() {
 
       // Debounce rapid model switcher clicks (250ms window) to safely cancel prior requests
       modelSwitchDebounceTimerRef.current = setTimeout(() => {
-        localAIService.switchModel(chip.modelId);
+        localAIService.switchModel(chip.modelId, chip.dtype);
         modelSwitchDebounceTimerRef.current = null;
       }, 250);
 
@@ -2484,6 +2616,8 @@ function AIChatWidget() {
     }
     setTimeout(scrollToBottom, 50);
   };
+
+  const handleSelectAIModelChip = handleAiModelSwitchSelect;
 
   /**
    * 1-Click quick toggle between On-Device AI and Offline Engine
@@ -3237,26 +3371,6 @@ function AIChatWidget() {
       {/* When Minimized, hide the body */}
       {!isMinimized && (
         <>
-          {/* On-Device AI Model Notification Banner */}
-          {modelToast && (
-            <div
-              role="status"
-              className="mx-2.5 my-1.5 px-3 py-1.5 rounded-xl bg-linear-to-r from-emerald-500/15 to-teal-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-200 text-[11px] font-medium flex items-center justify-between gap-2 shadow-2xs shrink-0 animate-in fade-in slide-in-from-top-1"
-            >
-              <div className="flex items-center gap-1.5 min-w-0">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <span className="truncate">{modelToast}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setModelToast(null)}
-                className="p-0.5 text-emerald-600 dark:text-emerald-300 hover:text-emerald-900 dark:hover:text-white cursor-pointer"
-                aria-label="Dismiss notification"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          )}
           {/* Pure Icon-Only Sub-Header Strip (10 Direct Tools: 4 Perspective + 6 Quick Tools) */}
           <div className="px-2 sm:px-2.5 py-1.5 bg-stone-100/90 dark:bg-[#150F22]/90 border-b border-[#E7E2D8]/60 dark:border-[#2D2340]/60 flex items-center justify-between gap-1 sm:gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
             {/* Left Perspective Group (4 Pure Icons: Audience, Role, View Mode, Model) */}
@@ -3465,6 +3579,27 @@ function AIChatWidget() {
               </button>
             </div>
           </div>
+
+          {/* On-Device AI Model Notification Banner */}
+          {modelToast && (
+            <div
+              role="status"
+              className="mx-2.5 my-1.5 px-3 py-1.5 rounded-xl bg-linear-to-r from-emerald-500/15 to-teal-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-200 text-[11px] font-medium flex items-center justify-between gap-2 shadow-2xs shrink-0 animate-in fade-in slide-in-from-top-1"
+            >
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span className="truncate">{modelToast}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModelToast(null)}
+                className="p-0.5 text-emerald-600 dark:text-emerald-300 hover:text-emerald-900 dark:hover:text-white cursor-pointer"
+                aria-label="Dismiss notification"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
 
           {/* Voice Settings Studio Modal / Popover */}
           {showVoiceSettings && (
@@ -3741,7 +3876,7 @@ function AIChatWidget() {
           )}
 
           {/* Prominent Live Download Card & Real Progress Bar (Subtle & Always-On Status) */}
-          {localAiState?.status === 'downloading' && (
+          {(localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache') && (
             isDownloadCollapsed ? (
               <div
                 role="status"
@@ -3751,14 +3886,20 @@ function AIChatWidget() {
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-2 h-2 rounded-full bg-amber-500 animate-ping shrink-0" />
                   <span className="text-[10.5px] font-semibold text-amber-900 dark:text-amber-200 truncate">
-                    Downloading AI: {localAiState.downloadProgress}% • Instant Offline Chat Active
+                    {localAiState.status === 'loading_cache'
+                      ? 'Loading AI from Storage Cache • Instant Offline Chat Active'
+                      : `Downloading AI: ${localAiState.downloadProgress}% • Instant Offline Chat Active`}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <div className="w-16 bg-stone-200 dark:bg-stone-800 rounded-full h-1.5 overflow-hidden">
                     <div
-                      className="bg-linear-to-r from-amber-500 to-[#FF4D6D] h-1.5 rounded-full"
-                      style={{ width: `${Math.min(100, Math.max(localAiState.downloadProgress, 4))}%` }}
+                      className={`h-1.5 rounded-full ${
+                        localAiState.status === 'loading_cache'
+                          ? 'w-full bg-linear-to-r from-emerald-500 to-teal-500 animate-pulse'
+                          : 'bg-linear-to-r from-amber-500 to-[#FF4D6D]'
+                      }`}
+                      style={localAiState.status === 'loading_cache' ? {} : { width: `${Math.min(100, Math.max(localAiState.downloadProgress, 4))}%` }}
                     />
                   </div>
                   <button
@@ -3785,23 +3926,25 @@ function AIChatWidget() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-[11px] font-bold text-stone-900 dark:text-white tracking-tight">
-                          Downloading On-Device AI:
+                          {localAiState.status === 'loading_cache' ? 'Restoring Cached Model:' : 'Downloading On-Device AI:'}
                         </span>
                         <span className="text-[10.5px] font-mono font-bold text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 truncate shadow-2xs">
-                          {localAiState.downloadingModel?.name || 'SmolLM2-135M-Instruct'}
+                          {localAiState.downloadingModel?.name || localAiState.activeModel?.name || 'SmolLM2-135M-Instruct'}
                         </span>
                         <span className="text-[9.5px] font-mono font-semibold text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded-md bg-stone-200/80 dark:bg-stone-800 border border-stone-300/60 dark:border-stone-700">
-                          ~{localAiState.downloadingModel?.sizeMB || 90} MB
+                          ~{localAiState.downloadingModel?.sizeMB || localAiState.activeModel?.sizeMB || 90} MB
                         </span>
                       </div>
                       <p className="text-[9.5px] text-stone-600 dark:text-stone-300 truncate mt-0.5 font-medium">
-                        {localAiState.downloadFile ? `Fetching file: ${localAiState.downloadFile}` : 'Streaming quantized neural weights to browser cache...'}
+                        {localAiState.status === 'loading_cache'
+                          ? 'Restoring pre-cached neural weights from browser CacheStorage...'
+                          : (localAiState.downloadFile ? `Fetching file: ${localAiState.downloadFile}` : 'Streaming quantized neural weights to browser cache...')}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
-                      {localAiState.downloadProgress}%
+                      {localAiState.status === 'loading_cache' ? 'Cached' : `${localAiState.downloadProgress}%`}
                     </span>
                     <button
                       type="button"
@@ -3817,8 +3960,12 @@ function AIChatWidget() {
                 {/* Real Progress Bar with loading animation & glow */}
                 <div className="w-full bg-stone-200/90 dark:bg-stone-800/90 rounded-full h-2 overflow-hidden shadow-inner relative border border-stone-300/40 dark:border-stone-700/50">
                   <div
-                    className="bg-linear-to-r from-amber-500 via-[#FF4D6D] to-[#9333EA] h-2 rounded-full transition-all duration-300 ease-out relative shadow-[0_0_12px_rgba(255,77,109,0.5)]"
-                    style={{ width: `${Math.min(100, Math.max(localAiState.downloadProgress, 4))}%` }}
+                    className={`h-2 rounded-full transition-all duration-300 ease-out relative shadow-[0_0_12px_rgba(255,77,109,0.5)] ${
+                      localAiState.status === 'loading_cache'
+                        ? 'w-full bg-linear-to-r from-emerald-500 via-teal-500 to-cyan-500 animate-pulse'
+                        : 'bg-linear-to-r from-amber-500 via-[#FF4D6D] to-[#9333EA]'
+                    }`}
+                    style={localAiState.status === 'loading_cache' ? {} : { width: `${Math.min(100, Math.max(localAiState.downloadProgress, 4))}%` }}
                   >
                     <span className="absolute inset-0 bg-white/25 animate-pulse" />
                   </div>
@@ -3831,7 +3978,7 @@ function AIChatWidget() {
                     <span>Instant offline chat active — ask anything freely while downloading!</span>
                   </span>
                   <span className="font-mono text-stone-500 dark:text-stone-400 font-semibold shrink-0">
-                    {localAiState.downloadProgress}% of 100%
+                    {localAiState.status === 'loading_cache' ? 'Restoring RAM' : `${localAiState.downloadProgress}% of 100%`}
                   </span>
                 </div>
               </div>
@@ -4126,7 +4273,43 @@ function AIChatWidget() {
                             </div>
                           )}
 
-                          {/* Case E: AI Model Switch / Selection Cards */}
+                          {/* Case E1: AI Model Categories (Hierarchical Step 1) */}
+                          {msg.decisionTree.step === 'ai_model_categories' && Array.isArray(msg.decisionTree.options) && (
+                            <div className="space-y-1.5 pt-1">
+                              {msg.decisionTree.options.map((cat) => (
+                                <button
+                                  key={cat.id}
+                                  type="button"
+                                  onClick={() => {
+                                    soundFX.triggerHaptic(20);
+                                    handleSelectModelCategory(cat);
+                                  }}
+                                  className="w-full p-2.5 rounded-xl text-left border bg-white/90 dark:bg-[#1E162B]/90 border-stone-200/80 dark:border-stone-800 hover:border-[#FF4D6D] hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20 transition-all cursor-pointer active:scale-[0.99] shadow-xs"
+                                >
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="text-xs font-bold text-stone-900 dark:text-stone-100">{cat.label}</span>
+                                    {cat.badge && (
+                                      <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700">
+                                        {cat.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {cat.description && (
+                                    <div className="text-[10px] text-stone-600 dark:text-stone-300 font-mono font-medium">
+                                      {cat.description}
+                                    </div>
+                                  )}
+                                  {cat.subtext && (
+                                    <div className="text-[10.5px] text-stone-500 dark:text-stone-400 font-sans mt-0.5">
+                                      {cat.subtext}
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Case E2: AI Model Switch / Selection Cards (Hierarchical Step 2) */}
                           {msg.decisionTree.step === 'ai_model_switch' && Array.isArray(msg.decisionTree.options) && (
                             <div className="space-y-1.5 pt-1">
                               {msg.decisionTree.options.map((opt) => (
@@ -4135,17 +4318,37 @@ function AIChatWidget() {
                                   type="button"
                                   onClick={() => {
                                     soundFX.triggerHaptic(20);
-                                    handleAiModelSwitchSelect(opt);
+                                    if (opt.isBack || opt.id === 'back_to_categories') {
+                                      handleTriggerAIModelDecisionTree();
+                                    } else {
+                                      handleAiModelSwitchSelect(opt);
+                                    }
                                   }}
-                                  className="w-full p-2.5 rounded-xl text-left border bg-white/90 dark:bg-[#1E162B]/90 hover:border-[#FF4D6D] hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20 transition-all cursor-pointer active:scale-[0.99] shadow-xs"
+                                  className={`w-full p-2.5 rounded-xl text-left border transition-all cursor-pointer active:scale-[0.99] shadow-xs ${
+                                    opt.isBack
+                                      ? 'bg-stone-100/90 dark:bg-stone-800/90 border-stone-300/80 dark:border-stone-700 hover:border-stone-400 text-stone-700 dark:text-stone-200 hover:bg-stone-200/70 dark:hover:bg-stone-700/70'
+                                      : 'bg-white/90 dark:bg-[#1E162B]/90 border-stone-200/80 dark:border-stone-800 hover:border-[#FF4D6D] hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20'
+                                  }`}
                                 >
                                   <div className="flex items-center justify-between mb-1">
                                     <span className="text-xs font-semibold text-stone-900 dark:text-stone-100">{opt.label}</span>
-                                    {opt.isRecommended && (
-                                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                                        अनुशंसित / Recommended
+                                    {opt.badge ? (
+                                      <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border ${
+                                        opt.isRecommended
+                                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                          : opt.isUpgrade
+                                          ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30'
+                                          : opt.isCoder
+                                          ? 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/30'
+                                          : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                                      }`}>
+                                        {opt.badge}
                                       </span>
-                                    )}
+                                    ) : opt.isRecommended ? (
+                                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                        डिफ़ॉल्ट / Default
+                                      </span>
+                                    ) : null}
                                   </div>
                                   {opt.sublabel && (
                                     <div className="text-[10.5px] text-stone-500 dark:text-stone-400 font-sans">
@@ -4409,8 +4612,17 @@ function AIChatWidget() {
                   return;
                 }
 
+                if (chip.decisionStep === 'ai_model_categories') {
+                  handleSelectModelCategory(chip);
+                  return;
+                }
+
                 if (chip.decisionStep === 'ai_model_switch') {
-                  handleAiModelSwitchSelect(chip);
+                  if (chip.isBack || chip.id === 'back_to_categories') {
+                    handleTriggerAIModelDecisionTree();
+                  } else {
+                    handleAiModelSwitchSelect(chip);
+                  }
                   return;
                 }
 

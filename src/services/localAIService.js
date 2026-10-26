@@ -268,6 +268,8 @@ class LocalAIService {
           shortcut: entry.shortcut,
           sizeMB: entry.approxSizeMB,
           params: entry.params,
+          category: entry.category,
+          dtype: entry.dtype,
           description: entry.description
         };
       }
@@ -875,7 +877,8 @@ class LocalAIService {
   getShortcutForModelId(id) {
     if (!id) return '[Portfolio-Engine]';
     if (id.includes('SmolLM2-135M')) return '[SmolLM-135M]';
-    if (id.includes('SmolLM2-360M')) return '[SmolLM-360M]';
+    if (id.includes('SmolLM2-360M')) return '[SmolLM2-360M]';
+    if (id.includes('Qwen2.5-Coder-0.5B') || id.includes('Coder-0.5B')) return '[Qwen-Coder-0.5B]';
     if (id.includes('Qwen2.5-0.5B')) return '[Qwen-0.5B]';
     if (id.includes('Qwen2.5-1.5B')) return '[Qwen-1.5B]';
     if (id.includes('Coder-3B') || id.includes('Qwen2.5-3B')) return '[Qwen-3B]';
@@ -1259,7 +1262,8 @@ class LocalAIService {
     this.initWorker();
 
     // 7. नया मॉडल लोड करें: await this.loadModelInWorker(modelId, dtype);
-    await this.loadModelInWorker(details?.id || modelId, dtype);
+    const resolvedDtype = (dtype && dtype !== 'q4') ? dtype : ((typeof modelId === 'object' && modelId?.dtype) || details?.dtype || 'q4');
+    await this.loadModelInWorker(details?.id || modelId, resolvedDtype);
   }
 
   /**
@@ -1267,7 +1271,8 @@ class LocalAIService {
    */
   async loadModel(modelId, options = {}) {
     const id = (typeof modelId === 'object' && modelId !== null) ? modelId.id : modelId;
-    return this.switchModel(id, options.dtype || 'q4');
+    const targetDtype = options.dtype || (typeof modelId === 'object' ? modelId?.dtype : null);
+    return this.switchModel(id, targetDtype);
   }
 
   /**
@@ -1385,4 +1390,5 @@ class LocalAIService {
 
 // Global Singleton Instance
 export const localAIService = new LocalAIService();
+export { MODEL_CATALOG };
 export default localAIService;
