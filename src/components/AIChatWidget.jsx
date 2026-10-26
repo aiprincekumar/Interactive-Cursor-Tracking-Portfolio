@@ -2355,9 +2355,12 @@ function AIChatWidget() {
       return runDeterministicRag(query);
     }
 
-    // Bypass consent for bare-minimum model (<100MB) or auto_confirm policy
+    // Bypass consent for bare-minimum model (<100MB), auto_confirm policy, or already cached/consented models
     const isBareMinimum = targetModel?.id === MODEL_CATALOG.BARE_MINIMUM.id || targetModel?.id?.includes('SmolLM2-135M') || (targetModel?.approxSizeMB && targetModel.approxSizeMB <= 100);
-    if (isBareMinimum || chatSettings?.consentMode === 'auto_confirm') {
+    const isAlreadyCached = localAiState?.cachedModels?.includes(targetModel?.id) || (typeof window !== 'undefined' && localStorage.getItem('portfolio_ai_cached_' + targetModel?.id) === 'true');
+    const isAlreadyAgreed = typeof window !== 'undefined' && localStorage.getItem('portfolio_ai_consent_' + targetModel?.id) === 'true';
+
+    if (isBareMinimum || chatSettings?.consentMode === 'auto_confirm' || isAlreadyCached || isAlreadyAgreed) {
       if (typeof localAIService.loadModel === 'function') {
         return localAIService.loadModel(targetModel?.id, { triggerQuery: query });
       }
@@ -2377,6 +2380,16 @@ function AIChatWidget() {
       model: targetModel,
       query: query,
       onConfirm: (rememberChoice) => {
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('portfolio_ai_model_consent', 'enabled');
+            if (targetModel?.id) {
+              localStorage.setItem('portfolio_ai_consent_' + targetModel.id, 'true');
+            }
+          } catch {
+            // ignore
+          }
+        }
         if (rememberChoice && typeof updateChatSettings === 'function') {
           updateChatSettings({ consentMode: 'auto_confirm' });
         }
@@ -2392,7 +2405,7 @@ function AIChatWidget() {
         runDeterministicRag(query);
       }
     });
-  }, [chatSettings, updateChatSettings, runDeterministicRag, announce]);
+  }, [chatSettings, updateChatSettings, runDeterministicRag, announce, localAiState]);
 
   const handleAiModelSwitchSelect = (chip) => {
     if (soundEnabled && soundFX?.playTap) soundFX.playTap();
@@ -2432,13 +2445,14 @@ function AIChatWidget() {
       if (soundEnabled && soundFX?.playSuccess) soundFX.playSuccess();
       announce('On-Device AI turned off. Running on offline knowledge engine.', 'polite');
     } else {
-      // Check consent before model switch download if consentMode === 'always_ask' (bypass for bare-minimum model)
-      const isAlreadyCached = localAiState?.cachedModels?.includes(chip.modelId);
-      const isBareMinimum = chip.modelId === MODEL_CATALOG.BARE_MINIMUM.id || chip.modelId?.includes('SmolLM2-135M') || (chip.sizeMB && chip.sizeMB <= 100);
-      if (!isAlreadyCached && !isBareMinimum && chatSettings?.consentMode === 'always_ask') {
-        const targetModel = Object.values(MODEL_CATALOG).find(m => m.id === chip.modelId) || localAIService.getModelDetails(chip.modelId) || { id: chip.modelId, name: chip.label, approxSizeMB: chip.sizeMB || 90 };
-        handleRequestNeuralModel(targetModel, '');
-        return;
+      const isAlreadyCached = localAiState?.cachedModels?.includes(chip.modelId) || (typeof window !== 'undefined' && localStorage.getItem('portfolio_ai_cached_' + chip.modelId) === 'true');
+
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('portfolio_ai_consent_' + chip.modelId, 'true');
+        } catch {
+          // ignore
+        }
       }
 
       // Debounce rapid model switcher clicks (250ms window) to safely cancel prior requests
@@ -2460,7 +2474,9 @@ function AIChatWidget() {
         id: `assistant-ai-model-ack-${Date.now()}`,
         sender: 'assistant',
         modelShortcut: chip.shortcut,
-        text: `Your new model is loading in chat box...\n\n⚡ AI मॉडल **${chip.shortcut}** लोड किया जा रहा है...\n\nयह मॉडल आपके ब्राउज़र में 100% प्राइवेट और ऑन-डिवाइस चलेगा। डाउनलोड पूरा होते ही एक्टिव स्टेटस बार अपडेट हो जाएगा! (आप बिना किसी रुकावट के ऑफलाइन नॉलेज इंजन से तुरंत चैट जारी रख सकते हैं)`,
+        text: isAlreadyCached
+          ? `Your model is loading from local cache...\n\n⚡ AI मॉडल **${chip.shortcut}** आपके डिवाइस के स्थानीय ब्राउज़र स्टोरेज (कैश) से लोड किया जा रहा है...\n\nयह मॉडल पहले से डाउनलोड होकर आपके डिवाइस में सुरक्षित है (0MB इंटरनेट डेटा खर्च)। कुछ ही सेकंड में मॉडल एक्टिव हो जाएगा!`
+          : `Your new model is loading in chat box...\n\n⚡ AI मॉडल **${chip.shortcut}** पहली बार डाउनलोड किया जा रहा है...\n\nडाउनलोड पूरा होते ही यह आपके ब्राउज़र के स्टोरेज में हमेशा के लिए सुरक्षित स्टोर हो जाएगा और भविष्य में कभी भी दोबारा डाउनलोड नहीं करना पड़ेगा! (इस दौरान आप ऑफलाइन नॉलेज इंजन से तुरंत चैट जारी रख सकते हैं)`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         chips: PROMPT_CHIPS
       };

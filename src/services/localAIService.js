@@ -25,6 +25,7 @@ class LocalAIService {
     this.hasUserConsented = false;
     this.isAiEnabled = true;
     this.isCurrentModelCached = false;
+    this.cachedModels = [];
     this.lastNotification = null;
     this.pendingActivationModel = null;
     this.isOnline = typeof navigator !== 'undefined' ? (navigator.onLine ?? true) : true;
@@ -64,6 +65,19 @@ class LocalAIService {
         // ignore
       }
 
+      // Initial read of cached models
+      try {
+        const rawCached = localStorage.getItem('portfolio_ai_cached_models');
+        if (rawCached) {
+          const parsed = JSON.parse(rawCached);
+          if (Array.isArray(parsed)) {
+            this.cachedModels = parsed;
+          }
+        }
+      } catch {
+        // ignore
+      }
+
       // Initial read of AI & Chat settings
       try {
         const raw = localStorage.getItem('portfolio_ai_chat_settings');
@@ -71,6 +85,9 @@ class LocalAIService {
       } catch {
         // ignore
       }
+
+      // Scan and verify actual weights in transformers-cache
+      this.refreshCachedModels();
 
       // Listen for live updates
       window.addEventListener('ai-chat-settings-changed', (e) => {
@@ -120,6 +137,7 @@ class LocalAIService {
       hasUserConsented: this.hasUserConsented,
       isAiEnabled: this.isAiEnabled,
       isCurrentModelCached: this.isCurrentModelCached,
+      cachedModels: this.cachedModels || [],
       isOnline: this.isOnline,
       currentLoadSessionId: this.currentLoadSessionId,
       isModelLoading: this.isModelLoading,
@@ -264,6 +282,87 @@ class LocalAIService {
   }
 
   /**
+   * Scan transformers-cache via CacheStorage API and verify actual model weights.
+   * If weight files exist, adds model.id to this.cachedModels, persists to localStorage,
+   * and notifies listeners.
+   */
+  async refreshCachedModels() {
+    try {
+      const cacheStorage =
+        typeof window !== 'undefined' && window.caches
+          ? window.caches
+          : typeof self !== 'undefined' && self.caches
+          ? self.caches
+          : null;
+
+      if (!cacheStorage || typeof cacheStorage.has !== 'function') {
+        return this.cachedModels;
+      }
+
+      const hasCache = await cacheStorage.has('transformers-cache');
+      if (!hasCache || typeof cacheStorage.open !== 'function') {
+        return this.cachedModels;
+      }
+
+      const cache = await cacheStorage.open('transformers-cache');
+      const keys = await cache.keys();
+      if (!keys || keys.length === 0) {
+        return this.cachedModels;
+      }
+
+      const currentSet = new Set(this.cachedModels || []);
+      let updated = false;
+
+      for (const model of Object.values(MODEL_CATALOG)) {
+        if (!model || !model.id) continue;
+        const cleanModelId = model.id.toLowerCase();
+        const modelShortName = (model.id.split('/').pop() || model.id).toLowerCase();
+
+        const hasWeightFiles = keys.some((req) => {
+          const url = (req?.url || '').toLowerCase();
+          const matchesModel = (
+            url.includes(cleanModelId) ||
+            url.includes(encodeURIComponent(cleanModelId)) ||
+            url.includes(modelShortName)
+          );
+          const isWeight = url.includes('.onnx') || url.includes('.onnx_data');
+          return matchesModel && isWeight;
+        });
+
+        if (hasWeightFiles) {
+          if (!currentSet.has(model.id)) {
+            currentSet.add(model.id);
+            updated = true;
+          }
+          if (typeof window !== 'undefined' && window.localStorage) {
+            try {
+              localStorage.setItem('portfolio_ai_cached_' + model.id, 'true');
+            } catch {
+              // ignore
+            }
+          }
+        }
+      }
+
+      if (updated) {
+        this.cachedModels = Array.from(currentSet);
+        if (typeof window !== 'undefined' && window.localStorage) {
+          try {
+            localStorage.setItem('portfolio_ai_cached_models', JSON.stringify(this.cachedModels));
+          } catch {
+            // ignore
+          }
+        }
+        this.notifyListeners();
+      }
+    } catch (err) {
+      console.warn('[LocalAIService] refreshCachedModels error:', err);
+    }
+
+    return this.cachedModels;
+  }
+
+  /**
    * Strict Cache Verification:
    * 1. CacheStorage ('transformers-cache') MUST contain actual ONNX model weights (.onnx or .onnx_data)
    * 2. Do not blindly trust localStorage; if weight files are missing in CacheStorage, purge stale localStorage key
@@ -309,6 +408,16 @@ class LocalAIService {
                   // ignore
                 }
               }
+              if (!this.cachedModels.includes(modelId)) {
+                this.cachedModels = [...this.cachedModels, modelId];
+                if (typeof window !== 'undefined' && window.localStorage) {
+                  try {
+                    localStorage.setItem('portfolio_ai_cached_models', JSON.stringify(this.cachedModels));
+                  } catch {
+                    // ignore
+                  }
+                }
+              }
               return true;
             } else {
               // Purge stale or corrupted localStorage flag when weight files are missing
@@ -319,6 +428,16 @@ class LocalAIService {
                   // ignore
                 }
               }
+              if (this.cachedModels.includes(modelId)) {
+                this.cachedModels = this.cachedModels.filter(id => id !== modelId);
+                if (typeof window !== 'undefined' && window.localStorage) {
+                  try {
+                    localStorage.setItem('portfolio_ai_cached_models', JSON.stringify(this.cachedModels));
+                  } catch {
+                    // ignore
+                  }
+                }
+              }
               return false;
             }
           } else {
@@ -327,6 +446,16 @@ class LocalAIService {
                 localStorage.removeItem('portfolio_ai_cached_' + modelId);
               } catch {
                 // ignore
+              }
+            }
+            if (this.cachedModels.includes(modelId)) {
+              this.cachedModels = this.cachedModels.filter(id => id !== modelId);
+              if (typeof window !== 'undefined' && window.localStorage) {
+                try {
+                  localStorage.setItem('portfolio_ai_cached_models', JSON.stringify(this.cachedModels));
+                } catch {
+                  // ignore
+                }
               }
             }
             return false;
@@ -544,12 +673,20 @@ class LocalAIService {
         this.isCurrentModelCached = true;
         this.downloadingModel = null;
 
-        // Persist cached flag in localStorage
-        if (typeof window !== 'undefined' && window.localStorage) {
-          try {
-            localStorage.setItem('portfolio_ai_cached_' + payload.modelId, 'true');
-          } catch {
-            // ignore
+        // Persist cached flag in localStorage and update service cachedModels
+        if (payload.modelId) {
+          const modelSet = new Set(this.cachedModels || []);
+          if (!modelSet.has(payload.modelId)) {
+            modelSet.add(payload.modelId);
+            this.cachedModels = Array.from(modelSet);
+          }
+          if (typeof window !== 'undefined' && window.localStorage) {
+            try {
+              localStorage.setItem('portfolio_ai_cached_' + payload.modelId, 'true');
+              localStorage.setItem('portfolio_ai_cached_models', JSON.stringify(this.cachedModels));
+            } catch {
+              // ignore
+            }
           }
         }
 
