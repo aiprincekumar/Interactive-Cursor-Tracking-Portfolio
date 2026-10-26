@@ -41,7 +41,18 @@ import {
   Compass,
   Zap,
   Settings,
-  Smile
+  Smile,
+  Globe,
+  Handshake,
+  Heart,
+  LayoutDashboard,
+  Calculator,
+  BarChart2,
+  Terminal,
+  Layers,
+  BotOff,
+  Power,
+  PowerOff
 } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
@@ -207,64 +218,124 @@ export function getViewModeLabel(vm) {
 }
 
 /**
- * Dynamic state coloring for header action icons
+ * Dynamic state coloring and icons for header action buttons
  */
+export function getAudienceIcon(aud) {
+  switch (aud) {
+    case 'recruiter':
+      return Briefcase;
+    case 'client':
+      return Handshake;
+    case 'marriage':
+      return Heart;
+    case 'all':
+    default:
+      return Globe;
+  }
+}
+
 export function getAudienceColorStyle(aud) {
   switch (aud) {
     case 'recruiter':
-      return 'text-[#FF4D6D] bg-[#FF4D6D]/15 ring-1 ring-[#FF4D6D]/40';
+      return 'text-blue-500 bg-blue-500/15 border-blue-500/40 ring-blue-500/30';
     case 'client':
-      return 'text-[#9333EA] bg-[#9333EA]/15 ring-1 ring-[#9333EA]/40';
+      return 'text-emerald-500 bg-emerald-500/15 border-emerald-500/40 ring-emerald-500/30';
     case 'marriage':
-      return 'text-fuchsia-500 bg-fuchsia-500/15 ring-1 ring-fuchsia-500/40';
+      return 'text-rose-500 bg-rose-500/15 border-rose-500/40 ring-rose-500/30';
     case 'all':
     default:
-      return 'text-indigo-500 bg-indigo-500/15 ring-1 ring-indigo-500/40';
+      return 'text-indigo-500 bg-indigo-500/15 border-indigo-500/40 ring-indigo-500/30';
+  }
+}
+
+export function getRoleIcon(r) {
+  switch (r) {
+    case 'accountant':
+      return Calculator;
+    case 'mis':
+      return BarChart2;
+    case 'vibe':
+    case 'vibe_coding':
+      return Terminal;
+    case 'other':
+      return Sparkles;
+    case 'overview':
+    default:
+      return LayoutDashboard;
   }
 }
 
 export function getRoleColorStyle(r) {
   switch (r) {
     case 'accountant':
-      return 'text-emerald-500 bg-emerald-500/15 ring-1 ring-emerald-500/40';
+      return 'text-[#FF4D6D] bg-[#FF4D6D]/15 border-[#FF4D6D]/40 ring-[#FF4D6D]/30';
     case 'mis':
-      return 'text-blue-500 bg-blue-500/15 ring-1 ring-blue-500/40';
+      return 'text-blue-500 bg-blue-500/15 border-blue-500/40 ring-blue-500/30';
+    case 'vibe':
     case 'vibe_coding':
-      return 'text-purple-500 bg-purple-500/15 ring-1 ring-purple-500/40';
+      return 'text-emerald-500 bg-emerald-500/15 border-emerald-500/40 ring-emerald-500/30';
     case 'other':
-      return 'text-amber-500 bg-amber-500/15 ring-1 ring-amber-500/40';
+      return 'text-purple-500 bg-purple-500/15 border-purple-500/40 ring-purple-500/30';
     case 'overview':
     default:
-      return 'text-indigo-500 bg-indigo-500/15 ring-1 ring-indigo-500/40';
+      return 'text-indigo-500 bg-indigo-500/15 border-indigo-500/40 ring-indigo-500/30';
+  }
+}
+
+export function getViewModeIcon(vm) {
+  switch (vm) {
+    case 'basic':
+      return FileText;
+    case 'simple':
+      return Sparkles;
+    case 'terminal':
+      return Terminal;
+    case 'modern':
+    default:
+      return Layers;
   }
 }
 
 export function getViewModeColorStyle(vm) {
   switch (vm) {
-    case 'modern':
-      return 'text-cyan-500 bg-cyan-500/15 ring-1 ring-cyan-500/40';
-    case 'terminal':
-      return 'text-green-500 bg-green-500/15 ring-1 ring-green-500/40';
-    case 'simple':
-      return 'text-amber-500 bg-amber-500/15 ring-1 ring-amber-500/40';
     case 'basic':
+      return 'text-slate-500 bg-slate-500/15 border-slate-500/40 ring-slate-500/30';
+    case 'simple':
+      return 'text-emerald-500 bg-emerald-500/15 border-emerald-500/40 ring-emerald-500/30';
+    case 'terminal':
+      return 'text-cyan-500 bg-cyan-500/15 border-cyan-500/40 ring-cyan-500/30';
+    case 'modern':
     default:
-      return 'text-slate-500 bg-slate-500/15 ring-1 ring-slate-500/40';
+      return 'text-[#FF4D6D] bg-[#FF4D6D]/15 border-[#FF4D6D]/40 ring-[#FF4D6D]/30';
   }
 }
 
-export function getAIModelColorStyle(localAiState) {
+export function getAIModelIcon(localAiState) {
   if (localAiState?.status === 'ready' && localAiState?.activeModel) {
-    return 'text-emerald-500 bg-emerald-500/15 ring-1 ring-emerald-500/40';
+    return Bot;
   }
   if (
     localAiState?.status === 'switching' ||
     localAiState?.status === 'downloading' ||
     localAiState?.status === 'loading_cache'
   ) {
-    return 'text-amber-500 bg-amber-500/15 ring-1 ring-amber-500/40 animate-pulse';
+    return Bot;
   }
-  return 'text-stone-400 bg-stone-100 dark:bg-stone-800';
+  return BotOff;
+}
+
+export function getAIModelColorStyle(localAiState) {
+  if (localAiState?.status === 'ready' && localAiState?.activeModel) {
+    return 'text-emerald-500 bg-emerald-500/15 border-emerald-500/40 ring-emerald-500/30';
+  }
+  if (
+    localAiState?.status === 'switching' ||
+    localAiState?.status === 'downloading' ||
+    localAiState?.status === 'loading_cache'
+  ) {
+    return 'text-amber-500 bg-amber-500/15 border-amber-500/40 ring-amber-500/30 animate-pulse';
+  }
+  return 'text-stone-400 bg-stone-200/50 dark:bg-stone-800/50 border-stone-300/40 dark:border-stone-700/40';
 }
 
 /**
@@ -349,6 +420,7 @@ function generateBotReply(userText) {
 function AIChatWidget() {
   // Safe access to Lab Context for drawer offset, sound settings, and AI chat settings
   let soundEnabled = true;
+  let setSoundEnabled = null;
   let isDrawerOpen = false;
   let openDrawer = null;
   let setActiveTab = null;
@@ -375,6 +447,7 @@ function AIChatWidget() {
   try {
     const labAudio = useLabAudio();
     soundEnabled = labAudio?.soundEnabled ?? true;
+    if (labAudio?.setSoundEnabled) setSoundEnabled = labAudio.setSoundEnabled;
   } catch {
     // safe fallback
   }
@@ -2715,6 +2788,17 @@ function AIChatWidget() {
     setTimeout(scrollToBottom, 50);
   };
 
+  /**
+   * 1-Click quick toggle for Sound FX
+   */
+  const handleToggleSound = () => {
+    if (typeof setSoundEnabled === 'function') {
+      const nextSound = !soundEnabled;
+      setSoundEnabled(nextSound);
+      if (nextSound && soundFX?.playClick) soundFX.playClick();
+    }
+  };
+
   const handleClearChat = () => {
     if (soundEnabled && soundFX?.playTap) soundFX.playTap();
     try {
@@ -3128,6 +3212,11 @@ function AIChatWidget() {
     };
   }
 
+  const AudienceIcon = getAudienceIcon(audience);
+  const RoleIcon = getRoleIcon(activeRole);
+  const ViewModeIcon = getViewModeIcon(viewMode);
+  const AIModelIcon = getAIModelIcon(localAiState);
+
   return (
     <div
       ref={widgetRef}
@@ -3276,6 +3365,11 @@ function AIChatWidget() {
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 border-2 border-white dark:border-[#161122] bg-stone-400" />
               )}
             </span>
+            {(localAiState?.status === 'switching' || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache') && (
+              <span className="absolute -bottom-1 -right-1 px-1 py-0.2 rounded-full text-[8px] font-mono font-bold bg-amber-500 text-white shadow-xs animate-pulse ring-1 ring-white dark:ring-[#161122]">
+                {localAiState?.downloadProgress || 0}%
+              </span>
+            )}
           </div>
 
           <div className="flex flex-col min-w-0">
@@ -3283,30 +3377,6 @@ function AIChatWidget() {
               <span className="text-xs font-bold font-mono tracking-tight text-[#18181B] dark:text-white truncate">
                 Atul AI Assistant
               </span>
-              {localAiState?.status === 'switching' || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache' ? (
-                <span
-                  title={`Model Progress: ${localAiState.downloadProgress || 0}%`}
-                  className="text-[9px] font-mono px-1.5 py-0.5 rounded-full text-amber-500 bg-amber-500/15 ring-1 ring-amber-500/40 animate-pulse shrink-0 font-semibold"
-                >
-                  {localAiState?.downloadProgress !== undefined && localAiState?.downloadProgress !== null
-                    ? `${localAiState.downloadProgress}%`
-                    : '...%'}
-                </span>
-              ) : localAiState?.status === 'ready' && localAiState?.activeModel ? (
-                <span
-                  title={`Active On-Device Model: ${localAiState.activeModel.shortcut} (${localAiState.activeModel.name || ''})`}
-                  className="text-[9px] font-mono px-1.5 py-0.5 rounded-full text-emerald-500 bg-emerald-500/15 ring-1 ring-emerald-500/40 shrink-0 font-semibold"
-                >
-                  ⚡ {localAiState.activeModel.shortcut}
-                </span>
-              ) : (
-                <span
-                  title="Offline Knowledge Engine Active (Instant deterministic responses)"
-                  className="text-[9px] font-mono px-1.5 py-0.5 rounded-full text-stone-400 bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shrink-0 font-semibold"
-                >
-                  📚 Offline Engine
-                </span>
-              )}
             </div>
             {/* 2nd Line Subtitle: Role • Audience • View Mode */}
             <div className="flex items-center min-w-0 leading-tight mt-0.5">
@@ -3429,7 +3499,7 @@ function AIChatWidget() {
                 title={`Select Audience Perspective: ${getAudienceLabel(audience)}`}
                 className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getAudienceColorStyle(audience)}`}
               >
-                <Users className="w-3.5 h-3.5" />
+                <AudienceIcon className="w-3.5 h-3.5" />
               </button>
 
               {/* 2. Job Role Perspective Icon */}
@@ -3440,7 +3510,7 @@ function AIChatWidget() {
                 title={`Select Job Role Track: ${getRoleLabel(activeRole)}`}
                 className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getRoleColorStyle(activeRole)}`}
               >
-                <Briefcase className="w-3.5 h-3.5" />
+                <RoleIcon className="w-3.5 h-3.5" />
               </button>
 
               {/* 3. View Mode Switcher Icon */}
@@ -3451,7 +3521,7 @@ function AIChatWidget() {
                 title={`Switch View Mode: ${getViewModeLabel(viewMode)}`}
                 className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getViewModeColorStyle(viewMode)}`}
               >
-                <Monitor className="w-3.5 h-3.5" />
+                <ViewModeIcon className="w-3.5 h-3.5" />
               </button>
 
               {/* 4. AI Model Switcher Icon */}
@@ -3468,11 +3538,11 @@ function AIChatWidget() {
                 })`}
                 className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getAIModelColorStyle(localAiState)}`}
               >
-                <Bot className="w-3.5 h-3.5" />
+                <AIModelIcon className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* Right Quick Tools Group (6 Pure Icons: Prompt Studio, AI Toggle, Emoji, History, Export, Clear) */}
+            {/* Right Quick Tools Group (6 Pure Icons: Prompt Studio, AI Toggle, Sound FX, History, Export, Clear) */}
             <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
               {/* 5. Prompt Studio Icon */}
               <button
@@ -3480,7 +3550,7 @@ function AIChatWidget() {
                 onClick={handleOpenPromptStudio}
                 aria-label="Meta-Prompt Studio"
                 title="Meta-Prompt Engineer & Studio (/engineer)"
-                className="w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 bg-purple-500/15 hover:bg-purple-500/25 text-purple-700 dark:text-purple-300 border border-purple-500/30 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:outline-hidden"
+                className="w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 text-purple-600 dark:text-purple-300 bg-purple-500/15 border border-purple-500/30 hover:bg-purple-500/25 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:outline-hidden"
               >
                 <Sparkles className="w-3.5 h-3.5 text-purple-500" />
               </button>
@@ -3499,28 +3569,38 @@ function AIChatWidget() {
                 }
                 className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
                   localAiState?.status === 'ready' && localAiState?.activeModel
-                    ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 border-emerald-500/40 hover:bg-emerald-500/25 ring-1 ring-emerald-500/30'
+                    ? 'text-emerald-500 bg-emerald-500/15 border-emerald-500/40 hover:bg-emerald-500/25'
                     : localAiState?.status === 'switching' || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache'
-                    ? 'text-amber-500 bg-amber-500/15 border-amber-500/40 ring-1 ring-amber-500/40 animate-pulse'
-                    : 'text-stone-400 dark:text-stone-500 bg-stone-100 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'
+                    ? 'text-amber-500 bg-amber-500/15 border-amber-500/40 animate-pulse'
+                    : 'text-stone-400 bg-stone-200/50 dark:bg-stone-800/50 border-stone-300/40 dark:border-stone-700/40 hover:text-stone-700 dark:hover:text-stone-300'
                 }`}
               >
-                <Zap className="w-3.5 h-3.5" />
+                {localAiState?.status === 'ready' && localAiState?.activeModel ? (
+                  <Power className="w-3.5 h-3.5" />
+                ) : localAiState?.status === 'switching' || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache' ? (
+                  <Power className="w-3.5 h-3.5" />
+                ) : (
+                  <PowerOff className="w-3.5 h-3.5" />
+                )}
               </button>
 
-              {/* 7. Emoji Toggle Icon */}
+              {/* 7. Sound FX Toggle Icon */}
               <button
                 type="button"
-                onClick={() => setEmojiEnabled((prev) => !prev)}
-                aria-label={emojiEnabled ? "Disable Emojis" : "Enable Emojis"}
-                title={`Expressive Emojis: ${emojiEnabled ? 'Enabled' : 'Disabled'}`}
+                onClick={handleToggleSound}
+                aria-label={soundEnabled ? "Mute Sound Effects" : "Enable Sound Effects"}
+                title={`Sound Effects: ${soundEnabled ? 'Enabled' : 'Muted'}`}
                 className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
-                  emojiEnabled
-                    ? 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25'
-                    : 'bg-stone-100 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'
+                  soundEnabled
+                    ? 'text-emerald-500 bg-emerald-500/15 border-emerald-500/40 hover:bg-emerald-500/25'
+                    : 'text-stone-400 bg-stone-200/50 dark:bg-stone-800/50 border-stone-300/40 dark:border-stone-700/40 hover:text-stone-700 dark:hover:text-stone-300'
                 }`}
               >
-                <Smile className="w-3.5 h-3.5" />
+                {soundEnabled ? (
+                  <Volume2 className="w-3.5 h-3.5" />
+                ) : (
+                  <VolumeX className="w-3.5 h-3.5" />
+                )}
               </button>
 
               {/* 8. Conversation History Drawer Icon */}

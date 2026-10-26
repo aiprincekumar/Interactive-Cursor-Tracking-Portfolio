@@ -69,6 +69,14 @@ async function runTests() {
     });
     console.log(`  Scrolled to: scrollY=${contactCoordinates.scrollY}px (Total Height=${contactCoordinates.scrollHeight}px)`);
 
+    // Allow lazy-loaded components to expand and re-align contact before reload
+    await page.waitForTimeout(1000);
+    await page.evaluate(() => {
+      const el = document.getElementById('contact');
+      if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+      window.dispatchEvent(new Event('scroll'));
+    });
+
     // 3. Wait 400ms for debounce (300ms persistence timer)
     await page.waitForTimeout(500);
 
