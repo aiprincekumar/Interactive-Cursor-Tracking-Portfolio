@@ -3236,6 +3236,13 @@ function AIChatWidget() {
   const ViewModeIcon = getViewModeIcon(viewMode);
   const AIModelIcon = getAIModelIcon(localAiState);
 
+  // Compact header subtitle labels
+  const headerRoleLabel = activeRole === 'overview' ? 'Overview' : activeRole === 'accountant' ? 'Accountant' : activeRole === 'mis' ? 'MIS' : activeRole === 'vibe' ? 'Vibe Coder' : (roleData.shortLabel || 'Executive');
+  const headerAudienceLabel = audience === 'all' ? 'All' : audience === 'recruiter' ? 'Recruiter' : audience === 'client' ? 'Client' : audience === 'marriage' ? 'Marriage' : (activeAudienceData?.shortLabel || 'All');
+  const headerAudienceEmoji = audience === 'all' ? '🌐' : audience === 'recruiter' ? '💼' : audience === 'client' ? '🤝' : audience === 'marriage' ? '💖' : (activeAudienceData?.emoji || '🌐');
+  const headerViewModeLabel = viewMode === 'modern' ? 'Modern' : viewMode === 'terminal' ? 'Terminal' : viewMode === 'simple' ? 'Simple' : viewMode === 'basic' ? 'Basic' : (activeViewModeData?.shortLabel || 'Modern');
+  const headerViewModeEmoji = viewMode === 'modern' ? '⚡' : viewMode === 'terminal' ? '💻' : viewMode === 'simple' ? '✨' : viewMode === 'basic' ? '📄' : (activeViewModeData?.emoji || '⚡');
+
   return (
     <div
       ref={widgetRef}
@@ -3399,8 +3406,8 @@ function AIChatWidget() {
             </div>
             {/* 2nd Line Subtitle: Role • Audience • View Mode */}
             <div className="flex items-center min-w-0 leading-tight mt-0.5">
-              <span className="text-[10px] font-medium text-stone-600 dark:text-stone-300 truncate">
-                💼 {roleData.shortLabel || roleData.label} • {activeAudienceData?.emoji || '👥'} {activeAudienceData?.shortLabel || 'All'} • {activeViewModeData?.emoji || '⚡'} {activeViewModeData?.shortLabel || 'Modern'}
+              <span className="text-[9.5px] font-medium text-stone-600 dark:text-stone-300 whitespace-nowrap tracking-tight">
+                💼 {headerRoleLabel} • {headerAudienceEmoji} {headerAudienceLabel} • {headerViewModeEmoji} {headerViewModeLabel}
               </span>
             </div>
           </div>
