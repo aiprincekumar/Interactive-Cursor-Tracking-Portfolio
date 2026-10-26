@@ -3491,17 +3491,24 @@ function AIChatWidget() {
       {/* When Minimized, hide the body */}
       {!isMinimized && (
         <>
-          {/* Pure Icon-Only Sub-Header Strip (10 Direct Tools: 4 Perspective + 6 Quick Tools) */}
-          <div className="px-2 sm:px-2.5 py-1.5 bg-stone-100/90 dark:bg-[#150F22]/90 border-b border-[#E7E2D8]/60 dark:border-[#2D2340]/60 flex items-center justify-between gap-1 sm:gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
-            {/* Left Perspective Group (4 Pure Icons: Audience, Role, View Mode, Model) */}
-            <div className="flex items-center gap-0.5 sm:gap-1 p-0.5 rounded-lg bg-stone-200/50 dark:bg-stone-800/50 border border-stone-300/40 dark:border-stone-700/40 shrink-0">
+          {/* Sub-Header Toolstrip (3 Distinct Sections: 1 Left + 2 Right-Anchored) */}
+          <div
+            onWheel={(e) => {
+              if (e.deltaY !== 0 && e.currentTarget.scrollWidth > e.currentTarget.clientWidth) {
+                e.currentTarget.scrollLeft += e.deltaY;
+              }
+            }}
+            className="px-1.5 sm:px-2.5 py-1.5 bg-stone-100/90 dark:bg-[#150F22]/90 border-b border-[#E7E2D8]/60 dark:border-[#2D2340]/60 flex items-center justify-between gap-1 sm:gap-1.5 shrink-0 overflow-x-auto no-scrollbar touch-pan-x"
+          >
+            {/* Section 1: Left Perspective Group (4 Buttons) */}
+            <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-stone-200/50 dark:bg-stone-800/50 border border-stone-300/40 dark:border-stone-700/40 shrink-0">
               {/* 1. Audience Perspective Icon */}
               <button
                 type="button"
                 onClick={handleTriggerAudienceDecisionTree}
                 aria-label="Select Audience Perspective"
                 title={`Select Audience Perspective: ${getAudienceLabel(audience)}`}
-                className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getAudienceColorStyle(audience)}`}
+                className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getAudienceColorStyle(audience)}`}
               >
                 <AudienceIcon className="w-3.5 h-3.5" />
               </button>
@@ -3512,7 +3519,7 @@ function AIChatWidget() {
                 onClick={handleTriggerRoleDecisionTree}
                 aria-label="Select Job Role Track"
                 title={`Select Job Role Track: ${getRoleLabel(activeRole)}`}
-                className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getRoleColorStyle(activeRole)}`}
+                className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getRoleColorStyle(activeRole)}`}
               >
                 <RoleIcon className="w-3.5 h-3.5" />
               </button>
@@ -3523,7 +3530,7 @@ function AIChatWidget() {
                 onClick={handleTriggerViewModeDecisionTree}
                 aria-label="Switch View Mode (Modern, Terminal, Simple, Basic)"
                 title={`Switch View Mode: ${getViewModeLabel(viewMode)}`}
-                className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getViewModeColorStyle(viewMode)}`}
+                className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${getViewModeColorStyle(viewMode)}`}
               >
                 <ViewModeIcon className="w-3.5 h-3.5" />
               </button>
@@ -3540,200 +3547,200 @@ function AIChatWidget() {
                     ? 'Loading Model...'
                     : 'Offline Engine'
                 })`}
-                className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 focus-visible:outline-hidden ${getAIModelColorStyle(localAiState)}`}
+                className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-md flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${getAIModelColorStyle(localAiState)}`}
               >
                 <AIModelIcon className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* Divider 1 */}
-            <div className="w-px h-4 bg-stone-300/80 dark:bg-stone-700/80 mx-0.5 sm:mx-1 shrink-0" aria-hidden="true" />
+            {/* Right-Anchored Cluster (Section 2 + Divider + Section 3) */}
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto">
+              {/* Section 2: 3 Engine / Toggle Buttons */}
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                {/* 1. Prompt Studio button */}
+                <button
+                  type="button"
+                  onClick={handleOpenPromptStudio}
+                  aria-label="Meta-Prompt Studio"
+                  title="Meta-Prompt Engineer & Studio (/engineer)"
+                  className="w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 text-purple-600 dark:text-purple-300 bg-purple-500/15 border border-purple-500/30 hover:bg-purple-500/25 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:outline-hidden"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+                </button>
 
-            {/* Section 2 (Center-Aligned - 3 Engine/Toggle Buttons) */}
-            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-              {/* 1. Prompt Studio button */}
-              <button
-                type="button"
-                onClick={handleOpenPromptStudio}
-                aria-label="Meta-Prompt Studio"
-                title="Meta-Prompt Engineer & Studio (/engineer)"
-                className="w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 text-purple-600 dark:text-purple-300 bg-purple-500/15 border border-purple-500/30 hover:bg-purple-500/25 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:outline-hidden"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-purple-500" />
-              </button>
+                {/* 2. AI On/Off Quick Toggle button */}
+                <button
+                  type="button"
+                  onClick={handleToggleAIQuick}
+                  aria-label="Toggle On-Device AI On or Off"
+                  title={
+                    localAiState?.status === 'switching' || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache'
+                      ? "Your new model is loading in chat box... Click to switch back to Offline Engine"
+                      : isAiOn
+                      ? "Turn Off On-Device AI (Switch to Offline Knowledge Engine)"
+                      : "Turn On On-Device AI"
+                  }
+                  className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                    localAiState?.status === 'ready' && localAiState?.activeModel
+                      ? 'text-emerald-500 bg-emerald-500/15 border-emerald-500/40 hover:bg-emerald-500/25'
+                      : localAiState?.status === 'switching' || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache'
+                      ? 'text-amber-500 bg-amber-500/15 border-amber-500/40 animate-pulse'
+                      : 'text-stone-400 bg-stone-200/50 dark:bg-stone-800/50 border-stone-300/40 dark:border-stone-700/40 hover:text-stone-700 dark:hover:text-stone-300'
+                  }`}
+                >
+                  {localAiState?.status === 'ready' && localAiState?.activeModel ? (
+                    <Power className="w-3.5 h-3.5" />
+                  ) : localAiState?.status === 'switching' || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache' ? (
+                    <Power className="w-3.5 h-3.5" />
+                  ) : (
+                    <PowerOff className="w-3.5 h-3.5" />
+                  )}
+                </button>
 
-              {/* 2. AI On/Off Quick Toggle button */}
-              <button
-                type="button"
-                onClick={handleToggleAIQuick}
-                aria-label="Toggle On-Device AI On or Off"
-                title={
-                  localAiState?.status === 'switching' || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache'
-                    ? "Your new model is loading in chat box... Click to switch back to Offline Engine"
-                    : isAiOn
-                    ? "Turn Off On-Device AI (Switch to Offline Knowledge Engine)"
-                    : "Turn On On-Device AI"
-                }
-                className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
-                  localAiState?.status === 'ready' && localAiState?.activeModel
-                    ? 'text-emerald-500 bg-emerald-500/15 border-emerald-500/40 hover:bg-emerald-500/25'
-                    : localAiState?.status === 'switching' || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache'
-                    ? 'text-amber-500 bg-amber-500/15 border-amber-500/40 animate-pulse'
-                    : 'text-stone-400 bg-stone-200/50 dark:bg-stone-800/50 border-stone-300/40 dark:border-stone-700/40 hover:text-stone-700 dark:hover:text-stone-300'
-                }`}
-              >
-                {localAiState?.status === 'ready' && localAiState?.activeModel ? (
-                  <Power className="w-3.5 h-3.5" />
-                ) : localAiState?.status === 'switching' || localAiState?.status === 'downloading' || localAiState?.status === 'loading_cache' ? (
-                  <Power className="w-3.5 h-3.5" />
-                ) : (
-                  <PowerOff className="w-3.5 h-3.5" />
-                )}
-              </button>
+                {/* 3. Sound FX Toggle button */}
+                <button
+                  type="button"
+                  onClick={handleToggleSound}
+                  aria-label={soundEnabled ? "Mute Sound Effects" : "Enable Sound Effects"}
+                  title={`Sound Effects: ${soundEnabled ? 'Enabled' : 'Muted'}`}
+                  className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                    soundEnabled
+                      ? 'text-emerald-500 bg-emerald-500/15 border-emerald-500/40 hover:bg-emerald-500/25'
+                      : 'text-stone-400 bg-stone-200/50 dark:bg-stone-800/50 border-stone-300/40 dark:border-stone-700/40 hover:text-stone-700 dark:hover:text-stone-300'
+                  }`}
+                >
+                  {soundEnabled ? (
+                    <Volume2 className="w-3.5 h-3.5" />
+                  ) : (
+                    <VolumeX className="w-3.5 h-3.5" />
+                  )}
+                </button>
+              </div>
 
-              {/* 3. Sound FX Toggle button */}
-              <button
-                type="button"
-                onClick={handleToggleSound}
-                aria-label={soundEnabled ? "Mute Sound Effects" : "Enable Sound Effects"}
-                title={`Sound Effects: ${soundEnabled ? 'Enabled' : 'Muted'}`}
-                className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
-                  soundEnabled
-                    ? 'text-emerald-500 bg-emerald-500/15 border-emerald-500/40 hover:bg-emerald-500/25'
-                    : 'text-stone-400 bg-stone-200/50 dark:bg-stone-800/50 border-stone-300/40 dark:border-stone-700/40 hover:text-stone-700 dark:hover:text-stone-300'
-                }`}
-              >
-                {soundEnabled ? (
-                  <Volume2 className="w-3.5 h-3.5" />
-                ) : (
-                  <VolumeX className="w-3.5 h-3.5" />
-                )}
-              </button>
-            </div>
+              {/* Divider between Section 2 and Section 3 */}
+              <div className="w-px h-4 bg-stone-300/80 dark:bg-stone-700/80 mx-0.5 shrink-0" aria-hidden="true" />
 
-            {/* Divider 2 */}
-            <div className="w-px h-4 bg-stone-300/80 dark:bg-stone-700/80 mx-0.5 sm:mx-1 shrink-0" aria-hidden="true" />
-
-            {/* Section 3 (Right-Aligned - 4 Utility & Settings Buttons) */}
-            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-              {/* 1. History Drawer button */}
-              <button
-                type="button"
-                onClick={() => {
-                  setShowHistoryDrawer((prev) => !prev);
-                  setShowExportMenu(false);
-                }}
-                aria-label="View conversation history & sessions"
-                title="Conversation History (Saved Sessions Archive)"
-                className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
-                  showHistoryDrawer
-                    ? 'bg-rose-500/20 text-[#FF4D6D] border-rose-500/40 shadow-xs'
-                    : 'bg-stone-100 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
-                }`}
-              >
-                <History className="w-3.5 h-3.5" />
-              </button>
-
-              {/* 9. Export Transcript Popover Picker */}
-              <div className="relative">
+              {/* Section 3: 4 Utility & Settings Buttons */}
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                {/* 1. History Drawer button */}
                 <button
                   type="button"
                   onClick={() => {
-                    setShowExportMenu((prev) => !prev);
-                    setShowHistoryDrawer(false);
+                    setShowHistoryDrawer((prev) => !prev);
+                    setShowExportMenu(false);
                   }}
-                  aria-label="Export Chat Transcript"
-                  title="Export Chat Transcript (Markdown, TXT, JSON, HTML, Copy)"
-                  className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
-                    showExportMenu
+                  aria-label="View conversation history & sessions"
+                  title="Conversation History (Saved Sessions Archive)"
+                  className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                    showHistoryDrawer
                       ? 'bg-rose-500/20 text-[#FF4D6D] border-rose-500/40 shadow-xs'
                       : 'bg-stone-100 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
                   }`}
                 >
-                  <Download className="w-3.5 h-3.5" />
+                  <History className="w-3.5 h-3.5" />
                 </button>
 
-                {showExportMenu && (
-                  <div
-                    role="menu"
-                    aria-label="Export format options"
-                    className="absolute right-0 top-full mt-1.5 w-52 py-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-2xl z-50 text-xs animate-in fade-in zoom-in-95 duration-150 backdrop-blur-md"
+                {/* 9. Export Transcript Popover Picker */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowExportMenu((prev) => !prev);
+                      setShowHistoryDrawer(false);
+                    }}
+                    aria-label="Export Chat Transcript"
+                    title="Export Chat Transcript (Markdown, TXT, JSON, HTML, Copy)"
+                    className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                      showExportMenu
+                        ? 'bg-rose-500/20 text-[#FF4D6D] border-rose-500/40 shadow-xs'
+                        : 'bg-stone-100 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
+                    }`}
                   >
-                    <div className="px-3 py-1 text-[10px] font-bold tracking-wider uppercase text-stone-500 dark:text-stone-400 border-b border-stone-100 dark:border-stone-800">
-                      Export Transcript
+                    <Download className="w-3.5 h-3.5" />
+                  </button>
+
+                  {showExportMenu && (
+                    <div
+                      role="menu"
+                      aria-label="Export format options"
+                      className="absolute right-0 top-full mt-1.5 w-52 py-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-2xl z-50 text-xs animate-in fade-in zoom-in-95 duration-150 backdrop-blur-md"
+                    >
+                      <div className="px-3 py-1 text-[10px] font-bold tracking-wider uppercase text-stone-500 dark:text-stone-400 border-b border-stone-100 dark:border-stone-800">
+                        Export Transcript
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleExportFormat('markdown')}
+                        className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
+                      >
+                        <span className="font-medium">📄 Markdown (.md)</span>
+                        <span className="text-[10px] text-stone-400">GH Flavored</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleExportFormat('txt')}
+                        className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
+                      >
+                        <span className="font-medium">📝 Plain Text (.txt)</span>
+                        <span className="text-[10px] text-stone-400">ASCII Log</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleExportFormat('json')}
+                        className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
+                      >
+                        <span className="font-medium">📊 JSON Transcript</span>
+                        <span className="text-[10px] text-stone-400">Raw Data</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleExportFormat('html')}
+                        className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
+                      >
+                        <span className="font-medium">🌐 HTML Print Page</span>
+                        <span className="text-[10px] text-stone-400">Self-Contained</span>
+                      </button>
+                      <div className="my-1 border-t border-stone-100 dark:border-stone-800" />
+                      <button
+                        type="button"
+                        onClick={handleCopyAllTranscript}
+                        className="w-full text-left px-3 py-1.5 text-[#FF4D6D] hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center justify-between font-bold cursor-pointer"
+                      >
+                        <span>📋 Copy All to Clipboard</span>
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleExportFormat('markdown')}
-                      className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
-                    >
-                      <span className="font-medium">📄 Markdown (.md)</span>
-                      <span className="text-[10px] text-stone-400">GH Flavored</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleExportFormat('txt')}
-                      className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
-                    >
-                      <span className="font-medium">📝 Plain Text (.txt)</span>
-                      <span className="text-[10px] text-stone-400">ASCII Log</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleExportFormat('json')}
-                      className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
-                    >
-                      <span className="font-medium">📊 JSON Transcript</span>
-                      <span className="text-[10px] text-stone-400">Raw Data</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleExportFormat('html')}
-                      className="w-full text-left px-3 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-[#FF4D6D] flex items-center justify-between cursor-pointer"
-                    >
-                      <span className="font-medium">🌐 HTML Print Page</span>
-                      <span className="text-[10px] text-stone-400">Self-Contained</span>
-                    </button>
-                    <div className="my-1 border-t border-stone-100 dark:border-stone-800" />
-                    <button
-                      type="button"
-                      onClick={handleCopyAllTranscript}
-                      className="w-full text-left px-3 py-1.5 text-[#FF4D6D] hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center justify-between font-bold cursor-pointer"
-                    >
-                      <span>📋 Copy All to Clipboard</span>
-                    </button>
-                  </div>
-                )}
+                  )}
+                </div>
+
+                {/* 3. Clear Chat History button */}
+                <button
+                  type="button"
+                  onClick={handleClearChat}
+                  aria-label="Clear chat history"
+                  title="Clear chat history"
+                  className="w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 bg-stone-100 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+
+                {/* 4. Settings button (moved here!) */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenSettings(e);
+                  }}
+                  aria-label="Open AI & Chat Studio Settings"
+                  title="AI & Chat Studio Settings (Tab 7)"
+                  className={`w-[26px] h-[26px] sm:w-7 sm:h-7 min-w-[26px] min-h-[26px] sm:min-w-[28px] sm:min-h-[28px] rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                    showSettingsModal
+                      ? 'bg-rose-500/20 text-[#FF4D6D] border-rose-500/40 shadow-xs'
+                      : 'bg-stone-100 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
+                  }`}
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                </button>
               </div>
-
-              {/* 3. Clear Chat History button */}
-              <button
-                type="button"
-                onClick={handleClearChat}
-                aria-label="Clear chat history"
-                title="Clear chat history"
-                className="w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 bg-stone-100 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-              </button>
-
-              {/* 4. Settings button (moved here!) */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenSettings(e);
-                }}
-                aria-label="Open AI & Chat Studio Settings"
-                title="AI & Chat Studio Settings (Tab 7)"
-                className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
-                  showSettingsModal
-                    ? 'bg-rose-500/20 text-[#FF4D6D] border-rose-500/40 shadow-xs'
-                    : 'bg-stone-100 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
-                }`}
-              >
-                <Settings className="w-3.5 h-3.5" />
-              </button>
             </div>
           </div>
 
