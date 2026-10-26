@@ -4565,7 +4565,7 @@ function AIChatWidget() {
                   </div>
                   {/* Unified Single-Row Micro-Toolbar */}
                   {isAssistant ? (
-                    <div className="flex items-center justify-between w-full mt-1.5 px-1 pl-6.5 text-[10px] text-stone-400 select-none">
+                    <div className="flex items-center justify-start gap-2 sm:gap-2.5 w-full mt-1.5 px-1 pl-6.5 text-[10px] text-stone-400 select-none flex-wrap">
                       {/* Left Sub-Group: Dynamic Model Pill + Monospace Timestamp */}
                       <div className="flex items-center gap-1.5">
                         <span
@@ -4589,8 +4589,11 @@ function AIChatWidget() {
                         </span>
                       </div>
 
-                      {/* Right Sub-Group: Micro-Action Buttons (Copy, TTS, Feedback) */}
-                      <div className="flex items-center gap-0.5 opacity-80 hover:opacity-100 transition-opacity">
+                      {/* Subtle Divider */}
+                      <span className="w-px h-3 bg-stone-300/60 dark:bg-stone-700/60 inline-block shrink-0" aria-hidden="true" />
+
+                      {/* Micro-Action Buttons (Copy, TTS, Feedback) */}
+                      <div className="flex items-center gap-0.5">
                         {/* Copy Message Button */}
                         <button
                           type="button"
