@@ -1924,6 +1924,19 @@ function AIChatWidget() {
       console.warn('LocalStorage error saving AI consent:', err);
     }
 
+    const isConsentEnabled = consent === 'enabled';
+    if (isConsentEnabled) {
+      const userMsg = {
+        id: `user-ai-consent-${Date.now()}`,
+        sender: 'user',
+        text: label,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages((prev) => [...prev, userMsg]);
+      handleTriggerAIModelDecisionTree();
+      return;
+    }
+
     const userMsg = {
       id: `user-ai-consent-${Date.now()}`,
       sender: 'user',
@@ -1934,33 +1947,18 @@ function AIChatWidget() {
     const audLabel = getAudienceLabel(audience);
     const rLabel = getRoleLabel(activeRole);
     const vmLabel = getViewModeLabel(viewMode);
-    const isConsentEnabled = consent === 'enabled';
-    if (isConsentEnabled) {
-      const currentState = localAIService.getState();
-      const bareModel = getBareMinimumModel();
-      const isAlreadyActive = currentState.activeModel?.id === bareModel.id && currentState.status === 'ready';
-      const isAlreadyDownloading = currentState.downloadingModel?.id === bareModel.id &&
-        (currentState.status === 'downloading' || currentState.status === 'compiling' || currentState.status === 'loading_cache');
-
-      if (!isAlreadyActive && !isAlreadyDownloading) {
-        localAIService.loadModel(bareModel).catch((err) => {
-          console.warn('[AIChatWidget] Model consent activation error:', err?.message);
-        });
-      }
-    }
 
     const assistantMsg = {
       id: `assistant-ai-consent-ack-${Date.now()}`,
       sender: 'assistant',
-      text: isConsentEnabled
-        ? "✅ बहुत बढ़िया! ऑन-डिवाइस AI प्राथमिकताओं को सेव कर लिया गया है।\n\nआपकी सभी प्राथमिकताएं सफलतापूर्वक सेट हो चुकी हैं। अब आप नीचे दिए गए सुझावों में से कुछ भी पूछ सकते हैं!"
-        : "✅ ठीक है! ऑन-डिवाइस AI को स्किप कर दिया गया है।\n\nआपकी सभी प्राथमिकताएं सुरक्षित हैं। अब आप नीचे दिए गए सुझावों में से कुछ भी पूछ सकते हैं!",
+      modelShortcut: '[Portfolio-Engine]',
+      text: "✅ ठीक है! ऑन-डिवाइस AI को स्किप कर दिया गया है।\n\nअसिस्टेंट अब 100% ऑफलाइन नॉलेज इंजन `[Portfolio-Engine]` पर सक्रिय है। आपकी सभी प्राथमिकताएं सुरक्षित हैं। अब आप नीचे दिए गए सुझावों में से कुछ भी पूछ सकते हैं!",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       summaryCard: {
         audience: audLabel,
         role: rLabel,
         viewMode: vmLabel,
-        aiConsent: isConsentEnabled ? '⚡ Enabled' : 'Off'
+        aiConsent: 'Off'
       },
       chips: PROMPT_CHIPS
     };
@@ -1968,7 +1966,7 @@ function AIChatWidget() {
     setMessages((prev) => [...prev, userMsg, assistantMsg]);
     if (soundEnabled && soundFX?.playSuccess) soundFX.playSuccess();
     announce(
-      isConsentEnabled ? 'On-device AI consent enabled' : 'On-device AI consent declined',
+      'On-device AI consent declined; offline engine [Portfolio-Engine] active',
       'polite'
     );
     setTimeout(scrollToBottom, 50);
@@ -4168,7 +4166,7 @@ function AIChatWidget() {
                                   type="button"
                                   onClick={() => {
                                     soundFX.triggerHaptic(20);
-                                    handlePreferencesSummaryCard(opt.consent === 'enabled');
+                                    handleAiModelConsentSelect(opt.consent, opt.label);
                                   }}
                                   className={`w-full px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer active:scale-[0.98] ${
                                     opt.consent === 'enabled'
