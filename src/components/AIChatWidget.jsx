@@ -422,7 +422,9 @@ function AIChatWidget() {
   let soundEnabled = true;
   let setSoundEnabled = null;
   let isDrawerOpen = false;
+  let activeTab = null;
   let openDrawer = null;
+  let closeDrawer = null;
   let setActiveTab = null;
   let chatSettings = DEFAULT_AI_CHAT_SETTINGS;
   let updateChatSettings = () => {};
@@ -430,7 +432,9 @@ function AIChatWidget() {
   try {
     const labContext = useLab();
     if (labContext?.openDrawer) openDrawer = labContext.openDrawer;
+    if (labContext?.closeDrawer) closeDrawer = labContext.closeDrawer;
     if (labContext?.setActiveTab) setActiveTab = labContext.setActiveTab;
+    if (labContext?.activeTab) activeTab = labContext.activeTab;
   } catch {
     // safe fallback
   }
@@ -438,11 +442,15 @@ function AIChatWidget() {
   try {
     const labDrawer = useLabDrawer();
     isDrawerOpen = labDrawer?.isDrawerOpen ?? false;
+    if (labDrawer?.activeTab) activeTab = labDrawer.activeTab;
     if (!openDrawer && labDrawer?.openDrawer) openDrawer = labDrawer.openDrawer;
+    if (!closeDrawer && labDrawer?.closeDrawer) closeDrawer = labDrawer.closeDrawer;
     if (!setActiveTab && labDrawer?.setActiveTab) setActiveTab = labDrawer.setActiveTab;
   } catch {
     // safe fallback
   }
+
+  const showSettingsModal = Boolean(isDrawerOpen && activeTab === 'chat');
 
   try {
     const labAudio = useLabAudio();
@@ -2862,6 +2870,17 @@ function AIChatWidget() {
     }, 100);
   };
 
+  const handleOpenSettings = useCallback((e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (soundEnabled && soundFX?.playClick) soundFX.playClick();
+    if (isDrawerOpen && activeTab === 'chat') {
+      if (typeof closeDrawer === 'function') closeDrawer();
+    } else {
+      if (typeof setActiveTab === 'function') setActiveTab('chat');
+      if (typeof openDrawer === 'function') openDrawer('chat');
+    }
+  }, [soundEnabled, isDrawerOpen, activeTab, closeDrawer, setActiveTab, openDrawer]);
+
   // Handle message submission with real-time streaming and typewriter effect
   const handleSendMessage = (textToSend) => {
     const trimmed = (textToSend || inputValue).trim();
@@ -3389,21 +3408,6 @@ function AIChatWidget() {
 
         {/* Windows 11 Style Window Controls: Dock/Reset, Minimize/Expand, Maximize/Restore, and Close */}
         <div className="flex items-center gap-0.5 shrink-0">
-          {/* Quick Shortcut to AI & Chat Studio Settings */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (soundEnabled && soundFX?.playClick) soundFX.playClick();
-              if (typeof setActiveTab === 'function') setActiveTab('chat');
-              if (typeof openDrawer === 'function') openDrawer('chat');
-            }}
-            aria-label="Open AI & Chat Studio Settings"
-            title="AI & Chat Studio Settings (Tab 7)"
-            className="min-w-[36px] min-h-[36px] sm:min-w-[28px] sm:min-h-[28px] sm:w-7 sm:h-7 rounded-md flex items-center justify-center text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-hidden"
-          >
-            <Settings className="w-3.5 h-3.5" />
-          </button>
           <button
             type="button"
             onClick={(e) => {
@@ -3542,9 +3546,12 @@ function AIChatWidget() {
               </button>
             </div>
 
-            {/* Right Quick Tools Group (6 Pure Icons: Prompt Studio, AI Toggle, Sound FX, History, Export, Clear) */}
+            {/* Divider 1 */}
+            <div className="w-px h-4 bg-stone-300/80 dark:bg-stone-700/80 mx-0.5 sm:mx-1 shrink-0" aria-hidden="true" />
+
+            {/* Section 2 (Center-Aligned - 3 Engine/Toggle Buttons) */}
             <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-              {/* 5. Prompt Studio Icon */}
+              {/* 1. Prompt Studio button */}
               <button
                 type="button"
                 onClick={handleOpenPromptStudio}
@@ -3555,7 +3562,7 @@ function AIChatWidget() {
                 <Sparkles className="w-3.5 h-3.5 text-purple-500" />
               </button>
 
-              {/* 6. AI On/Off Toggle Icon */}
+              {/* 2. AI On/Off Quick Toggle button */}
               <button
                 type="button"
                 onClick={handleToggleAIQuick}
@@ -3584,7 +3591,7 @@ function AIChatWidget() {
                 )}
               </button>
 
-              {/* 7. Sound FX Toggle Icon */}
+              {/* 3. Sound FX Toggle button */}
               <button
                 type="button"
                 onClick={handleToggleSound}
@@ -3602,8 +3609,14 @@ function AIChatWidget() {
                   <VolumeX className="w-3.5 h-3.5" />
                 )}
               </button>
+            </div>
 
-              {/* 8. Conversation History Drawer Icon */}
+            {/* Divider 2 */}
+            <div className="w-px h-4 bg-stone-300/80 dark:bg-stone-700/80 mx-0.5 sm:mx-1 shrink-0" aria-hidden="true" />
+
+            {/* Section 3 (Right-Aligned - 4 Utility & Settings Buttons) */}
+            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+              {/* 1. History Drawer button */}
               <button
                 type="button"
                 onClick={() => {
@@ -3693,7 +3706,7 @@ function AIChatWidget() {
                 )}
               </div>
 
-              {/* 10. Clear Chat History Icon */}
+              {/* 3. Clear Chat History button */}
               <button
                 type="button"
                 onClick={handleClearChat}
@@ -3702,6 +3715,24 @@ function AIChatWidget() {
                 className="w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 bg-stone-100 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800/60 transition-colors cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+
+              {/* 4. Settings button (moved here!) */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenSettings(e);
+                }}
+                aria-label="Open AI & Chat Studio Settings"
+                title="AI & Chat Studio Settings (Tab 7)"
+                className={`w-7 h-7 sm:w-7 sm:h-7 min-w-[28px] min-h-[28px] rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95 border focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:outline-hidden ${
+                  showSettingsModal
+                    ? 'bg-rose-500/20 text-[#FF4D6D] border-rose-500/40 shadow-xs'
+                    : 'bg-stone-100 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/60'
+                }`}
+              >
+                <Settings className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
