@@ -29,8 +29,11 @@ param(
     [switch]$SkipFetch = $false
 )
 
-$repoRoot = (git rev-parse --show-toplevel 2>$null)
-if (-not $repoRoot) {
+$ErrorActionPreference = "Continue"
+$ProgressPreference = "SilentlyContinue"
+
+$repoRootRaw = (& git rev-parse --show-toplevel 2>&1)
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoRootRaw)) {
     $errObj = [PSCustomObject]@{
         status             = "FAIL"
         branch             = ""
@@ -44,28 +47,32 @@ if (-not $repoRoot) {
     exit 1
 }
 
-$currentBranch = (git branch --show-current 2>$null)
-if ($currentBranch) {
-    $currentBranch = $currentBranch.Trim()
+$currentBranchRaw = (& git branch --show-current 2>&1)
+if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($currentBranchRaw)) {
+    $currentBranch = $currentBranchRaw.ToString().Trim()
 } else {
     $currentBranch = "HEAD"
 }
 
 # Fetch remote tracking branch quietly unless -SkipFetch is specified
 if (-not $SkipFetch) {
-    git fetch $Remote $currentBranch 2>$null | Out-Null
+    $null = (& git fetch $Remote $currentBranch 2>&1)
 }
 
 # [a] Check working tree cleanliness
-$porcelain = (git status --porcelain 2>$null)
-$isCleanWorkingTree = [string]::IsNullOrWhiteSpace($porcelain)
+$porcelainRaw = (& git status --porcelain 2>&1)
+$isCleanWorkingTree = ($LASTEXITCODE -eq 0 -and [string]::IsNullOrWhiteSpace($porcelainRaw))
 
 # [b] Compare local HEAD commit hash with remote tracking branch
-$localCommit = (git rev-parse HEAD 2>$null)
-if ($localCommit) { $localCommit = $localCommit.Trim() } else { $localCommit = "" }
+$localCommitRaw = (& git rev-parse HEAD 2>&1)
+$localCommit = if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($localCommitRaw)) {
+    $localCommitRaw.ToString().Trim()
+} else { "" }
 
-$remoteCommit = (git rev-parse "$Remote/$currentBranch" 2>$null)
-if ($remoteCommit) { $remoteCommit = $remoteCommit.Trim() } else { $remoteCommit = "" }
+$remoteCommitRaw = (& git rev-parse "$Remote/$currentBranch" 2>&1)
+$remoteCommit = if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($remoteCommitRaw)) {
+    $remoteCommitRaw.ToString().Trim()
+} else { "" }
 
 $isSynced = ($localCommit -ne "" -and $remoteCommit -ne "" -and $localCommit -eq $remoteCommit)
 $isPass = ($isCleanWorkingTree -and $isSynced)

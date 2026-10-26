@@ -35,7 +35,8 @@ param(
     [string]$Remote = "origin"
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
+$ProgressPreference = "SilentlyContinue"
 
 # -----------------------------------------------------------------------------
 # 1. Helper Functions
@@ -87,7 +88,7 @@ function Get-AutoCommitMessage {
     }
 
     # Strategy B: Summarize from modified/added files
-    $changedFiles = git status --short 2>$null | ForEach-Object {
+    $changedFiles = & git status --short 2>&1 | ForEach-Object {
         $clean = ($_ -replace '^[MADRCU?! ]+\s+', '').Trim().Trim('"').Trim("'")
         [System.IO.Path]::GetFileName($clean)
     } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
@@ -119,7 +120,7 @@ function Display-VerificationBlock {
 
     # [1] git log -1 --stat
     Write-Host "[1] Latest Commit Summary (git log -1 --stat):" -ForegroundColor Green
-    git log -1 --stat
+    & git log -1 --stat
     Write-Host ""
 
     # [2] Push status
@@ -127,15 +128,15 @@ function Display-VerificationBlock {
     Write-Host "  Target Remote : $RemoteName" -ForegroundColor Gray
     Write-Host "  Target Branch : $BranchName" -ForegroundColor Gray
     Write-Host "  Push Result   : $PushStatusMessage" -ForegroundColor Green
-    $localHead = (git rev-parse HEAD 2>$null)
-    $remoteHead = (git rev-parse "$RemoteName/$BranchName" 2>$null)
-    if ($localHead) { Write-Host "  Local HEAD    : $($localHead.Trim())" -ForegroundColor Gray }
-    if ($remoteHead) { Write-Host "  Remote HEAD   : $($remoteHead.Trim())" -ForegroundColor Gray }
+    $localHeadRaw = (& git rev-parse HEAD 2>&1)
+    $remoteHeadRaw = (& git rev-parse "$RemoteName/$BranchName" 2>&1)
+    if ($LASTEXITCODE -eq 0 -and $localHeadRaw) { Write-Host "  Local HEAD    : $($localHeadRaw.ToString().Trim())" -ForegroundColor Gray }
+    if ($remoteHeadRaw -and -not ($remoteHeadRaw -match 'fatal')) { Write-Host "  Remote HEAD   : $($remoteHeadRaw.ToString().Trim())" -ForegroundColor Gray }
     Write-Host ""
 
     # [3] git status (confirming working tree clean)
     Write-Host "[3] Working Tree Status (git status):" -ForegroundColor Green
-    $remaining = (git status --short 2>$null)
+    $remaining = (& git status --short 2>&1)
     if ([string]::IsNullOrWhiteSpace($remaining)) {
         Write-Host "  Status: Working tree clean (zero uncommitted/untracked changes)" -ForegroundColor Green
     } else {
@@ -153,31 +154,31 @@ function Display-VerificationBlock {
 
 Write-Host ">>> Starting Git Autonomous Sync Engine..." -ForegroundColor Cyan
 
-$repoRoot = (git rev-parse --show-toplevel 2>$null)
-if (-not $repoRoot) {
+$repoRootRaw = (& git rev-parse --show-toplevel 2>&1)
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoRootRaw)) {
     Write-Error "CRITICAL: Current directory is not within a Git repository."
     exit 1
 }
-$repoRoot = $repoRoot.Trim()
+$repoRoot = $repoRootRaw.ToString().Trim()
 
-$currentBranch = (git branch --show-current 2>$null)
-if (-not $currentBranch) {
+$currentBranchRaw = (& git branch --show-current 2>&1)
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($currentBranchRaw)) {
     Write-Error "CRITICAL: Could not determine current branch (detached HEAD or uninitialized repo)."
     exit 1
 }
-$currentBranch = $currentBranch.Trim()
+$currentBranch = $currentBranchRaw.ToString().Trim()
 Write-Host "  Repository Root : $repoRoot" -ForegroundColor Gray
 Write-Host "  Current Branch  : $currentBranch" -ForegroundColor Gray
 
 # Ensure Git Author Identity Standards (Universal Rule 16)
-$currentUserName = git config user.name
-$currentUserEmail = git config user.email
-if ([string]::IsNullOrWhiteSpace($currentUserName)) {
-    git config user.name "aiprincekumar"
+$currentUserName = & git config user.name 2>&1
+$currentUserEmail = & git config user.email 2>&1
+if ([string]::IsNullOrWhiteSpace($currentUserName) -or $currentUserName -match 'fatal') {
+    & git config user.name "aiprincekumar" 2>&1 | Out-Null
     Write-Host "  Configured git user.name: aiprincekumar" -ForegroundColor Gray
 }
-if ([string]::IsNullOrWhiteSpace($currentUserEmail)) {
-    git config user.email "aiprincekumar010100@gmail.com"
+if ([string]::IsNullOrWhiteSpace($currentUserEmail) -or $currentUserEmail -match 'fatal') {
+    & git config user.email "aiprincekumar010100@gmail.com" 2>&1 | Out-Null
     Write-Host "  Configured git user.email: aiprincekumar010100@gmail.com" -ForegroundColor Gray
 }
 
@@ -185,13 +186,15 @@ if ([string]::IsNullOrWhiteSpace($currentUserEmail)) {
 # 3. Sensitive File Filter & Safety Scan
 # -----------------------------------------------------------------------------
 
-$porcelain = (git status --porcelain 2>$null)
+$porcelain = (& git status --porcelain 2>&1)
 $sensitiveFiles = @()
 
-if ($porcelain) {
+if ($porcelain -and $LASTEXITCODE -eq 0) {
     foreach ($line in $porcelain) {
         if ([string]::IsNullOrWhiteSpace($line)) { continue }
-        $rawPath = $line.Substring(3).Trim()
+        $lineStr = $line.ToString()
+        if ($lineStr.Length -lt 4) { continue }
+        $rawPath = $lineStr.Substring(3).Trim()
         if ($rawPath -match ' -> ') {
             $rawPath = ($rawPath -split ' -> ')[-1].Trim()
         }
@@ -220,7 +223,7 @@ if ($sensitiveFiles.Count -gt 0) {
 # 4. Check for Clean Working Tree & Unpushed Commits
 # -----------------------------------------------------------------------------
 
-$configuredRemotes = (git remote 2>$null)
+$configuredRemotes = (& git remote 2>&1)
 $hasRemote = ($configuredRemotes -contains $Remote)
 
 if ([string]::IsNullOrWhiteSpace($porcelain)) {
@@ -228,10 +231,13 @@ if ([string]::IsNullOrWhiteSpace($porcelain)) {
     
     $aheadCount = 0
     if ($hasRemote) {
-        git fetch $Remote $currentBranch 2>$null
-        $remoteBranchExists = (git ls-remote --heads $Remote $currentBranch 2>$null)
-        if ($remoteBranchExists) {
-            $aheadCount = [int](git rev-list "$Remote/$currentBranch..HEAD" --count 2>$null)
+        $null = & git fetch $Remote $currentBranch 2>&1
+        $remoteBranchExists = (& git ls-remote --heads $Remote $currentBranch 2>&1)
+        if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($remoteBranchExists)) {
+            $aheadStr = (& git rev-list "$Remote/$currentBranch..HEAD" --count 2>&1)
+            if ($LASTEXITCODE -eq 0) {
+                [int]::TryParse($aheadStr.ToString().Trim(), [ref]$aheadCount) | Out-Null
+            }
         }
     }
 
@@ -249,33 +255,34 @@ if ([string]::IsNullOrWhiteSpace($porcelain)) {
 # -----------------------------------------------------------------------------
 
 Write-Host "  Staging modified and untracked changes (excluding sensitive patterns)..." -ForegroundColor Cyan
-git add -A -- ":(exclude)*.env*" ":(exclude)*.pem" ":(exclude)*.key" ":(exclude)*secret*" ":(exclude)*credential*" ":(exclude)id_rsa*" ":(exclude)id_ed25519*"
+$null = & git add -A -- ":(exclude)*.env*" ":(exclude)*.pem" ":(exclude)*.key" ":(exclude)*secret*" ":(exclude)*credential*" ":(exclude)id_rsa*" ":(exclude)id_ed25519*" 2>&1
 
 # Failsafe: check index for any accidentally staged sensitive files and unstage them immediately
-$stagedFiles = git diff --name-only --cached 2>$null
-if ($stagedFiles) {
+$stagedFiles = (& git diff --name-only --cached 2>&1)
+if ($stagedFiles -and $LASTEXITCODE -eq 0) {
     foreach ($staged in $stagedFiles) {
-        if (Test-IsSensitiveFile -FilePath $staged) {
-            Write-Warning "[SECURITY RESET] Unstaging sensitive file from index: $staged"
-            git reset HEAD -- $staged 2>$null
+        $stagedStr = $staged.ToString().Trim()
+        if (Test-IsSensitiveFile -FilePath $stagedStr) {
+            Write-Warning "[SECURITY RESET] Unstaging sensitive file from index: $stagedStr"
+            $null = & git reset HEAD -- $stagedStr 2>&1
         }
     }
 }
 
-$finalStaged = git diff --name-only --cached 2>$null
+$finalStaged = (& git diff --name-only --cached 2>&1)
 
 # -----------------------------------------------------------------------------
 # 6. Commit Staged Changes
 # -----------------------------------------------------------------------------
 
-if ($finalStaged -and $finalStaged.Count -gt 0) {
+if ($finalStaged -and $LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($finalStaged)) {
     if ([string]::IsNullOrWhiteSpace($Message)) {
         $Message = Get-AutoCommitMessage -RepoRoot $repoRoot
     }
     Write-Host "  Committing staged changes with message: '$Message'..." -ForegroundColor Cyan
-    git commit -m "$Message"
+    $commitOutput = (& git commit -m "$Message" 2>&1)
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "CRITICAL: git commit failed with code $LASTEXITCODE."
+        Write-Error "CRITICAL: git commit failed with code $LASTEXITCODE. Output: $commitOutput"
         exit 1
     }
     Write-Host "[COMMIT OK] Changes successfully committed." -ForegroundColor Green
@@ -291,22 +298,23 @@ $pushStatusText = "Local commits preserved"
 
 if ($hasRemote) {
     Write-Host "  Checking remote '$Remote/$currentBranch'..." -ForegroundColor Cyan
-    git fetch $Remote $currentBranch 2>$null
+    $null = & git fetch $Remote $currentBranch 2>&1
 
-    $remoteBranchExists = (git ls-remote --heads $Remote $currentBranch 2>$null)
-    if ($remoteBranchExists) {
-        $behindCount = [int](git rev-list "HEAD..$Remote/$currentBranch" --count 2>$null)
-        if ($behindCount -gt 0) {
+    $remoteBranchExists = (& git ls-remote --heads $Remote $currentBranch 2>&1)
+    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($remoteBranchExists)) {
+        $behindStr = (& git rev-list "HEAD..$Remote/$currentBranch" --count 2>&1)
+        $behindCount = 0
+        if ($LASTEXITCODE -eq 0 -and [int]::TryParse($behindStr.ToString().Trim(), [ref]$behindCount) -and $behindCount -gt 0) {
             Write-Host "  Remote has $behindCount new commit(s). Pulling with --rebase..." -ForegroundColor Cyan
-            $pullOutput = git pull --rebase $Remote $currentBranch 2>&1
+            $pullOutput = (& git pull --rebase $Remote $currentBranch 2>&1)
             if ($LASTEXITCODE -ne 0) {
                 Write-Warning "[CONFLICT] Rebase failed due to merge conflicts! Initiating safety protocols..."
-                git rebase --abort 2>&1 | Out-Null
+                $null = & git rebase --abort 2>&1
                 
                 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
                 $backupBranch = "backup_sync_$timestamp"
-                git branch $backupBranch 2>&1 | Out-Null
-                git stash push -m "git_sync_safety_backup_$timestamp" 2>&1 | Out-Null
+                $null = & git branch $backupBranch 2>&1
+                $null = & git stash push -m "git_sync_safety_backup_$timestamp" 2>&1
 
                 Write-Error "CRITICAL: Rebase aborted to prevent code loss. Your changes are saved in backup branch '$backupBranch' and git stash. Please resolve conflicts manually."
                 exit 1
@@ -317,7 +325,7 @@ if ($hasRemote) {
 
     # Push to current branch
     Write-Host "  Pushing commits to '$Remote $currentBranch'..." -ForegroundColor Cyan
-    $pushOutput = git push $Remote $currentBranch 2>&1
+    $pushOutput = (& git push $Remote $currentBranch 2>&1)
     if ($LASTEXITCODE -ne 0) {
         Write-Error "CRITICAL: git push failed: $pushOutput"
         exit 1
