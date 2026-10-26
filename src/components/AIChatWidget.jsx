@@ -2749,7 +2749,7 @@ function AIChatWidget() {
 
         // Phase 3: Check if on-device model should be requested with consent when offline engine is not forced
         if (!isOnDeviceReady && (isFallbackQuery || !botReplyText) && chatSettings?.modelId !== 'offline_rag' && localAiState?.status === 'idle' && chatSettings?.consentMode === 'always_ask') {
-          const recModel = localAiState?.deviceProfile?.recommendedModel || getBareMinimumModel();
+          const recModel = getBareMinimumModel();
           handleRequestNeuralModel(recModel, trimmed);
           return;
         }

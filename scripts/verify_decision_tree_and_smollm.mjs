@@ -102,12 +102,14 @@ if (!isPhase1Only) {
   // PHASE 2 VERIFICATION: SmolLM2 ONNX Namespace & Watchdog Reliability
   runTest('Phase 2: MODEL_CATALOG uses onnx-community namespace for SmolLM2', () => {
     assert(
+      deviceProfilerSrc.includes("'onnx-community/SmolLM2-135M-Instruct-ONNX'") ||
       deviceProfilerSrc.includes("'onnx-community/SmolLM2-135M-Instruct'"),
-      'MODEL_CATALOG.BARE_MINIMUM must point to onnx-community/SmolLM2-135M-Instruct'
+      'MODEL_CATALOG.BARE_MINIMUM must point to onnx-community/SmolLM2-135M-Instruct-ONNX'
     );
     assert(
+      deviceProfilerSrc.includes("'onnx-community/SmolLM2-360M-Instruct-ONNX'") ||
       deviceProfilerSrc.includes("'onnx-community/SmolLM2-360M-Instruct'"),
-      'MODEL_CATALOG.SMOLLM_360M must point to onnx-community/SmolLM2-360M-Instruct'
+      'MODEL_CATALOG.SMOLLM_360M must point to onnx-community/SmolLM2-360M-Instruct-ONNX'
     );
   });
 

@@ -308,7 +308,7 @@ const AI_MODEL_CARDS = [
     spec: 'Zero Download Retrieval'
   },
   {
-    id: 'HuggingFaceTB/SmolLM2-135M-Instruct',
+    id: 'onnx-community/SmolLM2-135M-Instruct-ONNX',
     name: 'SmolLM2-135M Instruct',
     badge: '~90 MB',
     badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',

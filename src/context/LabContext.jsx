@@ -10,7 +10,7 @@ export const STORAGE_KEY_AI_CHAT = 'portfolio_ai_chat_settings';
 
 export const DEFAULT_AI_CHAT_SETTINGS = Object.freeze({
   // Cluster 1: Model & Execution Engine
-  modelId: 'auto', // 'auto' | 'offline_rag' | 'HuggingFaceTB/SmolLM2-135M-Instruct' | 'onnx-community/Qwen2.5-0.5B-Instruct' | 'onnx-community/Qwen2.5-1.5B-Instruct'
+  modelId: 'auto', // 'auto' | 'offline_rag' | 'onnx-community/SmolLM2-135M-Instruct-ONNX' | 'onnx-community/Qwen2.5-0.5B-Instruct' | 'onnx-community/Qwen2.5-1.5B-Instruct'
   loadTrigger: 'on_demand', // 'on_demand' (Default) | 'on_page_load' | 'on_open' | 'manual'
   consentMode: 'always_ask', // 'always_ask' (Default) | 'auto_confirm' | 'wifi_only'
   executionBackend: 'webgpu', // 'webgpu' (Default) | 'wasm'
@@ -417,6 +417,7 @@ export function sanitizeChatSettings(raw) {
   const validModelIds = [
     'auto',
     'offline_rag',
+    'onnx-community/SmolLM2-135M-Instruct-ONNX',
     'HuggingFaceTB/SmolLM2-135M-Instruct',
     'onnx-community/Qwen2.5-0.5B-Instruct',
     'onnx-community/Qwen2.5-1.5B-Instruct'

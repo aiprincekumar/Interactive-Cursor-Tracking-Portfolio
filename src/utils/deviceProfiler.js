@@ -6,7 +6,7 @@
 // Model Catalog for On-Device Execution
 export const MODEL_CATALOG = {
   BARE_MINIMUM: {
-    id: 'onnx-community/SmolLM2-135M-Instruct',
+    id: 'onnx-community/SmolLM2-135M-Instruct-ONNX',
     name: 'SmolLM2-135M-Instruct',
     shortcut: '[SmolLM-135M]',
     approxSizeMB: 90,
@@ -26,7 +26,7 @@ export const MODEL_CATALOG = {
     description: 'Fast, highly accurate compact model for mobile and light devices'
   },
   SMOLLM_360M: {
-    id: 'onnx-community/SmolLM2-360M-Instruct',
+    id: 'onnx-community/SmolLM2-360M-Instruct-ONNX',
     name: 'SmolLM2-360M-Instruct',
     shortcut: '[SmolLM-360M]',
     approxSizeMB: 230,
@@ -370,7 +370,12 @@ export async function profileDevice() {
     checkWebGPUCapabilities()
   ]);
 
-  const recommendedModel = selectConservativeModel({
+  const bareMinimumModel = getBareMinimumModel();
+
+  // Baseline recommended model is strictly bare-minimum SmolLM2-135M (~90MB) for instant loading
+  const recommendedModel = { ...bareMinimumModel };
+
+  const conservativeTierModel = selectConservativeModel({
     deviceType,
     storage,
     webgpu,
@@ -386,8 +391,6 @@ export async function profileDevice() {
     benchmark
   });
 
-  const bareMinimumModel = getBareMinimumModel();
-
   return {
     deviceType,
     cpuCores,
@@ -396,6 +399,7 @@ export async function profileDevice() {
     webgpu,
     benchmark,
     recommendedModel,
+    conservativeTierModel,
     autonomousTierModel,
     bareMinimumModel,
     timestamp: new Date().toISOString()
