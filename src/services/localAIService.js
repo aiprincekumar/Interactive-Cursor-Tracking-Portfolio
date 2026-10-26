@@ -259,9 +259,15 @@ class LocalAIService {
         description: 'Deterministic Portfolio Intelligence'
       };
     }
+    const cleanId = String(modelId).toLowerCase();
     for (const key of Object.keys(MODEL_CATALOG)) {
       const entry = MODEL_CATALOG[key];
-      if (entry.id === modelId || modelId.includes(entry.name) || modelId.includes(entry.shortcut)) {
+      if (
+        entry.id === modelId ||
+        entry.id?.toLowerCase() === cleanId ||
+        modelId.includes?.(entry.name) ||
+        modelId.includes?.(entry.shortcut)
+      ) {
         return {
           id: entry.id,
           name: entry.name,
@@ -270,7 +276,8 @@ class LocalAIService {
           params: entry.params,
           category: entry.category,
           dtype: entry.dtype,
-          description: entry.description
+          description: entry.description,
+          isEmbedding: Boolean(entry.isEmbedding)
         };
       }
     }
@@ -371,6 +378,8 @@ class LocalAIService {
    */
   async isModelCached(modelId) {
     if (!modelId) return false;
+    const details = this.getModelDetails(modelId);
+    const targetId = details?.id || modelId;
 
     // CacheStorage API ('transformers-cache') check
     try {
@@ -387,8 +396,8 @@ class LocalAIService {
           const cache = await cacheStorage.open('transformers-cache');
           const keys = await cache.keys();
           if (keys && keys.length > 0) {
-            const cleanModelId = modelId.toLowerCase();
-            const modelShortName = (modelId.split('/').pop() || modelId).toLowerCase();
+            const cleanModelId = targetId.toLowerCase();
+            const modelShortName = (targetId.split('/').pop() || targetId).toLowerCase();
 
             // Strict weight verification: must contain actual ONNX weights, not just metadata
             const hasWeightFiles = keys.some((req) => {
@@ -405,13 +414,13 @@ class LocalAIService {
             if (hasWeightFiles) {
               if (typeof window !== 'undefined' && window.localStorage) {
                 try {
-                  localStorage.setItem('portfolio_ai_cached_' + modelId, 'true');
+                  localStorage.setItem('portfolio_ai_cached_' + targetId, 'true');
                 } catch {
                   // ignore
                 }
               }
-              if (!this.cachedModels.includes(modelId)) {
-                this.cachedModels = [...this.cachedModels, modelId];
+              if (!this.cachedModels.includes(targetId)) {
+                this.cachedModels = [...this.cachedModels, targetId];
                 if (typeof window !== 'undefined' && window.localStorage) {
                   try {
                     localStorage.setItem('portfolio_ai_cached_models', JSON.stringify(this.cachedModels));
@@ -425,13 +434,13 @@ class LocalAIService {
               // Purge stale or corrupted localStorage flag when weight files are missing
               if (typeof window !== 'undefined' && window.localStorage) {
                 try {
-                  localStorage.removeItem('portfolio_ai_cached_' + modelId);
+                  localStorage.removeItem('portfolio_ai_cached_' + targetId);
                 } catch {
                   // ignore
                 }
               }
-              if (this.cachedModels.includes(modelId)) {
-                this.cachedModels = this.cachedModels.filter(id => id !== modelId);
+              if (this.cachedModels.includes(targetId)) {
+                this.cachedModels = this.cachedModels.filter(id => id !== targetId);
                 if (typeof window !== 'undefined' && window.localStorage) {
                   try {
                     localStorage.setItem('portfolio_ai_cached_models', JSON.stringify(this.cachedModels));
@@ -445,13 +454,13 @@ class LocalAIService {
           } else {
             if (typeof window !== 'undefined' && window.localStorage) {
               try {
-                localStorage.removeItem('portfolio_ai_cached_' + modelId);
+                localStorage.removeItem('portfolio_ai_cached_' + targetId);
               } catch {
                 // ignore
               }
             }
-            if (this.cachedModels.includes(modelId)) {
-              this.cachedModels = this.cachedModels.filter(id => id !== modelId);
+            if (this.cachedModels.includes(targetId)) {
+              this.cachedModels = this.cachedModels.filter(id => id !== targetId);
               if (typeof window !== 'undefined' && window.localStorage) {
                 try {
                   localStorage.setItem('portfolio_ai_cached_models', JSON.stringify(this.cachedModels));
@@ -876,9 +885,12 @@ class LocalAIService {
    */
   getShortcutForModelId(id) {
     if (!id) return '[Portfolio-Engine]';
-    if (id.includes('SmolLM2-135M')) return '[SmolLM-135M]';
-    if (id.includes('SmolLM2-360M')) return '[SmolLM2-360M]';
+    if (id.includes('SmolLM2-135M') || id.includes('135M')) return '[SmolLM-135M]';
+    if (id.includes('SmolLM2-360M') || id.includes('360M')) return '[SmolLM2-360M]';
+    if (id.includes('Llama-3.2-1B') || id.includes('Llama-1B') || id.includes('Llama-3.2') || id.includes('Llama')) return '[Llama-1B]';
+    if (id.includes('TinyLlama')) return '[TinyLlama]';
     if (id.includes('Qwen2.5-Coder-0.5B') || id.includes('Coder-0.5B')) return '[Qwen-Coder-0.5B]';
+    if (id.includes('all-MiniLM-L6-v2') || id.includes('MiniLM')) return '[MiniLM-RAG]';
     if (id.includes('Qwen2.5-0.5B')) return '[Qwen-0.5B]';
     if (id.includes('Qwen2.5-1.5B')) return '[Qwen-1.5B]';
     if (id.includes('Coder-3B') || id.includes('Qwen2.5-3B')) return '[Qwen-3B]';
@@ -1195,7 +1207,7 @@ class LocalAIService {
    * 6. नया वर्कर स्पॉन करें: this.initWorker();
    * 7. नया मॉडल लोड करें: await this.loadModelInWorker(modelId, dtype);
    */
-  async switchModel(modelId, dtype = 'q4') {
+  async switchModel(modelId, dtype = null) {
     const id = (typeof modelId === 'object' && modelId !== null) ? modelId.id : modelId;
     if (!id || id === 'portfolio-engine' || id === 'off') {
       this.turnOffAI();
@@ -1262,7 +1274,7 @@ class LocalAIService {
     this.initWorker();
 
     // 7. नया मॉडल लोड करें: await this.loadModelInWorker(modelId, dtype);
-    const resolvedDtype = (dtype && dtype !== 'q4') ? dtype : ((typeof modelId === 'object' && modelId?.dtype) || details?.dtype || 'q4');
+    const resolvedDtype = dtype || (typeof modelId === 'object' && modelId?.dtype) || details?.dtype || 'q4';
     await this.loadModelInWorker(details?.id || modelId, resolvedDtype);
   }
 

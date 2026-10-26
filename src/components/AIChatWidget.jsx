@@ -2221,25 +2221,25 @@ function AIChatWidget() {
         id: 'cat_ultra_lightweight',
         categoryId: 'ultra_lightweight',
         label: '⚡ Ultra-Lightweight (अति-हल्के)',
-        description: '100M - 400M • 90MB - 240MB',
-        subtext: 'त्वरित रिस्पॉन्स, न्यूनतम रैम',
-        badge: '100M - 400M'
+        description: '135M - 360M • 90MB - 240MB',
+        subtext: 'त्वरित लोडिंग, न्यूनतम रैम, तुरंत प्रतिक्रिया',
+        badge: '90MB - 240MB'
       },
       {
         id: 'cat_compact_balanced',
         categoryId: 'compact_balanced',
         label: '⚖️ Compact & Balanced (संतुलित)',
-        description: '500M - 1.5B • 350MB - 900MB',
-        subtext: 'बहुभाषी हिंदी + इंग्लिश, डीप रीजनिंग',
-        badge: '500M - 1.5B'
+        description: '0.5B - 1.5B • 350MB - 950MB',
+        subtext: 'बहुभाषी हिंदी + इंग्लिश, लामा 3.2, डीप रीजनिंग',
+        badge: '350MB - 950MB'
       },
       {
         id: 'cat_specialized',
         categoryId: 'specialized',
-        label: '🎯 Code & Tech Specialist (विशिष्ट कार्य)',
-        description: 'कोडिंग व तकनीकी विशेषज्ञता • ~350MB',
-        subtext: 'कोड स्निपेट्स और तकनीकी Q&A के लिए श्रेष्ठ',
-        badge: '~350MB'
+        label: '🎯 Specialized Models (विशिष्ट कार्य)',
+        description: 'कोडिंग व सिमेंटिक RAG • 30MB - 350MB',
+        subtext: 'फास्ट कोडिंग विशेषज्ञ और पोर्टफोलियो RAG सर्च',
+        badge: '30MB - 350MB'
       }
     ];
 
@@ -2293,8 +2293,10 @@ function AIChatWidget() {
           modelId: MODEL_CATALOG.BARE_MINIMUM.id,
           shortcut: MODEL_CATALOG.BARE_MINIMUM.shortcut,
           dtype: MODEL_CATALOG.BARE_MINIMUM.dtype || 'q4',
-          label: 'SmolLM2-135M (⚡ डिफॉल्ट बेयर मिनिमम, ~90MB)',
-          sublabel: `${MODEL_CATALOG.BARE_MINIMUM.name} • 100% क्रैश-प्रूफ, त्वरित लोडिंग`,
+          label: '⚡ SmolLM2-135M (~90 MB)',
+          name: 'SmolLM2-135M',
+          sizeBadge: '~90 MB',
+          sublabel: 'डिफ़ॉल्ट बेयर मिनिमम, 100% क्रैश-प्रूफ व तुरंत लोड',
           isRecommended: true,
           badge: 'डिफ़ॉल्ट / Default'
         },
@@ -2302,11 +2304,13 @@ function AIChatWidget() {
           id: MODEL_CATALOG.SMOLLM_360M.id,
           modelId: MODEL_CATALOG.SMOLLM_360M.id,
           shortcut: MODEL_CATALOG.SMOLLM_360M.shortcut,
-          dtype: MODEL_CATALOG.SMOLLM_360M.dtype || 'q4f16',
-          label: 'SmolLM2-360M (⭐ रेकमेंडेड अपग्रेड, ~240MB)',
-          sublabel: `${MODEL_CATALOG.SMOLLM_360M.name} • संतुलित क्षमता, अधिक समझ`,
+          dtype: MODEL_CATALOG.SMOLLM_360M.dtype || 'q4',
+          label: '⭐ SmolLM2-360M (~240 MB)',
+          name: 'SmolLM2-360M',
+          sizeBadge: '~240 MB',
+          sublabel: 'रेकमेंडेड अपग्रेड, बेहतर समझ व संतुलित आउटपुट',
           isUpgrade: true,
-          badge: 'अपग्रेड / Recommended'
+          badge: 'रेकमेंडेड / Recommended'
         },
         {
           id: 'back_to_categories',
@@ -2324,20 +2328,48 @@ function AIChatWidget() {
           modelId: MODEL_CATALOG.LIGHT.id,
           shortcut: MODEL_CATALOG.LIGHT.shortcut,
           dtype: MODEL_CATALOG.LIGHT.dtype || 'q4',
-          label: 'Qwen2.5-0.5B (🌐 बहुभाषी हिंदी + इंग्लिश, ~350MB)',
-          sublabel: `${MODEL_CATALOG.LIGHT.name} • गति व सटीकता का सटीक संतुलन`,
+          label: '🌐 Qwen2.5-0.5B (~350 MB)',
+          name: 'Qwen2.5-0.5B',
+          sizeBadge: '~350 MB',
+          sublabel: 'बहुभाषी हिंदी + इंग्लिश, गति व सटीकता का संतुलन',
           isBalanced: true,
-          badge: 'संतुलित / Balanced'
+          badge: 'बहुभाषी / Multilingual'
+        },
+        {
+          id: MODEL_CATALOG.LLAMA_1B.id,
+          modelId: MODEL_CATALOG.LLAMA_1B.id,
+          shortcut: MODEL_CATALOG.LLAMA_1B.shortcut,
+          dtype: MODEL_CATALOG.LLAMA_1B.dtype || 'q4',
+          label: '🦙 Llama-3.2-1B (~700 MB)',
+          name: 'Llama-3.2-1B',
+          sizeBadge: '~700 MB',
+          sublabel: 'मेटा लामा 3.2 आर्किटेक्चर, उच्च गुणवत्ता चैट',
+          isLlama: true,
+          badge: 'मेटा लामा / Llama 3.2'
+        },
+        {
+          id: MODEL_CATALOG.TINYLLAMA_1B.id,
+          modelId: MODEL_CATALOG.TINYLLAMA_1B.id,
+          shortcut: MODEL_CATALOG.TINYLLAMA_1B.shortcut,
+          dtype: MODEL_CATALOG.TINYLLAMA_1B.dtype || 'q4',
+          label: '🦙 TinyLlama-1.1B (~600 MB)',
+          name: 'TinyLlama-1.1B',
+          sizeBadge: '~600 MB',
+          sublabel: 'स्टेबल कम्युनिटी चैट मॉडल, भरोसेमंद इन्फरेंस',
+          isTinyLlama: true,
+          badge: 'स्टेबल / Stable Chat'
         },
         {
           id: MODEL_CATALOG.MEDIUM.id,
           modelId: MODEL_CATALOG.MEDIUM.id,
           shortcut: MODEL_CATALOG.MEDIUM.shortcut,
           dtype: MODEL_CATALOG.MEDIUM.dtype || 'q4',
-          label: 'Qwen2.5-1.5B (🧠 डीप रीजनिंग, ~900MB)',
-          sublabel: `${MODEL_CATALOG.MEDIUM.name} • उच्च सटीकता (सक्षम डिवाइसेज़ हेतु)`,
+          label: '🧠 Qwen2.5-1.5B (~950 MB)',
+          name: 'Qwen2.5-1.5B',
+          sizeBadge: '~950 MB',
+          sublabel: 'डीप रीजनिंग व कॉम्प्लेक्स लॉजिक (सक्षम डिवाइसेज़ हेतु)',
           isAdvanced: true,
-          badge: 'उच्च सटीकता / Deep Reasoning'
+          badge: 'डीप रीजनिंग / Deep Reasoning'
         },
         {
           id: 'back_to_categories',
@@ -2347,18 +2379,32 @@ function AIChatWidget() {
         }
       ];
     } else if (categoryId === 'specialized') {
-      assistantText = "🎯 **Code & Tech Specialist (विशिष्ट कार्य)**\n\nकोडिंग, प्रोग्रामिंग और तकनीकी प्रश्नों के लिए विशेष मॉडल:";
-      title = "🎯 Code & Tech Specialist Models:";
+      assistantText = "🎯 **Specialized Models (विशिष्ट कार्य)**\n\nकोडिंग, प्रोग्रामिंग और पोर्टफोलियो सिमेंटिक RAG इंजन के लिए विशेष मॉडल:";
+      title = "🎯 Specialized Models:";
       options = [
         {
           id: MODEL_CATALOG.QWEN_CODER_05B.id,
           modelId: MODEL_CATALOG.QWEN_CODER_05B.id,
           shortcut: MODEL_CATALOG.QWEN_CODER_05B.shortcut,
-          dtype: MODEL_CATALOG.QWEN_CODER_05B.dtype || 'q4f16',
-          label: 'Qwen2.5-Coder-0.5B (💻 कोडिंग व तकनीकी विशेषज्ञ, ~350MB)',
-          sublabel: `${MODEL_CATALOG.QWEN_CODER_05B.name} • कोड स्निपेट्स और तकनीकी Q&A के लिए श्रेष्ठ`,
+          dtype: MODEL_CATALOG.QWEN_CODER_05B.dtype || 'q4',
+          label: '💻 Qwen2.5-Coder-0.5B (~350 MB)',
+          name: 'Qwen2.5-Coder-0.5B',
+          sizeBadge: '~350 MB',
+          sublabel: 'फास्ट कोडिंग व तकनीकी विशेषज्ञ, कोड स्निपेट्स और Q&A',
           isCoder: true,
-          badge: 'कोड विशेषज्ञ / Coder'
+          badge: 'कोडिंग / Code Specialist'
+        },
+        {
+          id: MODEL_CATALOG.MINILM_RAG.id,
+          modelId: MODEL_CATALOG.MINILM_RAG.id,
+          shortcut: MODEL_CATALOG.MINILM_RAG.shortcut,
+          dtype: MODEL_CATALOG.MINILM_RAG.dtype || 'q8',
+          label: '🔍 all-MiniLM-L6-v2 (~30 MB)',
+          name: 'all-MiniLM-L6-v2',
+          sizeBadge: '~30 MB',
+          sublabel: 'पोर्टफोलियो सिमेंटिक RAG इंजन, फास्ट वेक्टर सर्च',
+          isRag: true,
+          badge: 'RAG सर्च / Semantic RAG'
         },
         {
           id: 'back_to_categories',
@@ -4330,28 +4376,32 @@ function AIChatWidget() {
                                       : 'bg-white/90 dark:bg-[#1E162B]/90 border-stone-200/80 dark:border-stone-800 hover:border-[#FF4D6D] hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20'
                                   }`}
                                 >
-                                  <div className="flex items-center justify-between mb-1">
+                                  <div className="flex items-center justify-between mb-1 gap-1">
                                     <span className="text-xs font-semibold text-stone-900 dark:text-stone-100">{opt.label}</span>
                                     {opt.badge ? (
-                                      <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border ${
+                                      <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border shrink-0 ${
                                         opt.isRecommended
                                           ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                                           : opt.isUpgrade
                                           ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30'
                                           : opt.isCoder
                                           ? 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/30'
+                                          : opt.isRag
+                                          ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
+                                          : (opt.isLlama || opt.isTinyLlama)
+                                          ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30'
                                           : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
                                       }`}>
                                         {opt.badge}
                                       </span>
                                     ) : opt.isRecommended ? (
-                                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
                                         डिफ़ॉल्ट / Default
                                       </span>
                                     ) : null}
                                   </div>
                                   {opt.sublabel && (
-                                    <div className="text-[10.5px] text-stone-500 dark:text-stone-400 font-sans">
+                                    <div className="text-[10.5px] text-stone-500 dark:text-stone-400 font-sans line-clamp-1">
                                       {opt.sublabel}
                                     </div>
                                   )}

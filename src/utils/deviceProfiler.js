@@ -39,15 +39,15 @@ export const MODEL_CATALOG = {
     description: 'Fast, highly accurate compact model for mobile and light devices'
   },
   SMOLLM_360M: {
-    id: 'onnx-community/SmolLM2-360M-Instruct',
+    id: 'onnx-community/SmolLM2-360M-Instruct-ONNX',
     name: 'SmolLM2-360M-Instruct',
     shortcut: '[SmolLM2-360M]',
     approxSizeMB: 240,
-    dtype: 'q4f16',
+    dtype: 'q4',
     tier: 'tier1-mid',
     params: '360M',
     category: 'ultra_lightweight',
-    description: 'Balanced lightweight instruct model for mid WebGPU/WASM'
+    description: 'रेकमेंडेड अपग्रेड, बेहतर समझ'
   },
   MEDIUM: {
     id: 'onnx-community/Qwen2.5-1.5B-Instruct',
@@ -60,16 +60,50 @@ export const MODEL_CATALOG = {
     category: 'compact_balanced',
     description: 'Balanced powerhouse for laptops and multi-core desktops'
   },
+  LLAMA_1B: {
+    id: 'onnx-community/Llama-3.2-1B-Instruct',
+    name: 'Llama-3.2-1B-Instruct',
+    shortcut: '[Llama-1B]',
+    approxSizeMB: 700,
+    dtype: 'q4',
+    tier: 'tier2-llama',
+    params: '1B',
+    category: 'compact_balanced',
+    description: 'मेटा लामा 3.2 आर्किटेक्चर'
+  },
+  TINYLLAMA_1B: {
+    id: 'Xenova/TinyLlama-1.1B-Chat-v1.0',
+    name: 'TinyLlama-1.1B-Chat',
+    shortcut: '[TinyLlama]',
+    approxSizeMB: 600,
+    dtype: 'q4',
+    tier: 'tier2-tinyllama',
+    params: '1.1B',
+    category: 'compact_balanced',
+    description: 'स्टेबल कम्युनिटी चैट मॉडल'
+  },
   QWEN_CODER_05B: {
     id: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
     name: 'Qwen2.5-Coder-0.5B-Instruct',
     shortcut: '[Qwen-Coder-0.5B]',
     approxSizeMB: 350,
-    dtype: 'q4f16',
+    dtype: 'q4',
     tier: 'specialized',
     params: '0.5B',
     category: 'specialized',
-    description: 'Specialized code and technical Q&A assistant'
+    description: 'फास्ट कोडिंग व तकनीकी विशेषज्ञ'
+  },
+  MINILM_RAG: {
+    id: 'Xenova/all-MiniLM-L6-v2',
+    name: 'all-MiniLM-L6-v2',
+    shortcut: '[MiniLM-RAG]',
+    approxSizeMB: 30,
+    dtype: 'q8',
+    tier: 'specialized-embedding',
+    params: '22M',
+    category: 'specialized',
+    description: 'पोर्टफोलियो सिमेंटिक RAG इंजन',
+    isEmbedding: true
   },
   HIGH: {
     id: 'onnx-community/Qwen2.5-Coder-3B-Instruct',
@@ -105,7 +139,7 @@ export function getNextDowngradeModel(modelId) {
   if (idStr.includes('3b') || idStr.includes('coder-3b')) {
     return { ...MODEL_CATALOG.MEDIUM };
   }
-  if (idStr.includes('1.5b')) {
+  if (idStr.includes('1.5b') || idStr.includes('llama') || idStr.includes('1b')) {
     return { ...MODEL_CATALOG.LIGHT };
   }
   if (idStr.includes('0.5b') || idStr.includes('360m')) {
