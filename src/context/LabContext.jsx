@@ -92,7 +92,8 @@ export const FACTORY_DEFAULTS = {
     stylePreset: 'subtle', // 'subtle' | 'isometric' | 'deep'
     masterTheme: 'apple-glass', // 'apple-glass' | 'cyber-neon' | 'studio-matte' | 'floating-hologram'
     showSandboxPreview: true, // boolean toggle for mini 3D preview card
-    isVisualOnly: true, // true = 3D Compact Visual (descriptions hidden, prominent icons), false = Text Detailed
+    tabUI3DMode: true, // true = CPC 3D Tab in 100% Pure 3D Zero-Text Mode, false = Classic 2D Text Mode
+    isVisualOnly: true, // alias for tabUI3DMode
     clusterFilter: 'all', // 'all' | 'design' | 'physics' | 'system'
     elements: {
       floatingButton: false,
@@ -757,7 +758,8 @@ export function normalizeThreeD(raw) {
     stylePreset: normalizeStylePreset(raw.stylePreset ?? FACTORY_DEFAULTS.threeD.stylePreset),
     masterTheme: normalize3DMasterTheme(raw.masterTheme ?? FACTORY_DEFAULTS.threeD.masterTheme),
     showSandboxPreview: typeof raw.showSandboxPreview === 'boolean' ? raw.showSandboxPreview : FACTORY_DEFAULTS.threeD.showSandboxPreview,
-    isVisualOnly: typeof raw.isVisualOnly === 'boolean' ? raw.isVisualOnly : FACTORY_DEFAULTS.threeD.isVisualOnly,
+    tabUI3DMode: typeof raw.tabUI3DMode === 'boolean' ? raw.tabUI3DMode : (typeof raw.isVisualOnly === 'boolean' ? raw.isVisualOnly : FACTORY_DEFAULTS.threeD.tabUI3DMode),
+    isVisualOnly: typeof raw.tabUI3DMode === 'boolean' ? raw.tabUI3DMode : (typeof raw.isVisualOnly === 'boolean' ? raw.isVisualOnly : FACTORY_DEFAULTS.threeD.isVisualOnly),
     clusterFilter: normalize3DClusterFilter(raw.clusterFilter),
     elements: normalizeThreeDElements(raw.elements),
     lighting: normalize3DLighting(raw.lighting),
