@@ -167,63 +167,108 @@ export function formatTime(timestamp) {
 import { getResumeConfig } from '../utils/resumeConfig.js';
 
 export const UNIFIED_AUDIENCE_OPTIONS = [
-  { id: 'recruiter', label: '💼 Recruiter / Hiring', audience: 'recruiter' },
-  { id: 'client', label: '🤝 Client / Projects', audience: 'client' },
-  { id: 'marriage', label: '💍 Matrimonial Biodata', audience: 'marriage' },
-  { id: 'all', label: '🚀 General Explorer', audience: 'all' },
-  { id: 'skip', label: '⏩ Skip', isSkip: true },
-  { id: 'other', label: '✏️ Other / Specify', isOther: true }
+  { id: 'recruiter', label_hi: '👔 तकनीकी रिक्रूटर', label_en: '👔 Tech Recruiter', label: '👔 Tech Recruiter', audience: 'recruiter' },
+  { id: 'client', label_hi: '🤝 क्लाइंट व प्रोजेक्ट्स', label_en: '🤝 Client / Projects', label: '🤝 Client / Projects', audience: 'client' },
+  { id: 'marriage', label_hi: '💍 वैवाहिक परिचय', label_en: '💍 Matrimonial Biodata', label: '💍 Matrimonial Biodata', audience: 'marriage' },
+  { id: 'all', label_hi: '🚀 सामान्य अन्वेषक', label_en: '🚀 General Explorer', label: '🚀 General Explorer', audience: 'all' },
+  { id: 'skip', label_hi: '⏩ छोड़ें', label_en: '⏩ Skip', label: '⏩ Skip', isSkip: true }
 ];
 
 export const UNIFIED_ROLE_OPTIONS = [
-  { id: 'accountant', label: '📊 Corporate Accountant', role: 'accountant' },
-  { id: 'mis', label: '📑 MIS Operations Lead', role: 'mis' },
-  { id: 'vibe_coding', label: '💻 AI Vibe Coder & Engineer', role: 'vibe_coding' },
-  { id: 'other', label: '✨ BI & Controller', role: 'other' },
-  { id: 'overview', label: '🎯 Executive Overview', role: 'overview' },
-  { id: 'skip', label: '⏩ Skip', isSkip: true },
-  { id: 'other', label: '✏️ Other / Specify', isOther: true }
+  { id: 'accountant', label_hi: '📊 कॉर्पोरेट अकाउंटेंट', label_en: '📊 Corporate Accountant', label: '📊 Corporate Accountant', role: 'accountant' },
+  { id: 'mis', label_hi: '📑 एमआईएस ऑपरेशन्स', label_en: '📑 MIS Operations Lead', label: '📑 MIS Operations Lead', role: 'mis' },
+  { id: 'vibe_coding', label_hi: '💻 एआई वाइब कोडर', label_en: '💻 AI Vibe Coder', label: '💻 AI Vibe Coder', role: 'vibe_coding' },
+  { id: 'other', label_hi: '✨ बीआई व कंट्रोलर', label_en: '✨ BI & Controller', label: '✨ BI & Controller', role: 'other' },
+  { id: 'overview', label_hi: '🎯 कार्यकारी सारांश', label_en: '🎯 Executive Overview', label: '🎯 Executive Overview', role: 'overview' },
+  { id: 'skip', label_hi: '⏩ छोड़ें', label_en: '⏩ Skip', label: '⏩ Skip', isSkip: true }
 ];
 
 export const UNIFIED_VIEW_MODE_OPTIONS = [
-  { id: 'modern', label: '⚡ Modern / Interactive', viewMode: 'modern' },
-  { id: 'simple', label: '🍃 Simple / Classic', viewMode: 'simple' },
-  { id: 'basic', label: '📄 Basic / PDF', viewMode: 'basic' },
-  { id: 'terminal', label: '💻 Terminal / Developer', viewMode: 'terminal' },
-  { id: 'skip', label: '⏩ Skip', isSkip: true },
-  { id: 'other', label: '✏️ Other / Specify', isOther: true }
+  { id: 'modern', label_hi: '⚡ आधुनिक व इंटरैक्टिव', label_en: '⚡ Modern / Interactive', label: '⚡ Modern / Interactive', viewMode: 'modern' },
+  { id: 'simple', label_hi: '🍃 सरल व क्लासिक', label_en: '🍃 Simple / Classic', label: '🍃 Simple / Classic', viewMode: 'simple' },
+  { id: 'basic', label_hi: '📄 मूल व पीडीएफ', label_en: '📄 Basic / Clean', label: '📄 Basic / Clean', viewMode: 'basic' },
+  { id: 'terminal', label_hi: '💻 टर्मिनल डेवलपर', label_en: '💻 Terminal / Dev', label: '💻 Terminal / Dev', viewMode: 'terminal' },
+  { id: 'skip', label_hi: '⏩ छोड़ें', label_en: '⏩ Skip', label: '⏩ Skip', isSkip: true }
 ];
 
 export const UNIFIED_LANGUAGE_OPTIONS = [
-  { id: 'lang_en', label: '🇺🇸 English (United States)', description: 'Single-language English responses', language: 'en' },
-  { id: 'lang_hi', label: '🇮🇳 हिन्दी (भारत)', description: 'शुद्ध देवनागरी हिन्दी रिस्पॉन्स', language: 'hi' },
-  { id: 'lang_bilingual', label: '🌐 बाइलिंग्वल / Bilingual', description: 'English + हिन्दी दोनों समानांतर', language: 'bilingual' },
-  { id: 'lang_skip', label: '⏭️ छोड़ें / Skip', description: 'वर्तमान भाषा बरकरार रखें', isSkip: true }
+  { id: 'lang_en', label_hi: '🇺🇸 अंग्रेज़ी (US)', label_en: '🇺🇸 English (US)', label: '🇺🇸 English (US)', description_hi: 'सिंगल लैंग्वेज इंग्लिश रिस्पॉन्स', description_en: 'Single-language English responses', description: 'Single-language English responses', language: 'en' },
+  { id: 'lang_hi', label_hi: '🇮🇳 हिन्दी', label_en: '🇮🇳 Hindi', label: '🇮🇳 Hindi', description_hi: 'शुद्ध देवनागरी हिन्दी रिस्पॉन्स', description_en: 'Pure Devanagari Hindi responses', description: 'Pure Devanagari Hindi responses', language: 'hi' },
+  { id: 'lang_bilingual', label_hi: '🌐 द्विभाषी', label_en: '🌐 Bilingual', label: '🌐 Bilingual', description_hi: 'English + हिन्दी दोनों समानांतर', description_en: 'Parallel English + Hindi responses', description: 'Parallel English + Hindi responses', language: 'bilingual' },
+  { id: 'lang_skip', label_hi: '⏭️ छोड़ें', label_en: '⏭️ Skip', label: '⏭️ Skip', description_hi: 'वर्तमान भाषा बरकरार रखें', description_en: 'Keep current language', description: 'Keep current language', isSkip: true }
 ];
 
 export const DEFAULT_PREFERENCES_PROMPT_OPTIONS = [
-  { id: 'customize_yes', label: '✨ हाँ, प्राथमिकताएं बदलें / Yes, Customize', action: 'customize_yes' },
-  { id: 'customize_no', label: '✓ नहीं, यही रहने दें / No, Keep Current', action: 'customize_no' }
+  { id: 'customize_yes', label_hi: '✨ हाँ, प्राथमिकताएं बदलें', label_en: '✨ Yes, Customize Preferences', label: '✨ Yes, Customize Preferences', action: 'customize_yes' },
+  { id: 'customize_no', label_hi: '✓ नहीं, यही रहने दें', label_en: '✓ No, Keep Current', label: '✓ No, Keep Current', action: 'customize_no' }
 ];
 
 export const AI_MODEL_CONSENT_OPTIONS = [
-  { id: 'ai_model_download_yes', label: '⚡ हाँ, डाउनलोड करो', isAiConsent: true, consent: 'enabled' },
-  { id: 'ai_model_download_no', label: 'नहीं, रहने दो', isAiConsent: true, consent: 'declined' }
+  { id: 'ai_model_download_yes', label_hi: '⚡ हाँ, मॉडल डाउनलोड करें', label_en: '⚡ Yes, Download Model', label: '⚡ Yes, Download Model', isAiConsent: true, consent: 'enabled' },
+  { id: 'ai_model_download_no', label_hi: 'नहीं, रहने दें', label_en: 'No, Cancel', label: 'No, Cancel', isAiConsent: true, consent: 'declined' }
 ];
 
-export function getAudienceLabel(aud) {
+export function getDecisionOptionLabel(opt, currentLang = 'hi') {
+  if (!opt) return '';
+  const isEn = currentLang === 'en';
+  if (isEn && opt.label_en) return opt.label_en;
+  if (!isEn && opt.label_hi) return opt.label_hi;
+  if (opt.label && opt.label.includes(' / ')) {
+    const parts = opt.label.split(' / ');
+    return isEn ? (parts[1] || parts[0]).trim() : (parts[0] || parts[1]).trim();
+  }
+  return isEn ? (opt.label_en || opt.label || '') : (opt.label_hi || opt.label || '');
+}
+
+export function getDecisionOptionDescription(opt, currentLang = 'hi') {
+  if (!opt) return '';
+  const isEn = currentLang === 'en';
+  if (isEn && opt.description_en) return opt.description_en;
+  if (!isEn && opt.description_hi) return opt.description_hi;
+  if (opt.description && opt.description.includes(' / ')) {
+    const parts = opt.description.split(' / ');
+    return isEn ? (parts[1] || parts[0]).trim() : (parts[0] || parts[1]).trim();
+  }
+  return isEn ? (opt.description_en || opt.description || '') : (opt.description_hi || opt.description || '');
+}
+
+export function getDecisionTreeTitle(dt, currentLang = 'hi') {
+  if (!dt) return '';
+  const isEn = currentLang === 'en';
+  if (isEn && dt.title_en) return dt.title_en;
+  if (!isEn && dt.title_hi) return dt.title_hi;
+  if (dt.title && dt.title.includes(' / ')) {
+    const parts = dt.title.split(' / ');
+    return isEn ? (parts[1] || parts[0]).trim() : (parts[0] || parts[1]).trim();
+  }
+  return dt.title || '';
+}
+
+export const getDecisionGridClass = (options, currentLang = 'hi') => {
+  if (!Array.isArray(options) || options.length === 0) return 'grid grid-cols-1 gap-1.5 pt-1 w-full';
+  const hasLongLabel = options.some(opt => {
+    const label = getDecisionOptionLabel(opt, currentLang);
+    return label && label.length > 24;
+  });
+  return hasLongLabel ? 'grid grid-cols-1 gap-1.5 pt-1 w-full' : 'grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1 w-full';
+};
+
+export function getAudienceLabel(aud, currentLang) {
   const match = UNIFIED_AUDIENCE_OPTIONS.find((o) => o.audience === aud || o.id === aud);
-  return match ? match.label : '🌐 All (No Filter)';
+  if (!match) return '🌐 All (No Filter)';
+  return currentLang ? getDecisionOptionLabel(match, currentLang) : match.label;
 }
 
-export function getRoleLabel(r) {
+export function getRoleLabel(r, currentLang) {
   const match = UNIFIED_ROLE_OPTIONS.find((o) => o.role === r || o.id === r);
-  return match ? match.label : '🎯 Executive Overview';
+  if (!match) return '🎯 Executive Overview';
+  return currentLang ? getDecisionOptionLabel(match, currentLang) : match.label;
 }
 
-export function getViewModeLabel(vm) {
+export function getViewModeLabel(vm, currentLang) {
   const match = UNIFIED_VIEW_MODE_OPTIONS.find((o) => o.viewMode === vm || o.id === vm);
-  return match ? match.label : '⚡ Modern / Interactive';
+  if (!match) return '⚡ Modern / Interactive';
+  return currentLang ? getDecisionOptionLabel(match, currentLang) : match.label;
 }
 
 /**
@@ -390,6 +435,8 @@ const DEFAULT_WELCOME_MESSAGE = {
   },
   decisionTree: {
     step: 'preferences_prompt',
+    title_hi: 'क्या आप इन प्राथमिकताओं को बदलना चाहते हैं?',
+    title_en: 'Would you like to customize your preferences?',
     title: 'क्या आप इन प्राथमिकताओं को बदलना चाहते हैं? / Would you like to customize your preferences?',
     options: DEFAULT_PREFERENCES_PROMPT_OPTIONS
   }
@@ -533,6 +580,7 @@ function AIChatWidget() {
   const setLanguage = langContext?.setLanguage || (() => {});
   const [chatLanguageMode, setChatLanguageMode] = useState('auto'); // 'auto' | 'en' | 'hi' | 'bilingual'
   const effectiveLang = chatLanguageMode === 'auto' ? language : chatLanguageMode;
+  const chatLanguage = effectiveLang === 'hi' || isHindi ? 'hi' : (effectiveLang === 'en' ? 'en' : effectiveLang);
 
   // Safe access to Announcer Context
   let announcerContext = null;
@@ -644,6 +692,7 @@ function AIChatWidget() {
   const [inlineSpecifyMsgId, setInlineSpecifyMsgId] = useState(null);
   const [inlineSpecifyText, setInlineSpecifyText] = useState('');
   const [skippedDecisionTreeMsgIds, setSkippedDecisionTreeMsgIds] = useState(new Set());
+  const [decisionCustomInputs, setDecisionCustomInputs] = useState({});
   const [liveAnnouncement, setLiveAnnouncement] = useState('');
   
   const [copiedMsgId, setCopiedMsgId] = useState(null);
@@ -1328,6 +1377,7 @@ function AIChatWidget() {
 
       rawChips = latestAssistant.decisionTree.options.map((opt) => ({
         ...opt,
+        label: getDecisionOptionLabel(opt, chatLanguage),
         category: 'all',
         isDecisionOption: true,
         decisionStep: step,
@@ -1351,7 +1401,7 @@ function AIChatWidget() {
       seen.add(key);
       return true;
     });
-  }, [messages, skippedDecisionTreeMsgIds]);
+  }, [messages, skippedDecisionTreeMsgIds, chatLanguage]);
 
   // Scroll to bottom of message list smoothly (respects prefers-reduced-motion)
   const scrollToBottom = useCallback(() => {
@@ -3254,6 +3304,21 @@ function AIChatWidget() {
     }, 350);
   };
 
+  const handleCustomDecisionSubmit = (msg, customText) => {
+    if (!customText) return;
+    soundFX.triggerHaptic(20);
+    if (soundEnabled && soundFX?.playTap) soundFX.playTap();
+
+    // Clear input for this message
+    setDecisionCustomInputs((prev) => ({ ...prev, [msg.id]: '' }));
+
+    // Mark decision tree as completed for this message
+    setSkippedDecisionTreeMsgIds((prev) => new Set([...prev, msg.id]));
+
+    // Submit as regular user prompt into the chat conversation flow
+    handleSendMessage(customText);
+  };
+
     // Handle keyboard submission, slash autocomplete navigation & Escape minimization
   const handleKeyDown = (e) => {
     if (chatSettings?.slashCommandsEnabled !== false && inputValue.startsWith('/') && filteredSlashCommands.length > 0) {
@@ -4468,52 +4533,55 @@ function AIChatWidget() {
                           {/* Decision Step Title */}
                           {msg.decisionTree.title && (
                             <div className="text-[11px] font-semibold text-stone-700 dark:text-stone-200 flex items-center justify-between">
-                              <span>{msg.decisionTree.title}</span>
+                              <span>{getDecisionTreeTitle(msg.decisionTree, chatLanguage)}</span>
                             </div>
                           )}
 
                           {/* Case A: Initial Preferences Prompt (Yes/No Buttons) */}
                           {msg.decisionTree.step === 'preferences_prompt' && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                            <div className="grid grid-cols-1 gap-2 pt-1 w-full">
                               <button
                                 type="button"
                                 onClick={() => {
                                   soundFX.triggerHaptic(20);
                                   handleTriggerAudienceDecisionTree();
                                 }}
-                                className="w-full px-3 py-2 rounded-xl text-xs font-semibold text-white bg-linear-to-r from-[#FF4D6D] to-[#9333EA] hover:opacity-95 active:scale-[0.98] transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                                className="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold text-white bg-linear-to-r from-[#FF4D6D] to-[#9333EA] hover:opacity-95 active:scale-[0.98] transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                               >
-                                <span>✨ हाँ, प्राथमिकताएं बदलें / Yes, Customize</span>
+                                <span className="line-clamp-2 leading-tight">{getDecisionOptionLabel(DEFAULT_PREFERENCES_PROMPT_OPTIONS[0], chatLanguage)}</span>
                               </button>
                               <button
                                 type="button"
                                 onClick={() => {
                                   soundFX.triggerHaptic(20);
+                                  const userLabel = getDecisionOptionLabel(DEFAULT_PREFERENCES_PROMPT_OPTIONS[1], chatLanguage);
                                   const userMsg = {
                                     id: `user-keep-${Date.now()}`,
                                     sender: 'user',
-                                    text: '✓ नहीं, यही रहने दें / No, Keep Current',
+                                    text: userLabel,
                                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                   };
                                   const ackMsg = {
                                     id: `assistant-ack-${Date.now()}`,
                                     sender: 'assistant',
-                                    text: 'बढ़िया! वर्तमान सेटिंग्स सुरक्षित हैं। अतुल के प्रोजेक्ट्स, टैक्स ऑटोमेशन, या AI इंजीनियरिंग के बारे में बेझिझक पूछें!',
+                                    text: chatLanguage === 'en'
+                                      ? 'Great! Your current preferences are preserved. Feel free to ask about Atul\'s projects, tax automation, or AI engineering!'
+                                      : 'बढ़िया! वर्तमान सेटिंग्स सुरक्षित हैं। अतुल के प्रोजेक्ट्स, टैक्स ऑटोमेशन, या AI इंजीनियरिंग के बारे में बेझिझक पूछें!',
                                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                   };
                                   setMessages((prev) => [...prev, userMsg, ackMsg]);
                                   setSkippedDecisionTreeMsgIds((prev) => new Set([...prev, msg.id]));
                                 }}
-                                className="w-full px-3 py-2 rounded-xl text-xs font-medium text-stone-700 dark:text-stone-200 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                className="w-full px-3.5 py-2 rounded-xl text-xs font-medium text-stone-700 dark:text-stone-200 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                               >
-                                <span>✓ नहीं, यही रहने दें / No, Keep Current</span>
+                                <span className="line-clamp-2 leading-tight">{getDecisionOptionLabel(DEFAULT_PREFERENCES_PROMPT_OPTIONS[1], chatLanguage)}</span>
                               </button>
                             </div>
                           )}
 
                           {/* Case B: Audience Perspective Selection Cards */}
                           {msg.decisionTree.step === 'audience' && Array.isArray(msg.decisionTree.options) && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+                            <div className={getDecisionGridClass(msg.decisionTree.options, chatLanguage)}>
                               {msg.decisionTree.options.map((opt) => (
                                 <button
                                   key={opt.id}
@@ -4523,7 +4591,7 @@ function AIChatWidget() {
                                     if (opt.isSkip) {
                                       handleAudienceDecisionSkip(msg.decisionTree.isSequential);
                                     } else {
-                                      handleAudienceDecisionSelect(opt.audience || opt.id, opt.label, msg.decisionTree.isSequential);
+                                      handleAudienceDecisionSelect(opt.audience || opt.id, getDecisionOptionLabel(opt, chatLanguage), msg.decisionTree.isSequential);
                                     }
                                   }}
                                   className={`w-full px-2.5 py-2 rounded-xl text-[11px] font-medium flex items-center gap-2 transition-all cursor-pointer border text-left active:scale-[0.98] ${
@@ -4532,7 +4600,7 @@ function AIChatWidget() {
                                       : 'bg-white/80 dark:bg-[#1E162B]/80 hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20 border-stone-200/80 dark:border-stone-700/80 hover:border-[#FF4D6D] text-stone-800 dark:text-stone-100 shadow-2xs'
                                   }`}
                                 >
-                                  <span>{opt.label}</span>
+                                  <span className="line-clamp-2 leading-tight">{getDecisionOptionLabel(opt, chatLanguage)}</span>
                                 </button>
                               ))}
                             </div>
@@ -4540,7 +4608,7 @@ function AIChatWidget() {
 
                           {/* Case C: Role Selection Cards */}
                           {msg.decisionTree.step === 'role' && Array.isArray(msg.decisionTree.options) && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+                            <div className={getDecisionGridClass(msg.decisionTree.options, chatLanguage)}>
                               {msg.decisionTree.options.map((opt) => (
                                 <button
                                   key={opt.id}
@@ -4550,7 +4618,7 @@ function AIChatWidget() {
                                     if (opt.isSkip) {
                                       handleRoleDecisionSkip(msg.decisionTree.isSequential);
                                     } else {
-                                      handleRoleDecisionSelect(opt.role || opt.id, opt.label, msg.decisionTree.isSequential);
+                                      handleRoleDecisionSelect(opt.role || opt.id, getDecisionOptionLabel(opt, chatLanguage), msg.decisionTree.isSequential);
                                     }
                                   }}
                                   className={`w-full px-2.5 py-2 rounded-xl text-[11px] font-medium flex items-center gap-2 transition-all cursor-pointer border text-left active:scale-[0.98] ${
@@ -4559,7 +4627,7 @@ function AIChatWidget() {
                                       : 'bg-white/80 dark:bg-[#1E162B]/80 hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20 border-stone-200/80 dark:border-stone-700/80 hover:border-[#FF4D6D] text-stone-800 dark:text-stone-100 shadow-2xs'
                                   }`}
                                 >
-                                  <span>{opt.label}</span>
+                                  <span className="line-clamp-2 leading-tight">{getDecisionOptionLabel(opt, chatLanguage)}</span>
                                 </button>
                               ))}
                             </div>
@@ -4567,7 +4635,7 @@ function AIChatWidget() {
 
                           {/* Case D: View Mode Selection Cards */}
                           {msg.decisionTree.step === 'viewMode' && Array.isArray(msg.decisionTree.options) && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+                            <div className={getDecisionGridClass(msg.decisionTree.options, chatLanguage)}>
                               {msg.decisionTree.options.map((opt) => (
                                 <button
                                   key={opt.id}
@@ -4577,7 +4645,7 @@ function AIChatWidget() {
                                     if (opt.isSkip) {
                                       handleViewModeDecisionSkip(msg.decisionTree.isSequential);
                                     } else {
-                                      handleViewModeDecisionSelect(opt.viewMode || opt.id, opt.label, msg.decisionTree.isSequential);
+                                      handleViewModeDecisionSelect(opt.viewMode || opt.id, getDecisionOptionLabel(opt, chatLanguage), msg.decisionTree.isSequential);
                                     }
                                   }}
                                   className={`w-full px-2.5 py-2 rounded-xl text-[11px] font-medium flex items-center gap-2 transition-all cursor-pointer border text-left active:scale-[0.98] ${
@@ -4586,7 +4654,7 @@ function AIChatWidget() {
                                       : 'bg-white/80 dark:bg-[#1E162B]/80 hover:bg-[#FF4D6D]/10 dark:hover:bg-[#FF4D6D]/20 border-stone-200/80 dark:border-stone-700/80 hover:border-[#FF4D6D] text-stone-800 dark:text-stone-100 shadow-2xs'
                                   }`}
                                 >
-                                  <span>{opt.label}</span>
+                                  <span className="line-clamp-2 leading-tight">{getDecisionOptionLabel(opt, chatLanguage)}</span>
                                 </button>
                               ))}
                             </div>
@@ -4663,7 +4731,7 @@ function AIChatWidget() {
                                           ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
                                           : (opt.isLlama || opt.isTinyLlama)
                                           ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30'
-                                          : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                                          : 'bg-amber-50/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
                                       }`}>
                                         {opt.badge}
                                       </span>
@@ -4685,14 +4753,14 @@ function AIChatWidget() {
 
                           {/* Case F: On-Device AI Consent Step */}
                           {msg.decisionTree.step === 'ai_consent' && Array.isArray(msg.decisionTree.options) && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                            <div className={getDecisionGridClass(msg.decisionTree.options, chatLanguage)}>
                               {msg.decisionTree.options.map((opt) => (
                                 <button
                                   key={opt.id}
                                   type="button"
                                   onClick={() => {
                                     soundFX.triggerHaptic(20);
-                                    handleAiModelConsentSelect(opt.consent, opt.label);
+                                    handleAiModelConsentSelect(opt.consent, getDecisionOptionLabel(opt, chatLanguage));
                                   }}
                                   className={`w-full px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer active:scale-[0.98] ${
                                     opt.consent === 'enabled'
@@ -4700,7 +4768,7 @@ function AIChatWidget() {
                                       : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700'
                                   }`}
                                 >
-                                  <span>{opt.label}</span>
+                                  <span className="line-clamp-2 leading-tight">{getDecisionOptionLabel(opt, chatLanguage)}</span>
                                 </button>
                               ))}
                             </div>
@@ -4708,14 +4776,14 @@ function AIChatWidget() {
 
                           {/* Case G: Language Selection Cards */}
                           {msg.decisionTree.step === 'language' && Array.isArray(msg.decisionTree.options) && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+                            <div className={getDecisionGridClass(msg.decisionTree.options, chatLanguage)}>
                               {msg.decisionTree.options.map((opt) => (
                                 <button
                                   key={opt.id}
                                   type="button"
                                   onClick={() => {
                                     soundFX.triggerHaptic(20);
-                                    handleLanguageSelect(opt.id, opt.label, msg.id);
+                                    handleLanguageSelect(opt.id, getDecisionOptionLabel(opt, chatLanguage), msg.id);
                                   }}
                                   className={`w-full p-2.5 rounded-xl text-left border transition-all cursor-pointer active:scale-[0.98] shadow-xs ${
                                     opt.isSkip
@@ -4727,14 +4795,47 @@ function AIChatWidget() {
                                       : 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200/80 dark:border-emerald-800/50 hover:border-emerald-500 hover:bg-emerald-500/10 text-stone-800 dark:text-stone-100'
                                   }`}
                                 >
-                                  <div className="text-xs font-semibold">{opt.label}</div>
-                                  {opt.description && (
-                                    <div className="text-[10px] text-stone-500 dark:text-stone-400 mt-0.5 leading-tight">{opt.description}</div>
+                                  <div className="text-xs font-semibold line-clamp-2 leading-tight">{getDecisionOptionLabel(opt, chatLanguage)}</div>
+                                  {(opt.description || opt.description_hi || opt.description_en) && (
+                                    <div className="text-[10px] text-stone-500 dark:text-stone-400 mt-0.5 leading-tight line-clamp-2">
+                                      {getDecisionOptionDescription(opt, chatLanguage)}
+                                    </div>
                                   )}
                                 </button>
                               ))}
                             </div>
                           )}
+
+                          {/* Inline Custom Input for ✏️ Other / Specify */}
+                          <div className="mt-2 pt-2 border-t border-stone-200/60 dark:border-stone-800/60 flex items-center gap-1.5 w-full" aria-label="✏️ Other / Specify">
+                            <input
+                              type="text"
+                              value={decisionCustomInputs[msg.id] || ''}
+                              onChange={(e) => setDecisionCustomInputs((prev) => ({ ...prev, [msg.id]: e.target.value }))}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && (decisionCustomInputs[msg.id] || '').trim()) {
+                                  e.preventDefault();
+                                  handleCustomDecisionSubmit(msg, (decisionCustomInputs[msg.id] || '').trim());
+                                }
+                              }}
+                              placeholder={chatLanguage === 'en' ? 'Type custom specification / query...' : 'कस्टम निर्देश या प्रश्न टाइप करें...'}
+                              className="flex-1 px-2.5 py-1.5 text-[11px] rounded-lg border border-stone-300 dark:border-stone-700 bg-white/90 dark:bg-stone-900/90 text-stone-800 dark:text-stone-100 placeholder-stone-400 focus:outline-hidden focus:border-[#FF4D6D] focus:ring-1 focus:ring-[#FF4D6D] transition-all"
+                            />
+                            <button
+                              type="button"
+                              disabled={!(decisionCustomInputs[msg.id] || '').trim()}
+                              onClick={() => {
+                                const text = (decisionCustomInputs[msg.id] || '').trim();
+                                if (text) {
+                                  handleCustomDecisionSubmit(msg, text);
+                                }
+                              }}
+                              className="px-2.5 py-1.5 text-[11px] font-semibold rounded-lg bg-[#FF4D6D] hover:bg-[#e03d5c] text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0 cursor-pointer shadow-2xs"
+                              title={chatLanguage === 'en' ? 'Send' : 'भेजें'}
+                            >
+                              <span>{chatLanguage === 'en' ? 'Send ↵' : 'भेजें ↵'}</span>
+                            </button>
+                          </div>
                         </div>
                       )}
 

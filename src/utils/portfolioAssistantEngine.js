@@ -1525,35 +1525,47 @@ export function tuneResponseEmojis(text, audience = 'all', options = { enabled: 
   return text;
 }
 
+export function getDecisionOptionLabel(opt, currentLang = 'hi') {
+  if (!opt) return '';
+  const isEn = currentLang === 'en';
+  if (isEn && opt.label_en) return opt.label_en;
+  if (!isEn && opt.label_hi) return opt.label_hi;
+  if (opt.label && opt.label.includes(' / ')) {
+    const parts = opt.label.split(' / ');
+    return isEn ? (parts[1] || parts[0]).trim() : (parts[0] || parts[1]).trim();
+  }
+  return isEn ? (opt.label_en || opt.label || '') : (opt.label_hi || opt.label || '');
+}
+
 export const ONBOARDING_DECISION_TREE = {
   step1: {
-  id: 'step_audience',
-  step: 1,
-  title: 'Select Your Audience Context',
-  title_hi: 'अपना दर्शक संदर्भ चुनें',
-  options: [
-  { id: 'recruiter', label: '💼 Recruiter / Hiring', label_hi: '💼 रिक्रूटर / हायरिंग', value: 'recruiter' },
-  { id: 'client', label: '💡 Client / Consulting', label_hi: '💡 क्लाइंट / कंसल्टिंग', value: 'client' },
-  { id: 'all', label: '🌐 General Explorer', label_hi: '🌐 सामान्य एक्सप्लोरर', value: 'all' },
-  { id: 'marriage', label: '🌸 Matrimonial Inquiry', label_hi: '🌸 वैवाहिक पूछताछ', value: 'marriage' },
-  { id: 'skip', label: '⏭️ Skip', label_hi: '⏭️ स्किप करें', isSkip: true },
-  { id: 'other', label: '✏️ Other / Specify', label_hi: '✏️ अन्य / निर्दिष्ट करें', isOther: true }
-  ]
+    id: 'step_audience',
+    step: 1,
+    title: 'Select Your Audience Context',
+    title_hi: 'अपना दर्शक संदर्भ चुनें',
+    title_en: 'Select Your Audience Context',
+    options: [
+      { id: 'recruiter', label: '💼 Recruiter / Hiring', label_en: '👔 Tech Recruiter', label_hi: '👔 तकनीकी रिक्रूटर', value: 'recruiter' },
+      { id: 'client', label: '💡 Client / Consulting', label_en: '🤝 Client / Projects', label_hi: '🤝 क्लाइंट व प्रोजेक्ट्स', value: 'client' },
+      { id: 'marriage', label: '💍 Matrimonial Biodata', label_en: '💍 Matrimonial Biodata', label_hi: '💍 वैवाहिक परिचय', value: 'marriage' },
+      { id: 'all', label: '🌐 General Explorer', label_en: '🚀 General Explorer', label_hi: '🚀 सामान्य अन्वेषक', value: 'all' },
+      { id: 'skip', label: '⏭️ Skip', label_en: '⏩ Skip', label_hi: '⏩ छोड़ें', isSkip: true }
+    ]
   },
   step2: {
-  id: 'step_role',
-  step: 2,
-  title: 'Select Track or Specialization',
-  title_hi: 'ट्रैक या विशेषज्ञता चुनें',
-  options: [
-  { id: 'accountant', label: '📊 Senior Accountant & Tax', label_hi: '📊 सीनियर अकाउंटेंट एवं टैक्स', value: 'accountant' },
-  { id: 'mis', label: '⚡ MIS & Operations Lead', label_hi: '⚡ MIS एवं ऑपरेशंस लीड', value: 'mis' },
-  { id: 'vibe_coding', label: '🤖 AI Vibe Coder & Full-Stack', label_hi: '🤖 AI Vibe Coder एवं फुल-स्टैक', value: 'vibe_coding' },
-  { id: 'other', label: '📈 BI & Corporate Controller', label_hi: '📈 BI एवं कॉर्पोरेट कंट्रोलर', value: 'other' },
-  { id: 'overview', label: '🧭 All-Track Overview', label_hi: '🧭 संपूर्ण ओवरव्यू', value: 'overview' },
-  { id: 'skip', label: '⏭️ Skip', label_hi: '⏭️ स्किप करें', isSkip: true },
-  { id: 'other_custom', label: '✏️ Other / Specify', label_hi: '✏️ अन्य / निर्दिष्ट करें', isOther: true }
-  ]
+    id: 'step_role',
+    step: 2,
+    title: 'Select Track or Specialization',
+    title_hi: 'ट्रैक या विशेषज्ञता चुनें',
+    title_en: 'Select Track or Specialization',
+    options: [
+      { id: 'accountant', label: '📊 Corporate Accountant', label_en: '📊 Corporate Accountant', label_hi: '📊 कॉर्पोरेट अकाउंटेंट', value: 'accountant' },
+      { id: 'mis', label: '📑 MIS Operations Lead', label_en: '📑 MIS Operations Lead', label_hi: '📑 एमआईएस ऑपरेशन्स', value: 'mis' },
+      { id: 'vibe_coding', label: '💻 AI Vibe Coder', label_en: '💻 AI Vibe Coder', label_hi: '💻 एआई वाइब कोडर', value: 'vibe_coding' },
+      { id: 'other', label: '✨ BI & Controller', label_en: '✨ BI & Controller', label_hi: '✨ बीआई व कंट्रोलर', value: 'other' },
+      { id: 'overview', label: '🎯 Executive Overview', label_en: '🎯 Executive Overview', label_hi: '🎯 कार्यकारी सारांश', value: 'overview' },
+      { id: 'skip', label: '⏩ छोड़ें', label_en: '⏩ Skip', label_hi: '⏩ छोड़ें', isSkip: true }
+    ]
   }
 };
 
@@ -1563,47 +1575,48 @@ export function getOnboardingDecisionTree(context = {}) {
   const currentViewMode = (context?.viewMode || 'modern').toLowerCase();
 
   const step3 = {
-  id: 'step_view_mode',
-  step: 3,
-  title: 'Select Portfolio View Mode',
-  title_hi: 'पोर्टफोलियो व्यू मोड चुनें',
-  options: [
-  { id: 'modern', label: '⚡ Modern / Interactive', label_hi: '⚡ मॉडर्न / इंटरैक्टिव', value: 'modern', viewMode: 'modern', emoji: '⚡' },
-  { id: 'simple', label: '🍃 Simple / Classic', label_hi: '🍃 सिंपल / क्लासिक', value: 'simple', viewMode: 'simple', emoji: '🍃' },
-  { id: 'basic', label: '📄 Basic / PDF', label_hi: '📄 बेसिक / PDF', value: 'basic', viewMode: 'basic', emoji: '📄' },
-  { id: 'terminal', label: '💻 Terminal / Developer', label_hi: '💻 टर्मिनल / डेवलपर', value: 'terminal', viewMode: 'terminal', emoji: '💻' }
-  ].map((opt) => ({
-  ...opt,
-  isHighlighted: opt.value === currentViewMode || opt.viewMode === currentViewMode
-  }))
+    id: 'step_view_mode',
+    step: 3,
+    title: 'Select Portfolio View Mode',
+    title_hi: 'पोर्टफोलियो व्यू मोड चुनें',
+    title_en: 'Select Portfolio View Mode',
+    options: [
+      { id: 'modern', label: '⚡ Modern / Interactive', label_en: '⚡ Modern / Interactive', label_hi: '⚡ आधुनिक व इंटरैक्टिव', value: 'modern', viewMode: 'modern', emoji: '⚡' },
+      { id: 'simple', label: '🍃 Simple / Classic', label_en: '🍃 Simple / Classic', label_hi: '🍃 सरल व क्लासिक', value: 'simple', viewMode: 'simple', emoji: '🍃' },
+      { id: 'basic', label: '📄 Basic / PDF', label_en: '📄 Basic / Clean', label_hi: '📄 मूल व पीडीएफ', value: 'basic', viewMode: 'basic', emoji: '📄' },
+      { id: 'terminal', label: '💻 Terminal / Developer', label_en: '💻 Terminal / Dev', label_hi: '💻 टर्मिनल डेवलपर', value: 'terminal', viewMode: 'terminal', emoji: '💻' }
+    ].map((opt) => ({
+      ...opt,
+      isHighlighted: opt.value === currentViewMode || opt.viewMode === currentViewMode
+    }))
   };
 
   const step1 = {
-  ...ONBOARDING_DECISION_TREE.step1,
-  options: ONBOARDING_DECISION_TREE.step1.options.map((opt) => ({
-  ...opt,
-  isHighlighted: opt.value === currentAudience || (opt.id === 'all' && currentAudience === 'all')
-  }))
+    ...ONBOARDING_DECISION_TREE.step1,
+    options: ONBOARDING_DECISION_TREE.step1.options.map((opt) => ({
+      ...opt,
+      isHighlighted: opt.value === currentAudience || (opt.id === 'all' && currentAudience === 'all')
+    }))
   };
 
   const step2 = {
-  ...ONBOARDING_DECISION_TREE.step2,
-  options: ONBOARDING_DECISION_TREE.step2.options.map((opt) => ({
-  ...opt,
-  isHighlighted: opt.value === currentRole || (opt.id === 'overview' && currentRole === 'overview')
-  }))
+    ...ONBOARDING_DECISION_TREE.step2,
+    options: ONBOARDING_DECISION_TREE.step2.options.map((opt) => ({
+      ...opt,
+      isHighlighted: opt.value === currentRole || (opt.id === 'overview' && currentRole === 'overview')
+    }))
   };
 
   return {
-  currentAudience,
-  currentRole,
-  currentViewMode,
-  step1,
-  step2,
-  step3,
-  audienceStep: step1,
-  roleStep: step2,
-  viewModeStep: step3
+    currentAudience,
+    currentRole,
+    currentViewMode,
+    step1,
+    step2,
+    step3,
+    audienceStep: step1,
+    roleStep: step2,
+    viewModeStep: step3
   };
 }
 
@@ -1611,16 +1624,17 @@ export function generateResponseDecisionTree(intent, context = {}, lang = 'en') 
   const isHi = lang === 'hi';
   const chips = createFollowupChips(intent, context);
   const baseItems = chips.slice(0, 4).map((c) => ({
-  id: c.id,
-  label: c.label,
-  query: c.query || c.label,
-  category: c.category || inferChipCategory(c.id, c.label, c.query)
+    id: c.id,
+    label: c.label,
+    label_en: c.label,
+    label_hi: c.label_hi || c.label,
+    query: c.query || c.label,
+    category: c.category || inferChipCategory(c.id, c.label, c.query)
   }));
 
   return [
-  ...baseItems,
-  { id: 'skip', label: isHi ? '⏭️ छोड़ें' : '⏭️ Skip', isSkip: true },
-  { id: 'other', label: isHi ? '✏️ अन्य / विवरण' : '✏️ Other / Specify', isOther: true }
+    ...baseItems,
+    { id: 'skip', label: isHi ? '⏭️ छोड़ें' : '⏭️ Skip', label_en: '⏭️ Skip', label_hi: '⏭️ छोड़ें', isSkip: true }
   ];
 }
 

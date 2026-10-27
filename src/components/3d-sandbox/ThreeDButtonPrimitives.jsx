@@ -19,6 +19,7 @@ export function ThreeDPresetCard({
   className = '',
   ariaLabel,
   disabled = false,
+  isVisualOnly = true,
   children
 }) {
   const {
@@ -44,12 +45,15 @@ export function ThreeDPresetCard({
     }
   };
 
+  const tooltipText = desc ? `${title}: ${desc}` : title;
+
   return (
     <div
       role="button"
       tabIndex={disabled ? -1 : 0}
       aria-pressed={isSelected}
-      aria-label={ariaLabel || title}
+      aria-label={ariaLabel || tooltipText}
+      title={tooltipText}
       onClick={disabled ? undefined : onClick}
       onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}
@@ -58,7 +62,9 @@ export function ThreeDPresetCard({
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       style={tiltStyle}
-      className={`group relative p-3 sm:p-3.5 rounded-2xl text-left flex flex-col justify-between transition-all duration-150 select-none cursor-pointer outline-none ${
+      className={`group relative ${
+        isVisualOnly ? 'p-2.5 sm:p-3 min-h-[92px]' : 'p-3 sm:p-3.5 min-h-[125px]'
+      } rounded-2xl text-left flex flex-col justify-between transition-all duration-150 select-none cursor-pointer outline-none ${
         disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
       } ${
         isSelected
@@ -71,26 +77,38 @@ export function ThreeDPresetCard({
       } focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 ${className}`}
     >
       {/* Top Header Row: Icon, Title & Status */}
-      <div className="flex items-center justify-between w-full mb-2">
+      <div className={`flex items-center justify-between w-full ${isVisualOnly ? 'mb-1' : 'mb-2'}`}>
         <div className="flex items-center gap-2 min-w-0">
           {Icon && (
             <div
-              className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-transform ${
+              className={`${
+                isVisualOnly
+                  ? 'w-7 h-7 sm:w-8 sm:h-8 rounded-xl shadow-xs ring-1 ring-black/5 dark:ring-white/10'
+                  : 'w-6 h-6 rounded-lg'
+              } flex items-center justify-center shrink-0 transition-transform ${
                 isSelected
-                  ? 'bg-[#FF4D6D] text-white shadow-xs'
-                  : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 group-hover:scale-110'
+                  ? 'bg-[#FF4D6D] text-white shadow-[0_0_12px_rgba(255,77,109,0.4)]'
+                  : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 group-hover:scale-105'
               }`}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className={isVisualOnly ? 'w-4 h-4' : 'w-3.5 h-3.5'} />
             </div>
           )}
-          <span className="text-xs font-bold truncate tracking-tight">{title}</span>
+          <span
+            className={
+              isVisualOnly
+                ? 'text-[10px] font-mono font-medium tracking-tight uppercase text-stone-400 dark:text-stone-400 truncate max-w-[110px]'
+                : 'text-xs font-bold tracking-tight text-[#18181B] dark:text-white truncate'
+            }
+          >
+            {title}
+          </span>
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
           {badge && (
             <span
-              className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded-md border leading-none ${
+              className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border leading-none ${
                 isSelected
                   ? 'bg-[#FF4D6D]/20 text-[#FF4D6D] border-[#FF4D6D]/40'
                   : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700'
@@ -109,7 +127,9 @@ export function ThreeDPresetCard({
 
       {/* 3D Self-Explanatory Visual Preview Center Stage */}
       {visualPreview && (
-        <div className="my-2 py-2 flex items-center justify-center bg-stone-100/50 dark:bg-[#150F22]/60 rounded-xl border border-stone-200/50 dark:border-stone-800/60 overflow-hidden relative threed-preserve">
+        <div className={`my-1 py-1.5 flex items-center justify-center bg-stone-100/50 dark:bg-[#150F22]/60 rounded-xl border border-stone-200/50 dark:border-stone-800/60 overflow-hidden relative threed-preserve ${
+          isVisualOnly ? 'min-h-[58px]' : 'min-h-[52px]'
+        }`}>
           {visualPreview}
         </div>
       )}
@@ -117,8 +137,8 @@ export function ThreeDPresetCard({
       {/* Supplementary children slot */}
       {children}
 
-      {/* Bottom Description */}
-      {desc && (
+      {/* Bottom Description - Strictly suppressed in 3D Compact Visual Mode */}
+      {!isVisualOnly && desc && (
         <p className="text-[10.5px] text-stone-500 dark:text-stone-400 leading-snug line-clamp-2 mt-1">
           {desc}
         </p>
@@ -188,12 +208,17 @@ export function ThreeDToggleKey({
   sublabel,
   icon: Icon,
   className = '',
-  disabled = false
+  disabled = false,
+  isVisualOnly = true
 }) {
+  const tooltipText = sublabel ? `${label}: ${sublabel}` : label;
+
   return (
     <div
       role="switch"
       aria-checked={checked}
+      aria-label={tooltipText}
+      title={tooltipText}
       tabIndex={disabled ? -1 : 0}
       onClick={disabled ? undefined : () => onChange?.(!checked)}
       onKeyDown={(e) => {
@@ -214,20 +239,22 @@ export function ThreeDToggleKey({
       <div className="flex items-center gap-2.5 min-w-0">
         {Icon && (
           <div
-            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+            className={`${
+              isVisualOnly ? 'w-8 h-8 rounded-xl ring-1 ring-black/5 dark:ring-white/10' : 'w-7 h-7 rounded-lg'
+            } flex items-center justify-center shrink-0 transition-transform ${
               checked
-                ? 'bg-[#FF4D6D] text-white shadow-xs'
-                : 'bg-stone-100 dark:bg-stone-800 text-stone-400'
+                ? 'bg-[#FF4D6D] text-white shadow-[0_0_10px_rgba(255,77,109,0.4)]'
+                : 'bg-stone-100 dark:bg-stone-800 text-stone-400 group-hover:scale-105'
             }`}
           >
-            <Icon className="w-3.5 h-3.5" />
+            <Icon className={isVisualOnly ? 'w-4 h-4' : 'w-3.5 h-3.5'} />
           </div>
         )}
         <div className="min-w-0">
           <div className="text-xs font-bold truncate text-[#18181B] dark:text-white">
             {label}
           </div>
-          {sublabel && (
+          {!isVisualOnly && sublabel && (
             <div className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
               {sublabel}
             </div>

@@ -40,6 +40,10 @@ export const DEFAULT_AI_CHAT_SETTINGS = Object.freeze({
   slashCommandsEnabled: true // Display slash '/' command autocomplete palette
 });
 
+// Phase 1: 0ms Dual Real-Time Cross-Tab 3D IPC Channel & Storage Keys
+export const PORTFOLIO_3D_CHANNEL_NAME = 'portfolio_3d_channel';
+export const PORTFOLIO_3D_INSTANT_SYNC_KEY = 'portfolio_3d_instant_sync';
+
 export const FACTORY_DEFAULTS = {
   version: 2,
   audio: {
@@ -88,6 +92,7 @@ export const FACTORY_DEFAULTS = {
     stylePreset: 'subtle', // 'subtle' | 'isometric' | 'deep'
     masterTheme: 'apple-glass', // 'apple-glass' | 'cyber-neon' | 'studio-matte' | 'floating-hologram'
     showSandboxPreview: true, // boolean toggle for mini 3D preview card
+    isVisualOnly: true, // true = 3D Compact Visual (descriptions hidden, prominent icons), false = Text Detailed
     clusterFilter: 'all', // 'all' | 'design' | 'physics' | 'system'
     elements: {
       floatingButton: false,
@@ -752,6 +757,7 @@ export function normalizeThreeD(raw) {
     stylePreset: normalizeStylePreset(raw.stylePreset ?? FACTORY_DEFAULTS.threeD.stylePreset),
     masterTheme: normalize3DMasterTheme(raw.masterTheme ?? FACTORY_DEFAULTS.threeD.masterTheme),
     showSandboxPreview: typeof raw.showSandboxPreview === 'boolean' ? raw.showSandboxPreview : FACTORY_DEFAULTS.threeD.showSandboxPreview,
+    isVisualOnly: typeof raw.isVisualOnly === 'boolean' ? raw.isVisualOnly : FACTORY_DEFAULTS.threeD.isVisualOnly,
     clusterFilter: normalize3DClusterFilter(raw.clusterFilter),
     elements: normalizeThreeDElements(raw.elements),
     lighting: normalize3DLighting(raw.lighting),
@@ -1378,6 +1384,15 @@ export function LabProvider({ children, initialSoundEnabled }) {
   const threeDRef = useRef(threeD);
   threeDRef.current = threeD;
 
+  // Phase 1: 0ms Cross-tab IPC instance identifier & BroadcastChannel ref
+  const windowInstanceIdRef = useRef(
+    typeof window !== 'undefined'
+      ? `tab_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+      : 'tab_server'
+  );
+  const broadcastChannelRef = useRef(null);
+  const prevPersistedThreeDRef = useRef(JSON.stringify(threeD));
+
   const stateRef = useRef(null);
   stateRef.current = {
     soundEnabled,
@@ -1707,6 +1722,43 @@ export function LabProvider({ children, initialSoundEnabled }) {
     saveTimeoutRef.current = setTimeout(() => {
       flushPendingSave();
     }, 400);
+
+    // Phase 1: 0ms Dual Real-Time Broadcast & Instant Flush on any 3D mutation
+    const currentThreeDStr = JSON.stringify(threeD);
+    const threeDChanged = currentThreeDStr !== prevPersistedThreeDRef.current;
+    prevPersistedThreeDRef.current = currentThreeDStr;
+
+    if (threeDChanged && !isInitialMount.current) {
+      if (typeof window !== 'undefined') {
+        if (broadcastChannelRef.current) {
+          try {
+            broadcastChannelRef.current.postMessage({
+              type: 'SYNC_3D_STATE',
+              payload: threeD,
+              sender: windowInstanceIdRef.current,
+              timestamp: Date.now()
+            });
+          } catch {
+            // BroadcastChannel failed or unsupported
+          }
+        }
+        try {
+          localStorage.setItem(
+            PORTFOLIO_3D_INSTANT_SYNC_KEY,
+            JSON.stringify({ threeD, sender: windowInstanceIdRef.current, timestamp: Date.now() })
+          );
+        } catch {
+          // Storage quota
+        }
+        try {
+          window.dispatchEvent(new CustomEvent('portfolio:3d-change', { detail: threeD }));
+        } catch {
+          // Ignore
+        }
+      }
+      // Instant flush bypassing 400ms debounce for 3D settings
+      flushPendingSave();
+    }
 
     if (isInitialMount.current) {
       isInitialMount.current = false;
@@ -2106,6 +2158,21 @@ export function LabProvider({ children, initialSoundEnabled }) {
     setThreeDState((prev) => ({
       ...prev,
       showSandboxPreview: typeof show === 'function' ? show(prev.showSandboxPreview) : Boolean(show)
+    }));
+  }, []);
+
+  // Phase 2: 3D Compact Visual vs Text Detailed View Mode Toggle
+  const set3DVisualMode = useCallback((isVisual) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      isVisualOnly: Boolean(isVisual)
+    }));
+  }, []);
+
+  const toggle3DVisualMode = useCallback(() => {
+    setThreeDState((prev) => ({
+      ...prev,
+      isVisualOnly: !(prev.isVisualOnly ?? true)
     }));
   }, []);
 
@@ -2626,6 +2693,20 @@ export function LabProvider({ children, initialSoundEnabled }) {
           // Ignore parse errors from other tabs
         }
       }
+      if (e.key === PORTFOLIO_3D_INSTANT_SYNC_KEY && e.newValue) {
+        try {
+          const inc = JSON.parse(e.newValue);
+          if (inc && inc.sender !== windowInstanceIdRef.current && inc.threeD) {
+            const normalizedThreeD = normalizeThreeD(inc.threeD);
+            if (JSON.stringify(normalizedThreeD) !== JSON.stringify(threeDRef.current)) {
+              isIncomingSyncRef.current = true;
+              setThreeDState(normalizedThreeD);
+            }
+          }
+        } catch {
+          // Ignore
+        }
+      }
       if (e.key === 'portfolio_auto_scroll_on_refresh' && e.newValue !== null) {
         setAutoScrollOnRefreshState(e.newValue !== 'false');
       }
@@ -2641,6 +2722,27 @@ export function LabProvider({ children, initialSoundEnabled }) {
 
     window.addEventListener('storage', handleStorage);
 
+    // Phase 1: Establish 0ms BroadcastChannel IPC for peer-to-peer 3D state sync
+    let bc = null;
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      try {
+        bc = new BroadcastChannel(PORTFOLIO_3D_CHANNEL_NAME);
+        broadcastChannelRef.current = bc;
+        bc.onmessage = (event) => {
+          if (!event?.data || event.data.sender === windowInstanceIdRef.current) return;
+          if (event.data.type === 'SYNC_3D_STATE' && event.data.payload) {
+            const incoming = normalizeThreeD(event.data.payload);
+            if (JSON.stringify(incoming) !== JSON.stringify(threeDRef.current)) {
+              isIncomingSyncRef.current = true;
+              setThreeDState(incoming);
+            }
+          }
+        };
+      } catch {
+        // Fallback to storage event
+      }
+    }
+
     return () => {
       window.removeEventListener('portfolio:open-lab-drawer', handleOpen);
       window.removeEventListener('open-lab-drawer', handleOpen);
@@ -2651,6 +2753,15 @@ export function LabProvider({ children, initialSoundEnabled }) {
       window.removeEventListener('portfolio:reset-control-center', handleReset);
       window.removeEventListener('portfolio:set-layout-density', handleSetDensity);
       window.removeEventListener('storage', handleStorage);
+
+      if (bc) {
+        try {
+          bc.close();
+        } catch {
+          // Ignore
+        }
+        broadcastChannelRef.current = null;
+      }
     };
   }, [openDrawer, closeDrawer, toggleDrawer, resetDefaults]);
 
@@ -2745,6 +2856,9 @@ export function LabProvider({ children, initialSoundEnabled }) {
     stylePreset: threeD.stylePreset,
     masterTheme: threeD.masterTheme,
     showSandboxPreview: threeD.showSandboxPreview,
+    isVisual3DOnly: threeD.isVisualOnly ?? true,
+    set3DVisualMode,
+    toggle3DVisualMode,
     threeDClusterFilter: threeD.clusterFilter,
     threeDElements: threeD.elements,
     threeDLighting: threeD.lighting,
@@ -3104,6 +3218,9 @@ export function LabProvider({ children, initialSoundEnabled }) {
     stylePreset: threeD.stylePreset,
     masterTheme: threeD.masterTheme,
     showSandboxPreview: threeD.showSandboxPreview,
+    isVisual3DOnly: threeD.isVisualOnly ?? true,
+    set3DVisualMode,
+    toggle3DVisualMode,
     threeDClusterFilter: threeD.clusterFilter,
     threeDElements: threeD.elements,
     threeDLighting: threeD.lighting,
