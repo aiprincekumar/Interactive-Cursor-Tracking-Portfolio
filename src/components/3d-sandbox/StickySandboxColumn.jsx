@@ -13,7 +13,11 @@ import {
   Check,
   Compass,
   Maximize2,
-  RefreshCw
+  RefreshCw,
+  Sun,
+  Cuboid,
+  Camera,
+  Activity
 } from 'lucide-react';
 import { useLab3D, useLabAudio } from '../../context/LabContext';
 import SandboxViewportContainer from './SandboxViewportContainer';
@@ -23,19 +27,33 @@ import Navbar3DPreview from './previews/Navbar3DPreview';
 import Footer3DPreview from './previews/Footer3DPreview';
 import FloatingDockPreview from './previews/FloatingDockPreview';
 import SectionShowcasePreview from './previews/SectionShowcasePreview';
+import {
+  MaterialShaderSphere,
+  CameraCubePreview,
+  LightingVectorPreview
+} from './Visual3DPresets';
+import {
+  SpringElasticityVisual,
+  ExplodedCADLayerVisual
+} from './PhysicsAndCADVisuals';
 import { normalizePreviewTab } from '../../hooks/useSandboxAutoSwitch';
 import soundFX from '../../utils/soundFX';
 
 /**
- * Preview tabs configuration
+ * Preview tabs configuration with full 9-section coverage
  */
 export const PREVIEW_TABS = [
   { id: 'universal', label: 'Universal Mini', icon: Globe, desc: 'Full portfolio mini-DOM replica' },
   { id: 'hero', label: '3D Hero Card', icon: User, desc: 'Extruded avatar & floating badge pills' },
   { id: 'navbar', label: 'Navbar', icon: Navigation, desc: 'Frosted glass pill with 3D depth' },
-  { id: 'footer', label: 'Footer', icon: Frame, desc: 'Ground plane shadow & metadata' },
+  { id: 'footer', label: 'Footer', icon: Frame, desc: '3D footer slab with elevation' },
   { id: 'dock', label: 'Floating Dock', icon: Box, desc: 'Curved dock with icon hover-pop' },
-  { id: 'showcase', label: 'Section Showcase', icon: LayoutGrid, desc: 'Isometric project & skills card grid' }
+  { id: 'showcase', label: 'Section Showcase', icon: LayoutGrid, desc: 'Isometric project cards stack' },
+  { id: 'lighting', label: 'Lighting Studio', icon: Sun, desc: 'Directional sun angle & shadow cast' },
+  { id: 'materials', label: 'Materials Stage', icon: Cuboid, desc: 'Photorealistic multi-material orb' },
+  { id: 'camera', label: 'Camera Viewport', icon: Camera, desc: 'Perspective frustum & orientation cube' },
+  { id: 'physics', label: 'Physics Spring', icon: Activity, desc: 'Interactive kinetic spring & tap pad' },
+  { id: 'exploded', label: 'Exploded CAD', icon: Layers, desc: '3-Strata layer disassembly & blueprint' }
 ];
 
 /**
@@ -50,6 +68,11 @@ export function normalizeComponentKey(key) {
   if (k === 'dock' || k === 'floatingbutton') return 'dock';
   if (k === 'showcase' || k === 'cards' || k === 'grid' || k === 'container' || k === 'containercontent' || k === 'containers') return 'showcase';
   if (k === 'universal') return 'universal';
+  if (k === 'lighting' || k === 'light') return 'lighting';
+  if (k === 'materials' || k === 'material') return 'materials';
+  if (k === 'camera') return 'camera';
+  if (k === 'physics') return 'physics';
+  if (k === 'exploded') return 'exploded';
   return k;
 }
 
@@ -219,6 +242,18 @@ export function StickySandboxColumn({
     const keysToReset = elementKeyMap[currentTab] || [];
     if (keysToReset.length > 0 && typeof lab3D?.set3DElementGroup === 'function') {
       lab3D.set3DElementGroup(keysToReset, false);
+    }
+
+    if (currentTab === 'lighting' && typeof lab3D?.set3DLighting === 'function') {
+      lab3D.set3DLighting({ preset: 'studio-soft', angle: 45, intensity: 1.0, ambientStrength: 0.5, shadowBlur: 6 });
+    } else if (currentTab === 'materials' && typeof lab3D?.set3DMaterials === 'function') {
+      lab3D.set3DMaterials({ preset: 'glass-acrylic', specularGlow: 0.6, bevelExtrusion: 3, roughness: 0.2 });
+    } else if (currentTab === 'camera' && typeof lab3D?.set3DCamera === 'function') {
+      lab3D.set3DCamera({ anglePreset: 'isometric', perspectiveFOV: 1000, tiltSensitivity: 15, autoOrbit: false, orbitSpeed: 30 });
+    } else if (currentTab === 'physics' && typeof lab3D?.set3DPhysics === 'function') {
+      lab3D.set3DPhysics({ elasticity: 'snappy', hoverPop: 12, clickDepression: 6, magneticPull: 0.5 });
+    } else if (currentTab === 'exploded' && typeof lab3D?.set3DExploded === 'function') {
+      lab3D.set3DExploded({ enabled: false, separationDistance: 40, blueprintMode: false });
     }
 
     if (typeof onResetComponent === 'function') {
@@ -431,6 +466,129 @@ export function StickySandboxColumn({
               isHighlighted={isCurrentPreviewHighlighted}
               onHighlight={onHighlightComponent}
             />
+          )}
+
+          {/* 7. Dedicated Lighting Studio 3D Preview */}
+          {currentTab === 'lighting' && (
+            <div
+              data-testid="lighting-studio-preview"
+              className="flex flex-col items-center justify-center p-6 w-full h-full min-h-[260px] relative select-none"
+            >
+              <div className="absolute top-2 left-3 flex items-center gap-1.5 text-[11px] font-mono font-bold text-amber-500 uppercase tracking-wider">
+                <Sun className="w-3.5 h-3.5" />
+                <span>Directional Lighting Studio</span>
+              </div>
+              <LightingVectorPreview
+                presetId={threeD.lighting?.preset || 'studio-soft'}
+                lightingAngle={threeD.lighting?.angle ?? 45}
+                className="scale-125 my-4"
+              />
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-stone-100/90 dark:bg-stone-800/90 border border-stone-200 dark:border-stone-700 text-[11px] font-mono font-bold text-stone-700 dark:text-stone-200 shadow-xs">
+                <span className="text-amber-500">Angle: {threeD.lighting?.angle ?? 45}°</span>
+                <span className="text-stone-400">|</span>
+                <span>Preset: {threeD.lighting?.preset || 'studio-soft'}</span>
+                <span className="text-stone-400">|</span>
+                <span>Intensity: {Math.round((threeD.lighting?.intensity ?? 1.0) * 100)}%</span>
+              </div>
+            </div>
+          )}
+
+          {/* 8. Dedicated Materials Stage 3D Preview */}
+          {currentTab === 'materials' && (
+            <div
+              data-testid="materials-stage-preview"
+              className="flex flex-col items-center justify-center p-6 w-full h-full min-h-[260px] relative select-none"
+            >
+              <div className="absolute top-2 left-3 flex items-center gap-1.5 text-[11px] font-mono font-bold text-pink-500 uppercase tracking-wider">
+                <Cuboid className="w-3.5 h-3.5" />
+                <span>Photorealistic Materials Stage</span>
+              </div>
+              <MaterialShaderSphere
+                materialId={threeD.materials?.preset || 'glass-acrylic'}
+                lightingAngle={threeD.lighting?.angle ?? 45}
+                specularGlow={threeD.materials?.specularGlow ?? 0.6}
+                bevelExtrusion={threeD.materials?.bevelExtrusion ?? 3}
+                className="scale-125 my-4"
+              />
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-stone-100/90 dark:bg-stone-800/90 border border-stone-200 dark:border-stone-700 text-[11px] font-mono font-bold text-stone-700 dark:text-stone-200 shadow-xs">
+                <span className="text-pink-500 font-semibold">{threeD.materials?.preset || 'glass-acrylic'}</span>
+                <span className="text-stone-400">|</span>
+                <span>Glow: {Math.round((threeD.materials?.specularGlow ?? 0.6) * 100)}%</span>
+                <span className="text-stone-400">|</span>
+                <span>Bevel: {threeD.materials?.bevelExtrusion ?? 3}px</span>
+              </div>
+            </div>
+          )}
+
+          {/* 9. Dedicated Camera Viewport 3D Preview */}
+          {currentTab === 'camera' && (
+            <div
+              data-testid="camera-viewport-preview"
+              className="flex flex-col items-center justify-center p-6 w-full h-full min-h-[260px] relative select-none"
+            >
+              <div className="absolute top-2 left-3 flex items-center gap-1.5 text-[11px] font-mono font-bold text-indigo-500 uppercase tracking-wider">
+                <Camera className="w-3.5 h-3.5" />
+                <span>Camera Viewport & Orientation</span>
+              </div>
+              <CameraCubePreview
+                presetId={threeD.camera?.anglePreset || 'isometric'}
+                className="scale-125 my-4"
+              />
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-stone-100/90 dark:bg-stone-800/90 border border-stone-200 dark:border-stone-700 text-[11px] font-mono font-bold text-stone-700 dark:text-stone-200 shadow-xs">
+                <span className="text-indigo-500 capitalize">{threeD.camera?.anglePreset || 'isometric'}</span>
+                <span className="text-stone-400">|</span>
+                <span>FOV: {threeD.camera?.perspectiveFOV ?? 1000}px</span>
+                <span className="text-stone-400">|</span>
+                <span>Tilt: {threeD.camera?.tiltSensitivity ?? 15}°</span>
+              </div>
+            </div>
+          )}
+
+          {/* 10. Dedicated Physics Spring 3D Preview */}
+          {currentTab === 'physics' && (
+            <div
+              data-testid="physics-spring-preview"
+              className="flex flex-col items-center justify-center p-6 w-full h-full min-h-[260px] relative select-none"
+            >
+              <div className="absolute top-2 left-3 flex items-center gap-1.5 text-[11px] font-mono font-bold text-emerald-500 uppercase tracking-wider">
+                <Activity className="w-3.5 h-3.5" />
+                <span>Kinetic Physics & Elasticity</span>
+              </div>
+              <SpringElasticityVisual
+                presetId={threeD.physics?.elasticity || 'snappy'}
+                className="scale-125 my-4"
+              />
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-stone-100/90 dark:bg-stone-800/90 border border-stone-200 dark:border-stone-700 text-[11px] font-mono font-bold text-stone-700 dark:text-stone-200 shadow-xs">
+                <span className="text-emerald-500 capitalize">Preset: {threeD.physics?.elasticity || 'snappy'}</span>
+                <span className="text-stone-400">|</span>
+                <span>Pop: {threeD.physics?.hoverPop ?? 12}px</span>
+                <span className="text-stone-400">|</span>
+                <span>Depress: {threeD.physics?.clickDepression ?? 6}px</span>
+              </div>
+            </div>
+          )}
+
+          {/* 11. Dedicated Exploded CAD 3D Preview */}
+          {currentTab === 'exploded' && (
+            <div
+              data-testid="exploded-cad-preview"
+              className="flex flex-col items-center justify-center p-6 w-full h-full min-h-[260px] relative select-none"
+            >
+              <div className="absolute top-2 left-3 flex items-center gap-1.5 text-[11px] font-mono font-bold text-cyan-500 uppercase tracking-wider">
+                <Layers className="w-3.5 h-3.5" />
+                <span>Exploded CAD Disassembly</span>
+              </div>
+              <ExplodedCADLayerVisual
+                isExploded={Boolean(threeD.exploded?.enabled || (threeD.exploded?.separationDistance > 0))}
+                isBlueprint={Boolean(threeD.exploded?.blueprintMode)}
+                className="scale-125 my-4"
+              />
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-stone-100/90 dark:bg-stone-800/90 border border-stone-200 dark:border-stone-700 text-[11px] font-mono font-bold text-stone-700 dark:text-stone-200 shadow-xs">
+                <span className="text-cyan-500">Z-Sep: +{threeD.exploded?.separationDistance ?? 40}mm</span>
+                <span className="text-stone-400">|</span>
+                <span>Blueprint: {threeD.exploded?.blueprintMode ? 'ACTIVE' : 'OFF'}</span>
+              </div>
+            </div>
           )}
         </SandboxViewportContainer>
       </div>

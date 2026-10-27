@@ -91,7 +91,7 @@ export const FACTORY_DEFAULTS = {
     depthIntensity: 1.0, // slider 0.2 to 2.5
     stylePreset: 'subtle', // 'subtle' | 'isometric' | 'deep'
     masterTheme: 'apple-glass', // 'apple-glass' | 'cyber-neon' | 'studio-matte' | 'floating-hologram'
-    showSandboxPreview: true, // boolean toggle for mini 3D preview card
+    showSandboxPreview: false, // boolean toggle for mini 3D preview card (default hidden)
     tabUI3DMode: true, // true = CPC 3D Tab in 100% Pure 3D Zero-Text Mode, false = Classic 2D Text Mode
     isVisualOnly: true, // alias for tabUI3DMode
     clusterFilter: 'all', // 'all' | 'design' | 'physics' | 'system'
@@ -903,7 +903,7 @@ export function loadSavedControlCenterConfig() {
             depthIntensity: clampDepthIntensity(threeDRaw.depthIntensity ?? FACTORY_DEFAULTS.threeD.depthIntensity),
             stylePreset: normalizeStylePreset(threeDRaw.stylePreset ?? FACTORY_DEFAULTS.threeD.stylePreset),
             masterTheme: normalize3DMasterTheme(threeDRaw.masterTheme ?? FACTORY_DEFAULTS.threeD.masterTheme),
-            showSandboxPreview: typeof threeDRaw.showSandboxPreview === 'boolean' ? threeDRaw.showSandboxPreview : FACTORY_DEFAULTS.threeD.showSandboxPreview,
+            showSandboxPreview: false, // Always starts collapsed on initial mount / page load per user requirement
             clusterFilter: normalize3DClusterFilter(threeDRaw.clusterFilter),
             elements: normalizeThreeDElements(threeDRaw.elements),
             lighting: normalize3DLighting(threeDRaw.lighting),
@@ -1338,10 +1338,12 @@ export function LabProvider({ children, initialSoundEnabled }) {
 
   // Tab 6: 3D State
   const [threeD, setThreeDState] = useState(() => {
-    if (initialConfig.threeD) {
-      return normalizeThreeD(initialConfig.threeD);
-    }
-    return JSON.parse(JSON.stringify(FACTORY_DEFAULTS.threeD));
+    const base = initialConfig.threeD
+      ? normalizeThreeD(initialConfig.threeD)
+      : JSON.parse(JSON.stringify(FACTORY_DEFAULTS.threeD));
+    // Always start collapsed/hidden on initial mount / fresh session per user requirement
+    base.showSandboxPreview = false;
+    return base;
   });
 
   // Phase 1: State Isolation & Scoped CSS 3D Architecture
@@ -2163,20 +2165,31 @@ export function LabProvider({ children, initialSoundEnabled }) {
     }));
   }, []);
 
-  // Phase 2: 3D Compact Visual vs Text Detailed View Mode Toggle
-  const set3DVisualMode = useCallback((isVisual) => {
-    setThreeDState((prev) => ({
-      ...prev,
-      isVisualOnly: Boolean(isVisual)
-    }));
+  // Master 3D Tab UI Mode Toggle (Pure 3D Zero-Text vs Classic 2D Text)
+  const setTabUI3DMode = useCallback((isVisual) => {
+    setThreeDState((prev) => {
+      const val = typeof isVisual === 'function' ? Boolean(isVisual(prev.tabUI3DMode ?? prev.isVisualOnly ?? true)) : Boolean(isVisual);
+      return {
+        ...prev,
+        tabUI3DMode: val,
+        isVisualOnly: val
+      };
+    });
   }, []);
 
-  const toggle3DVisualMode = useCallback(() => {
-    setThreeDState((prev) => ({
-      ...prev,
-      isVisualOnly: !(prev.isVisualOnly ?? true)
-    }));
+  const toggleTabUI3DMode = useCallback(() => {
+    setThreeDState((prev) => {
+      const current = prev.tabUI3DMode ?? prev.isVisualOnly ?? true;
+      return {
+        ...prev,
+        tabUI3DMode: !current,
+        isVisualOnly: !current
+      };
+    });
   }, []);
+
+  const set3DVisualMode = setTabUI3DMode;
+  const toggle3DVisualMode = toggleTabUI3DMode;
 
   const set3DLighting = useCallback((patch) => {
     setThreeDState((prev) => ({
@@ -2858,7 +2871,11 @@ export function LabProvider({ children, initialSoundEnabled }) {
     stylePreset: threeD.stylePreset,
     masterTheme: threeD.masterTheme,
     showSandboxPreview: threeD.showSandboxPreview,
+    tabUI3DMode: threeD.tabUI3DMode ?? threeD.isVisualOnly ?? true,
+    isTab3DModeOn: threeD.tabUI3DMode ?? threeD.isVisualOnly ?? true,
     isVisual3DOnly: threeD.isVisualOnly ?? true,
+    setTabUI3DMode,
+    toggleTabUI3DMode,
     set3DVisualMode,
     toggle3DVisualMode,
     threeDClusterFilter: threeD.clusterFilter,
@@ -3220,7 +3237,11 @@ export function LabProvider({ children, initialSoundEnabled }) {
     stylePreset: threeD.stylePreset,
     masterTheme: threeD.masterTheme,
     showSandboxPreview: threeD.showSandboxPreview,
+    tabUI3DMode: threeD.tabUI3DMode ?? threeD.isVisualOnly ?? true,
+    isTab3DModeOn: threeD.tabUI3DMode ?? threeD.isVisualOnly ?? true,
     isVisual3DOnly: threeD.isVisualOnly ?? true,
+    setTabUI3DMode,
+    toggleTabUI3DMode,
     set3DVisualMode,
     toggle3DVisualMode,
     threeDClusterFilter: threeD.clusterFilter,

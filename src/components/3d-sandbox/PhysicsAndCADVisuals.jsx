@@ -3,33 +3,33 @@ import React from 'react';
 
 /**
  * SpringElasticityVisual
- * Micro 3D spring cylinder displaying the damping and oscillation physics of the elasticity preset.
+ * Prominent 3D kinetic spring cylinder displaying the damping and oscillation physics of the elasticity preset.
  */
 export function SpringElasticityVisual({ presetId = 'rigid', className = '' }) {
   const configs = {
     rigid: {
-      label: '0 OSC',
+      label: '0 OSC (RIGID)',
       barColor: 'bg-stone-500 dark:bg-stone-400',
       springAnimation: '',
-      pistonTransform: 'translateY(0)'
+      glow: ''
     },
     snappy: {
-      label: '1-2 OSC',
+      label: '1-2 OSC (SNAPPY)',
       barColor: 'bg-amber-500',
-      springAnimation: 'animate-pulse duration-300',
-      pistonTransform: 'translateY(-2px)'
+      springAnimation: 'animate-pulse duration-500',
+      glow: 'shadow-[0_0_8px_rgba(245,158,11,0.5)]'
     },
     fluid: {
-      label: 'DAMPED',
+      label: 'DAMPED (FLUID)',
       barColor: 'bg-cyan-500',
       springAnimation: 'animate-bounce duration-1000',
-      pistonTransform: 'translateY(-4px)'
+      glow: 'shadow-[0_0_8px_rgba(6,182,212,0.5)]'
     },
     bouncy: {
-      label: '4+ OSC',
+      label: '4+ OSC (BOUNCY)',
       barColor: 'bg-[#FF4D6D]',
       springAnimation: 'animate-bounce duration-500',
-      pistonTransform: 'translateY(-6px)'
+      glow: 'shadow-[0_0_12px_rgba(255,77,109,0.7)]'
     }
   };
 
@@ -37,28 +37,33 @@ export function SpringElasticityVisual({ presetId = 'rigid', className = '' }) {
 
   return (
     <div
-      className={`w-16 h-11 flex flex-col items-center justify-center select-none pointer-events-none ${className}`}
+      className={`w-24 h-20 sm:w-28 sm:h-24 flex flex-col items-center justify-center select-none pointer-events-none relative ${className}`}
       aria-hidden="true"
     >
-      {/* 3D Piston Head */}
+      {/* 3D Kinetic Piston Head */}
       <div
-        className={`w-7 h-2 rounded-t-sm bg-gradient-to-r from-stone-300 to-stone-400 dark:from-stone-600 dark:to-stone-700 border border-white/60 shadow-xs transition-transform duration-200 ${cfg.springAnimation}`}
-      />
+        className={`w-14 h-4 rounded-t-md bg-gradient-to-r from-stone-200 via-stone-300 to-stone-400 dark:from-stone-500 dark:via-stone-600 dark:to-stone-700 border-2 border-white/70 dark:border-stone-400 shadow-md flex items-center justify-center transition-transform duration-200 ${cfg.springAnimation}`}
+      >
+        <div className="w-8 h-1 rounded-full bg-white/80" />
+      </div>
 
-      {/* Spring Coils */}
-      <div className="w-4 h-5 flex flex-col justify-between items-center py-0.5">
-        <div className={`w-3.5 h-[2px] rounded-full ${cfg.barColor}`} />
-        <div className={`w-4 h-[2px] rounded-full ${cfg.barColor} ml-1`} />
-        <div className={`w-4 h-[2px] rounded-full ${cfg.barColor} -ml-1`} />
-        <div className={`w-3.5 h-[2px] rounded-full ${cfg.barColor}`} />
+      {/* Heavy 3D Spring Coils */}
+      <div className="w-8 h-8 flex flex-col justify-between items-center py-1 relative">
+        <div className={`w-8 h-[3px] rounded-full ${cfg.barColor} ${cfg.glow} shadow-sm`} />
+        <div className={`w-9 h-[3px] rounded-full ${cfg.barColor} ${cfg.glow} ml-1.5 shadow-sm`} />
+        <div className={`w-9 h-[3px] rounded-full ${cfg.barColor} ${cfg.glow} -ml-1.5 shadow-sm`} />
+        <div className={`w-8 h-[3px] rounded-full ${cfg.barColor} ${cfg.glow} shadow-sm`} />
       </div>
 
       {/* 3D Base Pedestal */}
-      <div className="w-8 h-2 rounded-b-sm bg-stone-400 dark:bg-stone-800 border-t border-stone-300 dark:border-stone-700 shadow-xs flex items-center justify-center">
-        <span className="text-[7.5px] font-mono font-bold text-white/90 leading-none">
+      <div className="w-16 h-4 rounded-b-md bg-gradient-to-r from-stone-400 to-stone-500 dark:from-stone-700 dark:to-stone-800 border-t-2 border-stone-300 dark:border-stone-600 shadow-md flex items-center justify-center">
+        <span className="text-[8px] font-mono font-black text-white tracking-wider leading-none">
           {cfg.label}
         </span>
       </div>
+
+      {/* Floor Contact Shadow */}
+      <div className="w-16 h-2 rounded-full bg-black/20 dark:bg-black/50 blur-[2px] mt-0.5" />
     </div>
   );
 }

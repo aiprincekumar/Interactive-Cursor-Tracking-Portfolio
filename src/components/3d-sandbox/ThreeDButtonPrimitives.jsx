@@ -20,6 +20,9 @@ export function ThreeDPresetCard({
   ariaLabel,
   disabled = false,
   isVisualOnly = true,
+  lightingAngle = 45,
+  depthIntensity = 1.0,
+  bevelExtrusion = 3,
   children
 }) {
   const {
@@ -46,6 +49,20 @@ export function ThreeDPresetCard({
   };
 
   const tooltipText = desc ? `${title}: ${desc}` : title;
+  const extrusionPx = Math.max(3, Math.min(8, Math.round(4 * depthIntensity + (bevelExtrusion * 0.4))));
+
+  // Dynamic tactile keycap styles responding live to Lighting Angle & Depth
+  const keycapStyle = isVisualOnly
+    ? {
+        ...tiltStyle,
+        boxShadow: isSelected
+          ? `0 0 24px rgba(255,77,109,0.5), 0 ${extrusionPx}px 0 0 #D93856, 0 ${extrusionPx + 8}px 20px rgba(255,77,109,0.3)`
+          : `0 ${extrusionPx}px 0 0 #C9C2B6, 0 ${extrusionPx + 6}px 18px rgba(0,0,0,0.07)`,
+        background: isSelected
+          ? `linear-gradient(${lightingAngle}deg, rgba(255,77,109,0.22) 0%, rgba(255,77,109,0.06) 100%)`
+          : undefined
+      }
+    : tiltStyle;
 
   return (
     <div
@@ -61,83 +78,85 @@ export function ThreeDPresetCard({
       onMouseLeave={handleMouseLeave}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
-      style={tiltStyle}
+      style={keycapStyle}
       className={`group relative ${
-        isVisualOnly ? 'p-2.5 sm:p-3 min-h-[92px]' : 'p-3 sm:p-3.5 min-h-[125px]'
-      } rounded-2xl text-left flex flex-col justify-between transition-all duration-150 select-none cursor-pointer outline-none ${
+        isVisualOnly
+          ? 'p-2 min-h-[115px] sm:min-h-[128px] flex items-center justify-center'
+          : 'p-3 sm:p-3.5 min-h-[125px] flex flex-col justify-between'
+      } rounded-2xl text-left transition-all duration-150 select-none cursor-pointer outline-none threed-preserve ${
         disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
       } ${
         isSelected
-          ? 'bg-gradient-to-b from-[#FF4D6D]/15 to-[#FF4D6D]/5 dark:from-[#FF4D6D]/25 dark:to-[#FF4D6D]/10 border-2 border-[#FF4D6D] text-[#18181B] dark:text-white ring-2 ring-[#FF4D6D]/30 shadow-[0_4px_0_0_#D93856,0_10px_20px_rgba(255,77,109,0.25)]'
-          : 'bg-gradient-to-b from-white/90 to-stone-50/80 dark:from-[#211833]/90 dark:to-[#171124]/90 border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-[0_4px_0_0_#D1CBC1,0_8px_16px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_0_0_#140D20,0_10px_20px_rgba(0,0,0,0.5)] hover:border-[#FF4D6D]/40'
+          ? isVisualOnly
+            ? 'border-2 border-[#FF4D6D] ring-2 ring-[#FF4D6D]/40 text-[#18181B] dark:text-white'
+            : 'bg-gradient-to-b from-[#FF4D6D]/15 to-[#FF4D6D]/5 dark:from-[#FF4D6D]/25 dark:to-[#FF4D6D]/10 border-2 border-[#FF4D6D] text-[#18181B] dark:text-white ring-2 ring-[#FF4D6D]/30 shadow-[0_4px_0_0_#D93856,0_10px_20px_rgba(255,77,109,0.25)]'
+          : 'bg-gradient-to-b from-white/95 to-stone-50/85 dark:from-[#211833]/90 dark:to-[#171124]/90 border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 hover:border-[#FF4D6D]/40'
       } ${
         isPressed
-          ? 'translate-y-1 shadow-[0_1px_0_0_#D1CBC1,0_2px_4px_rgba(0,0,0,0.08)] dark:shadow-[0_1px_0_0_#140D20,0_2px_4px_rgba(0,0,0,0.4)]'
+          ? 'translate-y-1.5'
           : ''
       } focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 ${className}`}
     >
-      {/* Top Header Row: Icon, Title & Status */}
-      <div className={`flex items-center justify-between w-full ${isVisualOnly ? 'mb-1' : 'mb-2'}`}>
-        <div className="flex items-center gap-2 min-w-0">
-          {Icon && (
-            <div
-              className={`${
-                isVisualOnly
-                  ? 'w-7 h-7 sm:w-8 sm:h-8 rounded-xl shadow-xs ring-1 ring-black/5 dark:ring-white/10'
-                  : 'w-6 h-6 rounded-lg'
-              } flex items-center justify-center shrink-0 transition-transform ${
-                isSelected
-                  ? 'bg-[#FF4D6D] text-white shadow-[0_0_12px_rgba(255,77,109,0.4)]'
-                  : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 group-hover:scale-105'
-              }`}
-            >
-              <Icon className={isVisualOnly ? 'w-4 h-4' : 'w-3.5 h-3.5'} />
-            </div>
-          )}
-          <span
-            className={
-              isVisualOnly
-                ? 'text-[10px] font-mono font-medium tracking-tight uppercase text-stone-400 dark:text-stone-400 truncate max-w-[110px]'
-                : 'text-xs font-bold tracking-tight text-[#18181B] dark:text-white truncate'
-            }
-          >
-            {title}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1.5 shrink-0">
-          {badge && (
-            <span
-              className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border leading-none ${
-                isSelected
-                  ? 'bg-[#FF4D6D]/20 text-[#FF4D6D] border-[#FF4D6D]/40'
-                  : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700'
-              }`}
-            >
-              {badge}
+      {/* 2D Mode: Classic Header Row (Icon, Title, Badge & Check) */}
+      {!isVisualOnly && (
+        <div className="flex items-center justify-between w-full mb-2">
+          <div className="flex items-center gap-2 min-w-0">
+            {Icon && (
+              <div
+                className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-transform ${
+                  isSelected
+                    ? 'bg-[#FF4D6D] text-white shadow-[0_0_14px_rgba(255,77,109,0.5)]'
+                    : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 group-hover:scale-105'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+              </div>
+            )}
+            <span className="text-xs font-bold tracking-tight text-[#18181B] dark:text-white truncate">
+              {title}
             </span>
-          )}
-          {isSelected && (
-            <div className="w-4 h-4 rounded-full bg-[#FF4D6D] text-white flex items-center justify-center shadow-xs">
-              <Check className="w-2.5 h-2.5 stroke-[3]" />
-            </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* 3D Self-Explanatory Visual Preview Center Stage */}
-      {visualPreview && (
-        <div className={`my-1 py-1.5 flex items-center justify-center bg-stone-100/50 dark:bg-[#150F22]/60 rounded-xl border border-stone-200/50 dark:border-stone-800/60 overflow-hidden relative threed-preserve ${
-          isVisualOnly ? 'min-h-[58px]' : 'min-h-[52px]'
-        }`}>
-          {visualPreview}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {badge && (
+              <span
+                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border leading-none ${
+                  isSelected
+                    ? 'bg-[#FF4D6D]/20 text-[#FF4D6D] border-[#FF4D6D]/40'
+                    : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700'
+                }`}
+              >
+                {badge}
+              </span>
+            )}
+            {isSelected && (
+              <div className="w-4 h-4 rounded-full bg-[#FF4D6D] text-white flex items-center justify-center shadow-xs">
+                <Check className="w-2.5 h-2.5 stroke-[3]" />
+              </div>
+            )}
+          </div>
         </div>
+      )}
+
+      {/* 3D Visual Center Stage:
+          In 3D Mode (isVisualOnly): Fills the entire button without nested boxes, pills, or text.
+          In 2D Mode: Contained in an inner preview pill. */}
+      {visualPreview && (
+        isVisualOnly ? (
+          <div className="w-full h-full flex items-center justify-center overflow-hidden relative threed-preserve pointer-events-none select-none">
+            {visualPreview}
+          </div>
+        ) : (
+          <div className="my-1 py-1.5 flex items-center justify-center bg-stone-100/50 dark:bg-[#150F22]/60 rounded-xl border border-stone-200/50 dark:border-stone-800/60 overflow-hidden relative threed-preserve min-h-[52px]">
+            {visualPreview}
+          </div>
+        )
       )}
 
       {/* Supplementary children slot */}
       {children}
 
-      {/* Bottom Description - Strictly suppressed in 3D Compact Visual Mode */}
+      {/* Bottom Description - Strictly suppressed in 3D Mode */}
       {!isVisualOnly && desc && (
         <p className="text-[10.5px] text-stone-500 dark:text-stone-400 leading-snug line-clamp-2 mt-1">
           {desc}
@@ -167,7 +186,8 @@ export function ThreeDActionKeycap({
   className = '',
   title,
   ariaLabel,
-  disabled = false
+  disabled = false,
+  isVisualOnly = false
 }) {
   const variantStyles = {
     default: active
@@ -187,12 +207,14 @@ export function ThreeDActionKeycap({
       aria-label={ariaLabel || label}
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-100 cursor-pointer select-none active:translate-y-[2px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] ${
+      className={`inline-flex items-center justify-center gap-1.5 ${
+        isVisualOnly ? 'p-2 sm:p-2.5 rounded-xl' : 'px-3 py-1.5 rounded-xl text-xs font-semibold'
+      } border transition-all duration-100 cursor-pointer select-none active:translate-y-[2px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] ${
         disabled ? 'opacity-50 cursor-not-allowed' : ''
       } ${variantStyles[variant] || variantStyles.default} ${className}`}
     >
-      {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
-      {label && <span>{label}</span>}
+      {Icon && <Icon className={isVisualOnly ? 'w-4.5 h-4.5 shrink-0' : 'w-3.5 h-3.5 shrink-0'} />}
+      {!isVisualOnly && label && <span>{label}</span>}
     </button>
   );
 }
@@ -240,26 +262,28 @@ export function ThreeDToggleKey({
         {Icon && (
           <div
             className={`${
-              isVisualOnly ? 'w-8 h-8 rounded-xl ring-1 ring-black/5 dark:ring-white/10' : 'w-7 h-7 rounded-lg'
+              isVisualOnly ? 'w-9 h-9 sm:w-10 sm:h-10 rounded-xl ring-1 ring-black/5 dark:ring-white/10' : 'w-7 h-7 rounded-lg'
             } flex items-center justify-center shrink-0 transition-transform ${
               checked
-                ? 'bg-[#FF4D6D] text-white shadow-[0_0_10px_rgba(255,77,109,0.4)]'
+                ? 'bg-[#FF4D6D] text-white shadow-[0_0_12px_rgba(255,77,109,0.45)]'
                 : 'bg-stone-100 dark:bg-stone-800 text-stone-400 group-hover:scale-105'
             }`}
           >
-            <Icon className={isVisualOnly ? 'w-4 h-4' : 'w-3.5 h-3.5'} />
+            <Icon className={isVisualOnly ? 'w-5 h-5' : 'w-3.5 h-3.5'} />
           </div>
         )}
-        <div className="min-w-0">
-          <div className="text-xs font-bold truncate text-[#18181B] dark:text-white">
-            {label}
-          </div>
-          {!isVisualOnly && sublabel && (
-            <div className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
-              {sublabel}
+        {!isVisualOnly && (
+          <div className="min-w-0">
+            <div className="text-xs font-bold truncate text-[#18181B] dark:text-white">
+              {label}
             </div>
-          )}
-        </div>
+            {sublabel && (
+              <div className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
+                {sublabel}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div

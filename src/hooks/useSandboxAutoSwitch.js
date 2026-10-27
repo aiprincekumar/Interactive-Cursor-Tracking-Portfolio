@@ -5,7 +5,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
  * and their corresponding 3D sandbox preview tabs.
  */
 export const ACCORDION_TO_PREVIEW_MAP = {
-  // 9 Core 3D Settings Accordions
+  // 9 Core 3D Settings Accordions mapped to dedicated live preview stages
   elements: 'showcase',
   lighting: 'hero',
   camera: 'universal',
@@ -13,7 +13,7 @@ export const ACCORDION_TO_PREVIEW_MAP = {
   physics: 'dock',
   exploded: 'hero',
   environment: 'universal',
-  spatialAudio: 'hero',
+  spatialAudio: 'universal',
   performance: 'universal',
 
   // Direct element toggles & aliases

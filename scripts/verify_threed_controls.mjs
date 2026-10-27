@@ -371,7 +371,7 @@ runTest('loadSavedControlCenterConfig returns clean threeD slice on default envi
   assert.strictEqual(config.threeD.depthIntensity, 1.0);
   assert.strictEqual(config.threeD.stylePreset, 'subtle');
   assert.strictEqual(config.threeD.masterTheme, 'apple-glass');
-  assert.strictEqual(config.threeD.showSandboxPreview, true);
+  assert.strictEqual(config.threeD.showSandboxPreview, false);
   assert.strictEqual(Object.keys(config.threeD.elements).length, 10);
   assert.strictEqual(config.threeD.lighting.preset, 'studio-soft');
   assert.strictEqual(config.threeD.lighting.angle, 45);

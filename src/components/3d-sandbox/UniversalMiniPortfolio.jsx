@@ -270,7 +270,7 @@ export function UniversalMiniPortfolio({
       {/* Main Sandbox Viewport Container */}
       <SandboxViewportContainer
         perspective={camera.perspectiveFOV || 1000}
-        className={`w-full min-h-[360px] sm:h-96 rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] relative flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none shadow-inner transition-colors duration-500 ${
+        className={`w-full min-h-[560px] sm:h-[600px] rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] relative flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none shadow-inner transition-colors duration-500 ${
           isWireframe ? 'bg-cyan-950/40' : ''
         }`}
         style={{

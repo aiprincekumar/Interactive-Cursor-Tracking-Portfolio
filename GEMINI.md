@@ -90,12 +90,12 @@ Every single change to repository files must be logged with full forensic diffs 
     > PowerShell: `powershell -ExecutionPolicy Bypass -File .\scripts\git\git_sync.ps1`
 - **7. Mandatory User Permission & Localhost Verification Gatekeeper (अनिवार्य यूजर अनुमति एवं लोकलहोस्ट सत्यापन गेटकीपर):**
   - **Strict Ban on Autonomous Remote Push (स्वायत्त कमिट/पुश पर पूर्ण प्रतिबंध):** No AI model, Main Agent (CEO), or subagent (`github_operations_specialist`) may autonomously execute `git commit`, `git push`, or `git_sync.ps1` after editing code. Committing or pushing changes to GitHub without prior explicit user permission is strictly prohibited.
-  - **Localhost Preview Verification (लोकलहोस्ट प्रीव्यू व कार्य पूर्णता रिपोर्ट):** Upon completing coding and testing, the AI model must present a 5-point handoff card:
+  - **Localhost Preview Verification & Interactive 1-Click Popup Selection (लोकलहोस्ट प्रीव्यू व इंटरएक्टिव 1-क्लिक पॉपअप चयन):** Upon completing coding, automated testing, and local changes logs, the AI model must present a 5-point handoff card AND **mandatory interactive selection popup (`ask_question` tool)** so the user never has to type manually:
     1. Task Status: Local coding, testing, and local audit logs are complete.
     2. Git Hold Status: All changes are securely preserved locally; Git Commit and Push are on HOLD.
     3. Intelligent Recommendation Badge: Clear indication of whether push is currently recommended or on hold (🟢 `[PUSH RECOMMENDED]` or 🟡 `[HOLD / BATCH RECOMMENDED]`).
     4. Localhost Preview Guidance: Urge user to preview and verify changes on localhost (`npm run dev`) first.
-    5. User Permission Invitation: Push will ONLY occur when the user explicitly provides permission (e.g., 'हाँ', 'OK', 'Do this', 'Proceed', 'Push to GitHub').
+    5. Mandatory Interactive UI Selection (`ask_question` Popup Modal): Must invoke `ask_question` presenting clickable selection options (e.g., `(Recommended) हाँ, GitHub पर कमिट व पुश करो (Proceed with Git Push)`, `नहीं, अभी केवल लोकल रखो (Keep on Local Hold)`, `लोकलहोस्ट पर टेस्ट करने के बाद पुश करूँगा (Will verify on localhost first)`). Remote push will ONLY execute if the user explicitly selects the push option.
   - **Intelligent Push Recommendation Criteria (बुद्धिमान पुश रिकमेंडेशन 4-पॉइंट ऑब्जेक्टिव मैट्रिक्स):**
     - 🟢 **[PUSH RECOMMENDED] (सलाह: GitHub पर पुश करें):**
       (a) Major feature or milestone successfully completed.

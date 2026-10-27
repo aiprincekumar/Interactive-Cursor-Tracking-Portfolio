@@ -416,7 +416,11 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
 
     // 3D Controls
     threeD,
-    isVisual3DOnly,
+    tabUI3DMode,
+    isTab3DModeOn,
+    setTabUI3DMode,
+    toggleTabUI3DMode,
+    isVisual3DOnly: _contextVisual3DOnly,
     set3DVisualMode,
     toggle3DVisualMode,
     setMaster3D,
@@ -781,6 +785,10 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
     performance: { fpsTarget: 60, autoThrottleIdle: true, gpuAcceleration: 'standard', lowPowerThreshold: true }
   };
   const isMaster3DOn = Boolean(threeDConfig.master3D);
+  const isTab3DActive = typeof isTab3DModeOn === 'boolean'
+    ? isTab3DModeOn
+    : (typeof tabUI3DMode === 'boolean' ? tabUI3DMode : (threeDConfig.tabUI3DMode ?? threeDConfig.isVisualOnly ?? true));
+  const isVisual3DOnly = isTab3DActive;
   const current3DElements = threeDConfig.elements || {};
   const active3DCount = Object.values(current3DElements).filter(Boolean).length;
   const currentMasterTheme = threeDConfig.masterTheme || 'apple-glass';
@@ -790,6 +798,8 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
   const camera = threeDConfig.camera || { anglePreset: 'isometric', perspectiveFOV: 1000, tiltSensitivity: 15, autoOrbit: false, orbitSpeed: 1.0 };
   const materials = threeDConfig.materials || { preset: 'glass-acrylic', specularGlow: 0.6, bevelExtrusion: 3 };
   const physics = threeDConfig.physics || { hoverPop: 12, clickDepression: true, elasticity: 'snappy', magneticPull: false };
+  const depthIntensity = threeDConfig.depthIntensity ?? 1.0;
+  const stylePreset = threeDConfig.stylePreset || 'subtle';
   const exploded = threeDConfig.exploded || { enabled: false, separationDistance: 45, blueprintMode: false, layerStagger: 15, ghostOpacity: 0.4 };
   const environment = threeDConfig.environment || { skybox: 'dark-studio', fogDensity: 30, stardustParticles: true, particleCount: 50, depthOfFieldBlur: 0 };
   const spatialAudio = threeDConfig.spatialAudio || { binauralPanning: true, roomSize: 'studio', reverbIntensity: 0.5, materialHaptics: true, dopplerShift: false };
@@ -2186,6 +2196,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
           id="panel-threed"
           aria-labelledby="tab-threed"
           tabIndex={0}
+          style={{
+            '--3d-lighting-angle': `${lighting?.angle ?? 45}deg`,
+            '--3d-depth-intensity': `${depthIntensity ?? 1.0}`,
+            '--3d-materials-bevel': `${materials?.bevelExtrusion ?? 3}px`,
+            '--3d-specular-glow': `${materials?.specularGlow ?? 0.6}`
+          }}
           className="flex flex-col gap-6 focus:outline-none animate-fadeIn"
         >
           {/* 3D Studio Architecture & State Isolation Bar (Phase 1) */}
@@ -2233,6 +2249,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 variant={isLive3DApplied ? 'emerald' : 'default'}
                 active={isLive3DApplied}
                 ariaLabel={isLive3DApplied ? 'Revert live portfolio 3D' : 'Apply 3D settings to live portfolio'}
+                isVisualOnly={isTab3DActive}
               />
 
               <ThreeDActionKeycap
@@ -2244,6 +2261,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 label="Reset Sandbox"
                 variant="default"
                 ariaLabel="Reset Sandbox to defaults"
+                isVisualOnly={isTab3DActive}
               />
             </div>
           </div>
@@ -2278,10 +2296,16 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                   setShow3DSandbox(!showSandboxPreview);
                   if (soundEnabled) soundFX.playHapticClick();
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white/80 dark:bg-stone-800/80 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 ${
+                  showSandboxPreview
+                    ? 'bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-600'
+                    : 'bg-gradient-to-r from-cyan-500/15 via-[#FF4D6D]/15 to-purple-500/15 hover:from-cyan-500/25 hover:to-purple-500/25 text-[#18181B] dark:text-white border-cyan-500/40 shadow-cyan-500/10'
+                }`}
+                title={showSandboxPreview ? 'Hide Sandbox Viewport' : 'Show 3D Sandbox (Unhide)'}
+                aria-label={showSandboxPreview ? 'Hide Sandbox' : 'Show Sandbox'}
               >
-                {showSandboxPreview ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                <span>{showSandboxPreview ? 'Hide Sandbox' : 'Show Sandbox'}</span>
+                {showSandboxPreview ? <EyeOff className="w-4 h-4 text-stone-500" /> : <Eye className="w-4 h-4 text-cyan-500 animate-pulse" />}
+                <span>{showSandboxPreview ? 'Hide Sandbox' : 'Show 3D Sandbox (Unhide)'}</span>
               </button>
             </div>
 
@@ -2398,6 +2422,65 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             )}
 
             <div className={isDrawer ? "flex flex-col gap-4" : "lg:col-span-7 xl:col-span-7 flex flex-col gap-4"}>
+            {/* 0. Dedicated Master 3D Tab UI Mode Hero Card (Governs CPC Tab 3D Zero-Text vs 2D Text Mode) */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#FF4D6D]/10 via-white/95 to-[#FF4D6D]/5 dark:from-[#FF4D6D]/15 dark:via-[#181226]/95 dark:to-[#2A162B] border-2 border-[#FF4D6D]/40 shadow-md shadow-[#FF4D6D]/10 flex flex-col gap-3 transition-all duration-300">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <h4 className="text-base sm:text-lg font-black text-[#18181B] dark:text-white flex items-center gap-2 tracking-tight">
+                      <Sparkles className="w-5 h-5 text-[#FF4D6D] animate-pulse" />
+                      <span>Master 3D Tab UI Mode</span>
+                    </h4>
+                    <span
+                      className={`text-[11px] font-black px-2.5 py-0.5 rounded-full border transition-all ${
+                        isTab3DActive
+                          ? 'bg-[#FF4D6D] text-white border-[#FF4D6D] shadow-sm shadow-[#FF4D6D]/40'
+                          : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-300 dark:border-stone-700'
+                      }`}
+                    >
+                      {isTab3DActive ? '3D Visual Active (Zero-Text)' : 'Classic 2D Text Active'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed font-medium">
+                    {isTab3DActive
+                      ? 'Pure 3D Mode: All buttons transformed into self-explanatory, clutter-free 3D visual keys (Zero-Text, glowing neon icons & tactile previews).'
+                      : 'Classic 2D Mode: Buttons display full readable titles, explanatory descriptions, and flat 2D layout.'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                  <span className="text-xs font-bold text-stone-700 dark:text-stone-200">
+                    {isTab3DActive ? '3D Pure' : '2D Text'}
+                  </span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isTab3DActive}
+                    aria-label="Master 3D Tab UI Mode Toggle"
+                    onClick={() => {
+                      if (typeof toggleTabUI3DMode === 'function') {
+                        toggleTabUI3DMode();
+                      } else if (typeof toggle3DVisualMode === 'function') {
+                        toggle3DVisualMode();
+                      } else if (typeof setTabUI3DMode === 'function') {
+                        setTabUI3DMode(!isTab3DActive);
+                      }
+                      if (soundEnabled) soundFX.playShutterClick();
+                    }}
+                    className={`w-14 h-8 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/50 shadow-inner ${
+                      isTab3DActive ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
+                    }`}
+                  >
+                    <span
+                      className={`block w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                        isTab3DActive ? 'translate-x-7' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+
     {/* 1. Master 3D Control & Global Theme Card */}
           <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -2454,6 +2537,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 label="Enable All 3D"
                 variant="primary"
                 ariaLabel="Enable 3D on all portfolio elements"
+                isVisualOnly={isTab3DActive}
               />
 
               <ThreeDActionKeycap
@@ -2465,6 +2549,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 label="Disable All 2D"
                 variant="default"
                 ariaLabel="Revert all elements to 2D flat mode"
+                isVisualOnly={isTab3DActive}
               />
 
               <ThreeDActionKeycap
@@ -2476,6 +2561,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 label="Reset Defaults"
                 variant="default"
                 ariaLabel="Reset 3D settings to defaults"
+                isVisualOnly={isTab3DActive}
               />
 
               <div className="ml-auto flex items-center gap-2.5">
@@ -2555,6 +2641,9 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                       key={th.id}
                       isSelected={isSelected}
                       isVisualOnly={isVisual3DOnly}
+                      lightingAngle={lighting?.angle ?? 45}
+                      depthIntensity={depthIntensity ?? 1.0}
+                      bevelExtrusion={materials?.bevelExtrusion ?? 3}
                       onClick={() => {
                         set3DTheme(th.id);
                         if (soundEnabled) soundFX.playLaserFocus();
@@ -2563,7 +2652,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                       desc={th.desc}
                       badge={th.badge}
                       icon={Icon}
-                      visualPreview={<ThemeExtrudedSlab themeId={th.id} />}
+                      visualPreview={
+                        <ThemeExtrudedSlab
+                          themeId={th.id}
+                          lightingAngle={lighting?.angle ?? 45}
+                          depthIntensity={depthIntensity ?? 1.0}
+                          bevelExtrusion={materials?.bevelExtrusion ?? 3}
+                        />
+                      }
                     />
                   );
                 })}
@@ -2722,24 +2818,26 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                   >
                                     <div className="flex items-center gap-2.5 min-w-0">
                                       <div className={`${
-                                        isVisual3DOnly ? 'w-8 h-8 rounded-xl ring-1 ring-black/5 dark:ring-white/10' : 'w-7 h-7 rounded-lg'
+                                        isVisual3DOnly ? 'w-9 h-9 sm:w-10 sm:h-10 rounded-xl ring-1 ring-black/5 dark:ring-white/10' : 'w-7 h-7 rounded-lg'
                                       } flex items-center justify-center shrink-0 transition-transform ${
                                         isItemOn
-                                          ? 'bg-[#FF4D6D] text-white shadow-[0_0_10px_rgba(255,77,109,0.4)]'
+                                          ? 'bg-[#FF4D6D] text-white shadow-[0_0_12px_rgba(255,77,109,0.45)]'
                                           : 'bg-stone-100 dark:bg-stone-800 text-stone-400'
                                       }`}>
-                                        <ItemIcon className={isVisual3DOnly ? 'w-4 h-4' : 'w-3.5 h-3.5'} />
+                                        <ItemIcon className={isVisual3DOnly ? 'w-5 h-5' : 'w-3.5 h-3.5'} />
                                       </div>
-                                      <div className="min-w-0">
-                                        <div className={`text-xs font-bold truncate ${isVisual3DOnly ? 'tracking-tight' : ''}`}>
-                                          {item.title}
-                                        </div>
-                                        {!isVisual3DOnly && item.desc && (
-                                          <div className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
-                                            {item.desc}
+                                      {!isVisual3DOnly && (
+                                        <div className="min-w-0">
+                                          <div className="text-xs font-bold truncate">
+                                            {item.title}
                                           </div>
-                                        )}
-                                      </div>
+                                          {!isVisual3DOnly && item.desc && (
+                                            <div className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
+                                              {item.desc}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
                                     </div>
 
                                     <div className="flex items-center gap-2 shrink-0">
@@ -2841,6 +2939,9 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               key={lp.id}
                               isSelected={isSelected}
                               isVisualOnly={isVisual3DOnly}
+                              lightingAngle={lighting?.angle ?? 45}
+                              depthIntensity={depthIntensity ?? 1.0}
+                              bevelExtrusion={materials?.bevelExtrusion ?? 3}
                               onClick={() => {
                                 set3DLightingPreset(lp.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
@@ -2848,7 +2949,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               title={lp.name}
                               desc={lp.desc}
                               icon={Icon}
-                              visualPreview={<LightingVectorPreview presetId={lp.id} />}
+                              visualPreview={
+                                <LightingVectorPreview
+                                  presetId={lp.id}
+                                  lightingAngle={lighting?.angle ?? 45}
+                                />
+                              }
                             />
                           );
                         })}
@@ -3029,6 +3135,9 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               key={cp.id}
                               isSelected={isSelected}
                               isVisualOnly={isVisual3DOnly}
+                              lightingAngle={lighting?.angle ?? 45}
+                              depthIntensity={depthIntensity ?? 1.0}
+                              bevelExtrusion={materials?.bevelExtrusion ?? 3}
                               onClick={() => {
                                 set3DCameraAnglePreset(cp.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
@@ -3226,6 +3335,8 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               type="button"
                               role="radio"
                               aria-checked={isSelected}
+                              title={`${preset.name}: ${preset.desc}`}
+                              aria-label={`${preset.name}: ${preset.desc}`}
                               onClick={() => {
                                 set3DStylePreset(preset.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
@@ -3252,14 +3363,20 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                 )}
                               </div>
 
-                              <div>
-                                <div className="text-xs font-bold text-[#18181B] dark:text-white">
-                                  {preset.name}
+                              {!isTab3DActive ? (
+                                <div>
+                                  <div className="text-xs font-bold text-[#18181B] dark:text-white">
+                                    {preset.name}
+                                  </div>
+                                  <div className="text-[11px] text-stone-500 dark:text-stone-400 mt-1 leading-snug">
+                                    {preset.desc}
+                                  </div>
                                 </div>
-                                <div className="text-[11px] text-stone-500 dark:text-stone-400 mt-1 leading-snug">
-                                  {preset.desc}
+                              ) : (
+                                <div className="py-1 flex items-center justify-center">
+                                  <Box className={`w-6 h-6 transition-transform ${isSelected ? 'text-[#FF4D6D] scale-110' : 'text-stone-400'}`} />
                                 </div>
-                              </div>
+                              )}
                             </button>
                           );
                         })}
@@ -3324,6 +3441,9 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               key={mat.id}
                               isSelected={isSelected}
                               isVisualOnly={isVisual3DOnly}
+                              lightingAngle={lighting?.angle ?? 45}
+                              depthIntensity={depthIntensity ?? 1.0}
+                              bevelExtrusion={materials?.bevelExtrusion ?? 3}
                               onClick={() => {
                                 set3DMaterialPreset(mat.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
@@ -3331,7 +3451,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               title={mat.name}
                               desc={mat.desc}
                               icon={Cuboid}
-                              visualPreview={<MaterialShaderSphere materialId={mat.id} />}
+                              visualPreview={
+                                <MaterialShaderSphere
+                                  materialId={mat.id}
+                                  lightingAngle={lighting?.angle ?? 45}
+                                  specularGlow={materials?.specularGlow ?? 0.6}
+                                  bevelExtrusion={materials?.bevelExtrusion ?? 3}
+                                />
+                              }
                             />
                           );
                         })}
@@ -3485,6 +3612,9 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               key={ep.id}
                               isSelected={isSelected}
                               isVisualOnly={isVisual3DOnly}
+                              lightingAngle={lighting?.angle ?? 45}
+                              depthIntensity={depthIntensity ?? 1.0}
+                              bevelExtrusion={materials?.bevelExtrusion ?? 3}
                               onClick={() => {
                                 set3DElasticity(ep.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
@@ -3633,6 +3763,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                           variant={exploded.enabled ? 'primary' : 'default'}
                           active={exploded.enabled}
                           ariaLabel="Toggle 3D Layer Explosion"
+                          isVisualOnly={isTab3DActive}
                         />
                         <ThreeDActionKeycap
                           onClick={() => {
@@ -3644,6 +3775,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                           variant={exploded.blueprintMode ? 'primary' : 'default'}
                           active={exploded.blueprintMode}
                           ariaLabel="Toggle CAD Wireframe"
+                          isVisualOnly={isTab3DActive}
                         />
                       </div>
                     </div>
