@@ -56,6 +56,7 @@ Upon starting any new session or task, the incoming AI Agent MUST immediately lo
 ### 2.2 Autonomous Forward Momentum (Universal Rule 7)
 - Proceed autonomously without interrupting the user for routine confirmations (file creation, dependency checks, git logging, test runs).
 - Maintain forward momentum until the objective is completely fulfilled, verified, and logged.
+- **Unconditional Exemption for Remote Git & GitHub Operations (रिमोट गिट/गिटहब संचालन पर पूर्ण अपवाद):** Autonomous execution is strictly confined to local file creation, code editing, automated test execution, and local changes logging. Git Commit and Remote GitHub Push are 100% exempt from autonomous execution. Making any git commit or push to GitHub without prior explicit user permission is strictly prohibited and constitutes a critical protocol violation.
 
 ### 2.3 Changes Log Management (Universal Rule 6)
 Every single change to repository files must be logged with full forensic diffs across:
@@ -87,6 +88,27 @@ Every single change to repository files must be logged with full forensic diffs 
   - **यूजर द्वारा टर्मिनल में 1-क्लिक डायरेक्ट निष्पादन (Direct 1-Click Manual Execution by User):**
     > Windows CMD / Terminal: `.\scripts\git\git_sync.bat`  
     > PowerShell: `powershell -ExecutionPolicy Bypass -File .\scripts\git\git_sync.ps1`
+- **7. Mandatory User Permission & Localhost Verification Gatekeeper (अनिवार्य यूजर अनुमति एवं लोकलहोस्ट सत्यापन गेटकीपर):**
+  - **Strict Ban on Autonomous Remote Push (स्वायत्त कमिट/पुश पर पूर्ण प्रतिबंध):** No AI model, Main Agent (CEO), or subagent (`github_operations_specialist`) may autonomously execute `git commit`, `git push`, or `git_sync.ps1` after editing code. Committing or pushing changes to GitHub without prior explicit user permission is strictly prohibited.
+  - **Localhost Preview Verification (लोकलहोस्ट प्रीव्यू व कार्य पूर्णता रिपोर्ट):** Upon completing coding and testing, the AI model must present a 5-point handoff card:
+    1. Task Status: Local coding, testing, and local audit logs are complete.
+    2. Git Hold Status: All changes are securely preserved locally; Git Commit and Push are on HOLD.
+    3. Intelligent Recommendation Badge: Clear indication of whether push is currently recommended or on hold (🟢 `[PUSH RECOMMENDED]` or 🟡 `[HOLD / BATCH RECOMMENDED]`).
+    4. Localhost Preview Guidance: Urge user to preview and verify changes on localhost (`npm run dev`) first.
+    5. User Permission Invitation: Push will ONLY occur when the user explicitly provides permission (e.g., 'हाँ', 'OK', 'Do this', 'Proceed', 'Push to GitHub').
+  - **Intelligent Push Recommendation Criteria (बुद्धिमान पुश रिकमेंडेशन 4-पॉइंट ऑब्जेक्टिव मैट्रिक्स):**
+    - 🟢 **[PUSH RECOMMENDED] (सलाह: GitHub पर पुश करें):**
+      (a) Major feature or milestone successfully completed.
+      (b) Critical bug resolved restoring system stability.
+      (c) Session wrap-up or end-of-day handoff to secure progress.
+      (d) All test suites passing (Grade A+) creating a stable release checkpoint.
+    - 🟡 **[HOLD / BATCH RECOMMENDED] (सलाह: अभी केवल लोकल रखें / बैच करें):**
+      (a) Minor cosmetic, 1-line CSS, padding, text, or typo tweak.
+      (b) In-flight intermediate phase of a multi-phase task.
+      (c) Ephemeral sandbox or experiment underway in `vibe_coding_temp/`.
+      (d) Until the user runs and verifies the changes on localhost.
+    - **Why Rate-Limiting & Quality Control (औचित्य):** Frequent pushes for minor edits clutter GitHub commit history, create unwanted network/API overhead, and burn through monthly CI/CD and rate limits unnecessarily.
+  - **Specialist Hard-Lock (`github_operations_specialist` Hard-Lock):** The `github_operations_specialist` subagent must NEVER be invoked without explicit user permission, nor may any git sync script be executed autonomously.
 
 ### 2.5 Git Metadata Standard (Universal Rule 16)
 - **Git Author Name:** `aiprincekumar`
