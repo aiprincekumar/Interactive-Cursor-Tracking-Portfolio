@@ -2422,36 +2422,69 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             )}
 
             <div className={isDrawer ? "flex flex-col gap-4" : "lg:col-span-7 xl:col-span-7 flex flex-col gap-4"}>
-            {/* 0. Dedicated Master 3D Tab UI Mode Hero Card (Governs CPC Tab 3D Zero-Text vs 2D Text Mode) */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#FF4D6D]/10 via-white/95 to-[#FF4D6D]/5 dark:from-[#FF4D6D]/15 dark:via-[#181226]/95 dark:to-[#2A162B] border-2 border-[#FF4D6D]/40 shadow-md shadow-[#FF4D6D]/10 flex flex-col gap-3 transition-all duration-300">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <h4 className="text-base sm:text-lg font-black text-[#18181B] dark:text-white flex items-center gap-2 tracking-tight">
-                      <Sparkles className="w-5 h-5 text-[#FF4D6D] animate-pulse" />
-                      <span>Master 3D Tab UI Mode</span>
-                    </h4>
+              {/* TOP MASTER TOGGLES ROW (2 Columns in Desktop mode, No extra scrolling needed) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                {/* Column 1: Master 3D Mode (World/Portfolio 3D) */}
+                <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex items-center justify-between gap-3 transition-all hover:border-[#FF4D6D]/30 min-h-[52px]">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Box className="w-4 h-4 text-[#FF4D6D] shrink-0" />
+                      <h4 className="text-xs sm:text-sm font-bold text-[#18181B] dark:text-white truncate" title="Master 3D Mode">
+                        <span>Master 3D Mode</span>
+                      </h4>
+                    </div>
                     <span
-                      className={`text-[11px] font-black px-2.5 py-0.5 rounded-full border transition-all ${
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 transition-all ${
+                        isMaster3DOn
+                          ? 'bg-[#FF4D6D]/15 text-[#FF4D6D] border-[#FF4D6D]/30'
+                          : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                      }`}
+                    >
+                      {isMaster3DOn ? '3D Active' : 'Classic 2D'}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isMaster3DOn}
+                    aria-label="Master 3D Mode Toggle"
+                    onClick={() => {
+                      setMaster3D(!isMaster3DOn);
+                      if (soundEnabled) soundFX.playShutterClick();
+                    }}
+                    className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/40 shrink-0 self-center ${
+                      isMaster3DOn ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
+                    }`}
+                  >
+                    <span
+                      className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                        isMaster3DOn ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Column 2: Master 3D Tab UI Mode (Zero-Text Visuals vs 2D Text) */}
+                <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#FF4D6D]/10 via-white/95 to-[#FF4D6D]/5 dark:from-[#FF4D6D]/15 dark:via-[#181226]/95 dark:to-[#2A162B] border-2 border-[#FF4D6D]/40 shadow-xs flex items-center justify-between gap-3 transition-all hover:border-[#FF4D6D]/60 min-h-[52px]">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Sparkles className="w-4 h-4 text-[#FF4D6D] shrink-0 animate-pulse" />
+                      <h4 className="text-xs sm:text-sm font-bold text-[#18181B] dark:text-white truncate" title="3D Visual Keycaps">
+                        <span>3D Visual Keycaps</span>
+                      </h4>
+                    </div>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 transition-all ${
                         isTab3DActive
-                          ? 'bg-[#FF4D6D] text-white border-[#FF4D6D] shadow-sm shadow-[#FF4D6D]/40'
+                          ? 'bg-[#FF4D6D] text-white border-[#FF4D6D] shadow-xs'
                           : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-300 dark:border-stone-700'
                       }`}
                     >
-                      {isTab3DActive ? '3D Visual Active (Zero-Text)' : 'Classic 2D Text Active'}
+                      {isTab3DActive ? 'Visual 3D' : 'Classic 2D'}
                     </span>
                   </div>
-                  <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed font-medium">
-                    {isTab3DActive
-                      ? 'Pure 3D Mode: All buttons transformed into self-explanatory, clutter-free 3D visual keys (Zero-Text, glowing neon icons & tactile previews).'
-                      : 'Classic 2D Mode: Buttons display full readable titles, explanatory descriptions, and flat 2D layout.'}
-                  </p>
-                </div>
 
-                <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
-                  <span className="text-xs font-bold text-stone-700 dark:text-stone-200">
-                    {isTab3DActive ? '3D Pure' : '2D Text'}
-                  </span>
                   <button
                     type="button"
                     role="switch"
@@ -2467,64 +2500,21 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                       }
                       if (soundEnabled) soundFX.playShutterClick();
                     }}
-                    className={`w-14 h-8 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/50 shadow-inner ${
+                    className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/50 shadow-inner shrink-0 self-center ${
                       isTab3DActive ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
                     }`}
                   >
                     <span
-                      className={`block w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                        isTab3DActive ? 'translate-x-7' : 'translate-x-1'
+                      className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                        isTab3DActive ? 'translate-x-6' : 'translate-x-1'
                       }`}
                     />
                   </button>
                 </div>
               </div>
-            </div>
 
-    {/* 1. Master 3D Control & Global Theme Card */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="text-base font-bold text-[#18181B] dark:text-white flex items-center gap-2">
-                    <Box className="w-5 h-5 text-[#FF4D6D]" />
-                    <span>Master 3D Mode</span>
-                  </h4>
-                  <span
-                    className={`text-[11px] font-bold px-2 py-0.5 rounded-full border transition-all ${
-                      isMaster3DOn
-                        ? 'bg-[#FF4D6D]/15 text-[#FF4D6D] border-[#FF4D6D]/30'
-                        : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
-                    }`}
-                  >
-                    {isMaster3DOn ? '3D Active' : 'Classic 2D'}
-                  </span>
-                </div>
-                <p className="text-xs text-stone-500 dark:text-stone-400">
-                  Global switch to activate volumetric Z-plane extrusion, lighting, tilt &amp; spatial physics across the portfolio
-                </p>
-              </div>
-
-              <button
-                type="button"
-                role="switch"
-                aria-checked={isMaster3DOn}
-                aria-label="Master 3D Mode Toggle"
-                onClick={() => {
-                  setMaster3D(!isMaster3DOn);
-                  if (soundEnabled) soundFX.playShutterClick();
-                }}
-                className={`w-14 h-8 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/40 shrink-0 ${
-                  isMaster3DOn ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
-                }`}
-              >
-                <span
-                  className={`block w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                    isMaster3DOn ? 'translate-x-7' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
+              {/* 1. Master 3D Actions & Global Theme Card */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-4">
 
             {/* Quick Master Actions */}
             <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-stone-100 dark:border-stone-800/80">

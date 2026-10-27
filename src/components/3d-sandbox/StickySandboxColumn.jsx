@@ -17,7 +17,9 @@ import {
   Sun,
   Cuboid,
   Camera,
-  Activity
+  Activity,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useLab3D, useLabAudio } from '../../context/LabContext';
 import SandboxViewportContainer from './SandboxViewportContainer';
@@ -119,6 +121,27 @@ export function StickySandboxColumn({
   // Tab State with normalization ('card3d' -> 'hero', 'nav' -> 'navbar')
   const [internalTab, setInternalTab] = useState(() => normalizePreviewTab(activePreviewTab));
   const currentTab = normalizePreviewTab(onSelectTab ? activePreviewTab : internalTab);
+
+  const carouselRef = useRef(null);
+
+  const scrollCarousel = useCallback((direction) => {
+    if (carouselRef.current) {
+      const scrollAmount = direction === 'left' ? -150 : 150;
+      carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      if (isSoundOn && typeof soundFX.playHapticClick === 'function') {
+        soundFX.playHapticClick();
+      }
+    }
+  }, [isSoundOn]);
+
+  useEffect(() => {
+    if (carouselRef.current) {
+      const activeEl = carouselRef.current.querySelector(`[data-tab-id="${currentTab}"]`);
+      if (activeEl && typeof activeEl.scrollIntoView === 'function') {
+        activeEl.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+      }
+    }
+  }, [currentTab]);
 
   const handleSelectTab = useCallback((tabId) => {
     const normalized = normalizePreviewTab(tabId);
@@ -330,7 +353,7 @@ export function StickySandboxColumn({
         </div>
       </div>
 
-      {/* 2. Component Tab Bar */}
+      {/* 2. Component Tab Bar Carousel */}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between text-[11px] text-stone-500 font-semibold px-0.5">
           <span>Component Previews</span>
@@ -339,36 +362,63 @@ export function StickySandboxColumn({
           </span>
         </div>
 
-        <div
-          role="tablist"
-          aria-label="Component preview selection tabs"
-          className="flex flex-wrap gap-1.5 p-1 rounded-xl bg-stone-100/80 dark:bg-[#140F21]/80 border border-stone-200/70 dark:border-stone-800"
-        >
-          {PREVIEW_TABS.map((tab) => {
-            const isSelected = currentTab === tab.id;
-            const isTabHighlighted = normalizedHighlight === normalizeComponentKey(tab.id);
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                role="tab"
-                type="button"
-                aria-selected={isSelected}
-                onClick={() => handleSelectTab(tab.id)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer select-none ${
-                  isSelected
-                    ? 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-500/40 shadow-xs font-bold'
-                    : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/50'
-                } ${
-                  isTabHighlighted ? 'ring-2 ring-[#FF4D6D] ring-offset-1 shadow-[0_0_12px_rgba(255,77,109,0.35)]' : ''
-                }`}
-                title={tab.desc}
-              >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
-                <span className="whitespace-nowrap">{tab.label}</span>
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-stone-100/80 dark:bg-[#140F21]/80 border border-stone-200/70 dark:border-stone-800">
+          {/* Visual Left Arrow */}
+          <button
+            type="button"
+            aria-label="Scroll previews left"
+            onClick={() => scrollCarousel('left')}
+            className="w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white bg-white/70 dark:bg-stone-800/70 hover:bg-white dark:hover:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 shadow-2xs transition-all active:scale-95 cursor-pointer"
+            title="Scroll left"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Horizontal Carousel Track */}
+          <div
+            ref={carouselRef}
+            role="tablist"
+            aria-label="Component preview selection tabs"
+            className="flex-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth flex items-center gap-1.5 select-none py-0.5"
+          >
+            {PREVIEW_TABS.map((tab) => {
+              const isSelected = currentTab === tab.id;
+              const isTabHighlighted = normalizedHighlight === normalizeComponentKey(tab.id);
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  data-tab-id={tab.id}
+                  role="tab"
+                  type="button"
+                  aria-selected={isSelected}
+                  onClick={() => handleSelectTab(tab.id)}
+                  className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer select-none ${
+                    isSelected
+                      ? 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-500/40 shadow-xs font-bold'
+                      : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/50'
+                  } ${
+                    isTabHighlighted ? 'ring-2 ring-[#FF4D6D] ring-offset-1 shadow-[0_0_12px_rgba(255,77,109,0.35)]' : ''
+                  }`}
+                  title={tab.desc}
+                >
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <span className="whitespace-nowrap">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Visual Right Arrow */}
+          <button
+            type="button"
+            aria-label="Scroll previews right"
+            onClick={() => scrollCarousel('right')}
+            className="w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white bg-white/70 dark:bg-stone-800/70 hover:bg-white dark:hover:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 shadow-2xs transition-all active:scale-95 cursor-pointer"
+            title="Scroll right"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
