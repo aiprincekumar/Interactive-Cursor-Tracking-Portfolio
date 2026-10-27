@@ -2711,29 +2711,34 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                     onMouseLeave={() => setHighlightedComponent(null)}
                                     onFocus={() => setHighlightedComponent(cat.id === 'containers' ? 'showcase' : cat.id)}
                                     onBlur={() => setHighlightedComponent(null)}
-                                    className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-3 active:translate-y-[1px] ${
+                                    className={`p-2.5 sm:p-3 rounded-xl border transition-all flex items-center justify-between gap-3 active:translate-y-[1px] ${
                                       isCategoryTargeted ? 'ring-1 ring-[#FF4D6D]/40' : ''
                                     } ${
                                       isItemOn
                                         ? 'bg-[#FF4D6D]/10 border-[#FF4D6D]/40 text-[#18181B] dark:text-white shadow-[0_3px_0_0_#D93856]'
                                         : 'bg-white/60 dark:bg-[#1F1733]/60 border-stone-200/70 dark:border-stone-800 text-stone-600 dark:text-stone-400 shadow-[0_3px_0_0_#D1CBC1] dark:shadow-[0_3px_0_0_#140D20]'
                                     }`}
+                                    title={`${item.title}: ${item.desc}`}
                                   >
                                     <div className="flex items-center gap-2.5 min-w-0">
-                                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                      <div className={`${
+                                        isVisual3DOnly ? 'w-8 h-8 rounded-xl ring-1 ring-black/5 dark:ring-white/10' : 'w-7 h-7 rounded-lg'
+                                      } flex items-center justify-center shrink-0 transition-transform ${
                                         isItemOn
-                                          ? 'bg-[#FF4D6D] text-white shadow-2xs'
+                                          ? 'bg-[#FF4D6D] text-white shadow-[0_0_10px_rgba(255,77,109,0.4)]'
                                           : 'bg-stone-100 dark:bg-stone-800 text-stone-400'
                                       }`}>
-                                        <ItemIcon className="w-4 h-4" />
+                                        <ItemIcon className={isVisual3DOnly ? 'w-4 h-4' : 'w-3.5 h-3.5'} />
                                       </div>
                                       <div className="min-w-0">
-                                        <div className="text-xs font-bold truncate">
+                                        <div className={`text-xs font-bold truncate ${isVisual3DOnly ? 'tracking-tight' : ''}`}>
                                           {item.title}
                                         </div>
-                                        <div className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
-                                          {item.desc}
-                                        </div>
+                                        {!isVisual3DOnly && item.desc && (
+                                          <div className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
+                                            {item.desc}
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
 
@@ -2835,6 +2840,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                             <ThreeDPresetCard
                               key={lp.id}
                               isSelected={isSelected}
+                              isVisualOnly={isVisual3DOnly}
                               onClick={() => {
                                 set3DLightingPreset(lp.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
