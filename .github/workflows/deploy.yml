@@ -4,6 +4,17 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'changes_log/**'
+      - 'docs/**'
+      - 'documentation/**'
+      - 'documents/**'
+      - 'vibe_coding_temp/**'
+      - '.agents/**'
+      - '.claude/**'
+      - '.gemini/**'
+      - '*.md'
+      - 'LICENSE'
   workflow_dispatch:
 
 permissions:
@@ -13,7 +24,7 @@ permissions:
 
 concurrency:
   group: 'pages'
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -52,3 +63,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+

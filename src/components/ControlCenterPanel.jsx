@@ -3028,6 +3028,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                             <ThreeDPresetCard
                               key={cp.id}
                               isSelected={isSelected}
+                              isVisualOnly={isVisual3DOnly}
                               onClick={() => {
                                 set3DCameraAnglePreset(cp.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
@@ -3322,6 +3323,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                             <ThreeDPresetCard
                               key={mat.id}
                               isSelected={isSelected}
+                              isVisualOnly={isVisual3DOnly}
                               onClick={() => {
                                 set3DMaterialPreset(mat.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
@@ -3482,6 +3484,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                             <ThreeDPresetCard
                               key={ep.id}
                               isSelected={isSelected}
+                              isVisualOnly={isVisual3DOnly}
                               onClick={() => {
                                 set3DElasticity(ep.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
