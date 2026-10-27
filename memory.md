@@ -21,11 +21,11 @@
 
 | State Dimension | Live Status & Forensic Value |
 | :--- | :--- |
-| **Current Active Milestone** | **3D Controls & Runtime Crash Fix Pushed & Synchronized on GitHub (Commit `8060023` - Fully Verified A+)** |
-| **Where the Agent is Right Now (अभी तक कहाँ पहुँचा है एजेंट)** | • **All 16 Architecture Modules** fully developed, calibrated, and running in production.<br>• **3D Controls, Tactile Keycaps & Crash Fix (CHG-20261028-108 & CHG-20261028-109)**:<br>  - Transformed 3D Mode buttons into authentic extruded keycaps/slabs with dynamic directional light gradients, physical beveled rims, and active click depression (`translate-y-1.5 active:shadow-inner`).<br>  - Connected lighting angle (0°-360°), depth intensity, and bevel extrusion sliders to live CSS custom properties `--3d-lighting-angle`, `--3d-depth-intensity`, `--3d-materials-bevel` on `#panel-threed` with real-time specular highlights and sun orbits.<br>  - Enforced strictly collapsed top sandbox preview (`showSandboxPreview: false`) on fresh page loads/sessions.<br>  - Expanded left Sticky Sandbox Hub to an 11-section preview matrix with 5 dedicated settings preview stages (`lighting-studio-preview`, `materials-stage-preview`, `camera-viewport-preview`, `physics-spring-preview`, `exploded-cad-preview`) and stage-level defaults reset.<br>  - Resolved 3D tab ReferenceError crash (`depthIntensity is not defined`) in `ControlCenterPanel.jsx`, verified live in headless Chromium browser.<br>  - **Git Push Status:** User approved via 1-click interactive selection popup (`ask_question`). All changes successfully committed and pushed to `origin/main` at commit `8060023a32683a84cd23273a56ea50d93e4ffa1b`. |
-| **Last Agent Action Completed** | Executed `scripts/git/git_sync.ps1` per Universal Rule 15 following explicit user 1-click approval via `ask_question`. Verified with `scripts/git/verify_git_sync.ps1` (status: PASS, synced: true, clean_working_tree: true). |
-| **Next Immediate Recommended Action (अगला तत्काल कार्य)** | All requested 3D features, bug fixes, and Universal Rule 15 codification are complete, verified, and pushed to GitHub remote `origin/main`. Ready for next instructions. |
-| **Universal Protocol Adherence** | Full compliance with Rule 1 (CEO Model), Rule 2 (Atomic Parallel Aggregation), Rule 6 (Changes Log Ledger), Rule 7 (Autonomous Momentum strictly local; remote Git push 100% exempt), Rule 15 (Dedicated GitHub Operations, Auto-Sync & Zero-Hallucination Verification Standard — with Pillar 6 Standardized AI Prompts/Runners and Pillar 7 Mandatory 1-Click Interactive Popup Selection Modal via `ask_question`), Rule 16 (Git Metadata: `aiprincekumar`), Rule 21 (Zero-Scan Boot Protocol), Rule 22 (`vibe_coding_temp/` Ephemeral Workspace), and Rule 23 (`memory-sync-sentinel`). |  
+| **Current Active Milestone** | **Codification of Universal Rules 24 & 25 Complete — Changes Preserved Locally [Git Push on HOLD per Rule 15 Section 7]** |
+| **Where the Agent is Right Now (अभी तक कहाँ पहुँचा है एजेंट)** | • **All 16 Architecture Modules** fully developed, calibrated, and running in production.<br>• **Universal Rules 24 & 25 Codification (CHG-20261028-110)**:<br>  - **Universal Rule 24 (Mandatory Default /grill-me Pre-Task Interview Protocol):** 100% active by default across all sessions without explicit invocation; executed directly by Supreme CEO using `ask_question` (1 question at a time, (Recommended) option first, local repo pre-explored); read-only/factual query exemption.<br>  - **Universal Rule 25 (Dynamic AI Model Selection & Thinking Budget Optimization Standard):** Delegated to `model_thinking_optimizer` specialist; 3-tier routing matrix (Low: `flash_lite`/`low`, Medium: `flash`/`medium`, High: `pro`/`high`); 100% user override supremacy.<br>  - **5-Tier Changes Log Audit:** Complete 5-tier audit trail (`summary`, `master`, `daily`, `entries`, `recent_10`) registered under `CHG-20261028-110`.<br>  - **Git Push Status:** All changes are safely preserved locally in the repository. Per Universal Rule 15 Section 7, Git Commit and Remote Push are strictly on **HOLD** awaiting explicit user confirmation! |
+| **Last Agent Action Completed** | Executed 5-tier changes logging audit and Section 0 micro-sync for Universal Rules 24 & 25 codification. All linters and tests passing Grade A+. |
+| **Next Immediate Recommended Action (अगला तत्काल कार्य)** | Present 5-point Localhost Preview Handoff Card and interactive selection popup modal (`ask_question`) to user to decide on remote Git push per Universal Rule 15 Section 7. |
+| **Universal Protocol Adherence** | Full compliance with Rule 1 (CEO Model), Rule 2 (Atomic Parallel Aggregation), Rule 6 (Changes Log Ledger), Rule 7 (Autonomous Momentum strictly local; remote Git push 100% exempt), Rule 15 (Dedicated GitHub Operations, Auto-Sync & Zero-Hallucination Verification Standard — with Pillar 6 Standardized AI Prompts/Runners and Pillar 7 Mandatory 1-Click Interactive Popup Selection Modal via `ask_question`), Rule 16 (Git Metadata: `aiprincekumar`), Rule 21 (Zero-Scan Boot Protocol), Rule 22 (`vibe_coding_temp/` Ephemeral Workspace), Rule 23 (`memory-sync-sentinel`), Rule 24 (Default `/grill-me` Pre-Task Interview Protocol), and Rule 25 (`model_thinking_optimizer`). |  
 
 ---
 
@@ -34,7 +34,7 @@
 | Boundary Aspect | `GEMINI.md` (Operational Standard) | `memory.md` (Technical Dossier) |
 | :--- | :--- | :--- |
 | **Domain Scope** | **HOW the AI Agent behaves & operates** | **WHAT the software project contains & implements** |
-| **Core Responsibilities** | CEO delegation model, Universal Rules 1–23 (including Rule 22 `vibe_coding_temp/` & Rule 23 `memory-sync-sentinel`), Changes Log audit (Rule 6), Git commit standards, verification protocols. | Architecture modules 1–16, 35 cursors, audio synth, on-device AI worker, 42+ test suites, file entry points, roadmap. |
+| **Core Responsibilities** | CEO delegation model, Universal Rules 1–25 (including Rule 22 `vibe_coding_temp/`, Rule 23 `memory-sync-sentinel`, Rule 24 `/grill-me` Interview Protocol & Rule 25 `model_thinking_optimizer`), Changes Log audit (Rule 6), Git commit standards, verification protocols. | Architecture modules 1–16, 35 cursors, audio synth, on-device AI worker, 42+ test suites, file entry points, roadmap. |
 | **Governance Role** | Agent constitution & operational enforcement. | System blueprint, state of implementation, code inventory. |
 | **Referenced Path** | [`GEMINI.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/GEMINI.md) | [`memory.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/memory.md) |
 
@@ -162,6 +162,36 @@ The repository implements a token-efficient, zero-hallucination Git synchronizat
 | **Direct 1-Click CMD Runner** | 1-click execution for human user directly in Windows Command Prompt. | `.\scripts\git\git_sync.bat` |
 | **Direct 1-Click PowerShell Runner** | 1-click execution for human user directly in PowerShell terminal. | `powershell -ExecutionPolicy Bypass -File .\scripts\git\git_sync.ps1` |
 | **Mandatory Gatekeeper & Push Matrix** | Universal Rule 15 Section 7 standard: Autonomous push banned; changes remain on local HOLD until user confirms preview. | Section 2.4 in `GEMINI.md` |
+
+## 1.4 Pre-Task Interview & Model Thinking Budget Protocols (Universal Rules 24 & 25)
+
+The repository implements structured pre-task discovery interviews and dynamic AI model routing standards:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│       UNIVERSAL RULES 24 & 25: INTERVIEW PROTOCOL & MODEL ROUTING MATRIX    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 1. Universal Rule 24 (/grill-me Pre-Task Interview Protocol):               │
+│    • 100% active by default across all sessions without explicit invocation │
+│    • Executed directly by the Supreme CEO using `ask_question` UI popup     │
+│    • Strict single-question cadence with `(Recommended)` option presented 1st│
+│    • Deep local codebase exploration conducted prior to framing questions   │
+│    • Read-only, factual repository queries are exempt from interview loops  │
+│                                                                             │
+│ 2. Universal Rule 25 (Dynamic AI Model Selection & Thinking Budget):        │
+│    • Pre-task complexity audited by `model_thinking_optimizer` specialist   │
+│    • 3-Tier Execution Matrix:                                               │
+│      - Low (scripts/copy/audit/git) ➔ `flash_lite` model / `low` thinking   │
+│      - Medium (features/UI/tests/fixes) ➔ `flash` model / `medium` thinking │
+│      - High (architecture/spatial/security) ➔ `pro` model / `high` thinking │
+│    • Absolute user override supremacy over automated model routing          │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+| Protocol Standard | Governance Persona | Primary Mechanism & Trigger |
+| :--- | :--- | :--- |
+| **Universal Rule 24 (`/grill-me` Pre-Task)** | Supreme CEO (Main Agent) | Mandatory interactive UI popup (`ask_question`), 1 question at a time, (Recommended) first. |
+| **Universal Rule 25 (`model_thinking_optimizer`)** | Delegated Specialist | 3-tier routing matrix balancing token economy, latency, and reasoning depth; 100% user override. |
 
 ---
 
@@ -613,5 +643,33 @@ Operational rules governing AI agent behaviors, Git conventions, changes logging
   - *Mandatory 5-Point Localhost Preview Handoff Card & Interactive Popup Selection:* Delivered upon task completion detailing Task Status, Git Hold Status, Intelligent Recommendation Badge, Localhost Preview Guidance (`npm run dev`), and **Mandatory Interactive Selection Popup (`ask_question` tool)** so the user can select an option with 1 click without having to type manually.
   - *Intelligent Push Recommendation 4-Point Matrix:* Clear criteria separating 🟢 `[PUSH RECOMMENDED]` (milestone complete, critical fix, session wrap-up, Grade A+ release checkpoint) from 🟡 `[HOLD / BATCH RECOMMENDED]` (minor CSS/padding/typo, in-flight step, ephemeral sandbox, awaiting localhost preview).
   - *Specialist Hard-Lock:* `github_operations_specialist` and `git_sync.ps1` strictly locked against autonomous execution.
+
+### Universal Rule 24 Implementation: Mandatory Default /grill-me Pre-Task Interview Protocol
+- **100% Active by Default Across All Sessions:** Activated unconditionally across all incoming chats and requests without requiring the user to explicitly invoke `/grill-me`. Any non-trivial coding, refactoring, feature addition, or architectural task mandates an interactive pre-task discovery interview before implementation begins.
+- **Direct Supreme CEO Execution Mandate:** The interview is executed strictly and directly by the Supreme CEO (Main Agent). Because user interactions, clarification prompts, and the `ask_question` tool are exclusive capabilities of the CEO persona, this process must NEVER be delegated to a disconnected subagent.
+- **Strict Single-Question Interactive Protocol:**
+  - Ask exactly **one question at a time** using the `ask_question` interactive UI selection tool.
+  - Formulate and display the **(Recommended)** option first with clear technical rationale so the user can easily decide.
+  - Thoroughly explore the local codebase, configs, and architectural dossiers first before framing questions to eliminate shallow, redundant inquiries.
+  - Iteratively resolve all technical dependencies, assumptions, and edge cases until 100% shared understanding and alignment is achieved.
+- **Instant Factual Answer Exemption:** Simple read-only questions, factual repo lookups, or quick syntax checks may be answered immediately without triggering the interview loop. However, any modification of code, scripts, or project structure strictly requires full compliance with Rule 24.
+
+### Universal Rule 25 Implementation: Dynamic AI Model Selection & Thinking Budget Optimization Standard
+- **Dedicated Specialist (`model_thinking_optimizer`):** Prior to dispatching any subagent waves, task complexity must be evaluated by `model_thinking_optimizer`. It generates a structured model routing and thinking budget plan for the CEO, maximizing reasoning efficiency and minimizing latency and token burn.
+- **3-Tier Routing & Reasoning Budget Matrix:**
+  1. **Low Complexity:**
+     - *Scope:* Automation scripts, copy/documentation updates, `changes_log/` audits, routine Git sync operations.
+     - *Target Model:* `flash_lite` (High speed, minimal token footprint).
+     - *Thinking Budget:* `low`.
+  2. **Medium Complexity:**
+     - *Scope:* Standard feature implementations, interactive UI components, test suite creation/refinement, bug fixes.
+     - *Target Model:* `flash` (Balanced reasoning and throughput).
+     - *Thinking Budget:* `medium`.
+  3. **High Complexity:**
+     - *Scope:* Core architecture design, complex kinematic/spatial algorithms, deep debugging, security audits, multi-system integration.
+     - *Target Model:* `pro` (Maximum depth and reasoning power).
+     - *Thinking Budget:* `high`.
+- **Absolute User Override Supremacy:** If the user specifies or requests a specific model (e.g. Pro, Flash, Claude, GPT) or thinking budget level in their prompt, that instruction holds 100% unconditional supremacy over the automated routing matrix.
+
 
 

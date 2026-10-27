@@ -23,7 +23,7 @@ Every agent, subagent, and automated process working in this repository must mai
 │       GEMINI.md (HOW AI OPERATES)    │       memory.md (WHAT THE SYSTEM IS) │
 ├──────────────────────────────────────┼──────────────────────────────────────┤
 │ • CEO / Orchestrator Model (Rule 1)  │ • Layer 1: Snapshot & Tech Blueprint │
-│ • Universal Rules 1–23 Compliance    │ • Layer 2: Implemented vs Pending    │
+│ • Universal Rules 1–25 Compliance    │ • Layer 2: Implemented vs Pending    │
 │ • Changes Log Audit System (Rule 6)  │ • Quick File Entry Points Directory  │
 │ • Git Metadata & Commit Standards    │ • Layer 3: 16 Architecture Modules   │
 │ • Autonomous Forward Momentum        │ • 35 Cursors & Kinematics Specs      │
@@ -34,7 +34,7 @@ Every agent, subagent, and automated process working in this repository must mai
 ```
 
 ### Precedence Hierarchy:
-1. **Global Universal Rules:** Governed by [`C:\Users\Atul Verma\.gemini\GEMINI.md`](file:///C:/Users/Atul%20Verma/.gemini/GEMINI.md) (Universal Rules 1–23).
+1. **Global Universal Rules:** Governed by [`C:\Users\Atul Verma\.gemini\GEMINI.md`](file:///C:/Users/Atul%20Verma/.gemini/GEMINI.md) (Universal Rules 1–25).
 2. **Global Antigravity Memory:** Anchored in [`C:\Users\Atul Verma\.gemini\memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) (Developer profile, global settings).
 3. **Project Operational Rules:** Anchored in [`GEMINI.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/GEMINI.md) (HOW the agent behaves in this project).
 4. **Project Technical Dossier:** Anchored in [`memory.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/memory.md) (WHAT the project implements, 4-layer structure).
@@ -169,6 +169,33 @@ Every single change to repository files must be logged with full forensic diffs 
 - **Immediate Failure Logging & State Preservation:** Any build failure, Oxlint error, or verification test break must be immediately registered in Section 0 with command, stack trace, affected files, and recovery steps before remediation begins.
 - **Dedicated Sentinel Subagent (`memory_sync_sentinel`):** Responsible for executing micro-syncs, validating gatekeeper invariants, aggregating parallel outcomes, and enforcing zero-drift memory governance.
 - **Dedicated Skill:** [`memory-sync-sentinel`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/.agents/skills/memory-sync-sentinel/SKILL.md) provides comprehensive operational instructions, sequence diagrams, and validation checklists.
+
+### 2.9 Universal Rule 24: Mandatory Default /grill-me Pre-Task Interview Protocol
+- **100% Active by Default Across All Sessions:** Activated unconditionally across all incoming chats and requests without requiring the user to explicitly invoke `/grill-me`. Any non-trivial coding, refactoring, feature addition, or architectural task mandates an interactive pre-task discovery interview before implementation begins.
+- **Direct CEO Execution Mandate:** The interview is executed strictly and directly by the Supreme CEO (Main Agent). Because user interactions, clarification prompts, and the `ask_question` tool are exclusive capabilities of the CEO persona, this process must NEVER be delegated to a disconnected subagent.
+- **Strict Single-Question Interactive Protocol:**
+  - Ask exactly **one question at a time** using the `ask_question` interactive UI selection tool.
+  - Formulate and display the **(Recommended)** option first with clear technical rationale so the user can easily decide.
+  - Thoroughly explore the local codebase, configs, and architectural dossiers first before framing questions to eliminate shallow, redundant inquiries.
+  - Iteratively resolve all technical dependencies, assumptions, and edge cases until 100% shared understanding and alignment is achieved.
+- **Instant Factual Answer Exemption:** Simple read-only questions, factual repo lookups, or quick syntax checks may be answered immediately without triggering the interview loop. However, any modification of code, scripts, or project structure strictly requires full compliance with Rule 24.
+
+### 2.10 Universal Rule 25: Dynamic AI Model Selection & Thinking Budget Optimization Standard
+- **Dedicated Specialist (`model_thinking_optimizer`):** Prior to dispatching any subagent waves, task complexity must be evaluated by `model_thinking_optimizer`. It generates a structured model routing and thinking budget plan for the CEO, maximizing reasoning efficiency and minimizing latency and token burn.
+- **3-Tier Routing & Reasoning Budget Matrix:**
+  1. **Low Complexity:**
+     - *Scope:* Automation scripts, copy/documentation updates, `changes_log/` audits, routine Git sync operations.
+     - *Target Model:* `flash_lite` (High speed, minimal token footprint).
+     - *Thinking Budget:* `low`.
+  2. **Medium Complexity:**
+     - *Scope:* Standard feature implementations, interactive UI components, test suite creation/refinement, bug fixes.
+     - *Target Model:* `flash` (Balanced reasoning and throughput).
+     - *Thinking Budget:* `medium`.
+  3. **High Complexity:**
+     - *Scope:* Core architecture design, complex kinematic/spatial algorithms, deep debugging, security audits, multi-system integration.
+     - *Target Model:* `pro` (Maximum depth and reasoning power).
+     - *Thinking Budget:* `high`.
+- **Absolute User Override Supremacy:** If the user specifies or requests a specific model (e.g. Pro, Flash, Claude, GPT) or thinking budget level in their prompt, that instruction holds 100% unconditional supremacy over the automated routing matrix.
 
 ---
 
