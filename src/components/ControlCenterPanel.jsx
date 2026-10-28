@@ -2556,51 +2556,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
               />
 
               <div className="ml-auto flex items-center gap-2.5">
-                {/* Phase 2: 3D Button Mode Toggle: Compact Visual vs Text Detailed */}
-                <div
-                  role="radiogroup"
-                  aria-label="3D button display mode"
-                  className="flex items-center p-0.5 rounded-xl bg-stone-100 dark:bg-stone-900/90 border border-stone-200 dark:border-stone-800 shadow-2xs"
-                >
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={isVisual3DOnly}
-                    onClick={() => {
-                      set3DVisualMode(true);
-                      if (soundEnabled) soundFX.playLaserFocus();
-                    }}
-                    title="3D Compact Visual Mode: Hide text descriptions, highlight icons with 3D previews"
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      isVisual3DOnly
-                        ? 'bg-[#FF4D6D] text-white shadow-xs'
-                        : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
-                    }`}
-                  >
-                    <Box className="w-3.5 h-3.5" />
-                    <span>3D Visual</span>
-                  </button>
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={!isVisual3DOnly}
-                    onClick={() => {
-                      set3DVisualMode(false);
-                      if (soundEnabled) soundFX.playHapticClick();
-                    }}
-                    title="Text Detailed Mode: Show button titles, descriptions, and explanatory text"
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      !isVisual3DOnly
-                        ? 'bg-stone-800 dark:bg-stone-700 text-white shadow-xs'
-                        : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
-                    }`}
-                  >
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>Text 2D</span>
-                  </button>
-                </div>
-
-                <div className="hidden sm:flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5">
                   <span className="text-xs text-stone-500 font-medium">Active:</span>
                   <span className="text-xs font-mono font-bold text-[#FF4D6D] bg-[#FF4D6D]/10 px-2 py-0.5 rounded-full border border-[#FF4D6D]/20">
                     {active3DCount} / 10 Elements
