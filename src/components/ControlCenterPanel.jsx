@@ -2599,14 +2599,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                       desc={th.desc}
                       badge={th.badge}
                       icon={Icon}
-                      visualPreview={
-                        <ThemeExtrudedSlab
-                          themeId={th.id}
-                          lightingAngle={lighting?.angle ?? 45}
-                          depthIntensity={depthIntensity ?? 1.0}
-                          bevelExtrusion={materials?.bevelExtrusion ?? 3}
-                        />
-                      }
+                      visualPreview={<ThemeExtrudedSlab
+                        themeId={th.id}
+                        lightingAngle={lighting?.angle ?? 45}
+                        depthIntensity={depthIntensity ?? 1.0}
+                        bevelExtrusion={materials?.bevelExtrusion ?? 3}
+                      />}
                     />
                   );
                 })}
@@ -2748,38 +2746,46 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                 const ItemIcon = item.icon;
 
                                 return (
-                                  <div
+                                  <button
                                     key={item.key}
+                                    type="button"
+                                    role="button"
+                                    aria-pressed={isItemOn}
+                                    aria-label={`${item.title} - ${isItemOn ? '3D Active' : '2D Mode'}`}
+                                    onClick={() => {
+                                      toggle3DElement(item.key);
+                                      if (soundEnabled) soundFX.playHapticClick();
+                                    }}
                                     onMouseEnter={() => setHighlightedComponent(cat.id === 'containers' ? 'showcase' : cat.id)}
                                     onMouseLeave={() => setHighlightedComponent(null)}
                                     onFocus={() => setHighlightedComponent(cat.id === 'containers' ? 'showcase' : cat.id)}
                                     onBlur={() => setHighlightedComponent(null)}
-                                    className={`p-2.5 sm:p-3 min-h-[58px] sm:min-h-[62px] h-[58px] sm:h-[62px] rounded-xl border transition-all flex items-center justify-between gap-3 active:translate-y-[1px] ${
+                                    className={`w-full p-2.5 sm:p-3 min-h-[58px] sm:min-h-[62px] h-[58px] sm:h-[62px] rounded-xl border text-left transition-all duration-150 flex items-center justify-between gap-3 cursor-pointer select-none outline-none active:translate-y-[1.5px] focus-visible:ring-2 focus-visible:ring-[#FF4D6D] ${
                                       isCategoryTargeted ? 'ring-1 ring-[#FF4D6D]/40' : ''
                                     } ${
                                       isItemOn
-                                        ? 'bg-[#FF4D6D]/10 border-[#FF4D6D]/40 text-[#18181B] dark:text-white shadow-[0_3px_0_0_#D93856]'
-                                        : 'bg-white/60 dark:bg-[#1F1733]/60 border-stone-200/70 dark:border-stone-800 text-stone-600 dark:text-stone-400 shadow-[0_3px_0_0_#D1CBC1] dark:shadow-[0_3px_0_0_#140D20]'
+                                        ? 'bg-white dark:bg-[#201833] border-2 border-[#FF4D6D] shadow-[0_2.5px_0_0_#D93856,0_0_16px_rgba(255,77,109,0.2)] text-stone-900 dark:text-white'
+                                        : 'bg-white hover:bg-stone-50/90 dark:bg-[#1E1730] dark:hover:bg-[#261E3B] border border-stone-200/90 dark:border-stone-700/80 shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-700 dark:text-stone-300'
                                     }`}
                                     title={`${item.title}: ${item.desc}`}
                                   >
                                     <div className="flex items-center gap-2.5 min-w-0">
                                       <div className={`${
-                                        isVisual3DOnly ? 'w-9 h-9 sm:w-10 sm:h-10 rounded-xl ring-1 ring-black/5 dark:ring-white/10' : 'w-7 h-7 rounded-lg'
+                                        isVisual3DOnly ? 'w-9 h-9 sm:w-10 sm:h-10 rounded-xl ring-1 ring-black/5 dark:ring-white/10' : 'w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-lg'
                                       } flex items-center justify-center shrink-0 transition-transform ${
                                         isItemOn
                                           ? 'bg-[#FF4D6D] text-white shadow-[0_0_12px_rgba(255,77,109,0.45)]'
-                                          : 'bg-stone-100 dark:bg-stone-800 text-stone-400'
+                                          : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200/70 dark:border-stone-700/70'
                                       }`}>
-                                        <ItemIcon className={isVisual3DOnly ? 'w-5 h-5' : 'w-3.5 h-3.5'} />
+                                        <ItemIcon className={isVisual3DOnly ? 'w-5 h-5' : 'w-4 h-4'} />
                                       </div>
                                       {!isVisual3DOnly && (
                                         <div className="min-w-0">
-                                          <div className="text-xs font-bold truncate">
+                                          <div className={`text-xs font-bold truncate ${isItemOn ? 'text-[#FF4D6D] dark:text-white' : 'text-stone-800 dark:text-stone-100'}`}>
                                             {item.title}
                                           </div>
                                           {!isVisual3DOnly && item.desc && (
-                                            <div className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
+                                            <div className="text-[10px] truncate text-stone-400 dark:text-stone-400 font-medium">
                                               {item.desc}
                                             </div>
                                           )}
@@ -2788,35 +2794,17 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                     </div>
 
                                     <div className="flex items-center gap-2 shrink-0">
-                                      <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                                        isItemOn
-                                          ? 'bg-[#FF4D6D]/20 text-[#FF4D6D]'
-                                          : 'bg-stone-200/50 dark:bg-stone-800 text-stone-400'
-                                      }`}>
-                                        {isItemOn ? '3D' : '2D'}
-                                      </span>
-
-                                      <button
-                                        type="button"
-                                        role="switch"
-                                        aria-checked={isItemOn}
-                                        aria-label={`Toggle 3D for ${item.title}`}
-                                        onClick={() => {
-                                          toggle3DElement(item.key);
-                                          if (soundEnabled) soundFX.playHapticClick();
-                                        }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/40 ${
-                                          isItemOn ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
-                                        }`}
-                                      >
-                                        <span
-                                          className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                                            isItemOn ? 'translate-x-5' : 'translate-x-0.5'
-                                          }`}
-                                        />
-                                      </button>
+                                      {isItemOn ? (
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FF4D6D]/15 text-[#FF4D6D] border border-[#FF4D6D]/30 tracking-wide">
+                                          {isVisual3DOnly ? '3D' : 'Active'}
+                                        </span>
+                                      ) : (
+                                        <span className="text-[10px] font-semibold text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 border border-stone-200/60 dark:border-stone-700/60 rounded-full px-2 py-0.5 uppercase tracking-wider">
+                                          {isVisual3DOnly ? '2D' : 'Off'}
+                                        </span>
+                                      )}
                                     </div>
-                                  </div>
+                                  </button>
                                 );
                               })}
                             </div>
@@ -2896,12 +2884,10 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               title={lp.name}
                               desc={lp.desc}
                               icon={Icon}
-                              visualPreview={
-                                <LightingVectorPreview
-                                  presetId={lp.id}
-                                  lightingAngle={lighting?.angle ?? 45}
-                                />
-                              }
+                              visualPreview={<LightingVectorPreview
+                                presetId={lp.id}
+                                lightingAngle={lighting?.angle ?? 45}
+                              />}
                             />
                           );
                         })}
@@ -3288,10 +3274,10 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                 set3DStylePreset(preset.id);
                                 if (soundEnabled) soundFX.playLaserFocus();
                               }}
-                              className={`p-3.5 rounded-xl border flex flex-col justify-between text-left transition-all cursor-pointer relative group ${
+                              className={`p-3 sm:p-3.5 rounded-xl border flex flex-col justify-between text-left transition-all cursor-pointer relative group select-none active:translate-y-[1.5px] ${
                                 isSelected
-                                  ? 'bg-[#FF4D6D]/10 border-[#FF4D6D] text-[#18181B] dark:text-white ring-2 ring-[#FF4D6D]/30 shadow-[0_0_15px_-3px_rgba(255,77,109,0.25)] scale-[1.01]'
-                                  : 'bg-white/40 dark:bg-stone-900/40 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-stone-300 dark:hover:border-stone-700'
+                                  ? 'bg-gradient-to-b from-[#FF4D6D]/15 to-[#FF4D6D]/5 dark:from-[#FF4D6D]/25 dark:to-[#FF4D6D]/10 border-2 border-[#FF4D6D] text-[#18181B] dark:text-white ring-1 ring-[#FF4D6D]/30 shadow-[0_2.5px_0_0_#D93856,0_8px_16px_rgba(255,77,109,0.2)]'
+                                  : 'bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] border border-stone-200/90 dark:border-stone-700/80 text-stone-700 dark:text-stone-300 shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20]'
                               }`}
                             >
                               <div className="flex items-center justify-between w-full mb-1.5">
@@ -3311,12 +3297,21 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               </div>
 
                               {!isTab3DActive ? (
-                                <div>
-                                  <div className="text-xs font-bold text-[#18181B] dark:text-white">
-                                    {preset.name}
+                                <div className="flex items-center gap-2.5 mt-0.5 min-w-0">
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-transform ${
+                                    isSelected
+                                      ? 'bg-[#FF4D6D] text-white shadow-[0_0_10px_rgba(255,77,109,0.4)]'
+                                      : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200/70 dark:border-stone-700/70'
+                                  }`}>
+                                    <Box className="w-4 h-4" />
                                   </div>
-                                  <div className="text-[11px] text-stone-500 dark:text-stone-400 mt-1 leading-snug">
-                                    {preset.desc}
+                                  <div className="min-w-0">
+                                    <div className={`text-xs font-bold truncate ${isSelected ? 'text-[#FF4D6D] dark:text-white' : 'text-stone-800 dark:text-stone-100'}`}>
+                                      {preset.name}
+                                    </div>
+                                    <div className="text-[10px] text-stone-400 dark:text-stone-400 truncate font-medium">
+                                      {preset.desc}
+                                    </div>
                                   </div>
                                 </div>
                               ) : (
@@ -3398,14 +3393,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               title={mat.name}
                               desc={mat.desc}
                               icon={Cuboid}
-                              visualPreview={
-                                <MaterialShaderSphere
-                                  materialId={mat.id}
-                                  lightingAngle={lighting?.angle ?? 45}
-                                  specularGlow={materials?.specularGlow ?? 0.6}
-                                  bevelExtrusion={materials?.bevelExtrusion ?? 3}
-                                />
-                              }
+                              visualPreview={<MaterialShaderSphere
+                                materialId={mat.id}
+                                lightingAngle={lighting?.angle ?? 45}
+                                specularGlow={materials?.specularGlow ?? 0.6}
+                                bevelExtrusion={materials?.bevelExtrusion ?? 3}
+                              />}
                             />
                           );
                         })}
@@ -4342,39 +4335,45 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
               <button
                 type="button"
                 onClick={handleExportJson}
-                className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-97"
+                className="flex items-center justify-center gap-2 px-3.5 h-10 sm:h-10.5 rounded-xl text-xs font-bold transition-all cursor-pointer select-none border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-800 dark:text-stone-200 active:translate-y-[1.5px]"
+                title="Export 3D Profile (.json)"
+                aria-label="Export 3D Profile (.json)"
               >
-                <Download className="w-4 h-4 text-[#FF4D6D]" />
-                <span>Export 3D Profile (.json)</span>
+                <Download className={`${isTab3DActive ? 'w-4.5 h-4.5' : 'w-4 h-4'} text-[#FF4D6D] shrink-0`} />
+                <span className={isTab3DActive ? 'sr-only' : ''}>Export 3D Profile (.json)</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleImportJsonClick}
-                className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-97"
+                className="flex items-center justify-center gap-2 px-3.5 h-10 sm:h-10.5 rounded-xl text-xs font-bold transition-all cursor-pointer select-none border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-800 dark:text-stone-200 active:translate-y-[1.5px]"
+                title="Import Profile (.json)"
+                aria-label="Import Profile (.json)"
               >
-                <Upload className="w-4 h-4 text-cyan-500" />
-                <span>Import Profile (.json)</span>
+                <Upload className={`${isTab3DActive ? 'w-4.5 h-4.5' : 'w-4 h-4'} text-cyan-500 shrink-0`} />
+                <span className={isTab3DActive ? 'sr-only' : ''}>Import Profile (.json)</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleCopyCssVariables}
-                className={`flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-97 ${
+                className={`flex items-center justify-center gap-2 px-3.5 h-10 sm:h-10.5 rounded-xl text-xs font-bold transition-all cursor-pointer select-none active:translate-y-[1.5px] ${
                   copiedCss
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200'
+                    ? 'bg-emerald-500 text-white border border-emerald-600 shadow-[0_2.5px_0_0_#047857]'
+                    : 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-800 dark:text-stone-200'
                 }`}
+                title={copiedCss ? 'Copied CSS Variables!' : 'Copy CSS Custom Properties'}
+                aria-label={copiedCss ? 'Copied CSS Variables!' : 'Copy CSS Custom Properties'}
               >
                 {copiedCss ? (
                   <>
-                    <Check className="w-4 h-4" />
-                    <span>Copied CSS Variables!</span>
+                    <Check className={`${isTab3DActive ? 'w-4.5 h-4.5' : 'w-4 h-4'} shrink-0`} />
+                    <span className={isTab3DActive ? 'sr-only' : ''}>Copied CSS Variables!</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-4 h-4 text-amber-500" />
-                    <span>Copy CSS Custom Properties</span>
+                    <Copy className={`${isTab3DActive ? 'w-4.5 h-4.5' : 'w-4 h-4'} text-amber-500 shrink-0`} />
+                    <span className={isTab3DActive ? 'sr-only' : ''}>Copy CSS Custom Properties</span>
                   </>
                 )}
               </button>
@@ -4399,11 +4398,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 reset3DDefaults();
                 if (soundEnabled) soundFX.playCrystalChime();
               }}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-[#FF4D6D] text-stone-700 hover:text-white dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-[#FF4D6D] dark:hover:text-white font-bold text-xs transition-all cursor-pointer shadow-xs active:scale-97"
+              className="flex items-center justify-center gap-2 px-4 h-10 sm:h-10.5 rounded-xl font-bold text-xs transition-all cursor-pointer select-none shrink-0 border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-700 dark:text-stone-200 hover:text-[#FF4D6D] dark:hover:text-[#FF4D6D] hover:border-[#FF4D6D]/60 hover:shadow-[0_2.5px_0_0_#D93856] active:translate-y-[1.5px]"
+              title="Reset 3D Defaults"
               aria-label="Reset 3D Controls to Default"
             >
-              <RotateCcw className="w-4 h-4" />
-              <span>Reset 3D Defaults</span>
+              <RotateCcw className={`${isTab3DActive ? 'w-4.5 h-4.5 text-[#FF4D6D]' : 'w-4 h-4'} shrink-0`} />
+              <span className={isTab3DActive ? 'sr-only' : ''}>Reset 3D Defaults</span>
             </button>
           </div>
             </div>

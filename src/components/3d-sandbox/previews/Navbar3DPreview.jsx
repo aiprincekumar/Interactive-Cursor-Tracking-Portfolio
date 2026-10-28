@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useLab3D } from '../../../context/LabContext';
 import { soundFX } from '../../../utils/audio';
+import { THEME_PORTFOLIO_STYLES } from '../UniversalMiniPortfolio';
 
 const NAV_ITEMS = [
   { id: 'work', label: 'Work' },
@@ -34,13 +35,20 @@ export function Navbar3DPreview({
 }) {
   const lab3D = useLab3D ? useLab3D() : null;
   const threeD = lab3D?.threeD || {};
+  const isMaster3DOn = threeD.master3D ?? true;
+  const masterTheme = threeD.masterTheme || 'apple-glass';
+  const elements = threeD.elements || {};
   const lighting = threeD.lighting || { angle: 45, shadowSoftness: 0.6 };
   const materials = threeD.materials || { preset: 'glass', bevelWidth: 2 };
   const explodedConfig = threeD.exploded || { enabled: false, separationDistance: 40, blueprintMode: false };
 
+  const themeStyle = THEME_PORTFOLIO_STYLES[masterTheme] || THEME_PORTFOLIO_STYLES['apple-glass'];
+
   const isExploded = explodedMode ?? explodedConfig.enabled ?? false;
   const separation = separationDistance ?? explodedConfig.separationDistance ?? 40;
   const isBlueprint = explodedConfig.blueprintMode ?? false;
+
+  const isNav3D = isMaster3DOn && (Boolean(elements.navbarItems) || Boolean(elements.navbarIcons));
 
   const [activeItem, setActiveItem] = useState('lab');
   const [depressedItem, setDepressedItem] = useState(null);
@@ -51,8 +59,8 @@ export function Navbar3DPreview({
   const lightOffsetY = Math.round(Math.sin(rad) * 16);
   const shadowBlur = Math.round(24 * (lighting.shadowSoftness ?? 0.6));
 
-  const zNav = isExploded ? Math.round(separation * 1.1) : 26;
-  const zButtons = isExploded ? Math.round(separation * 1.5) : 34;
+  const zNav = !isMaster3DOn ? 0 : (isExploded ? Math.round(separation * 1.1) : (isNav3D ? 42 : 0));
+  const zButtons = !isMaster3DOn ? 0 : (isExploded ? Math.round(separation * 1.5) : (isNav3D ? 50 : 0));
 
   const handleItemPress = useCallback((id) => {
     if (!interactive) return;
@@ -97,13 +105,33 @@ export function Navbar3DPreview({
           transformStyle: 'preserve-3d',
           background: isBlueprint
             ? 'rgba(6, 182, 212, 0.12)'
-            : 'rgba(255, 255, 255, 0.85)',
+            : masterTheme === 'cyber-neon'
+              ? '#0B0813'
+              : masterTheme === 'studio-matte'
+                ? '#EEEAE4'
+                : masterTheme === 'floating-hologram'
+                  ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(168, 85, 247, 0.35) 100%)'
+                  : 'rgba(255, 255, 255, 0.85)',
           borderColor: isBlueprint
             ? 'rgba(6, 182, 212, 0.6)'
-            : 'rgba(255, 255, 255, 0.8)',
+            : masterTheme === 'cyber-neon'
+              ? 'rgba(0, 242, 254, 0.7)'
+              : masterTheme === 'studio-matte'
+                ? '#C8C3B9'
+                : masterTheme === 'floating-hologram'
+                  ? 'rgba(168, 85, 247, 0.6)'
+                  : 'rgba(255, 255, 255, 0.8)',
           boxShadow: isBlueprint
             ? `0 0 25px rgba(6, 182, 212, 0.3)`
-            : `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.8)`
+            : !isMaster3DOn
+              ? 'none'
+              : masterTheme === 'cyber-neon'
+                ? (isNav3D ? '0 0 20px rgba(0, 242, 254, 0.7), inset 0 0 12px rgba(255, 0, 122, 0.3)' : '0 0 16px rgba(0, 242, 254, 0.4)')
+                : masterTheme === 'studio-matte'
+                  ? `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.14), inset 0 1px 2px rgba(255, 255, 255, 0.4)`
+                  : masterTheme === 'floating-hologram'
+                    ? (isNav3D ? '0 0 24px rgba(168, 85, 247, 0.75), inset 0 0 14px rgba(192, 132, 252, 0.5)' : '0 0 18px rgba(168, 85, 247, 0.45)')
+                    : `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.8)`
         }}
       >
         {/* Dynamic Specular Sheen Layer */}

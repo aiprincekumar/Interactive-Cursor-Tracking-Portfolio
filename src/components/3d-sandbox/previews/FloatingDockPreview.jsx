@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useLab3D } from '../../../context/LabContext';
 import { soundFX } from '../../../utils/audio';
+import { THEME_PORTFOLIO_STYLES } from '../UniversalMiniPortfolio';
 
 const DOCK_ITEMS = [
   { id: 'globe', label: 'Home Portfolio', icon: Globe },
@@ -37,13 +38,20 @@ export function FloatingDockPreview({
 }) {
   const lab3D = useLab3D ? useLab3D() : null;
   const threeD = lab3D?.threeD || {};
+  const isMaster3DOn = threeD.master3D ?? true;
+  const masterTheme = threeD.masterTheme || 'apple-glass';
+  const elements = threeD.elements || {};
   const lighting = threeD.lighting || { angle: 45, shadowSoftness: 0.6 };
   const physics = threeD.physics || { hoverPopScale: 1.15, elasticity: 0.8 };
   const explodedConfig = threeD.exploded || { enabled: false, separationDistance: 40, blueprintMode: false };
 
+  const themeStyle = THEME_PORTFOLIO_STYLES[masterTheme] || THEME_PORTFOLIO_STYLES['apple-glass'];
+
   const isExploded = explodedMode ?? explodedConfig.enabled ?? false;
   const separation = separationDistance ?? explodedConfig.separationDistance ?? 40;
   const isBlueprint = explodedConfig.blueprintMode ?? false;
+
+  const isDock3D = isMaster3DOn && (Boolean(elements.floatingButton) || Boolean(elements.resumeButton));
 
   const [mouseIndex, setMouseIndex] = useState(null);
   const [activeItem, setActiveItem] = useState('lab');
@@ -55,7 +63,7 @@ export function FloatingDockPreview({
   const lightOffsetY = Math.round(Math.sin(rad) * 16);
   const shadowBlur = Math.round(24 * (lighting.shadowSoftness ?? 0.6));
 
-  const zBase = isExploded ? Math.round(separation * 0.8) : 28;
+  const zBase = !isMaster3DOn ? 0 : (isExploded ? Math.round(separation * 0.8) : (isDock3D ? 68 : 0));
 
   const handlePointerMove = useCallback((e) => {
     if (!interactive) return;
@@ -124,13 +132,33 @@ export function FloatingDockPreview({
           transformStyle: 'preserve-3d',
           background: isBlueprint
             ? 'rgba(6, 182, 212, 0.1)'
-            : 'rgba(255, 255, 255, 0.88)',
+            : masterTheme === 'cyber-neon'
+              ? '#0B0813'
+              : masterTheme === 'studio-matte'
+                ? '#E8E3DB'
+                : masterTheme === 'floating-hologram'
+                  ? 'linear-gradient(135deg, rgba(79, 70, 229, 0.36) 0%, rgba(147, 51, 234, 0.42) 100%)'
+                  : 'rgba(255, 255, 255, 0.88)',
           borderColor: isBlueprint
             ? 'rgba(6, 182, 212, 0.6)'
-            : 'rgba(255, 255, 255, 0.8)',
+            : masterTheme === 'cyber-neon'
+              ? 'rgba(0, 242, 254, 0.8)'
+              : masterTheme === 'studio-matte'
+                ? '#C3BDB1'
+                : masterTheme === 'floating-hologram'
+                  ? 'rgba(192, 132, 252, 0.7)'
+                  : 'rgba(255, 255, 255, 0.8)',
           boxShadow: isBlueprint
             ? `0 0 25px rgba(6, 182, 212, 0.3)`
-            : `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.8)`
+            : !isMaster3DOn
+              ? 'none'
+              : masterTheme === 'cyber-neon'
+                ? (isDock3D ? '0 0 24px rgba(0, 242, 254, 0.7), inset 0 0 10px rgba(255, 0, 122, 0.25)' : '0 0 20px rgba(0, 242, 254, 0.45)')
+                : masterTheme === 'studio-matte'
+                  ? `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.18), inset 0 1px 2px rgba(255, 255, 255, 0.2)`
+                  : masterTheme === 'floating-hologram'
+                    ? (isDock3D ? '0 0 28px rgba(168, 85, 247, 0.8), inset 0 0 12px rgba(129, 140, 248, 0.4)' : '0 0 22px rgba(147, 51, 234, 0.55)')
+                    : `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.8)`
         }}
       >
         {DOCK_ITEMS.map((item, idx) => {

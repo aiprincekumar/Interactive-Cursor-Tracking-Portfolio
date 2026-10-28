@@ -1,5 +1,5 @@
 /* oxlint-disable react/only-export-components */
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
   RotateCcw,
   Sparkles,
@@ -20,6 +20,189 @@ import {
 } from 'lucide-react';
 import { useLab3D } from '../../context/LabContext';
 import SandboxViewportContainer from './SandboxViewportContainer';
+
+/**
+ * 4 Master 3D Portfolio Themes Visual Styling Specification
+ * (Apple Glass, Cyber Neon, Studio Matte, Floating Hologram)
+ */
+export const THEME_PORTFOLIO_STYLES = {
+  'apple-glass': {
+    id: 'apple-glass',
+    name: 'Apple Glass',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.12) 0%, rgba(13, 9, 22, 0.96) 100%)',
+    navbar: {
+      bg: 'rgba(255, 255, 255, 0.78)',
+      darkBg: 'rgba(26, 20, 42, 0.82)',
+      border: 'border-white/40 dark:border-white/15',
+      glow: 'inset 0 1px 1px rgba(255,255,255,0.7), 0 8px 24px rgba(0,0,0,0.12)',
+      activeGlowRim: '0 0 14px rgba(255,77,109,0.35), inset 0 1px 2px rgba(255,255,255,0.8)',
+      text: 'text-stone-800 dark:text-stone-100',
+      badgeBg: 'bg-white/80 dark:bg-white/10 text-stone-700 dark:text-stone-200',
+      accent: '#FF4D6D'
+    },
+    hero: {
+      bg: 'rgba(255, 255, 255, 0.84)',
+      darkBg: 'rgba(30, 23, 48, 0.88)',
+      border: 'border-white/50 dark:border-white/20',
+      glow: 'inset 0 1px 2px rgba(255,255,255,0.8), 0 12px 32px rgba(0,0,0,0.18)',
+      activeGlowRim: '0 0 20px rgba(255,77,109,0.3), inset 0 1px 2px rgba(255,255,255,0.9)',
+      text: 'text-stone-900 dark:text-white',
+      avatarGradient: 'from-[#FF4D6D] to-[#00F2FE]',
+      subText: 'text-stone-600 dark:text-stone-300',
+      accent: '#FF4D6D'
+    },
+    gridItem: {
+      bg: 'rgba(255, 255, 255, 0.72)',
+      darkBg: 'rgba(24, 18, 38, 0.82)',
+      border: 'border-white/40 dark:border-white/15',
+      glow: 'inset 0 1px 1px rgba(255,255,255,0.5), 0 4px 12px rgba(0,0,0,0.1)',
+      activeGlowRim: '0 0 12px rgba(255,77,109,0.25)',
+      text: 'text-stone-800 dark:text-stone-200',
+      accent: '#FF4D6D'
+    },
+    dock: {
+      bg: 'rgba(255, 255, 255, 0.82)',
+      darkBg: 'rgba(24, 18, 38, 0.9)',
+      border: 'border-white/45 dark:border-white/20',
+      glow: 'inset 0 1px 2px rgba(255,255,255,0.7), 0 10px 28px rgba(0,0,0,0.2)',
+      activeGlowRim: '0 0 18px rgba(255,77,109,0.35)',
+      btnBg: 'bg-white/90 dark:bg-stone-800/90 text-stone-700 dark:text-stone-200 hover:text-[#FF4D6D]',
+      accent: '#FF4D6D'
+    }
+  },
+  'cyber-neon': {
+    id: 'cyber-neon',
+    name: 'Cyber Neon',
+    stageBg: 'radial-gradient(circle at 50% 35%, rgba(0, 242, 254, 0.18) 0%, rgba(11, 8, 19, 0.98) 100%)',
+    navbar: {
+      bg: '#0B0813',
+      darkBg: '#0B0813',
+      border: 'border-[#00F2FE]/70',
+      glow: '0 0 16px rgba(0, 242, 254, 0.4), inset 0 0 8px rgba(0, 242, 254, 0.2)',
+      activeGlowRim: '0 0 20px rgba(0, 242, 254, 0.7), inset 0 0 12px rgba(255, 0, 122, 0.3)',
+      text: 'text-cyan-300',
+      badgeBg: 'bg-[#0B0813] text-cyan-300 border border-cyan-500/40',
+      accent: '#00F2FE'
+    },
+    hero: {
+      bg: '#0B0813',
+      darkBg: '#0B0813',
+      border: 'border-[#FF007A]/70',
+      glow: '0 0 20px rgba(255, 0, 122, 0.4), inset 0 0 12px rgba(0, 242, 254, 0.25)',
+      activeGlowRim: '0 0 24px rgba(255, 0, 122, 0.7), inset 0 0 16px rgba(0, 242, 254, 0.4)',
+      text: 'text-white',
+      avatarGradient: 'from-[#FF007A] via-[#9B00FF] to-[#00F2FE]',
+      subText: 'text-cyan-200/90',
+      accent: '#FF007A'
+    },
+    gridItem: {
+      bg: '#0B0813',
+      darkBg: '#0B0813',
+      border: 'border-[#00F2FE]/50',
+      glow: '0 0 12px rgba(0, 242, 254, 0.3)',
+      activeGlowRim: '0 0 16px rgba(0, 242, 254, 0.55)',
+      text: 'text-cyan-200',
+      accent: '#00F2FE'
+    },
+    dock: {
+      bg: '#0B0813',
+      darkBg: '#0B0813',
+      border: 'border-[#00F2FE]/80',
+      glow: '0 0 20px rgba(0, 242, 254, 0.45), inset 0 0 10px rgba(255, 0, 122, 0.25)',
+      activeGlowRim: '0 0 24px rgba(0, 242, 254, 0.7)',
+      btnBg: 'bg-[#150F26] text-cyan-300 hover:text-[#FF007A] border border-cyan-500/40',
+      accent: '#00F2FE'
+    }
+  },
+  'studio-matte': {
+    id: 'studio-matte',
+    name: 'Studio Matte',
+    stageBg: 'radial-gradient(circle at 50% 40%, rgba(226, 222, 214, 0.25) 0%, rgba(20, 18, 26, 0.98) 100%)',
+    navbar: {
+      bg: '#EEEAE4',
+      darkBg: '#201C28',
+      border: 'border-[#C8C3B9]/60 dark:border-[#3D354E]/70',
+      glow: '0 4px 12px rgba(0, 0, 0, 0.12), inset 0 1px 2px rgba(255, 255, 255, 0.25)',
+      activeGlowRim: '0 4px 18px rgba(245, 158, 11, 0.3), inset 0 1px 3px rgba(255, 255, 255, 0.4)',
+      text: 'text-stone-800 dark:text-stone-200',
+      badgeBg: 'bg-[#E2DED6] dark:bg-[#2A2436] text-stone-700 dark:text-stone-300',
+      accent: '#F59E0B'
+    },
+    hero: {
+      bg: '#EAE6DE',
+      darkBg: '#24202E',
+      border: 'border-[#BEB8AC]/60 dark:border-[#443B56]/70',
+      glow: '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 3px rgba(255, 255, 255, 0.3)',
+      activeGlowRim: '0 8px 28px rgba(245, 158, 11, 0.35), inset 0 1px 4px rgba(255, 255, 255, 0.5)',
+      text: 'text-stone-900 dark:text-stone-100',
+      avatarGradient: 'from-[#D97706] to-[#78350F]',
+      subText: 'text-stone-600 dark:text-stone-300',
+      accent: '#F59E0B'
+    },
+    gridItem: {
+      bg: '#EEEAE4',
+      darkBg: '#1E1A26',
+      border: 'border-[#CDC8BE]/55 dark:border-[#383047]/60',
+      glow: '0 3px 8px rgba(0, 0, 0, 0.1)',
+      activeGlowRim: '0 4px 14px rgba(245, 158, 11, 0.25)',
+      text: 'text-stone-800 dark:text-stone-200',
+      accent: '#F59E0B'
+    },
+    dock: {
+      bg: '#E8E3DB',
+      darkBg: '#221E2C',
+      border: 'border-[#C3BDB1]/65 dark:border-[#3E3550]/70',
+      glow: '0 6px 20px rgba(0, 0, 0, 0.18), inset 0 1px 2px rgba(255, 255, 255, 0.2)',
+      activeGlowRim: '0 6px 22px rgba(245, 158, 11, 0.3)',
+      btnBg: 'bg-[#E5E0D7] dark:bg-[#282233] text-stone-700 dark:text-stone-200 hover:text-amber-600',
+      accent: '#F59E0B'
+    }
+  },
+  'floating-hologram': {
+    id: 'floating-hologram',
+    name: 'Floating Hologram',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(139, 92, 246, 0.3) 0%, rgba(59, 130, 246, 0.22) 50%, rgba(6, 4, 15, 0.98) 100%)',
+    navbar: {
+      bg: 'linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(168, 85, 247, 0.35) 100%)',
+      darkBg: 'linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(168, 85, 247, 0.35) 100%)',
+      border: 'border-purple-400/60',
+      glow: '0 0 18px rgba(168, 85, 247, 0.45), inset 0 0 10px rgba(99, 102, 241, 0.3)',
+      activeGlowRim: '0 0 24px rgba(168, 85, 247, 0.75), inset 0 0 14px rgba(192, 132, 252, 0.5)',
+      text: 'text-purple-200',
+      badgeBg: 'bg-purple-900/60 text-purple-200 border border-purple-400/40',
+      accent: '#A855F7'
+    },
+    hero: {
+      bg: 'linear-gradient(135deg, rgba(79, 70, 229, 0.35) 0%, rgba(147, 51, 234, 0.4) 100%)',
+      darkBg: 'linear-gradient(135deg, rgba(79, 70, 229, 0.35) 0%, rgba(147, 51, 234, 0.4) 100%)',
+      border: 'border-purple-400/70',
+      glow: '0 0 24px rgba(147, 51, 234, 0.5), inset 0 0 14px rgba(129, 140, 248, 0.35)',
+      activeGlowRim: '0 0 30px rgba(168, 85, 247, 0.8), inset 0 0 18px rgba(192, 132, 252, 0.6)',
+      text: 'text-white',
+      avatarGradient: 'from-[#6366F1] via-[#A855F7] to-[#EC4899]',
+      subText: 'text-purple-200/90',
+      accent: '#C084FC'
+    },
+    gridItem: {
+      bg: 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.28) 100%)',
+      darkBg: 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.28) 100%)',
+      border: 'border-purple-400/50',
+      glow: '0 0 14px rgba(168, 85, 247, 0.38)',
+      activeGlowRim: '0 0 18px rgba(168, 85, 247, 0.6)',
+      text: 'text-purple-100',
+      accent: '#A855F7'
+    },
+    dock: {
+      bg: 'linear-gradient(135deg, rgba(79, 70, 229, 0.36) 0%, rgba(147, 51, 234, 0.42) 100%)',
+      darkBg: 'linear-gradient(135deg, rgba(79, 70, 229, 0.36) 0%, rgba(147, 51, 234, 0.42) 100%)',
+      border: 'border-purple-400/75',
+      glow: '0 0 22px rgba(147, 51, 234, 0.55), inset 0 0 12px rgba(129, 140, 248, 0.4)',
+      activeGlowRim: '0 0 28px rgba(168, 85, 247, 0.8)',
+      btnBg: 'bg-indigo-950/70 text-purple-200 hover:text-pink-400 border border-purple-500/30',
+      accent: '#A855F7'
+    }
+  }
+};
 
 /**
  * Skybox Gradient Definitions
@@ -74,11 +257,61 @@ export function UniversalMiniPortfolio({
   const threeD = lab3D?.threeD || {};
 
   const isMaster3DOn = threeD.master3D ?? true;
+  const masterTheme = threeD.masterTheme || 'apple-glass';
+  const elements = threeD.elements || {};
   const lighting = threeD.lighting || { angle: 45, shadowSoftness: 0.6 };
   const camera = threeD.camera || { perspectiveFOV: 1000, tiltSensitivity: 1.0 };
   const materials = threeD.materials || { bevelExtrusion: 4, specularGlow: 0.5 };
   const exploded = threeD.exploded || { enabled: false, separationDistance: 40, ghostOpacity: 0.4, layerStagger: 15, blueprintMode: false };
   const environment = threeD.environment || { skybox: 'dark-studio', fogDensity: 20, stardustParticles: true, particleCount: 30 };
+
+  const themeStyle = THEME_PORTFOLIO_STYLES[masterTheme] || THEME_PORTFOLIO_STYLES['apple-glass'];
+
+  // Reactive Dark Mode Detector for theme styling
+  const [isDark, setIsDark] = useState(false);
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const checkDark = () => {
+      setIsDark(document.documentElement.classList.contains('dark') || document.body.classList.contains('dark'));
+    };
+    checkDark();
+    const observer = new MutationObserver(checkDark);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // 10 Element Toggles state mapping (live 3D pop/flat response)
+  const isNav3D = isMaster3DOn && (Boolean(elements.navbarItems) || Boolean(elements.navbarIcons));
+  const isProfilePic3D = isMaster3DOn && Boolean(elements.profilePic);
+  const isHeader3D = isMaster3DOn && Boolean(elements.header);
+  const isSubHeader3D = isMaster3DOn && Boolean(elements.subHeader);
+  const isDescription3D = isMaster3DOn && Boolean(elements.description);
+  const isHeroAny3D = isProfilePic3D || isHeader3D || isSubHeader3D || isDescription3D;
+  const isContainer3D = isMaster3DOn && Boolean(elements.container);
+  const isContent3D = isMaster3DOn && Boolean(elements.containerContent);
+  const isGrid3D = isContainer3D || isContent3D;
+  const isFloatBtn3D = isMaster3DOn && Boolean(elements.floatingButton);
+  const isResumeBtn3D = isMaster3DOn && Boolean(elements.resumeButton);
+  const isDock3D = isFloatBtn3D || isResumeBtn3D;
+
+  // Z-Elevation Calculations honoring 10 element toggles & exploded strata
+  const zNav = isMaster3DOn
+    ? (isNav3D ? (18 + 24) : 0) + (exploded.enabled ? exploded.layerStagger * 2 : 0)
+    : 0;
+
+  const zHero = isMaster3DOn
+    ? (36 + (isHeroAny3D ? 16 : 0) + (exploded.enabled ? exploded.layerStagger * 3 : 0))
+    : 0;
+
+  const zGrid = isMaster3DOn
+    ? ((isGrid3D ? (24 + 20) : 0) + (exploded.enabled ? exploded.layerStagger : 0))
+    : 0;
+
+  const zDock = isMaster3DOn
+    ? ((isDock3D ? (42 + 40) : 0) + (exploded.enabled ? exploded.layerStagger * 4 : 0))
+    : 0;
+
+  const zFooter = isMaster3DOn ? (10 + (exploded.enabled ? 0 : 0)) : 0;
 
   const isCompact = compact || !showControls;
   const stageRef = useRef(null);
@@ -291,7 +524,7 @@ export function UniversalMiniPortfolio({
         style={compact ? {} : {
           background: isWireframe
             ? 'radial-gradient(circle at center, rgba(0, 242, 254, 0.12) 0%, rgba(6, 15, 30, 0.98) 100%)'
-            : skyboxBg
+            : (themeStyle?.stageBg || skyboxBg)
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -395,23 +628,39 @@ export function UniversalMiniPortfolio({
             } ${
               isWireframe
                 ? 'border-cyan-400 bg-cyan-950/70 text-cyan-300 font-mono shadow-[0_0_12px_rgba(0,242,254,0.3)]'
-                : 'border-white/30 dark:border-white/10 bg-white/75 dark:bg-[#1A142A]/80 backdrop-blur-md shadow-md text-stone-800 dark:text-stone-200'
+                : `${themeStyle.navbar.border} ${themeStyle.navbar.text} backdrop-blur-md shadow-md`
             }`}
             style={{
-              transform: `translateZ(${exploded.enabled ? 18 + exploded.layerStagger * 2 : 18}px)`,
+              transform: isMaster3DOn ? `translateZ(${zNav}px)` : 'translateZ(0px)',
+              background: isWireframe ? undefined : (isDark ? themeStyle.navbar.darkBg : themeStyle.navbar.bg),
               boxShadow: isMaster3DOn
-                ? `${lightOffsetX * 0.5}px ${lightOffsetY * 0.5}px 10px rgba(0,0,0,0.18)`
-                : 'none'
+                ? (isNav3D
+                    ? `${themeStyle.navbar.activeGlowRim}, ${lightOffsetX * 0.5}px ${lightOffsetY * 0.5}px 14px rgba(0,0,0,0.22)`
+                    : `${lightOffsetX * 0.5}px ${lightOffsetY * 0.5}px 10px rgba(0,0,0,0.18)`)
+                : 'none',
+              transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, background 0.35s ease'
             }}
           >
             {/* Brand Monogram Initials */}
-            <div className="flex items-center gap-1.5 font-bold text-xs tracking-tight">
+            <div
+              className="flex items-center gap-1.5 font-bold text-xs tracking-tight"
+              style={{
+                transform: isNav3D && elements.navbarItems ? 'translateZ(12px)' : 'translateZ(0px)',
+                transition: 'transform 0.3s ease'
+              }}
+            >
               <span className="font-mono text-[#FF4D6D]">[AV]</span>
               <span className="text-[10px] opacity-75 font-medium hidden sm:inline">Portfolio</span>
             </div>
 
             {/* Navigation Dots */}
-            <div className="flex items-center gap-1.5">
+            <div
+              className="flex items-center gap-1.5"
+              style={{
+                transform: isNav3D && elements.navbarIcons ? 'translateZ(10px)' : 'translateZ(0px)',
+                transition: 'transform 0.3s ease'
+              }}
+            >
               {['Home', 'Work', 'Skills', 'Lab'].map((dot, idx) => (
                 <span
                   key={dot}
@@ -428,7 +677,13 @@ export function UniversalMiniPortfolio({
             </div>
 
             {/* Micro Theme Pill */}
-            <div className="flex items-center gap-1 p-0.5 rounded-full bg-stone-200/60 dark:bg-stone-800/80 text-[10px]">
+            <div
+              className="flex items-center gap-1 p-0.5 rounded-full bg-stone-200/60 dark:bg-stone-800/80 text-[10px]"
+              style={{
+                transform: isNav3D && (elements.navbarItems || elements.navbarIcons) ? 'translateZ(8px)' : 'translateZ(0px)',
+                transition: 'transform 0.3s ease'
+              }}
+            >
               <Sun className="w-2.5 h-2.5 text-amber-500" />
               <Moon className="w-2.5 h-2.5 text-stone-400" />
             </div>
@@ -447,18 +702,30 @@ export function UniversalMiniPortfolio({
             } ${
               isWireframe
                 ? 'border-cyan-400 bg-cyan-950/80 text-cyan-200 shadow-[0_0_20px_rgba(0,242,254,0.35)]'
-                : 'border-white/40 dark:border-white/15 bg-white/80 dark:bg-[#1E1730]/85 backdrop-blur-xl shadow-xl'
+                : `${themeStyle.hero.border} backdrop-blur-xl shadow-xl`
             }`}
             style={{
-              transform: `translateZ(${exploded.enabled ? 36 + exploded.layerStagger * 3 : 36}px)`,
+              transform: isMaster3DOn ? `translateZ(${zHero}px)` : 'translateZ(0px)',
+              background: isWireframe ? undefined : (isDark ? themeStyle.hero.darkBg : themeStyle.hero.bg),
               boxShadow: isMaster3DOn
-                ? `${lightOffsetX}px ${lightOffsetY}px ${Math.round(materials.bevelExtrusion * 4)}px rgba(0,0,0,0.25)`
-                : 'none'
+                ? (isHeroAny3D
+                    ? `${themeStyle.hero.activeGlowRim}, ${lightOffsetX}px ${lightOffsetY}px ${Math.round(materials.bevelExtrusion * 4)}px rgba(0,0,0,0.28)`
+                    : `${lightOffsetX}px ${lightOffsetY}px ${Math.round(materials.bevelExtrusion * 4)}px rgba(0,0,0,0.25)`)
+                : 'none',
+              transformStyle: 'preserve-3d',
+              transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, background 0.35s ease'
             }}
           >
             {/* Avatar Orb */}
-            <div className="relative shrink-0">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#FF4D6D] to-[#00F2FE] p-0.5 shadow-md flex items-center justify-center">
+            <div
+              className="relative shrink-0"
+              style={{
+                transform: isProfilePic3D ? 'translateZ(30px)' : 'translateZ(0px)',
+                transformStyle: 'preserve-3d',
+                transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
+              }}
+            >
+              <div className={`w-9 h-9 rounded-full bg-gradient-to-tr ${themeStyle.hero.avatarGradient} p-0.5 shadow-md flex items-center justify-center`}>
                 <div className="w-full h-full rounded-full bg-[#181226] flex items-center justify-center text-[10px] font-bold text-white">
                   AV
                 </div>
@@ -467,19 +734,40 @@ export function UniversalMiniPortfolio({
             </div>
 
             {/* Headline Wireframe Skeleton & Status */}
-            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+            <div className="flex-1 min-w-0 flex flex-col gap-1.5" style={{ transformStyle: 'preserve-3d' }}>
               <div className="flex items-center justify-between gap-1">
-                <span className="text-[11px] font-bold truncate text-stone-800 dark:text-stone-100">
+                <span
+                  className="text-[11px] font-bold truncate text-stone-800 dark:text-stone-100"
+                  style={{
+                    transform: isHeader3D ? 'translateZ(20px)' : 'translateZ(0px)',
+                    transformStyle: 'preserve-3d',
+                    transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                  }}
+                >
                   {isWireframe ? 'WIRE_FRAME // HERO_UNIT' : 'Atul Verma • 3D Systems'}
                 </span>
-                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shrink-0">
+                <span
+                  className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shrink-0"
+                  style={{
+                    transform: isSubHeader3D ? 'translateZ(16px)' : 'translateZ(0px)',
+                    transformStyle: 'preserve-3d',
+                    transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                  }}
+                >
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                  <span>Active 3D</span>
+                  <span>{isMaster3DOn ? 'Active 3D' : 'Flat 2D'}</span>
                 </span>
               </div>
 
               {/* Wireframe Skeletons */}
-              <div className="space-y-1">
+              <div
+                className="space-y-1"
+                style={{
+                  transform: isDescription3D ? 'translateZ(12px)' : 'translateZ(0px)',
+                  transformStyle: 'preserve-3d',
+                  transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                }}
+              >
                 <div className={`h-1.5 w-4/5 rounded-full ${isWireframe ? 'bg-cyan-500/40' : 'bg-stone-300 dark:bg-stone-700'}`} />
                 <div className={`h-1.5 w-3/5 rounded-full ${isWireframe ? 'bg-cyan-500/25' : 'bg-stone-200 dark:bg-stone-800'}`} />
               </div>
@@ -498,8 +786,9 @@ export function UniversalMiniPortfolio({
               isGridHighlighted ? 'ring-2 ring-[#FF4D6D] ring-offset-2 shadow-[0_0_20px_rgba(255,77,109,0.35)]' : ''
             }`}
             style={{
-              transform: `translateZ(${exploded.enabled ? 24 + exploded.layerStagger : 24}px)`,
-              transformStyle: 'preserve-3d'
+              transform: isMaster3DOn ? `translateZ(${zGrid}px)` : 'translateZ(0px)',
+              transformStyle: 'preserve-3d',
+              transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
             }}
           >
             {[
@@ -515,12 +804,17 @@ export function UniversalMiniPortfolio({
                   className={`p-2 rounded-xl border flex flex-col justify-between gap-1.5 transition-all ${
                     isWireframe
                       ? 'border-cyan-400/80 bg-cyan-950/60 text-cyan-300 font-mono shadow-[0_0_10px_rgba(0,242,254,0.2)]'
-                      : 'border-white/35 dark:border-white/10 bg-white/70 dark:bg-[#181226]/80 backdrop-blur-md shadow-sm'
+                      : `${themeStyle.gridItem.border} ${themeStyle.gridItem.text} backdrop-blur-md shadow-sm`
                   }`}
                   style={{
+                    transform: isContent3D ? 'translateZ(14px)' : 'translateZ(0px)',
+                    background: isWireframe ? undefined : (isDark ? themeStyle.gridItem.darkBg : themeStyle.gridItem.bg),
                     boxShadow: isMaster3DOn
-                      ? `${lightOffsetX * 0.6}px ${lightOffsetY * 0.6}px ${Math.round(materials.bevelExtrusion * 2)}px rgba(0,0,0,0.18)`
-                      : 'none'
+                      ? (isGrid3D
+                          ? `${lightOffsetX * 0.6}px ${lightOffsetY * 0.6}px ${Math.round(materials.bevelExtrusion * 3)}px rgba(0,0,0,0.24), ${themeStyle.gridItem.activeGlowRim}`
+                          : `${lightOffsetX * 0.6}px ${lightOffsetY * 0.6}px ${Math.round(materials.bevelExtrusion * 2)}px rgba(0,0,0,0.18)`)
+                      : 'none',
+                    transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, background 0.35s ease'
                   }}
                 >
                   <div className="flex items-center justify-between">
@@ -551,13 +845,17 @@ export function UniversalMiniPortfolio({
             } ${
               isWireframe
                 ? 'border-cyan-400 bg-cyan-950/90 text-cyan-300 shadow-[0_0_15px_rgba(0,242,254,0.4)]'
-                : 'border-white/40 dark:border-white/15 bg-white/80 dark:bg-[#181226]/90 backdrop-blur-lg shadow-lg'
+                : `${themeStyle.dock.border} backdrop-blur-lg shadow-lg`
             }`}
             style={{
-              transform: `translateZ(${exploded.enabled ? 42 + exploded.layerStagger * 4 : 42}px)`,
+              transform: isMaster3DOn ? `translateZ(${zDock}px)` : 'translateZ(0px)',
+              background: isWireframe ? undefined : (isDark ? themeStyle.dock.darkBg : themeStyle.dock.bg),
               boxShadow: isMaster3DOn
-                ? `${lightOffsetX}px ${lightOffsetY}px 14px rgba(0,0,0,0.22)`
-                : 'none'
+                ? (isDock3D
+                    ? `${lightOffsetX}px ${lightOffsetY}px 24px rgba(0,0,0,0.32), ${themeStyle.dock.activeGlowRim}`
+                    : `${lightOffsetX}px ${lightOffsetY}px 14px rgba(0,0,0,0.22)`)
+                : 'none',
+              transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, background 0.35s ease'
             }}
           >
             {[
@@ -580,10 +878,12 @@ export function UniversalMiniPortfolio({
                       ? 'scale-125 -translate-y-1 bg-[#FF4D6D] text-white shadow-md'
                       : isWireframe
                         ? 'bg-cyan-900/60 text-cyan-300'
-                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:text-[#FF4D6D]'
+                        : `${themeStyle.dock.btnBg}`
                   }`}
                   style={{
-                    transform: isHovered ? 'translateZ(10px) scale(1.2)' : 'translateZ(0px)',
+                    transform: isHovered
+                      ? 'translateZ(10px) scale(1.2)'
+                      : (isDock3D ? 'translateZ(8px)' : 'translateZ(0px)'),
                     transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)'
                   }}
                   title={item.label}
@@ -607,13 +907,14 @@ export function UniversalMiniPortfolio({
               isFooterHighlighted ? 'ring-2 ring-[#FF4D6D] ring-offset-2 shadow-[0_0_20px_rgba(255,77,109,0.35)] rounded-lg px-2 py-1' : ''
             }`}
             style={{
-              transform: `translateZ(${exploded.enabled ? 10 : 10}px)`
+              transform: isMaster3DOn ? `translateZ(${zFooter}px)` : 'translateZ(0px)',
+              transition: 'transform 0.35s ease'
             }}
           >
             <span>© 2026 Atul Verma • All Systems Nominal</span>
             <span className="flex items-center gap-1">
               <Shield className="w-2.5 h-2.5 text-emerald-500" />
-              <span>3D Preserved</span>
+              <span>{isMaster3DOn ? '3D Preserved' : '2D Preserved'}</span>
             </span>
           </div>
         </div>

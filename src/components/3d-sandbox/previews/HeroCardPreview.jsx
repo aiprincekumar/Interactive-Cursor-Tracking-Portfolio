@@ -10,6 +10,7 @@ import {
   Code
 } from 'lucide-react';
 import { useLab3D } from '../../../context/LabContext';
+import { THEME_PORTFOLIO_STYLES } from '../UniversalMiniPortfolio';
 
 /**
  * HeroCardPreview
@@ -29,13 +30,24 @@ export function HeroCardPreview({
 }) {
   const lab3D = useLab3D ? useLab3D() : null;
   const threeD = lab3D?.threeD || {};
+  const isMaster3DOn = threeD.master3D ?? true;
+  const masterTheme = threeD.masterTheme || 'apple-glass';
+  const elements = threeD.elements || {};
   const lighting = threeD.lighting || { angle: 45, shadowSoftness: 0.6, intensity: 1 };
   const materials = threeD.materials || { preset: 'glass', bevelWidth: 2, specularGlow: 0.7 };
   const explodedConfig = threeD.exploded || { enabled: false, separationDistance: 40, blueprintMode: false };
 
+  const themeStyle = THEME_PORTFOLIO_STYLES[masterTheme] || THEME_PORTFOLIO_STYLES['apple-glass'];
+
   const isExploded = explodedMode ?? explodedConfig.enabled ?? false;
   const separation = separationDistance ?? explodedConfig.separationDistance ?? 40;
   const isBlueprint = explodedConfig.blueprintMode ?? false;
+
+  // 10 Element Toggles state mapping for Hero preview
+  const isProfilePic3D = isMaster3DOn && Boolean(elements.profilePic);
+  const isHeader3D = isMaster3DOn && Boolean(elements.header);
+  const isSubHeader3D = isMaster3DOn && Boolean(elements.subHeader);
+  const isDescription3D = isMaster3DOn && Boolean(elements.description);
 
   // Dynamic light calculations
   const rad = ((lighting.angle ?? 45) * Math.PI) / 180;
@@ -43,11 +55,11 @@ export function HeroCardPreview({
   const lightOffsetY = Math.round(Math.sin(rad) * 16);
   const shadowBlur = Math.round(24 * (lighting.shadowSoftness ?? 0.6));
 
-  // Strata Z-offsets
-  const zBase = isExploded ? 0 : 4;
-  const zAvatar = isExploded ? Math.round(separation * 0.9) : 26;
-  const zInfo = isExploded ? Math.round(separation * 1.25) : 32;
-  const zMetrics = isExploded ? Math.round(separation * 1.6) : 40;
+  // Strata Z-offsets honoring master 3D, theme & 10 toggles
+  const zBase = !isMaster3DOn ? 0 : (isExploded ? 0 : 4);
+  const zAvatar = !isMaster3DOn ? 0 : (isExploded ? Math.round(separation * 0.9) : (isProfilePic3D ? 30 : 0));
+  const zInfo = !isMaster3DOn ? 0 : (isExploded ? Math.round(separation * 1.25) : (isHeader3D || isSubHeader3D ? 20 : 0));
+  const zMetrics = !isMaster3DOn ? 0 : (isExploded ? Math.round(separation * 1.6) : (isDescription3D ? 12 : 0));
 
   // Material style computation
   const getMaterialStyles = () => {
@@ -81,6 +93,27 @@ export function HeroCardPreview({
         };
       case 'glass':
       default:
+        if (masterTheme === 'cyber-neon') {
+          return {
+            background: '#0B0813',
+            borderColor: '#FF007A',
+            boxShadow: `0 0 20px rgba(255, 0, 122, 0.4), inset 0 0 12px rgba(0, 242, 254, 0.25)`
+          };
+        }
+        if (masterTheme === 'studio-matte') {
+          return {
+            background: '#EAE6DE',
+            borderColor: '#BEB8AC',
+            boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.16), inset 0 1px 3px rgba(255, 255, 255, 0.3)`
+          };
+        }
+        if (masterTheme === 'floating-hologram') {
+          return {
+            background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.35) 0%, rgba(147, 51, 234, 0.4) 100%)',
+            borderColor: 'rgba(192, 132, 252, 0.65)',
+            boxShadow: `0 0 24px rgba(147, 51, 234, 0.45), inset 0 0 14px rgba(129, 140, 248, 0.3)`
+          };
+        }
         return {
           background: 'rgba(255, 255, 255, 0.82)',
           borderColor: 'rgba(255, 77, 109, 0.35)',
@@ -136,7 +169,7 @@ export function HeroCardPreview({
             </span>
           )}
 
-          <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#FF4D6D] via-[#7928CA] to-[#00F2FE] p-1 shadow-xl flex items-center justify-center">
+          <div className={`w-20 h-20 rounded-full bg-gradient-to-tr ${themeStyle.hero.avatarGradient || 'from-[#FF4D6D] via-[#7928CA] to-[#00F2FE]'} p-1 shadow-xl flex items-center justify-center`}>
             <div className="w-full h-full rounded-full bg-[#181226] text-white flex flex-col items-center justify-center relative overflow-hidden border border-white/20">
               <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
                 AV

@@ -9,6 +9,7 @@ import {
 import { GithubIcon, LinkedinIcon, TwitterIcon } from '../../Icons';
 import { useLab3D } from '../../../context/LabContext';
 import { soundFX } from '../../../utils/audio';
+import { THEME_PORTFOLIO_STYLES } from '../UniversalMiniPortfolio';
 
 const SOCIAL_LINKS = [
   { id: 'github', label: 'GitHub', icon: GithubIcon, href: 'https://github.com/aiprincekumar' },
@@ -34,9 +35,14 @@ export function Footer3DPreview({
 }) {
   const lab3D = useLab3D ? useLab3D() : null;
   const threeD = lab3D?.threeD || {};
+  const isMaster3DOn = threeD.master3D ?? true;
+  const masterTheme = threeD.masterTheme || 'apple-glass';
+  const elements = threeD.elements || {};
   const lighting = threeD.lighting || { angle: 45, shadowSoftness: 0.6 };
   const materials = threeD.materials || { preset: 'glass', bevelWidth: 2 };
   const explodedConfig = threeD.exploded || { enabled: false, separationDistance: 40, blueprintMode: false };
+
+  const themeStyle = THEME_PORTFOLIO_STYLES[masterTheme] || THEME_PORTFOLIO_STYLES['apple-glass'];
 
   const isExploded = explodedMode ?? explodedConfig.enabled ?? false;
   const separation = separationDistance ?? explodedConfig.separationDistance ?? 40;
@@ -50,9 +56,9 @@ export function Footer3DPreview({
   const lightOffsetY = Math.round(Math.sin(rad) * 20);
   const shadowBlur = Math.round(28 * (lighting.shadowSoftness ?? 0.6));
 
-  const zBase = isExploded ? 0 : 8;
-  const zSlab = isExploded ? Math.round(separation * 0.7) : 18;
-  const zIcons = isExploded ? Math.round(separation * 1.3) : 28;
+  const zBase = !isMaster3DOn ? 0 : (isExploded ? 0 : 8);
+  const zSlab = !isMaster3DOn ? 0 : (isExploded ? Math.round(separation * 0.7) : 18);
+  const zIcons = !isMaster3DOn ? 0 : (isExploded ? Math.round(separation * 1.3) : 28);
 
   return (
     <div
