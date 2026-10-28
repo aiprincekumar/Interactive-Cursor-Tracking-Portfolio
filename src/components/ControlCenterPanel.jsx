@@ -355,10 +355,10 @@ const ELASTICITY_PRESETS = [
 ];
 
 const THREED_CLUSTERS = [
-  { id: 'all', label: 'All (9)', count: 9 },
-  { id: 'design', label: 'Design & Materials (3)', count: 3 },
-  { id: 'physics', label: 'Physics & CAD (3)', count: 3 },
-  { id: 'system', label: 'Environment & System (3)', count: 3 }
+  { id: 'all', label: 'All', count: 9, icon: LayoutGrid },
+  { id: 'design', label: 'Design', count: 3, icon: Palette },
+  { id: 'physics', label: 'Physics', count: 3, icon: Activity },
+  { id: 'system', label: 'Environment', count: 3, icon: Globe }
 ];
 
 const SKYBOX_PRESETS = [
@@ -561,7 +561,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
   } = lab;
 
   const [expandedAccordion, setExpandedAccordion] = useState('elements');
-  const [active3DSubTab, setActive3DSubTab] = useState('themes'); // 'themes' | 'manual'
+  const [active3DSubTab, setActive3DSubTab] = useState('themes'); // 'themes' | 'all' | 'design' | 'physics' | 'system'
   const {
     activePreviewTab,
     setActivePreviewTab: setPreviewTabDirect,
@@ -2297,7 +2297,8 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
         >
           {/* 3D Studio Architecture & State Isolation Bar (Consolidated Top Action Toolbar) */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-stone-50 to-white dark:from-[#181226] dark:to-[#1f1730] border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs">
-            <div className="flex items-center gap-2.5">
+            {/* Left: Mode Badge + Master 3D Toggle + 3D Visual Keycaps Toggle */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
               <span
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${
                   isLive3DApplied
@@ -2317,11 +2318,106 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                   </>
                 )}
               </span>
-              <span className="text-[11px] text-stone-500 dark:text-stone-400 hidden xl:inline">
-                {isLive3DApplied
-                  ? '3D custom properties active on live portfolio DOM'
-                  : '3D parameters isolated exclusively to sandbox previews'}
-              </span>
+
+              {/* Master 3D Mode Toggle */}
+              <div
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border flex items-center gap-2 transition-all select-none ${
+                  isTab3DActive
+                    ? 'bg-white/95 dark:bg-[#1D162E]/95 border-stone-200/90 dark:border-stone-700/80 shadow-[0_2px_0_0_#D1CBC1] dark:shadow-[0_2px_0_0_#140D20]'
+                    : 'bg-white/80 dark:bg-[#181226]/90 border-[#E7E2D8] dark:border-[#2D2340] shadow-xs'
+                }`}
+                title="Master 3D Mode"
+              >
+                <div className="flex items-center gap-1.5">
+                  <Box className="w-3.5 h-3.5 text-[#FF4D6D] shrink-0" />
+                  <span className="text-xs font-bold text-[#18181B] dark:text-white whitespace-nowrap">
+                    Master 3D
+                  </span>
+                  <span className="sr-only">Master 3D Mode</span>
+                  <span
+                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border transition-all ${
+                      isMaster3DOn
+                        ? 'bg-[#FF4D6D]/15 text-[#FF4D6D] border-[#FF4D6D]/30'
+                        : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                    }`}
+                  >
+                    <span className="hidden sm:inline">{isMaster3DOn ? '3D Active' : 'Classic 2D'}</span>
+                    <span className="sm:hidden">{isMaster3DOn ? '3D' : '2D'}</span>
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isMaster3DOn}
+                  aria-label="Master 3D Mode Toggle"
+                  onClick={() => {
+                    setMaster3D(!isMaster3DOn);
+                    if (soundEnabled) soundFX.playShutterClick();
+                  }}
+                  className={`w-8 sm:w-9 h-4.5 sm:h-5 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/40 shrink-0 ${
+                    isMaster3DOn ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                >
+                  <span
+                    className={`block w-3 sm:w-3.5 h-3 sm:h-3.5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                      isMaster3DOn ? 'translate-x-4 sm:translate-x-4.5' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* 3D Visual Keycaps Toggle */}
+              <div
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border flex items-center gap-2 transition-all select-none ${
+                  isTab3DActive
+                    ? 'bg-gradient-to-br from-[#FF4D6D]/10 via-white/95 to-[#FF4D6D]/5 dark:from-[#FF4D6D]/15 dark:via-[#1D162E]/95 dark:to-[#2A162B] border-[#FF4D6D]/40 shadow-[0_2px_0_0_#D93856]'
+                    : 'bg-white/80 dark:bg-[#181226]/90 border-[#E7E2D8] dark:border-[#2D2340] shadow-xs'
+                }`}
+                title="3D Visual Keycaps"
+              >
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#FF4D6D] shrink-0 animate-pulse" />
+                  <span className="text-xs font-bold text-[#18181B] dark:text-white whitespace-nowrap">
+                    3D Keycaps
+                  </span>
+                  <span
+                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border transition-all ${
+                      isTab3DActive
+                        ? 'bg-[#FF4D6D] text-white border-[#FF4D6D] shadow-xs'
+                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-300 dark:border-stone-700'
+                    }`}
+                  >
+                    {isTab3DActive ? 'Visual' : 'Classic'}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isTab3DActive}
+                  aria-label="3D Visual Keycaps Toggle"
+                  onClick={() => {
+                    if (typeof setTabUI3DMode === 'function') {
+                      setTabUI3DMode(!isTab3DActive);
+                    } else if (typeof toggleTabUI3DMode === 'function') {
+                      toggleTabUI3DMode();
+                    } else if (typeof toggle3DVisualMode === 'function') {
+                      toggle3DVisualMode();
+                    }
+                    if (soundEnabled) soundFX.playShutterClick();
+                  }}
+                  className={`w-8 sm:w-9 h-4.5 sm:h-5 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/50 shadow-inner shrink-0 ${
+                    isTab3DActive ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                >
+                  <span
+                    className={`block w-3 sm:w-3.5 h-3 sm:h-3.5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                      isTab3DActive ? 'translate-x-4 sm:translate-x-4.5' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
@@ -2544,174 +2640,79 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             )}
           </div>
 
-          {/* Master 3D Top Control Bar (100% Full Width Single Row) */}
-          <div className="w-full py-1.5 sm:py-2 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl bg-white/85 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-row flex-nowrap items-center justify-between gap-2 overflow-x-auto scrollbar-none">
-            {/* LEFT SIDE: 2 Toggle Buttons (Master 3D & 3D Keycaps) */}
-            <div className="flex flex-row flex-nowrap items-center gap-1.5 sm:gap-2.5 shrink-0">
-              {/* Master 3D Mode Toggle */}
-              <div
-                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border flex items-center gap-2 transition-all select-none ${
-                  isTab3DActive
-                    ? 'bg-white/95 dark:bg-[#1D162E]/95 border-stone-200/90 dark:border-stone-700/80 shadow-[0_2px_0_0_#D1CBC1] dark:shadow-[0_2px_0_0_#140D20]'
-                    : 'bg-white/80 dark:bg-[#181226]/90 border-[#E7E2D8] dark:border-[#2D2340] shadow-xs'
+          {/* Top Cluster Filter Bar & 3D Sub-Navigation */}
+          <div className="w-full py-1.5 sm:py-2 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl bg-white/85 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-row flex-nowrap items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
+            {/* Tab 1: Themes */}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={active3DSubTab === 'themes'}
+              onClick={() => {
+                setActive3DSubTab('themes');
+                if (soundEnabled) soundFX.playLaserFocus();
+              }}
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-xs font-bold transition-all cursor-pointer select-none whitespace-nowrap shrink-0 ${
+                isTab3DActive
+                  ? active3DSubTab === 'themes'
+                    ? 'bg-gradient-to-b from-[#FF4D6D] to-[#E63956] text-white border border-[#FF4D6D] shadow-[0_2px_0_0_#9E1C38] active:translate-y-[1px]'
+                    : 'bg-white dark:bg-[#1D162E] text-stone-700 dark:text-stone-300 border border-stone-200/80 dark:border-stone-700 hover:border-[#FF4D6D]/40 shadow-[0_2px_0_0_#D1CBC1] dark:shadow-[0_2px_0_0_#140D20] active:translate-y-[1px]'
+                  : active3DSubTab === 'themes'
+                    ? 'bg-[#FF4D6D] text-white shadow-xs'
+                    : 'bg-stone-100/90 dark:bg-stone-800/90 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white'
+              }`}
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${active3DSubTab === 'themes' ? 'text-white' : 'text-[#FF4D6D]'}`} />
+              <span>Themes</span>
+              <span
+                className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full transition-colors ${
+                  active3DSubTab === 'themes'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-stone-200/80 dark:bg-stone-700 text-stone-600 dark:text-stone-300'
                 }`}
               >
-                <div className="flex items-center gap-1.5">
-                  <Box className="w-3.5 h-3.5 text-[#FF4D6D] shrink-0" />
-                  <span className="text-xs font-bold text-[#18181B] dark:text-white whitespace-nowrap">
-                    Master 3D
-                  </span>
+                {THREED_MASTER_THEMES.length}
+              </span>
+            </button>
+
+            {/* Top Cluster Filter Bar */}
+            {THREED_CLUSTERS.map((cluster) => {
+              const isActive = active3DSubTab !== 'themes' && (clusterFilter || 'all') === cluster.id;
+              const Icon = cluster.icon || Sliders;
+              return (
+                <button
+                  key={cluster.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => {
+                    setActive3DSubTab(cluster.id);
+                    set3DClusterFilter(cluster.id);
+                    if (soundEnabled) soundFX.playHapticClick();
+                  }}
+                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-xs font-bold transition-all cursor-pointer select-none whitespace-nowrap shrink-0 ${
+                    isTab3DActive
+                      ? isActive
+                        ? 'bg-gradient-to-b from-cyan-500 to-cyan-600 text-white border border-cyan-500 shadow-[0_2px_0_0_#0E7490] active:translate-y-[1px]'
+                        : 'bg-white dark:bg-[#1D162E] text-stone-700 dark:text-stone-300 border border-stone-200/80 dark:border-stone-700 hover:border-cyan-500/40 shadow-[0_2px_0_0_#D1CBC1] dark:shadow-[0_2px_0_0_#140D20] active:translate-y-[1px]'
+                      : isActive
+                        ? 'bg-cyan-500 text-white shadow-xs'
+                        : 'bg-stone-100/90 dark:bg-stone-800/90 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-cyan-500'}`} />
+                  <span>{cluster.label}</span>
                   <span
-                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border transition-all ${
-                      isMaster3DOn
-                        ? 'bg-[#FF4D6D]/15 text-[#FF4D6D] border-[#FF4D6D]/30'
-                        : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                    className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full transition-colors ${
+                      isActive
+                        ? 'bg-white/20 text-white'
+                        : 'bg-stone-200/80 dark:bg-stone-700 text-stone-600 dark:text-stone-300'
                     }`}
                   >
-                    <span className="hidden sm:inline">{isMaster3DOn ? '3D Active' : 'Classic 2D'}</span>
-                    <span className="sm:hidden">{isMaster3DOn ? '3D' : '2D'}</span>
+                    {cluster.count}
                   </span>
-                </div>
-
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={isMaster3DOn}
-                  aria-label="Master 3D Mode Toggle"
-                  onClick={() => {
-                    setMaster3D(!isMaster3DOn);
-                    if (soundEnabled) soundFX.playShutterClick();
-                  }}
-                  className={`w-8 sm:w-9 h-4.5 sm:h-5 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/40 shrink-0 ${
-                    isMaster3DOn ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
-                  }`}
-                >
-                  <span
-                    className={`block w-3 sm:w-3.5 h-3 sm:h-3.5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                      isMaster3DOn ? 'translate-x-4 sm:translate-x-4.5' : 'translate-x-0.5'
-                    }`}
-                  />
                 </button>
-              </div>
-
-              {/* 3D Visual Keycaps Toggle */}
-              <div
-                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border flex items-center gap-2 transition-all select-none ${
-                  isTab3DActive
-                    ? 'bg-gradient-to-br from-[#FF4D6D]/10 via-white/95 to-[#FF4D6D]/5 dark:from-[#FF4D6D]/15 dark:via-[#1D162E]/95 dark:to-[#2A162B] border-[#FF4D6D]/40 shadow-[0_2px_0_0_#D93856]'
-                    : 'bg-white/80 dark:bg-[#181226]/90 border-[#E7E2D8] dark:border-[#2D2340] shadow-xs'
-                }`}
-              >
-                <div className="flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#FF4D6D] shrink-0 animate-pulse" />
-                  <span className="text-xs font-bold text-[#18181B] dark:text-white whitespace-nowrap">
-                    3D Keycaps
-                  </span>
-                  <span
-                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border transition-all ${
-                      isTab3DActive
-                        ? 'bg-[#FF4D6D] text-white border-[#FF4D6D] shadow-xs'
-                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-300 dark:border-stone-700'
-                    }`}
-                  >
-                    {isTab3DActive ? 'Visual' : 'Classic'}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={isTab3DActive}
-                  aria-label="3D Visual Keycaps Toggle"
-                  onClick={() => {
-                    if (typeof setTabUI3DMode === 'function') {
-                      setTabUI3DMode(!isTab3DActive);
-                    } else if (typeof toggleTabUI3DMode === 'function') {
-                      toggleTabUI3DMode();
-                    } else if (typeof toggle3DVisualMode === 'function') {
-                      toggle3DVisualMode();
-                    }
-                    if (soundEnabled) soundFX.playShutterClick();
-                  }}
-                  className={`w-8 sm:w-9 h-4.5 sm:h-5 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF4D6D]/50 shadow-inner shrink-0 ${
-                    isTab3DActive ? 'bg-[#FF4D6D]' : 'bg-stone-300 dark:bg-stone-700'
-                  }`}
-                >
-                  <span
-                    className={`block w-3 sm:w-3.5 h-3 sm:h-3.5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                      isTab3DActive ? 'translate-x-4 sm:translate-x-4.5' : 'translate-x-0.5'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            {/* RIGHT SIDE: 2 View Tabs */}
-            <div className="flex flex-row flex-nowrap items-center gap-1 sm:gap-1.5 p-1 rounded-xl bg-stone-100/90 dark:bg-[#140D20]/90 border border-stone-200/80 dark:border-stone-800 shrink-0">
-              {/* Tab 1: Themes */}
-              <button
-                type="button"
-                role="tab"
-                aria-selected={active3DSubTab === 'themes'}
-                onClick={() => {
-                  setActive3DSubTab('themes');
-                  if (soundEnabled) soundFX.playLaserFocus();
-                }}
-                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none whitespace-nowrap ${
-                  isTab3DActive
-                    ? active3DSubTab === 'themes'
-                      ? 'bg-gradient-to-b from-[#FF4D6D] to-[#E63956] text-white border border-[#FF4D6D] shadow-[0_2px_0_0_#9E1C38] active:translate-y-[1px]'
-                      : 'bg-white dark:bg-[#1D162E] text-stone-700 dark:text-stone-300 border border-stone-200/80 dark:border-stone-700 hover:border-[#FF4D6D]/40 shadow-[0_2px_0_0_#D1CBC1] dark:shadow-[0_2px_0_0_#140D20] active:translate-y-[1px]'
-                    : active3DSubTab === 'themes'
-                      ? 'bg-[#FF4D6D] text-white shadow-xs'
-                      : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white'
-                }`}
-              >
-                <Sparkles className={`w-3.5 h-3.5 ${active3DSubTab === 'themes' ? 'text-white' : 'text-[#FF4D6D]'}`} />
-                <span>Themes</span>
-                <span
-                  className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full transition-colors ${
-                    active3DSubTab === 'themes'
-                      ? 'bg-white/20 text-white'
-                      : 'bg-stone-200/80 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
-                  }`}
-                >
-                  4
-                </span>
-              </button>
-
-              {/* Tab 2: Manual */}
-              <button
-                type="button"
-                role="tab"
-                aria-selected={active3DSubTab === 'manual'}
-                onClick={() => {
-                  setActive3DSubTab('manual');
-                  if (soundEnabled) soundFX.playHapticClick();
-                }}
-                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none whitespace-nowrap ${
-                  isTab3DActive
-                    ? active3DSubTab === 'manual'
-                      ? 'bg-gradient-to-b from-cyan-500 to-cyan-600 text-white border border-cyan-500 shadow-[0_2px_0_0_#0E7490] active:translate-y-[1px]'
-                      : 'bg-white dark:bg-[#1D162E] text-stone-700 dark:text-stone-300 border border-stone-200/80 dark:border-stone-700 hover:border-cyan-500/40 shadow-[0_2px_0_0_#D1CBC1] dark:shadow-[0_2px_0_0_#140D20] active:translate-y-[1px]'
-                    : active3DSubTab === 'manual'
-                      ? 'bg-cyan-500 text-white shadow-xs'
-                      : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white'
-                }`}
-              >
-                <Sliders className={`w-3.5 h-3.5 ${active3DSubTab === 'manual' ? 'text-white' : 'text-cyan-500'}`} />
-                <span>Manual</span>
-                <span
-                  className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full transition-colors ${
-                    active3DSubTab === 'manual'
-                      ? 'bg-white/20 text-white'
-                      : 'bg-stone-200/80 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
-                  }`}
-                >
-                  9
-                </span>
-              </button>
-            </div>
+              );
+            })}
           </div>
 
           {/* Desktop 2-Column Responsive Split & Sticky Sandbox Container (Visible in BOTH Themes and Manual tabs) */}
@@ -2784,32 +2785,8 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 </div>
               ) : (
                 <>
-                  {/* 3. Top Cluster Filter Bar */}
-          <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-stone-100/80 dark:bg-[#150F21]/80 border border-stone-200/80 dark:border-stone-800 backdrop-blur-md overflow-x-auto">
-            {THREED_CLUSTERS.map((cluster) => {
-              const isActive = (clusterFilter || 'all') === cluster.id;
-              return (
-                <button
-                  key={cluster.id}
-                  type="button"
-                  onClick={() => {
-                    set3DClusterFilter(cluster.id);
-                    if (soundEnabled) soundFX.playHapticClick();
-                  }}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-white dark:bg-[#251B3D] text-[#18181B] dark:text-white shadow-xs border border-stone-200 dark:border-stone-700'
-                      : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
-                  }`}
-                >
-                  <span>{cluster.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* 4. The 9 Detailed Single-Accordion Sections */}
-          <div className="flex flex-col gap-4">
+                  {/* The 9 Detailed Single-Accordion Sections */}
+                  <div className="flex flex-col gap-4">
             {/* ========================================================================= */}
             {/* ACCORDION SECTION 1: ELEMENT 3D CONVERSION TOGGLES (10 ELEMENTS)         */}
             {/* ========================================================================= */}
