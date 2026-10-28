@@ -90,7 +90,7 @@ export const FACTORY_DEFAULTS = {
     master3D: false,
     depthIntensity: 1.0, // slider 0.2 to 2.5
     stylePreset: 'subtle', // 'subtle' | 'isometric' | 'deep'
-    masterTheme: 'apple-glass', // 'apple-glass' | 'cyber-neon' | 'studio-matte' | 'floating-hologram'
+    masterTheme: 'apple-glass', // All 16 Master Themes: 'apple-glass' | 'cyber-neon' | 'studio-matte' | 'floating-hologram' | 'obsidian-gold' | 'retro-synthwave' | 'tokyo-midnight' | 'emerald-matrix' | 'sunset-bloom' | 'nordic-frost' | 'crimson-stealth' | 'champagne-quartz' | 'cosmic-void' | 'solar-flare' | 'vaporwave-dream' | 'liquid-titanium'
     showSandboxPreview: false, // boolean toggle for mini 3D preview card (default hidden)
     tabUI3DMode: true, // true = CPC 3D Tab in 100% Pure 3D Zero-Text Mode, false = Classic 2D Text Mode
     isVisualOnly: true, // alias for tabUI3DMode
@@ -574,7 +574,25 @@ export function normalizeThreeDElements(rawElements) {
 export function normalize3DMasterTheme(val) {
   if (typeof val === 'string') {
     const s = val.trim().toLowerCase();
-    if (s === 'apple-glass' || s === 'cyber-neon' || s === 'studio-matte' || s === 'floating-hologram') {
+    const VALID_THEMES = [
+      'apple-glass',
+      'cyber-neon',
+      'studio-matte',
+      'floating-hologram',
+      'obsidian-gold',
+      'retro-synthwave',
+      'tokyo-midnight',
+      'emerald-matrix',
+      'sunset-bloom',
+      'nordic-frost',
+      'crimson-stealth',
+      'champagne-quartz',
+      'cosmic-void',
+      'solar-flare',
+      'vaporwave-dream',
+      'liquid-titanium'
+    ];
+    if (VALID_THEMES.includes(s)) {
       return s;
     }
   }
@@ -2145,6 +2163,66 @@ export function LabProvider({ children, initialSoundEnabled }) {
         matchingLighting = { ...prev.lighting, preset: 'sunset', shadowSoftness: 0.6 };
         matchingCamera = { ...prev.camera, anglePreset: 'eye-level' };
         matchingStylePreset = 'deep';
+      } else if (validTheme === 'obsidian-gold') {
+        matchingMaterials = { ...prev.materials, preset: 'metallic-gloss', specularGlow: 0.95, bevelExtrusion: 5 };
+        matchingLighting = { ...prev.lighting, preset: 'sunset', shadowSoftness: 0.4 };
+        matchingCamera = { ...prev.camera, anglePreset: 'cinematic' };
+        matchingStylePreset = 'deep';
+      } else if (validTheme === 'retro-synthwave') {
+        matchingMaterials = { ...prev.materials, preset: 'cyber-wireframe', specularGlow: 1.0, bevelExtrusion: 4 };
+        matchingLighting = { ...prev.lighting, preset: 'cyber-neon', shadowSoftness: 0.45 };
+        matchingCamera = { ...prev.camera, anglePreset: 'cinematic' };
+        matchingStylePreset = 'isometric';
+      } else if (validTheme === 'tokyo-midnight') {
+        matchingMaterials = { ...prev.materials, preset: 'metallic-gloss', specularGlow: 0.85, bevelExtrusion: 4 };
+        matchingLighting = { ...prev.lighting, preset: 'cyber-neon', shadowSoftness: 0.6 };
+        matchingCamera = { ...prev.camera, anglePreset: 'eye-level' };
+        matchingStylePreset = 'subtle';
+      } else if (validTheme === 'emerald-matrix') {
+        matchingMaterials = { ...prev.materials, preset: 'cyber-wireframe', specularGlow: 0.9, bevelExtrusion: 3 };
+        matchingLighting = { ...prev.lighting, preset: 'cyber-neon', shadowSoftness: 0.5 };
+        matchingCamera = { ...prev.camera, anglePreset: 'isometric' };
+        matchingStylePreset = 'subtle';
+      } else if (validTheme === 'sunset-bloom') {
+        matchingMaterials = { ...prev.materials, preset: 'glass-acrylic', specularGlow: 0.75, bevelExtrusion: 4 };
+        matchingLighting = { ...prev.lighting, preset: 'sunset', shadowSoftness: 0.8 };
+        matchingCamera = { ...prev.camera, anglePreset: 'eye-level' };
+        matchingStylePreset = 'subtle';
+      } else if (validTheme === 'nordic-frost') {
+        matchingMaterials = { ...prev.materials, preset: 'glass-acrylic', specularGlow: 0.9, bevelExtrusion: 3 };
+        matchingLighting = { ...prev.lighting, preset: 'studio-soft', shadowSoftness: 0.7 };
+        matchingCamera = { ...prev.camera, anglePreset: 'isometric' };
+        matchingStylePreset = 'subtle';
+      } else if (validTheme === 'crimson-stealth') {
+        matchingMaterials = { ...prev.materials, preset: 'metallic-gloss', specularGlow: 0.95, bevelExtrusion: 6 };
+        matchingLighting = { ...prev.lighting, preset: 'cyber-neon', shadowSoftness: 0.35 };
+        matchingCamera = { ...prev.camera, anglePreset: 'cinematic' };
+        matchingStylePreset = 'deep';
+      } else if (validTheme === 'champagne-quartz') {
+        matchingMaterials = { ...prev.materials, preset: 'glass-acrylic', specularGlow: 0.85, bevelExtrusion: 4 };
+        matchingLighting = { ...prev.lighting, preset: 'sunset', shadowSoftness: 0.85 };
+        matchingCamera = { ...prev.camera, anglePreset: 'isometric' };
+        matchingStylePreset = 'subtle';
+      } else if (validTheme === 'cosmic-void') {
+        matchingMaterials = { ...prev.materials, preset: 'cyber-wireframe', specularGlow: 0.9, bevelExtrusion: 3 };
+        matchingLighting = { ...prev.lighting, preset: 'cyber-neon', shadowSoftness: 0.4 };
+        matchingCamera = { ...prev.camera, anglePreset: 'eye-level' };
+        matchingStylePreset = 'deep';
+      } else if (validTheme === 'solar-flare') {
+        matchingMaterials = { ...prev.materials, preset: 'metallic-gloss', specularGlow: 1.0, bevelExtrusion: 5 };
+        matchingLighting = { ...prev.lighting, preset: 'sunset', shadowSoftness: 0.5 };
+        matchingCamera = { ...prev.camera, anglePreset: 'cinematic' };
+        matchingStylePreset = 'deep';
+      } else if (validTheme === 'vaporwave-dream') {
+        matchingMaterials = { ...prev.materials, preset: 'glass-acrylic', specularGlow: 0.8, bevelExtrusion: 3 };
+        matchingLighting = { ...prev.lighting, preset: 'sunset', shadowSoftness: 0.75 };
+        matchingCamera = { ...prev.camera, anglePreset: 'isometric' };
+        matchingStylePreset = 'subtle';
+      } else if (validTheme === 'liquid-titanium') {
+        matchingMaterials = { ...prev.materials, preset: 'metallic-gloss', specularGlow: 1.0, bevelExtrusion: 5 };
+        matchingLighting = { ...prev.lighting, preset: 'studio-soft', shadowSoftness: 0.6 };
+        matchingCamera = { ...prev.camera, anglePreset: 'cinematic' };
+        matchingStylePreset = 'isometric';
       }
 
       return {

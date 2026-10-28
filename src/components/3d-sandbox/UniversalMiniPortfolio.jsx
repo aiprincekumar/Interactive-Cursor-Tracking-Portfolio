@@ -22,8 +22,11 @@ import { useLab3D } from '../../context/LabContext';
 import SandboxViewportContainer from './SandboxViewportContainer';
 
 /**
- * 4 Master 3D Portfolio Themes Visual Styling Specification
- * (Apple Glass, Cyber Neon, Studio Matte, Floating Hologram)
+ * 16 Master 3D Portfolio Themes Visual Styling Specification
+ * (Apple Glass, Cyber Neon, Studio Matte, Floating Hologram, Obsidian Gold,
+ *  Retro Synthwave, Tokyo Midnight, Emerald Matrix, Sunset Bloom, Nordic Frost,
+ *  Crimson Stealth, Champagne Quartz, Cosmic Void, Solar Flare, Vaporwave Dream,
+ *  Liquid Titanium)
  */
 export const THEME_PORTFOLIO_STYLES = {
   'apple-glass': {
@@ -200,6 +203,534 @@ export const THEME_PORTFOLIO_STYLES = {
       activeGlowRim: '0 0 28px rgba(168, 85, 247, 0.8)',
       btnBg: 'bg-indigo-950/70 text-purple-200 hover:text-pink-400 border border-purple-500/30',
       accent: '#A855F7'
+    }
+  },
+  'obsidian-gold': {
+    id: 'obsidian-gold',
+    name: 'Obsidian Gold',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(245, 158, 11, 0.15) 0%, rgba(20, 16, 12, 0.98) 100%)',
+    navbar: {
+      bg: 'rgba(25, 20, 16, 0.92)',
+      darkBg: 'rgba(18, 14, 10, 0.95)',
+      border: 'border-amber-400/50',
+      glow: '0 0 16px rgba(245, 158, 11, 0.35), inset 0 1px 1px rgba(251, 191, 36, 0.4)',
+      activeGlowRim: '0 0 20px rgba(245, 158, 11, 0.6), inset 0 0 10px rgba(251, 191, 36, 0.4)',
+      text: 'text-amber-100',
+      badgeBg: 'bg-amber-950/70 text-amber-300 border border-amber-500/40',
+      accent: '#F59E0B'
+    },
+    hero: {
+      bg: 'rgba(28, 22, 17, 0.94)',
+      darkBg: 'rgba(18, 14, 10, 0.96)',
+      border: 'border-amber-400/60',
+      glow: '0 0 24px rgba(245, 158, 11, 0.4), inset 0 1px 2px rgba(251, 191, 36, 0.45)',
+      activeGlowRim: '0 0 28px rgba(245, 158, 11, 0.7), inset 0 0 14px rgba(251, 191, 36, 0.5)',
+      text: 'text-amber-50',
+      avatarGradient: 'from-[#F59E0B] via-[#D97706] to-[#78350F]',
+      subText: 'text-amber-200/80',
+      accent: '#F59E0B'
+    },
+    gridItem: {
+      bg: 'rgba(25, 20, 16, 0.88)',
+      darkBg: 'rgba(16, 12, 8, 0.92)',
+      border: 'border-amber-400/35',
+      glow: '0 0 12px rgba(245, 158, 11, 0.25)',
+      activeGlowRim: '0 0 16px rgba(245, 158, 11, 0.5)',
+      text: 'text-amber-100',
+      accent: '#F59E0B'
+    },
+    dock: {
+      bg: 'rgba(24, 18, 14, 0.92)',
+      darkBg: 'rgba(14, 10, 8, 0.95)',
+      border: 'border-amber-400/60',
+      glow: '0 0 20px rgba(245, 158, 11, 0.4), inset 0 1px 2px rgba(251, 191, 36, 0.35)',
+      activeGlowRim: '0 0 24px rgba(245, 158, 11, 0.65)',
+      btnBg: 'bg-amber-950/60 text-amber-200 hover:text-amber-400 border border-amber-500/40',
+      accent: '#F59E0B'
+    }
+  },
+  'retro-synthwave': {
+    id: 'retro-synthwave',
+    name: 'Retro Synthwave',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(217, 70, 239, 0.22) 0%, rgba(13, 8, 28, 0.98) 100%)',
+    navbar: {
+      bg: 'rgba(22, 10, 36, 0.88)',
+      darkBg: 'rgba(16, 6, 28, 0.94)',
+      border: 'border-fuchsia-500/60',
+      glow: '0 0 16px rgba(217, 70, 239, 0.45), inset 0 0 8px rgba(0, 242, 254, 0.25)',
+      activeGlowRim: '0 0 22px rgba(217, 70, 239, 0.75), inset 0 0 10px rgba(236, 72, 153, 0.5)',
+      text: 'text-fuchsia-200',
+      badgeBg: 'bg-fuchsia-950/70 text-fuchsia-300 border border-fuchsia-500/40',
+      accent: '#D946EF'
+    },
+    hero: {
+      bg: 'rgba(24, 10, 42, 0.92)',
+      darkBg: 'rgba(16, 6, 30, 0.95)',
+      border: 'border-fuchsia-400/70',
+      glow: '0 0 24px rgba(217, 70, 239, 0.5), inset 0 0 12px rgba(0, 242, 254, 0.3)',
+      activeGlowRim: '0 0 28px rgba(236, 72, 153, 0.8), inset 0 0 16px rgba(217, 70, 239, 0.5)',
+      text: 'text-white',
+      avatarGradient: 'from-[#D946EF] via-[#EC4899] to-[#00F2FE]',
+      subText: 'text-fuchsia-200/90',
+      accent: '#EC4899'
+    },
+    gridItem: {
+      bg: 'rgba(24, 10, 40, 0.82)',
+      darkBg: 'rgba(18, 6, 30, 0.88)',
+      border: 'border-fuchsia-500/40',
+      glow: '0 0 12px rgba(217, 70, 239, 0.3)',
+      activeGlowRim: '0 0 16px rgba(217, 70, 239, 0.6)',
+      text: 'text-fuchsia-100',
+      accent: '#D946EF'
+    },
+    dock: {
+      bg: 'rgba(22, 10, 36, 0.9)',
+      darkBg: 'rgba(14, 5, 26, 0.95)',
+      border: 'border-fuchsia-500/70',
+      glow: '0 0 20px rgba(217, 70, 239, 0.5), inset 0 0 10px rgba(0, 242, 254, 0.3)',
+      activeGlowRim: '0 0 26px rgba(236, 72, 153, 0.75)',
+      btnBg: 'bg-fuchsia-950/60 text-fuchsia-200 hover:text-cyan-300 border border-fuchsia-500/40',
+      accent: '#EC4899'
+    }
+  },
+  'tokyo-midnight': {
+    id: 'tokyo-midnight',
+    name: 'Tokyo Midnight',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(99, 102, 241, 0.2) 0%, rgba(8, 6, 20, 0.98) 100%)',
+    navbar: {
+      bg: 'rgba(16, 14, 34, 0.88)',
+      darkBg: 'rgba(10, 8, 24, 0.94)',
+      border: 'border-indigo-400/50',
+      glow: '0 0 16px rgba(99, 102, 241, 0.4), inset 0 0 8px rgba(129, 140, 248, 0.25)',
+      activeGlowRim: '0 0 20px rgba(99, 102, 241, 0.7), inset 0 0 10px rgba(165, 180, 252, 0.4)',
+      text: 'text-indigo-200',
+      badgeBg: 'bg-indigo-950/70 text-indigo-300 border border-indigo-400/30',
+      accent: '#6366F1'
+    },
+    hero: {
+      bg: 'rgba(18, 15, 38, 0.9)',
+      darkBg: 'rgba(12, 9, 26, 0.95)',
+      border: 'border-indigo-400/60',
+      glow: '0 0 22px rgba(99, 102, 241, 0.45), inset 0 0 12px rgba(147, 51, 234, 0.3)',
+      activeGlowRim: '0 0 26px rgba(129, 140, 248, 0.75), inset 0 0 14px rgba(165, 180, 252, 0.45)',
+      text: 'text-white',
+      avatarGradient: 'from-[#4338CA] via-[#6366F1] to-[#818CF8]',
+      subText: 'text-indigo-200/90',
+      accent: '#818CF8'
+    },
+    gridItem: {
+      bg: 'rgba(16, 13, 34, 0.8)',
+      darkBg: 'rgba(10, 8, 22, 0.88)',
+      border: 'border-indigo-400/35',
+      glow: '0 0 12px rgba(99, 102, 241, 0.25)',
+      activeGlowRim: '0 0 16px rgba(99, 102, 241, 0.5)',
+      text: 'text-indigo-100',
+      accent: '#6366F1'
+    },
+    dock: {
+      bg: 'rgba(15, 12, 32, 0.9)',
+      darkBg: 'rgba(9, 7, 22, 0.95)',
+      border: 'border-indigo-400/60',
+      glow: '0 0 18px rgba(99, 102, 241, 0.4), inset 0 0 8px rgba(147, 51, 234, 0.25)',
+      activeGlowRim: '0 0 22px rgba(99, 102, 241, 0.7)',
+      btnBg: 'bg-indigo-950/60 text-indigo-200 hover:text-white border border-indigo-400/30',
+      accent: '#818CF8'
+    }
+  },
+  'emerald-matrix': {
+    id: 'emerald-matrix',
+    name: 'Emerald Matrix',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(16, 185, 129, 0.2) 0%, rgba(4, 16, 11, 0.98) 100%)',
+    navbar: {
+      bg: '#051810',
+      darkBg: '#03100B',
+      border: 'border-emerald-500/70',
+      glow: '0 0 16px rgba(16, 185, 129, 0.45), inset 0 0 8px rgba(52, 211, 153, 0.25)',
+      activeGlowRim: '0 0 22px rgba(16, 185, 129, 0.75), inset 0 0 10px rgba(52, 211, 153, 0.4)',
+      text: 'text-emerald-300',
+      badgeBg: 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40',
+      accent: '#10B981'
+    },
+    hero: {
+      bg: '#071C13',
+      darkBg: '#04120C',
+      border: 'border-emerald-400/80',
+      glow: '0 0 22px rgba(16, 185, 129, 0.5), inset 0 0 12px rgba(52, 211, 153, 0.3)',
+      activeGlowRim: '0 0 26px rgba(16, 185, 129, 0.8), inset 0 0 14px rgba(52, 211, 153, 0.5)',
+      text: 'text-white',
+      avatarGradient: 'from-[#059669] via-[#10B981] to-[#34D399]',
+      subText: 'text-emerald-200/90',
+      accent: '#34D399'
+    },
+    gridItem: {
+      bg: '#061911',
+      darkBg: '#04120C',
+      border: 'border-emerald-500/45',
+      glow: '0 0 12px rgba(16, 185, 129, 0.3)',
+      activeGlowRim: '0 0 16px rgba(16, 185, 129, 0.6)',
+      text: 'text-emerald-200',
+      accent: '#10B981'
+    },
+    dock: {
+      bg: '#061A12',
+      darkBg: '#03100B',
+      border: 'border-emerald-500/70',
+      glow: '0 0 18px rgba(16, 185, 129, 0.45), inset 0 0 8px rgba(52, 211, 153, 0.25)',
+      activeGlowRim: '0 0 24px rgba(16, 185, 129, 0.75)',
+      btnBg: 'bg-emerald-950/70 text-emerald-300 hover:text-emerald-100 border border-emerald-500/40',
+      accent: '#10B981'
+    }
+  },
+  'sunset-bloom': {
+    id: 'sunset-bloom',
+    name: 'Sunset Bloom',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(244, 63, 94, 0.2) 0%, rgba(249, 115, 22, 0.15) 50%, rgba(24, 12, 20, 0.98) 100%)',
+    navbar: {
+      bg: 'rgba(255, 240, 243, 0.82)',
+      darkBg: 'rgba(34, 16, 26, 0.88)',
+      border: 'border-rose-400/50',
+      glow: '0 0 14px rgba(244, 63, 94, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.6)',
+      activeGlowRim: '0 0 18px rgba(244, 63, 94, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.7)',
+      text: 'text-rose-900 dark:text-rose-100',
+      badgeBg: 'bg-rose-100/80 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200',
+      accent: '#F43F5E'
+    },
+    hero: {
+      bg: 'rgba(255, 242, 245, 0.86)',
+      darkBg: 'rgba(38, 18, 30, 0.92)',
+      border: 'border-rose-400/60',
+      glow: '0 0 20px rgba(244, 63, 94, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.7)',
+      activeGlowRim: '0 0 24px rgba(244, 63, 94, 0.65), inset 0 1px 3px rgba(255, 255, 255, 0.8)',
+      text: 'text-stone-900 dark:text-white',
+      avatarGradient: 'from-[#F43F5E] via-[#FB7185] to-[#F97316]',
+      subText: 'text-rose-700/80 dark:text-rose-200/80',
+      accent: '#F43F5E'
+    },
+    gridItem: {
+      bg: 'rgba(255, 242, 245, 0.76)',
+      darkBg: 'rgba(32, 14, 24, 0.84)',
+      border: 'border-rose-400/35',
+      glow: '0 0 10px rgba(244, 63, 94, 0.2)',
+      activeGlowRim: '0 0 14px rgba(244, 63, 94, 0.45)',
+      text: 'text-rose-900 dark:text-rose-100',
+      accent: '#F43F5E'
+    },
+    dock: {
+      bg: 'rgba(255, 240, 244, 0.84)',
+      darkBg: 'rgba(32, 14, 24, 0.92)',
+      border: 'border-rose-400/55',
+      glow: '0 0 16px rgba(244, 63, 94, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.6)',
+      activeGlowRim: '0 0 20px rgba(244, 63, 94, 0.6)',
+      btnBg: 'bg-rose-100/90 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200 hover:text-rose-600',
+      accent: '#F43F5E'
+    }
+  },
+  'nordic-frost': {
+    id: 'nordic-frost',
+    name: 'Nordic Frost',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(56, 189, 248, 0.22) 0%, rgba(8, 20, 32, 0.98) 100%)',
+    navbar: {
+      bg: 'rgba(235, 248, 255, 0.8)',
+      darkBg: 'rgba(12, 24, 38, 0.88)',
+      border: 'border-sky-300/60 dark:border-sky-400/40',
+      glow: '0 0 14px rgba(56, 189, 248, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.7)',
+      activeGlowRim: '0 0 18px rgba(56, 189, 248, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.8)',
+      text: 'text-sky-900 dark:text-sky-100',
+      badgeBg: 'bg-sky-100/80 dark:bg-sky-950/60 text-sky-800 dark:text-sky-200',
+      accent: '#38BDF8'
+    },
+    hero: {
+      bg: 'rgba(240, 249, 255, 0.84)',
+      darkBg: 'rgba(14, 28, 44, 0.92)',
+      border: 'border-sky-300/70 dark:border-sky-400/50',
+      glow: '0 0 20px rgba(56, 189, 248, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.8)',
+      activeGlowRim: '0 0 24px rgba(56, 189, 248, 0.65), inset 0 1px 3px rgba(255, 255, 255, 0.9)',
+      text: 'text-stone-900 dark:text-white',
+      avatarGradient: 'from-[#0284C7] via-[#38BDF8] to-[#BAE6FD]',
+      subText: 'text-sky-700/80 dark:text-sky-200/80',
+      accent: '#38BDF8'
+    },
+    gridItem: {
+      bg: 'rgba(240, 249, 255, 0.74)',
+      darkBg: 'rgba(12, 24, 38, 0.84)',
+      border: 'border-sky-300/40 dark:border-sky-400/30',
+      glow: '0 0 10px rgba(56, 189, 248, 0.2)',
+      activeGlowRim: '0 0 14px rgba(56, 189, 248, 0.45)',
+      text: 'text-sky-900 dark:text-sky-100',
+      accent: '#38BDF8'
+    },
+    dock: {
+      bg: 'rgba(235, 248, 255, 0.82)',
+      darkBg: 'rgba(12, 24, 38, 0.92)',
+      border: 'border-sky-300/60 dark:border-sky-400/45',
+      glow: '0 0 16px rgba(56, 189, 248, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.7)',
+      activeGlowRim: '0 0 20px rgba(56, 189, 248, 0.6)',
+      btnBg: 'bg-sky-100/90 dark:bg-sky-900/50 text-sky-800 dark:text-sky-200 hover:text-sky-500',
+      accent: '#38BDF8'
+    }
+  },
+  'crimson-stealth': {
+    id: 'crimson-stealth',
+    name: 'Crimson Stealth',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(220, 38, 38, 0.2) 0%, rgba(15, 6, 8, 0.98) 100%)',
+    navbar: {
+      bg: '#12080A',
+      darkBg: '#0E0507',
+      border: 'border-red-600/70',
+      glow: '0 0 16px rgba(220, 38, 38, 0.4), inset 0 0 8px rgba(239, 68, 68, 0.25)',
+      activeGlowRim: '0 0 20px rgba(239, 68, 68, 0.75), inset 0 0 10px rgba(248, 113, 113, 0.4)',
+      text: 'text-red-200',
+      badgeBg: 'bg-red-950/80 text-red-300 border border-red-600/40',
+      accent: '#EF4444'
+    },
+    hero: {
+      bg: '#160A0D',
+      darkBg: '#100608',
+      border: 'border-red-600/80',
+      glow: '0 0 22px rgba(220, 38, 38, 0.5), inset 0 0 12px rgba(239, 68, 68, 0.3)',
+      activeGlowRim: '0 0 26px rgba(239, 68, 68, 0.8), inset 0 0 14px rgba(248, 113, 113, 0.5)',
+      text: 'text-white',
+      avatarGradient: 'from-[#991B1B] via-[#DC2626] to-[#EF4444]',
+      subText: 'text-red-200/90',
+      accent: '#EF4444'
+    },
+    gridItem: {
+      bg: '#14090B',
+      darkBg: '#0F0608',
+      border: 'border-red-600/45',
+      glow: '0 0 12px rgba(220, 38, 38, 0.25)',
+      activeGlowRim: '0 0 16px rgba(220, 38, 38, 0.55)',
+      text: 'text-red-100',
+      accent: '#EF4444'
+    },
+    dock: {
+      bg: '#13080A',
+      darkBg: '#0D0507',
+      border: 'border-red-600/70',
+      glow: '0 0 18px rgba(220, 38, 38, 0.45), inset 0 0 8px rgba(239, 68, 68, 0.25)',
+      activeGlowRim: '0 0 22px rgba(239, 68, 68, 0.75)',
+      btnBg: 'bg-red-950/70 text-red-200 hover:text-white border border-red-600/40',
+      accent: '#EF4444'
+    }
+  },
+  'champagne-quartz': {
+    id: 'champagne-quartz',
+    name: 'Champagne Quartz',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(251, 191, 36, 0.16) 0%, rgba(253, 230, 138, 0.1) 50%, rgba(26, 22, 18, 0.98) 100%)',
+    navbar: {
+      bg: 'rgba(254, 250, 242, 0.82)',
+      darkBg: 'rgba(28, 24, 20, 0.88)',
+      border: 'border-amber-300/50 dark:border-amber-400/35',
+      glow: '0 0 14px rgba(251, 191, 36, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.7)',
+      activeGlowRim: '0 0 18px rgba(251, 191, 36, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.8)',
+      text: 'text-stone-800 dark:text-amber-100',
+      badgeBg: 'bg-amber-100/80 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200',
+      accent: '#F59E0B'
+    },
+    hero: {
+      bg: 'rgba(254, 252, 246, 0.86)',
+      darkBg: 'rgba(32, 28, 22, 0.92)',
+      border: 'border-amber-300/60 dark:border-amber-400/45',
+      glow: '0 0 20px rgba(251, 191, 36, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.8)',
+      activeGlowRim: '0 0 24px rgba(251, 191, 36, 0.6), inset 0 1px 3px rgba(255, 255, 255, 0.9)',
+      text: 'text-stone-900 dark:text-white',
+      avatarGradient: 'from-[#F59E0B] via-[#FDE68A] to-[#F59E0B]',
+      subText: 'text-amber-800/80 dark:text-amber-200/80',
+      accent: '#F59E0B'
+    },
+    gridItem: {
+      bg: 'rgba(254, 250, 242, 0.76)',
+      darkBg: 'rgba(26, 22, 18, 0.84)',
+      border: 'border-amber-300/35 dark:border-amber-400/25',
+      glow: '0 0 10px rgba(251, 191, 36, 0.18)',
+      activeGlowRim: '0 0 14px rgba(251, 191, 36, 0.4)',
+      text: 'text-stone-800 dark:text-amber-100',
+      accent: '#F59E0B'
+    },
+    dock: {
+      bg: 'rgba(254, 250, 242, 0.84)',
+      darkBg: 'rgba(26, 22, 18, 0.92)',
+      border: 'border-amber-300/55 dark:border-amber-400/40',
+      glow: '0 0 16px rgba(251, 191, 36, 0.28), inset 0 1px 2px rgba(255, 255, 255, 0.7)',
+      activeGlowRim: '0 0 20px rgba(251, 191, 36, 0.55)',
+      btnBg: 'bg-amber-100/90 dark:bg-amber-900/50 text-stone-800 dark:text-amber-200 hover:text-amber-600',
+      accent: '#F59E0B'
+    }
+  },
+  'cosmic-void': {
+    id: 'cosmic-void',
+    name: 'Cosmic Void',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(139, 92, 246, 0.2) 0%, rgba(76, 29, 149, 0.12) 50%, rgba(5, 3, 10, 0.98) 100%)',
+    navbar: {
+      bg: '#0B0714',
+      darkBg: '#07040D',
+      border: 'border-violet-500/60',
+      glow: '0 0 16px rgba(139, 92, 246, 0.4), inset 0 0 8px rgba(167, 139, 250, 0.25)',
+      activeGlowRim: '0 0 20px rgba(139, 92, 246, 0.7), inset 0 0 10px rgba(196, 181, 253, 0.4)',
+      text: 'text-violet-200',
+      badgeBg: 'bg-violet-950/70 text-violet-300 border border-violet-500/35',
+      accent: '#8B5CF6'
+    },
+    hero: {
+      bg: '#0E091A',
+      darkBg: '#080510',
+      border: 'border-violet-500/70',
+      glow: '0 0 22px rgba(139, 92, 246, 0.45), inset 0 0 12px rgba(167, 139, 250, 0.3)',
+      activeGlowRim: '0 0 26px rgba(139, 92, 246, 0.75), inset 0 0 14px rgba(196, 181, 253, 0.45)',
+      text: 'text-white',
+      avatarGradient: 'from-[#4C1D95] via-[#7C3AED] to-[#A78BFA]',
+      subText: 'text-violet-200/90',
+      accent: '#A78BFA'
+    },
+    gridItem: {
+      bg: '#0D0818',
+      darkBg: '#07040F',
+      border: 'border-violet-500/40',
+      glow: '0 0 12px rgba(139, 92, 246, 0.25)',
+      activeGlowRim: '0 0 16px rgba(139, 92, 246, 0.5)',
+      text: 'text-violet-100',
+      accent: '#8B5CF6'
+    },
+    dock: {
+      bg: '#0C0716',
+      darkBg: '#06040E',
+      border: 'border-violet-500/60',
+      glow: '0 0 18px rgba(139, 92, 246, 0.4), inset 0 0 8px rgba(167, 139, 250, 0.25)',
+      activeGlowRim: '0 0 22px rgba(139, 92, 246, 0.65)',
+      btnBg: 'bg-violet-950/60 text-violet-200 hover:text-white border border-violet-500/35',
+      accent: '#8B5CF6'
+    }
+  },
+  'solar-flare': {
+    id: 'solar-flare',
+    name: 'Solar Flare',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(249, 115, 22, 0.25) 0%, rgba(239, 68, 68, 0.18) 50%, rgba(20, 8, 4, 0.98) 100%)',
+    navbar: {
+      bg: 'rgba(34, 14, 8, 0.9)',
+      darkBg: 'rgba(22, 8, 4, 0.95)',
+      border: 'border-orange-500/60',
+      glow: '0 0 16px rgba(249, 115, 22, 0.4), inset 0 0 8px rgba(251, 146, 60, 0.3)',
+      activeGlowRim: '0 0 22px rgba(249, 115, 22, 0.75), inset 0 0 10px rgba(253, 186, 116, 0.45)',
+      text: 'text-orange-200',
+      badgeBg: 'bg-orange-950/80 text-orange-300 border border-orange-500/40',
+      accent: '#F97316'
+    },
+    hero: {
+      bg: 'rgba(40, 16, 10, 0.94)',
+      darkBg: 'rgba(26, 10, 5, 0.96)',
+      border: 'border-orange-500/75',
+      glow: '0 0 24px rgba(249, 115, 22, 0.45), inset 0 0 12px rgba(251, 146, 60, 0.35)',
+      activeGlowRim: '0 0 28px rgba(249, 115, 22, 0.8), inset 0 0 16px rgba(253, 186, 116, 0.5)',
+      text: 'text-white',
+      avatarGradient: 'from-[#EA580C] via-[#F97316] to-[#FBBF24]',
+      subText: 'text-orange-200/90',
+      accent: '#FBBF24'
+    },
+    gridItem: {
+      bg: 'rgba(32, 12, 7, 0.84)',
+      darkBg: 'rgba(20, 7, 4, 0.9)',
+      border: 'border-orange-500/40',
+      glow: '0 0 12px rgba(249, 115, 22, 0.28)',
+      activeGlowRim: '0 0 16px rgba(249, 115, 22, 0.55)',
+      text: 'text-orange-100',
+      accent: '#F97316'
+    },
+    dock: {
+      bg: 'rgba(30, 12, 6, 0.92)',
+      darkBg: 'rgba(18, 7, 3, 0.95)',
+      border: 'border-orange-500/65',
+      glow: '0 0 20px rgba(249, 115, 22, 0.45), inset 0 0 10px rgba(251, 146, 60, 0.3)',
+      activeGlowRim: '0 0 24px rgba(249, 115, 22, 0.7)',
+      btnBg: 'bg-orange-950/70 text-orange-200 hover:text-amber-300 border border-orange-500/40',
+      accent: '#F97316'
+    }
+  },
+  'vaporwave-dream': {
+    id: 'vaporwave-dream',
+    name: 'Vaporwave Dream',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(244, 114, 182, 0.22) 0%, rgba(45, 212, 191, 0.16) 50%, rgba(18, 10, 26, 0.98) 100%)',
+    navbar: {
+      bg: 'rgba(245, 235, 255, 0.8)',
+      darkBg: 'rgba(28, 16, 38, 0.88)',
+      border: 'border-pink-300/60 dark:border-pink-400/40',
+      glow: '0 0 14px rgba(244, 114, 182, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.7)',
+      activeGlowRim: '0 0 18px rgba(244, 114, 182, 0.65), inset 0 1px 2px rgba(255, 255, 255, 0.8)',
+      text: 'text-purple-900 dark:text-pink-100',
+      badgeBg: 'bg-pink-100/80 dark:bg-pink-950/60 text-pink-800 dark:text-pink-200',
+      accent: '#F472B6'
+    },
+    hero: {
+      bg: 'rgba(248, 238, 255, 0.84)',
+      darkBg: 'rgba(32, 18, 44, 0.92)',
+      border: 'border-pink-300/70 dark:border-pink-400/50',
+      glow: '0 0 20px rgba(244, 114, 182, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.8)',
+      activeGlowRim: '0 0 24px rgba(244, 114, 182, 0.7), inset 0 1px 3px rgba(255, 255, 255, 0.9)',
+      text: 'text-stone-900 dark:text-white',
+      avatarGradient: 'from-[#F472B6] via-[#C084FC] to-[#2DD4BF]',
+      subText: 'text-purple-700/80 dark:text-pink-200/80',
+      accent: '#2DD4BF'
+    },
+    gridItem: {
+      bg: 'rgba(248, 238, 255, 0.74)',
+      darkBg: 'rgba(26, 14, 36, 0.84)',
+      border: 'border-pink-300/40 dark:border-pink-400/30',
+      glow: '0 0 10px rgba(244, 114, 182, 0.22)',
+      activeGlowRim: '0 0 14px rgba(244, 114, 182, 0.5)',
+      text: 'text-purple-900 dark:text-pink-100',
+      accent: '#F472B6'
+    },
+    dock: {
+      bg: 'rgba(245, 235, 255, 0.82)',
+      darkBg: 'rgba(26, 14, 36, 0.92)',
+      border: 'border-pink-300/60 dark:border-pink-400/45',
+      glow: '0 0 16px rgba(244, 114, 182, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.7)',
+      activeGlowRim: '0 0 20px rgba(244, 114, 182, 0.6)',
+      btnBg: 'bg-pink-100/90 dark:bg-pink-900/50 text-purple-800 dark:text-pink-200 hover:text-teal-400',
+      accent: '#F472B6'
+    }
+  },
+  'liquid-titanium': {
+    id: 'liquid-titanium',
+    name: 'Liquid Titanium',
+    stageBg: 'radial-gradient(circle at 50% 30%, rgba(148, 163, 184, 0.2) 0%, rgba(15, 23, 42, 0.98) 100%)',
+    navbar: {
+      bg: 'rgba(226, 232, 240, 0.82)',
+      darkBg: 'rgba(30, 41, 59, 0.88)',
+      border: 'border-slate-300/60 dark:border-slate-400/40',
+      glow: '0 0 14px rgba(148, 163, 184, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.7)',
+      activeGlowRim: '0 0 18px rgba(148, 163, 184, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.8)',
+      text: 'text-slate-800 dark:text-slate-100',
+      badgeBg: 'bg-slate-200/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300',
+      accent: '#94A3B8'
+    },
+    hero: {
+      bg: 'rgba(241, 245, 249, 0.86)',
+      darkBg: 'rgba(30, 41, 59, 0.92)',
+      border: 'border-slate-300/70 dark:border-slate-400/50',
+      glow: '0 0 20px rgba(148, 163, 184, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.8)',
+      activeGlowRim: '0 0 24px rgba(148, 163, 184, 0.65), inset 0 1px 3px rgba(255, 255, 255, 0.9)',
+      text: 'text-stone-900 dark:text-white',
+      avatarGradient: 'from-[#475569] via-[#94A3B8] to-[#E2E8F0]',
+      subText: 'text-slate-600 dark:text-slate-300',
+      accent: '#CBD5E1'
+    },
+    gridItem: {
+      bg: 'rgba(241, 245, 249, 0.76)',
+      darkBg: 'rgba(24, 32, 47, 0.84)',
+      border: 'border-slate-300/40 dark:border-slate-400/30',
+      glow: '0 0 10px rgba(148, 163, 184, 0.2)',
+      activeGlowRim: '0 0 14px rgba(148, 163, 184, 0.45)',
+      text: 'text-slate-800 dark:text-slate-200',
+      accent: '#94A3B8'
+    },
+    dock: {
+      bg: 'rgba(226, 232, 240, 0.84)',
+      darkBg: 'rgba(24, 32, 47, 0.92)',
+      border: 'border-slate-300/60 dark:border-slate-400/45',
+      glow: '0 0 16px rgba(148, 163, 184, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.7)',
+      activeGlowRim: '0 0 20px rgba(148, 163, 184, 0.6)',
+      btnBg: 'bg-slate-200/90 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:text-cyan-400',
+      accent: '#94A3B8'
     }
   }
 };

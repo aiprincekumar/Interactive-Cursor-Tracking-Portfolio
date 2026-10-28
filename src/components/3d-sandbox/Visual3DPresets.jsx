@@ -307,6 +307,78 @@ export function ThemeExtrudedSlab({
       edge: 'bg-blue-700 border-t border-blue-300',
       glow: 'shadow-[0_14px_28px_rgba(59,130,246,0.4)]',
       accent: 'bg-blue-400 shadow-[0_0_10px_#3B82F6]'
+    },
+    'obsidian-gold': {
+      top: 'bg-gradient-to-r from-stone-900 via-amber-950/40 to-stone-900 border-2 border-amber-400/80 shadow-[inset_0_0_12px_rgba(245,158,11,0.3)]',
+      edge: 'bg-amber-700 border-t border-amber-300',
+      glow: 'shadow-[0_12px_24px_rgba(245,158,11,0.35)]',
+      accent: 'bg-amber-400 shadow-[0_0_10px_#F59E0B]'
+    },
+    'retro-synthwave': {
+      top: 'bg-gradient-to-tr from-fuchsia-950 via-purple-900/60 to-cyan-950 border-2 border-fuchsia-500 shadow-[inset_0_0_12px_rgba(217,70,239,0.5)]',
+      edge: 'bg-fuchsia-700 border-t border-pink-400',
+      glow: 'shadow-[0_12px_24px_rgba(217,70,239,0.4)]',
+      accent: 'bg-pink-500 shadow-[0_0_10px_#EC4899]'
+    },
+    'tokyo-midnight': {
+      top: 'bg-gradient-to-br from-indigo-950 via-slate-900 to-violet-950 border-2 border-indigo-400 shadow-[inset_0_0_10px_rgba(99,102,241,0.4)]',
+      edge: 'bg-indigo-700 border-t border-indigo-300',
+      glow: 'shadow-[0_12px_24px_rgba(99,102,241,0.35)]',
+      accent: 'bg-indigo-400 shadow-[0_0_8px_#818CF8]'
+    },
+    'emerald-matrix': {
+      top: 'bg-[#04140D] border-2 border-emerald-400 shadow-[inset_0_0_14px_rgba(16,185,129,0.5)]',
+      edge: 'bg-emerald-700 border-t border-emerald-300',
+      glow: 'shadow-[0_12px_24px_rgba(16,185,129,0.4)]',
+      accent: 'bg-emerald-400 shadow-[0_0_10px_#10B981]'
+    },
+    'sunset-bloom': {
+      top: 'bg-gradient-to-r from-orange-500/30 via-rose-500/30 to-purple-600/30 backdrop-blur-md border-2 border-rose-300/80',
+      edge: 'bg-rose-600/60 border-t border-rose-300',
+      glow: 'shadow-[0_12px_24px_rgba(244,63,94,0.35)]',
+      accent: 'bg-rose-400 shadow-[0_0_8px_#F43F5E]'
+    },
+    'nordic-frost': {
+      top: 'bg-gradient-to-br from-sky-400/20 via-cyan-300/25 to-blue-500/20 backdrop-blur-md border-2 border-cyan-200/90',
+      edge: 'bg-sky-600/50 border-t border-cyan-200',
+      glow: 'shadow-[0_12px_24px_rgba(56,189,248,0.35)]',
+      accent: 'bg-sky-300 shadow-[0_0_8px_#38BDF8]'
+    },
+    'crimson-stealth': {
+      top: 'bg-stone-950 border-2 border-red-600 shadow-[inset_0_0_14px_rgba(239,68,68,0.45)]',
+      edge: 'bg-red-800 border-t border-red-500',
+      glow: 'shadow-[0_12px_24px_rgba(220,38,38,0.4)]',
+      accent: 'bg-red-500 shadow-[0_0_10px_#EF4444]'
+    },
+    'champagne-quartz': {
+      top: 'bg-gradient-to-tr from-amber-100/30 via-rose-100/25 to-amber-200/30 backdrop-blur-md border-2 border-amber-200/80',
+      edge: 'bg-amber-600/50 border-t border-amber-200',
+      glow: 'shadow-[0_12px_24px_rgba(251,191,36,0.3)]',
+      accent: 'bg-amber-300 shadow-[0_0_8px_#FCD34D]'
+    },
+    'cosmic-void': {
+      top: 'bg-[#05030A] border-2 border-violet-500/70 shadow-[inset_0_0_14px_rgba(139,92,246,0.4)]',
+      edge: 'bg-violet-900 border-t border-violet-400',
+      glow: 'shadow-[0_12px_24px_rgba(139,92,246,0.35)]',
+      accent: 'bg-violet-400 shadow-[0_0_8px_#A78BFA]'
+    },
+    'solar-flare': {
+      top: 'bg-gradient-to-r from-amber-500/40 via-orange-600/40 to-red-600/40 backdrop-blur-md border-2 border-orange-400',
+      edge: 'bg-orange-700 border-t border-amber-300',
+      glow: 'shadow-[0_12px_24px_rgba(249,115,22,0.4)]',
+      accent: 'bg-amber-400 shadow-[0_0_10px_#F59E0B]'
+    },
+    'vaporwave-dream': {
+      top: 'bg-gradient-to-tr from-teal-400/30 via-pink-400/30 to-purple-400/30 backdrop-blur-md border-2 border-pink-300/80',
+      edge: 'bg-pink-500/60 border-t border-teal-200',
+      glow: 'shadow-[0_12px_24px_rgba(236,72,153,0.35)]',
+      accent: 'bg-teal-300 shadow-[0_0_8px_#2DD4BF]'
+    },
+    'liquid-titanium': {
+      top: 'bg-gradient-to-r from-slate-300/40 via-zinc-200/50 to-slate-400/40 backdrop-blur-md border-2 border-slate-200 shadow-[inset_0_0_10px_rgba(255,255,255,0.7)]',
+      edge: 'bg-slate-500 border-t border-slate-200',
+      glow: 'shadow-[0_12px_24px_rgba(148,163,184,0.35)]',
+      accent: 'bg-cyan-200 shadow-[0_0_8px_#A5F3FC]'
     }
   };
 

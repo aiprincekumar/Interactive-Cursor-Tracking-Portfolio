@@ -170,7 +170,9 @@ Every single change to repository files must be logged with full forensic diffs 
 - **Dedicated Sentinel Subagent (`memory_sync_sentinel`):** Responsible for executing micro-syncs, validating gatekeeper invariants, aggregating parallel outcomes, and enforcing zero-drift memory governance.
 - **Dedicated Skill:** [`memory-sync-sentinel`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/.agents/skills/memory-sync-sentinel/SKILL.md) provides comprehensive operational instructions, sequence diagrams, and validation checklists.
 
-### 2.9 Universal Rule 24: Mandatory Default /grill-me Pre-Task Interview Protocol
+### 2.9 Universal Rule 24: Mandatory Default /grill-me & Dynamic /teamwork Protocols
+
+#### 2.9.1 Mandatory Default /grill-me Pre-Task Interview Protocol
 - **100% Active by Default Across All Sessions:** Activated unconditionally across all incoming chats and requests without requiring the user to explicitly invoke `/grill-me`. Any non-trivial coding, refactoring, feature addition, or architectural task mandates an interactive pre-task discovery interview before implementation begins.
 - **Direct CEO Execution Mandate:** The interview is executed strictly and directly by the Supreme CEO (Main Agent). Because user interactions, clarification prompts, and the `ask_question` tool are exclusive capabilities of the CEO persona, this process must NEVER be delegated to a disconnected subagent.
 - **Strict Single-Question Interactive Protocol:**
@@ -179,6 +181,12 @@ Every single change to repository files must be logged with full forensic diffs 
   - Thoroughly explore the local codebase, configs, and architectural dossiers first before framing questions to eliminate shallow, redundant inquiries.
   - Iteratively resolve all technical dependencies, assumptions, and edge cases until 100% shared understanding and alignment is achieved.
 - **Instant Factual Answer Exemption:** Simple read-only questions, factual repo lookups, or quick syntax checks may be answered immediately without triggering the interview loop. However, any modification of code, scripts, or project structure strictly requires full compliance with Rule 24.
+
+#### 2.9.2 Dynamic /teamwork Slash Command Protocol
+- **Dynamic Per-Task Autonomous Decision by Main CEO:** The Supreme CEO (Main Agent) autonomously and dynamically decides on a per-task basis whether to activate and leverage the `/teamwork` slash command and multi-agent coordination, exactly mirroring the autonomous evaluation pattern of `/grill-me`.
+- **Zero Sub-Agent Requirement for Decision-Making:** No dedicated or intermediate sub-agent is required to determine whether `/teamwork` should be enabled. The Supreme CEO makes this strategic evaluation directly across all projects, repositories, and incoming scopes.
+- **Multi-Agent Team Orchestration Scope:** When `/teamwork` is engaged for large or complex multi-faceted tasks, the CEO organizes and directs an autonomous multi-agent fleet while retaining complete orchestrator oversight. For straightforward or tightly-scoped tasks, the CEO dynamically opts for targeted single/sequential delegation.
+- **Universal Cross-Project Governance:** This decision authority applies unconditionally across all project repositories, sandboxes, and development domains.
 
 ### 2.10 Universal Rule 25: Dynamic AI Model Selection & Thinking Budget Optimization Standard
 - **Dedicated Specialist (`model_thinking_optimizer`):** Prior to dispatching any subagent waves, task complexity must be evaluated by `model_thinking_optimizer`. It generates a structured model routing and thinking budget plan for the CEO, maximizing reasoning efficiency and minimizing latency and token burn.
