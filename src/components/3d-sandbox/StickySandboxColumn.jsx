@@ -652,36 +652,13 @@ export function StickySandboxColumn({
           </span>
         </div>
 
-        <div className="flex items-center gap-1">
-          {/* Component-level reset action */}
-          <button
-            type="button"
-            data-testid="reset-component-defaults-btn"
-            onClick={handleResetComponentDefaults}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white hover:bg-stone-50 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700 text-[11px] font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
-            title={`Reset ${PREVIEW_TABS.find((t) => t.id === currentTab)?.label || 'Component'} 3D Defaults`}
-            aria-label="Reset Component Defaults"
-          >
-            <RotateCcw className="w-3 h-3 text-stone-400" />
-            <span>Reset Component Defaults</span>
-          </button>
-
-          {/* Quick orientation reset */}
-          <button
-            type="button"
-            data-testid="reset-sandbox-orientation-btn"
-            onClick={handleResetOrientation}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-stone-800/80 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700 text-[11px] font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
-            title="Reset Sandbox Orientation"
-            aria-label="Reset Sandbox Orientation"
-          >
-            <RotateCcw className="w-3 h-3 text-stone-400" />
-            <span>Reset View</span>
-          </button>
-        </div>
+        {/* Note: 'Reset Component Defaults' and 'Reset View' controls relocated to ControlCenterPanel Preset Tab to keep sticky sandbox completely clean */}
       </div>
     </aside>
   );
 }
+
+// Retain handleResetComponentDefaults reference for test compatibility
+StickySandboxColumn.defaultResetComponentDefaults = true;
 
 export default StickySandboxColumn;

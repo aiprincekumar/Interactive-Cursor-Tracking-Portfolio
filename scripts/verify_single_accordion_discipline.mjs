@@ -8,12 +8,12 @@ const panelPath = path.resolve('src/components/ControlCenterPanel.jsx');
 assert(fs.existsSync(panelPath), 'ControlCenterPanel.jsx must exist');
 const panelSrc = fs.readFileSync(panelPath, 'utf8');
 
-// 1. Verify expandedCategory state defaults to single category ('nav')
+// 1. Verify expandedCategory state defaults to null (all categories collapsed by default)
 assert(
-  panelSrc.includes("const [expandedCategory, setExpandedCategory] = useState('nav');"),
-  "expandedCategory state must default to 'nav' as the single uncollapsed category"
+  panelSrc.includes("const [expandedCategory, setExpandedCategory] = useState(null);"),
+  "expandedCategory state must default to null (all categories collapsed by default)"
 );
-console.log("✅ 1. expandedCategory defaults to single 'nav' category (Strict Single-Expanded)");
+console.log("✅ 1. expandedCategory defaults to null (all categories collapsed by default)");
 
 // 2. Verify toggleCategory enforces single-expanded behavior
 assert(
@@ -36,12 +36,12 @@ assert(
 );
 console.log("✅ 4. expandedCategories dictionary derived reactively from expandedCategory");
 
-// 5. Verify top-level 3D sections default to single accordion ('elements')
+// 5. Verify top-level 3D sections default to null (all accordions collapsed by default)
 assert(
-  panelSrc.includes("const [expandedAccordion, setExpandedAccordion] = useState('elements');"),
-  "expandedAccordion state must default to 'elements'"
+  panelSrc.includes("const [expandedAccordion, setExpandedAccordion] = useState(null);"),
+  "expandedAccordion state must default to null (all accordions collapsed by default)"
 );
-console.log("✅ 5. expandedAccordion defaults to single 'elements' section");
+console.log("✅ 5. expandedAccordion defaults to null (all accordions collapsed by default)");
 
 // 6. Verify top-level toggleAccordionSection enforces single accordion
 assert(
