@@ -24,7 +24,7 @@ const NAV_ITEMS = [
  * navigation items, 3D button depression on click, specular lighting sheen, and elevation.
  */
 export function Navbar3DPreview({
-  tilt = { rotX: 14, rotY: -18 },
+  tilt = { rotX: 0, rotY: 0 },
   interactive = true,
   className = '',
   explodedMode,

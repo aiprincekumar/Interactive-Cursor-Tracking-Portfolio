@@ -320,28 +320,31 @@ export function ThemeExtrudedSlab({
     >
       <div
         className="w-20 h-10 relative threed-preserve transition-transform duration-200"
-        style={{ transform: 'rotateX(55deg) rotateZ(-30deg)' }}
+        style={{ transform: 'rotateX(4deg) rotateY(0deg)' }}
       >
         {/* Top Surface */}
         <div
           className={`absolute inset-0 rounded-xl ${style.top} ${style.glow} flex items-center justify-center`}
-          style={{ transform: `translateZ(${rimHeight * 2}px)` }}
+          style={{
+            transform: `translateZ(${rimHeight * 2}px)`,
+            boxShadow: `0 ${rimHeight * 1.5}px ${rimHeight * 3}px rgba(0,0,0,0.18), inset 0 1px 2px rgba(255,255,255,0.7), inset 0 -1.5px 3px rgba(0,0,0,0.2)`
+          }}
         >
-          <span className={`w-3 h-3 rounded-full ${style.accent}`} />
+          <span className={`w-3.5 h-3.5 rounded-full ${style.accent}`} />
         </div>
 
-        {/* 3D Extruded Front Rim scaling with depth and bevel */}
+        {/* 3D Extruded Front/Bottom Rim scaling with depth and bevel */}
         <div
-          className={`absolute inset-x-0 bottom-0 rounded-b-xl ${style.edge}`}
+          className={`absolute inset-x-0 -bottom-1 rounded-b-xl ${style.edge} shadow-md`}
           style={{
-            height: `${rimHeight}px`,
-            transform: `rotateX(-90deg) translateZ(${rimHeight * 0.8}px)`
+            height: `${rimHeight + 2}px`,
+            transform: `translateZ(${rimHeight * 0.8}px)`
           }}
         />
 
         {/* Cast Floor Shadow */}
         <div
-          className="absolute -bottom-3 inset-x-1 h-9 rounded-xl bg-black/25 dark:bg-black/60 blur-[4px]"
+          className="absolute -bottom-2 inset-x-1 h-7 rounded-xl bg-black/25 dark:bg-black/60 blur-[5px]"
           style={{ transform: 'translateZ(-6px)' }}
         />
       </div>

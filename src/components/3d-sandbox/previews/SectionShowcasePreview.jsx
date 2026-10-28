@@ -49,7 +49,7 @@ const SHOWCASE_CARDS = [
  * with bevel chamfers, specular glints, and exploded strata separation.
  */
 export function SectionShowcasePreview({
-  tilt = { rotX: 22, rotY: -16 },
+  tilt = { rotX: 0, rotY: 0 },
   interactive = true,
   className = '',
   explodedMode,

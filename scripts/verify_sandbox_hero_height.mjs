@@ -23,8 +23,8 @@ const miniPortPath = path.join(rootDir, 'src', 'components', '3d-sandbox', 'Univ
 const miniPortSource = fs.readFileSync(miniPortPath, 'utf8');
 
 assert(
-  miniPortSource.includes('min-h-[560px]') && miniPortSource.includes('sm:h-[600px]'),
-  'UniversalMiniPortfolio must configure expansive hero height min-h-[560px] sm:h-[600px]'
+  miniPortSource.includes('h-auto min-h-0 max-h-fit') || (miniPortSource.includes('min-h-[560px]') && miniPortSource.includes('sm:h-[600px]')),
+  'UniversalMiniPortfolio must configure fit-content auto-fit or responsive hero height'
 );
 
 // 3. Verify ControlCenterPanel unhide CTA

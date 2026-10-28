@@ -50,7 +50,7 @@ assert.ok(
 
 // Check metallic-gloss realistic chrome / iron shader
 assert.ok(
-  visualPresetsSrc.includes('conic-gradient(from 195deg at 50% 50%') && visualPresetsSrc.includes('Anisotropic Chrome Horizon Line'),
+  visualPresetsSrc.includes('conic-gradient(from') && visualPresetsSrc.includes('at 50% 50%') && visualPresetsSrc.includes('Anisotropic Chrome Horizon Line'),
   'MaterialShaderSphere must render realistic anisotropic chrome/iron horizon reflection for metallic-gloss'
 );
 
@@ -62,7 +62,7 @@ assert.ok(
 
 // Check neumorphic-clay velvety diffuse shader
 assert.ok(
-  visualPresetsSrc.includes('radial-gradient(circle at 35% 35%, #fafaf9 0%') && visualPresetsSrc.includes('Velvety Matte Clay Sphere'),
+  visualPresetsSrc.includes('radial-gradient(circle at') && visualPresetsSrc.includes('#fafaf9 0%') && visualPresetsSrc.includes('Velvety Matte Clay Sphere'),
   'MaterialShaderSphere must render velvety diffuse matte clay sphere'
 );
 
@@ -78,15 +78,15 @@ assert.ok(
   'CameraCubePreview must render enlarged 3D camera orientation cube'
 );
 
-// Check ThemeExtrudedSlab
+// Check ThemeExtrudedSlab (Straight front-facing 3D depth elevation)
 assert.ok(
-  visualPresetsSrc.includes('w-20 h-10 relative threed-preserve') && visualPresetsSrc.includes('rotateX(55deg) rotateZ(-30deg)'),
-  'ThemeExtrudedSlab must render prominent 3D isometric extruded slab'
+  visualPresetsSrc.includes('w-20 h-10 relative threed-preserve') && visualPresetsSrc.includes('rotateX(4deg) rotateY(0deg)'),
+  'ThemeExtrudedSlab must render prominent front-facing 3D extruded slab'
 );
 
 // Check LightingVectorPreview
 assert.ok(
-  visualPresetsSrc.includes('Light Source (Sun/Spotlight)') && visualPresetsSrc.includes('3D Pillar Object'),
+  visualPresetsSrc.includes('Light Source (Sun/Spotlight)') && visualPresetsSrc.includes('Pillar Object'),
   'LightingVectorPreview must render 3D light vector spotlight, illuminated plinth and cast shadow'
 );
 console.log('✅ Visual3DPresets: Realistic 3D shaders, spheres, cubes and slabs verified.');

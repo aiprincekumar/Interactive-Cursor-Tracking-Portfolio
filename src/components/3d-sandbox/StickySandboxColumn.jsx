@@ -155,9 +155,9 @@ export function StickySandboxColumn({
   }, [onSelectTab, isSoundOn]);
 
   // Interactive Drag / Tilt State with RequestAnimationFrame throttling
-  const [internalTilt, setInternalTilt] = useState({ rotX: 14, rotY: -18 });
+  const [internalTilt, setInternalTilt] = useState({ rotX: 0, rotY: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef({ x: 0, y: 0, rotX: 14, rotY: -18 });
+  const dragStartRef = useRef({ x: 0, y: 0, rotX: 0, rotY: 0 });
   const rafRef = useRef(null);
 
   const currentTilt = externalTilt || internalTilt;
@@ -191,8 +191,8 @@ export function StickySandboxColumn({
       const dx = clientX - dragStartRef.current.x;
       const dy = clientY - dragStartRef.current.y;
       const sens = (camera.tiltSensitivity ?? 15) / 15;
-      const nextRotX = Math.min(Math.max(dragStartRef.current.rotX - dy * 0.35 * sens, -55), 55);
-      const nextRotY = Math.min(Math.max(dragStartRef.current.rotY + dx * 0.35 * sens, -65), 65);
+      const nextRotX = Math.min(Math.max(dragStartRef.current.rotX - dy * 0.3 * sens, -18), 18);
+      const nextRotY = Math.min(Math.max(dragStartRef.current.rotY + dx * 0.3 * sens, -22), 22);
       setInternalTilt({ rotX: Math.round(nextRotX), rotY: Math.round(nextRotY) });
       rafRef.current = null;
     });
@@ -232,7 +232,7 @@ export function StickySandboxColumn({
     if (typeof externalResetOrientation === 'function') {
       externalResetOrientation();
     } else {
-      setInternalTilt({ rotX: 14, rotY: -18 });
+      setInternalTilt({ rotX: 0, rotY: 0 });
     }
   }, [externalResetOrientation]);
 
@@ -309,25 +309,20 @@ export function StickySandboxColumn({
   return (
     <aside
       data-testid="sticky-sandbox-column"
-      className={`sticky top-6 self-start flex flex-col gap-4 max-h-[calc(100vh-3rem)] overflow-y-auto no-scrollbar rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/80 dark:bg-[#181226]/85 backdrop-blur-md p-4 sm:p-5 shadow-sm transition-all ${className}`}
+      className={`sticky top-6 self-start flex flex-col gap-3 max-h-[calc(100vh-3rem)] overflow-y-auto no-scrollbar rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/80 dark:bg-[#181226]/85 backdrop-blur-md p-3.5 sm:p-4 shadow-sm transition-all ${className}`}
     >
       {/* 1. Header & Live Indicator */}
-      <div className="flex items-center justify-between pb-3 border-b border-stone-200/70 dark:border-stone-800">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-500 flex items-center justify-center font-bold">
-            <Maximize2 className="w-4 h-4" />
+      <div className="flex items-center justify-between pb-2.5 border-b border-stone-200/70 dark:border-stone-800">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-cyan-500/15 text-cyan-500 flex items-center justify-center font-bold">
+            <Maximize2 className="w-3.5 h-3.5" />
           </div>
-          <div>
-            <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
-              <span>Sticky Sandbox Hub</span>
-            </h4>
-            <p className="text-[11px] text-stone-500 dark:text-stone-400">
-              Live viewport locked in view during tuning
-            </p>
-          </div>
+          <h4 className="text-xs sm:text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-1.5 tracking-tight">
+            <span>Sticky Sandbox Hub</span>
+          </h4>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {/* Auto-Sync status chip */}
           <button
             type="button"
@@ -346,7 +341,7 @@ export function StickySandboxColumn({
             )}
           </button>
 
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30">
             <span className={`w-1.5 h-1.5 rounded-full ${isMaster3DOn ? 'bg-cyan-500 animate-ping' : 'bg-stone-400'}`} />
             <span>{isMaster3DOn ? 'Live 3D' : 'Flat 2D'}</span>
           </span>
@@ -426,7 +421,9 @@ export function StickySandboxColumn({
       <div className="w-full flex flex-col gap-2 relative">
         <SandboxViewportContainer
           perspective={camera.perspectiveFOV ?? 1000}
-          className={`w-full rounded-xl border bg-radial from-stone-50 via-white to-stone-100 dark:from-[#1A1329] dark:via-[#130E20] dark:to-[#0A0713] overflow-hidden shadow-inner flex flex-col items-center justify-center min-h-[290px] relative p-3 transition-all duration-300 ${
+          className={`w-full rounded-xl border bg-radial from-stone-50 via-white to-stone-100 dark:from-[#1A1329] dark:via-[#130E20] dark:to-[#0A0713] overflow-hidden shadow-inner flex flex-col items-center justify-center ${
+            currentTab === 'universal' ? 'h-auto min-h-0 p-1.5 sm:p-2' : 'min-h-[290px] p-3'
+          } relative transition-all duration-300 ${
             isCurrentPreviewHighlighted
               ? 'ring-2 ring-[#FF4D6D] ring-offset-2 shadow-[0_0_20px_rgba(255,77,109,0.35)] border-[#FF4D6D]/70'
               : 'border-stone-200/80 dark:border-stone-800'
@@ -460,6 +457,7 @@ export function StickySandboxColumn({
             <UniversalMiniPortfolio
               className="w-full"
               showControls={false}
+              compact={true}
               sandboxTilt={currentTilt}
               wireframeActive={exploded.blueprintMode}
               onResetOrientation={handleResetOrientation}
@@ -644,27 +642,27 @@ export function StickySandboxColumn({
       </div>
 
       {/* 4. Live Telemetry & Fine-Grained Control Bar */}
-      <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-stone-100/70 dark:bg-[#150F21]/80 border border-stone-200/70 dark:border-stone-800 font-mono text-xs">
-        <div className="flex flex-col">
-          <span className="text-[11px] text-stone-600 dark:text-stone-300 font-semibold">
+      <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-stone-100/70 dark:bg-[#150F21]/80 border border-stone-200/70 dark:border-stone-800 font-mono text-xs">
+        <div className="flex flex-col leading-tight">
+          <span className="text-[10px] sm:text-[11px] text-stone-600 dark:text-stone-300 font-semibold">
             Rot: {currentTilt.rotX}°, {currentTilt.rotY}°
           </span>
-          <span className="text-[10px] text-stone-400">
+          <span className="text-[9px] sm:text-[10px] text-stone-400">
             FOV: {camera.perspectiveFOV ?? 1000}px | Tilt: {camera.tiltSensitivity ?? 15}°
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           {/* Component-level reset action */}
           <button
             type="button"
             data-testid="reset-component-defaults-btn"
             onClick={handleResetComponentDefaults}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-stone-50 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
+            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white hover:bg-stone-50 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700 text-[11px] font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
             title={`Reset ${PREVIEW_TABS.find((t) => t.id === currentTab)?.label || 'Component'} 3D Defaults`}
             aria-label="Reset Component Defaults"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-stone-400" />
+            <RotateCcw className="w-3 h-3 text-stone-400" />
             <span>Reset Component Defaults</span>
           </button>
 
@@ -673,7 +671,7 @@ export function StickySandboxColumn({
             type="button"
             data-testid="reset-sandbox-orientation-btn"
             onClick={handleResetOrientation}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-stone-800/80 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
+            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-stone-800/80 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700 text-[11px] font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
             title="Reset Sandbox Orientation"
             aria-label="Reset Sandbox Orientation"
           >

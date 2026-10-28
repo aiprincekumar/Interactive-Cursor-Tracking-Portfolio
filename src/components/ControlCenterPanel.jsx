@@ -1,5 +1,5 @@
 /* oxlint-disable react/only-export-components */
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Volume2,
   VolumeX,
@@ -512,9 +512,9 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
     if (soundEnabled) soundFX.playHapticClick();
   }, [soundEnabled, notifyAccordionChange]);
 
-  const [sandboxTilt, setSandboxTilt] = useState({ rotX: 16, rotY: -20 });
+  const [sandboxTilt, setSandboxTilt] = useState({ rotX: 0, rotY: 0 });
   const [isDraggingSandbox, setIsDraggingSandbox] = useState(false);
-  const dragStartRef = useRef({ x: 0, y: 0, rotX: 16, rotY: -20 });
+  const dragStartRef = useRef({ x: 0, y: 0, rotX: 0, rotY: 0 });
   const sandboxRafRef = useRef(null);
 
   const handleSandboxPointerDown = useCallback((e) => {
@@ -541,8 +541,8 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
       const dx = clientX - dragStartRef.current.x;
       const dy = clientY - dragStartRef.current.y;
       const sens = ((threeD?.camera?.tiltSensitivity ?? 15) / 15);
-      const newRotX = Math.min(Math.max(dragStartRef.current.rotX - dy * 0.4 * sens, -60), 60);
-      const newRotY = Math.min(Math.max(dragStartRef.current.rotY + dx * 0.4 * sens, -75), 75);
+      const newRotX = Math.min(Math.max(dragStartRef.current.rotX - dy * 0.3 * sens, -18), 18);
+      const newRotY = Math.min(Math.max(dragStartRef.current.rotY + dx * 0.3 * sens, -22), 22);
       setSandboxTilt({ rotX: Math.round(newRotX), rotY: Math.round(newRotY) });
       sandboxRafRef.current = null;
     });
@@ -573,24 +573,25 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
   }, []);
 
   const resetSandboxView = useCallback(() => {
-    setSandboxTilt({ rotX: 16, rotY: -20 });
+    setSandboxTilt({ rotX: 0, rotY: 0 });
     if (soundEnabled) soundFX.playHapticClick();
   }, [soundEnabled]);
 
-  const [expandedCategories, setExpandedCategories] = useState({
-    nav: true,
-    hero: true,
-    containers: true
-  });
+  // Strict Single-Expanded Accordion Discipline for 3D Categories
+  // By default only Section 1 Category 1 ('nav') is uncollapsed; clicking another category collapses all others.
+  const [expandedCategory, setExpandedCategory] = useState('nav');
 
-  const toggleCategory = (catKey) => {
-    setExpandedCategories((prev) => ({
-      ...prev,
-      [catKey]: !prev[catKey]
-    }));
+  const toggleCategory = useCallback((catKey) => {
+    setExpandedCategory((prev) => (prev === catKey ? null : catKey));
     notifyAccordionChange(catKey);
     if (soundEnabled) soundFX.playHapticClick();
-  };
+  }, [soundEnabled, notifyAccordionChange]);
+
+  const expandedCategories = useMemo(() => ({
+    nav: expandedCategory === 'nav',
+    hero: expandedCategory === 'hero',
+    containers: expandedCategory === 'containers'
+  }), [expandedCategory]);
 
   const { theme, toggleTheme } = useTheme();
 
@@ -2797,7 +2798,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                     onMouseLeave={() => setHighlightedComponent(null)}
                                     onFocus={() => setHighlightedComponent(cat.id === 'containers' ? 'showcase' : cat.id)}
                                     onBlur={() => setHighlightedComponent(null)}
-                                    className={`p-2.5 sm:p-3 rounded-xl border transition-all flex items-center justify-between gap-3 active:translate-y-[1px] ${
+                                    className={`p-2.5 sm:p-3 min-h-[58px] sm:min-h-[62px] h-[58px] sm:h-[62px] rounded-xl border transition-all flex items-center justify-between gap-3 active:translate-y-[1px] ${
                                       isCategoryTargeted ? 'ring-1 ring-[#FF4D6D]/40' : ''
                                     } ${
                                       isItemOn
@@ -3749,6 +3750,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                             set3DExploded({ enabled: !exploded.enabled });
                             if (soundEnabled) soundFX.playHapticClick();
                           }}
+                          icon={Split}
                           label={exploded.enabled ? 'Collapse' : 'Explode'}
                           variant={exploded.enabled ? 'primary' : 'default'}
                           active={exploded.enabled}

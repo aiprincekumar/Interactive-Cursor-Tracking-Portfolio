@@ -19,7 +19,7 @@ import { useLab3D } from '../../../context/LabContext';
  * (BASE CHASSIS, AVATAR ORB, METRIC CHIPS).
  */
 export function HeroCardPreview({
-  tilt = { rotX: 14, rotY: -18 },
+  tilt = { rotX: 0, rotY: 0 },
   interactive = true,
   className = '',
   explodedMode,

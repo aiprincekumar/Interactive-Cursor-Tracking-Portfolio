@@ -197,6 +197,10 @@ Every single change to repository files must be logged with full forensic diffs 
      - *Thinking Budget:* `high`.
 - **Absolute User Override Supremacy:** If the user specifies or requests a specific model (e.g. Pro, Flash, Claude, GPT) or thinking budget level in their prompt, that instruction holds 100% unconditional supremacy over the automated routing matrix.
 
+### 2.11 Strict Project Scope Isolation (मुख्य पोर्टफोलियो प्रोजेक्ट दायरा नियंत्रण नियम)
+- **Direct User Mandate (अनिवार्य यूजर आदेश):** आगे से जब भी यूजर 3D टैब या पोर्टफोलियो सेटिंग्स में किसी भी बदलाव या कस्टमाइज़ेशन का निर्देश दें, वह बदलाव **केवल और केवल इसी मुख्य पोर्टफोलियो प्रोजेक्ट (`Interactive Cursor-Tracking Portfolio`)** में ही लागू होगा।
+- **External Standalone Studio Invariant (स्टैंडअलोन स्टूडियो पर पूर्ण सुरक्षा लॉक):** डेस्कटॉप पर मौजूद स्टैंडअलोन स्टूडियो कॉपी (`Interactive Cursor-Tracking 3D-Studio/`) में तब तक कोई भी बदलाव, एडिट या ऑटो-सिंक नहीं किया जाएगा जब तक यूजर स्पष्ट रूप से उस प्रोजेक्ट का नाम लेकर निर्देश न दें (*"उस प्रोजेक्ट में अलग से डिफाइन करके बोलेंगे कि हां, इस प्रोजेक्ट में करना है"*). बिना स्पष्ट निर्देश के स्टैंडअलोन स्टूडियो को स्पर्श करना सख्त वर्जित है।
+
 ---
 
 ## 🛠️ 3. Standard Developer & Verification Commands

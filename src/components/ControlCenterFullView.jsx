@@ -11,8 +11,6 @@ import {
   RotateCcw,
   Sliders,
   Check,
-  ShieldCheck,
-  Radio,
   Layers
 } from 'lucide-react';
 import { useLab } from '../context/LabContext';
@@ -434,32 +432,6 @@ export default function ControlCenterFullView() {
 
       {/* Main Studio Workbench Container */}
       <main className="flex-1 relative z-10 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Studio Info Banner */}
-        <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-[#FF4D6D]/10 via-[#8B5CF6]/10 to-stone-100/50 dark:to-transparent border border-stone-200 dark:border-white/10 backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-[#FF4D6D]/15 text-[#FF4D6D] border border-[#FF4D6D]/30 shrink-0">
-              <Radio className="w-5 h-5 animate-pulse" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-stone-900 dark:text-white tracking-wide">
-                {mode === 'single'
-                  ? (isHindi ? `पृथक मोड: ${activeTabConfig?.label || 'सक्रिय सबसिस्टम'}` : `Isolated Mode: ${activeTabConfig?.label || 'Active Subsystem'}`)
-                  : (isHindi ? 'पृथक स्टूडियो इंजन सक्रिय' : 'Isolated Studio Engine Active')}
-              </h2>
-              <p className="text-xs text-stone-600 dark:text-stone-300 mt-0.5">
-                {isHindi
-                  ? 'प्रत्येक स्लाइडर, टॉगल और प्रीसेट तुरंत स्थायी स्टोरेज में सहेजा जाता है। रीयल-टाइम अपडेट देखने के लिए स्प्लिट विंडो में खोलें।'
-                  : 'Every slider, toggle and preset writes immediately to persistent storage. Open the portfolio in a split window to observe real-time visual updates.'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 text-xs text-stone-600 dark:text-stone-400 bg-stone-100/90 dark:bg-black/40 px-3 py-1.5 rounded-xl border border-stone-200 dark:border-white/5">
-            <ShieldCheck className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-            <span>{isHindi ? 'उच्च गति सैंडबॉक्स रनटाइम' : 'High-Speed Sandboxed Runtime'}</span>
-          </div>
-        </div>
-
         {/* Embedded Core Control Center Panel with dynamic 2-Tier mode */}
         <div className="rounded-3xl border bg-white/85 dark:bg-[#0D091A]/85 border-stone-200 dark:border-white/10 backdrop-blur-2xl text-stone-900 dark:text-stone-100 shadow-xl dark:shadow-2xl p-3 sm:p-6 lg:p-8">
           {mode === 'single' ? (

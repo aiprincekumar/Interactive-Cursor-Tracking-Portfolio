@@ -24,7 +24,7 @@ const SOCIAL_LINKS = [
  * copyright telemetry, and ground shadow falloff.
  */
 export function Footer3DPreview({
-  tilt = { rotX: 18, rotY: -14 },
+  tilt = { rotX: 0, rotY: 0 },
   interactive = true,
   className = '',
   explodedMode,

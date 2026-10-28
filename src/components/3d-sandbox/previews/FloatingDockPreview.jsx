@@ -27,7 +27,7 @@ const DOCK_ITEMS = [
  * parabolic scaling, elastic spring hover pop (translateZ, scale), and audio feedback.
  */
 export function FloatingDockPreview({
-  tilt = { rotX: 20, rotY: -10 },
+  tilt = { rotX: 0, rotY: 0 },
   interactive = true,
   className = '',
   explodedMode,

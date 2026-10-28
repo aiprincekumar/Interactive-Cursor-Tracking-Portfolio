@@ -58,7 +58,8 @@ export function normalizeMiniKey(key) {
 export function UniversalMiniPortfolio({
   className = '',
   showControls = true,
-  defaultTilt = { rotX: 8, rotY: -12 },
+  compact = false,
+  defaultTilt = { rotX: 0, rotY: 0 },
   sandboxTilt,
   onPointerDown: externalPointerDown,
   onPointerMove: externalPointerMove,
@@ -78,6 +79,9 @@ export function UniversalMiniPortfolio({
   const materials = threeD.materials || { bevelExtrusion: 4, specularGlow: 0.5 };
   const exploded = threeD.exploded || { enabled: false, separationDistance: 40, ghostOpacity: 0.4, layerStagger: 15, blueprintMode: false };
   const environment = threeD.environment || { skybox: 'dark-studio', fogDensity: 20, stardustParticles: true, particleCount: 30 };
+
+  const isCompact = compact || !showControls;
+  const stageRef = useRef(null);
 
   // Internal rotation state with smooth damping (falls back to props.sandboxTilt if provided)
   const [internalTilt, setInternalTilt] = useState(defaultTilt);
@@ -213,8 +217,19 @@ export function UniversalMiniPortfolio({
     { x: 50, y: 40, z: 50, delay: 0.6 }
   ], []);
 
+  const hasCustomHeight = /(?:^|\s)(?:h-|min-h-|max-h-)/.test(className);
+  const heightClass = hasCustomHeight
+    ? ''
+    : isCompact
+      ? 'h-auto min-h-0 max-h-fit py-2.5 sm:py-3'
+      : 'min-h-[560px] sm:h-[600px]';
+
+  const containerFrameClass = compact
+    ? 'border-0 bg-transparent shadow-none p-0'
+    : 'rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] shadow-inner';
+
   return (
-    <div className={`universal-mini-portfolio w-full flex flex-col gap-3 ${className}`}>
+    <div className={`universal-mini-portfolio w-full flex flex-col ${isCompact ? 'gap-0' : 'gap-3'} ${className}`}>
       {/* Top Toolbar Controls */}
       {showControls && (
         <div className="flex flex-wrap items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl bg-white/70 dark:bg-[#181226]/80 border border-[#E7E2D8] dark:border-[#2D2340] backdrop-blur-md shadow-2xs text-xs">
@@ -270,10 +285,10 @@ export function UniversalMiniPortfolio({
       {/* Main Sandbox Viewport Container */}
       <SandboxViewportContainer
         perspective={camera.perspectiveFOV || 1000}
-        className={`w-full min-h-[560px] sm:h-[600px] rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] relative flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none shadow-inner transition-colors duration-500 ${
-          isWireframe ? 'bg-cyan-950/40' : ''
+        className={`w-full ${heightClass} ${containerFrameClass} relative flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none transition-colors duration-500 ${
+          isWireframe && !compact ? 'bg-cyan-950/40' : ''
         }`}
-        style={{
+        style={compact ? {} : {
           background: isWireframe
             ? 'radial-gradient(circle at center, rgba(0, 242, 254, 0.12) 0%, rgba(6, 15, 30, 0.98) 100%)'
             : skyboxBg
@@ -328,7 +343,8 @@ export function UniversalMiniPortfolio({
 
         {/* 3D Master Orbit Stage */}
         <div
-          className="relative w-80 sm:w-96 flex flex-col items-center gap-3.5 p-4 transition-transform pointer-events-auto"
+          ref={stageRef}
+          className="relative w-80 sm:w-96 flex flex-col items-center gap-2 sm:gap-2.5 p-2 sm:p-2.5 transition-transform pointer-events-auto"
           style={{
             transform: isMaster3DOn
               ? `rotateX(${tilt.rotX}deg) rotateY(${tilt.rotY}deg) scale(1.02)`
@@ -603,9 +619,11 @@ export function UniversalMiniPortfolio({
         </div>
 
         {/* Drag Guidance Toast Overlay */}
-        <div className="absolute bottom-2.5 left-3 text-[10px] font-mono text-stone-400 dark:text-stone-500 bg-white/70 dark:bg-stone-900/70 px-2 py-0.5 rounded-md backdrop-blur-xs border border-stone-200/50 dark:border-stone-800/50 pointer-events-none">
-          Drag to orbit 3D replica
-        </div>
+        {!compact && (
+          <div className="absolute bottom-2.5 left-3 text-[10px] font-mono text-stone-400 dark:text-stone-500 bg-white/70 dark:bg-stone-900/70 px-2 py-0.5 rounded-md backdrop-blur-xs border border-stone-200/50 dark:border-stone-800/50 pointer-events-none">
+            Drag to orbit 3D replica
+          </div>
+        )}
       </SandboxViewportContainer>
     </div>
   );

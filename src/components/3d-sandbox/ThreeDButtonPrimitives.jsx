@@ -7,6 +7,9 @@ import { use3DMicroTilt } from '../../hooks/use3DMicroTilt';
  * ThreeDPresetCard
  * Self-explanatory tactile 3D preset button card with live 3D visual preview slot,
  * hardware-accelerated micro-tilt, and authentic physical press depth.
+ * - 3D Mode (isVisualOnly = true): Pure 3D visual preview stage, zero-text, exactly as in CHG-115.
+ * - 2D Mode (isVisualOnly = false): Text with prominent Icon, Title, Badge, Description, and Status,
+ *   sharing the exact same bounding box and height to guarantee 0px layout shift.
  */
 export function ThreeDPresetCard({
   isSelected = false,
@@ -79,16 +82,16 @@ export function ThreeDPresetCard({
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       style={keycapStyle}
-      className={`group relative ${
+      className={`group relative min-h-[115px] sm:min-h-[128px] h-[115px] sm:h-[128px] w-full max-h-[115px] sm:max-h-[128px] overflow-hidden ${
         isVisualOnly
-          ? 'p-2 min-h-[115px] sm:min-h-[128px] flex items-center justify-center'
-          : 'p-3 sm:p-3.5 min-h-[125px] flex flex-col justify-between'
+          ? 'p-2 flex items-center justify-center'
+          : 'p-3 sm:p-3.5 flex flex-col justify-between'
       } rounded-2xl text-left transition-all duration-150 select-none cursor-pointer outline-none threed-preserve ${
         disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
       } ${
         isSelected
           ? isVisualOnly
-            ? 'border-2 border-[#FF4D6D] ring-2 ring-[#FF4D6D]/40 text-[#18181B] dark:text-white'
+            ? 'border-2 border-[#FF4D6D] ring-2 ring-[#FF4D6D]/40 shadow-[0_0_24px_rgba(255,77,109,0.45)] text-[#18181B] dark:text-white'
             : 'bg-gradient-to-b from-[#FF4D6D]/15 to-[#FF4D6D]/5 dark:from-[#FF4D6D]/25 dark:to-[#FF4D6D]/10 border-2 border-[#FF4D6D] text-[#18181B] dark:text-white ring-2 ring-[#FF4D6D]/30 shadow-[0_4px_0_0_#D93856,0_10px_20px_rgba(255,77,109,0.25)]'
           : 'bg-gradient-to-b from-white/95 to-stone-50/85 dark:from-[#211833]/90 dark:to-[#171124]/90 border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 hover:border-[#FF4D6D]/40'
       } ${
@@ -97,22 +100,22 @@ export function ThreeDPresetCard({
           : ''
       } focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 ${className}`}
     >
-      {/* 2D Mode: Classic Header Row (Icon, Title, Badge & Check) */}
+      {/* 2D Mode: High-Craft Layout with Prominent Icon, Title, Badge & Check */}
       {!isVisualOnly && (
-        <div className="flex items-center justify-between w-full mb-2">
+        <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2 min-w-0">
             {Icon && (
               <div
-                className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-transform ${
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 transition-transform ${
                   isSelected
-                    ? 'bg-[#FF4D6D] text-white shadow-[0_0_14px_rgba(255,77,109,0.5)]'
+                    ? 'bg-[#FF4D6D] text-white shadow-[0_0_12px_rgba(255,77,109,0.5)]'
                     : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 group-hover:scale-105'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className="w-4 h-4" />
               </div>
             )}
-            <span className="text-xs font-bold tracking-tight text-[#18181B] dark:text-white truncate">
+            <span className="text-xs sm:text-[13px] font-bold tracking-tight text-[#18181B] dark:text-white truncate">
               {title}
             </span>
           </div>
@@ -139,28 +142,36 @@ export function ThreeDPresetCard({
       )}
 
       {/* 3D Visual Center Stage:
-          In 3D Mode (isVisualOnly): Fills the entire button without nested boxes, pills, or text.
-          In 2D Mode: Contained in an inner preview pill. */}
+          In 3D Mode (isVisualOnly): Fills the stage with tactile physical preview (pure 3D visual preview, no text overlay).
+          In 2D Mode: Replaced with 2D Icon + Title + Description layout with exact matching bounding box. */}
       {visualPreview && (
         isVisualOnly ? (
           <div className="w-full h-full flex items-center justify-center overflow-hidden relative threed-preserve pointer-events-none select-none">
             {visualPreview}
           </div>
-        ) : (
-          <div className="my-1 py-1.5 flex items-center justify-center bg-stone-100/50 dark:bg-[#150F22]/60 rounded-xl border border-stone-200/50 dark:border-stone-800/60 overflow-hidden relative threed-preserve min-h-[52px]">
-            {visualPreview}
-          </div>
-        )
+        ) : null
       )}
 
       {/* Supplementary children slot */}
       {children}
 
-      {/* Bottom Description - Strictly suppressed in 3D Mode */}
+      {/* 2D Mode Description - Fits inside fixed height container with zero layout shift */}
       {!isVisualOnly && desc && (
-        <p className="text-[10.5px] text-stone-500 dark:text-stone-400 leading-snug line-clamp-2 mt-1">
+        <p className="text-[10.5px] sm:text-[11px] text-stone-500 dark:text-stone-400 leading-snug line-clamp-2 my-auto">
           {desc}
         </p>
+      )}
+
+      {/* 2D Mode Status Pill */}
+      {!isVisualOnly && (
+        <div className="flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800/80 text-[10px] text-stone-400 dark:text-stone-500">
+          <span className="font-medium">
+            {isSelected ? 'Active Preset' : '2D Preset'}
+          </span>
+          {isSelected && (
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FF4D6D] animate-pulse" />
+          )}
+        </div>
       )}
 
       {/* 3D Specular Glare Layer */}
@@ -176,6 +187,8 @@ export function ThreeDPresetCard({
 /**
  * ThreeDActionKeycap
  * Authentically beveled tactile 3D keycap button for action triggers.
+ * - 3D Mode (isVisualOnly = true): Pure 3D Keycap Icon, zero-text, exactly as in CHG-115.
+ * - 2D Mode (isVisualOnly = false): Text with Icon, sharing identical height (h-8 sm:h-8.5).
  */
 export function ThreeDActionKeycap({
   onClick,
@@ -207,14 +220,16 @@ export function ThreeDActionKeycap({
       aria-label={ariaLabel || label}
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center gap-1.5 ${
-        isVisualOnly ? 'p-2 sm:p-2.5 rounded-xl' : 'px-3 py-1.5 rounded-xl text-xs font-semibold'
-      } border transition-all duration-100 cursor-pointer select-none active:translate-y-[2px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] ${
+      className={`inline-flex items-center justify-center gap-1.5 h-8 sm:h-8.5 ${
+        isVisualOnly
+          ? 'w-8 sm:w-8.5 p-0 rounded-xl'
+          : 'px-3 py-1.5 rounded-xl text-xs font-semibold'
+      } border transition-all duration-100 cursor-pointer select-none active:translate-y-[1.5px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] ${
         disabled ? 'opacity-50 cursor-not-allowed' : ''
       } ${variantStyles[variant] || variantStyles.default} ${className}`}
     >
       {Icon && <Icon className={isVisualOnly ? 'w-4.5 h-4.5 shrink-0' : 'w-3.5 h-3.5 shrink-0'} />}
-      {!isVisualOnly && label && <span>{label}</span>}
+      {!isVisualOnly && label && <span className="truncate">{label}</span>}
     </button>
   );
 }
@@ -222,6 +237,8 @@ export function ThreeDActionKeycap({
 /**
  * ThreeDToggleKey
  * 3D Rocker keycap switch with physical bevel.
+ * - 3D Mode (isVisualOnly = true): Pure 3D Keycap Icon, zero-text, exactly as in CHG-115.
+ * - 2D Mode (isVisualOnly = false): Text with Icon, sharing identical height (h-[58px] sm:h-[62px]).
  */
 export function ThreeDToggleKey({
   checked = false,
@@ -250,7 +267,7 @@ export function ThreeDToggleKey({
           onChange?.(!checked);
         }
       }}
-      className={`p-2.5 sm:p-3 rounded-xl border flex items-center justify-between gap-3 transition-all duration-150 cursor-pointer select-none outline-none ${
+      className={`p-2.5 sm:p-3 min-h-[58px] sm:min-h-[62px] h-[58px] sm:h-[62px] rounded-xl border flex items-center justify-between gap-3 transition-all duration-150 cursor-pointer select-none outline-none ${
         disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
       } ${
         checked
