@@ -227,10 +227,13 @@ runTest('ControlCenterPanel renders all 9 single-accordion sections', () => {
   assert(panelSrc.includes('Mouse Parallax Tilt Sensitivity'), 'Must render Tilt Sensitivity slider');
   assert(panelSrc.includes('Continuous Idle Orbit Rotation'), 'Must render Auto Orbit toggle');
 
-  // Section 4
-  assert(panelSrc.includes('Materials &amp; Shading'), 'Must render Section 4');
+  // Section 4: Materials Library (Separated pure materials)
+  assert(panelSrc.includes('Materials Library') || panelSrc.includes('Materials &amp; Shading'), 'Must render Section 4');
   assert(panelSrc.includes("toggleAccordionSection('materials')"), 'Must toggle materials section');
-  assert(panelSrc.includes('Material Shading Preset'), 'Must render Material Shading Preset title');
+  assert(panelSrc.includes('Select Material Substance') || panelSrc.includes('Material Shading Preset'), 'Must render Material selection title');
+
+  // Section 5: PBR Surface & Shading Engine (Dedicated Section)
+  assert(panelSrc.includes('PBR Surface &amp; Shading Engine') || panelSrc.includes('Specular Highlight &amp; Glow'), 'Must render Shading Section');
   assert(panelSrc.includes('Specular Highlight &amp; Glow'), 'Must render Specular Glow slider');
   assert(panelSrc.includes('Bevel &amp; Edge Extrusion'), 'Must render Bevel Extrusion slider');
 

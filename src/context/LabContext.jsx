@@ -644,10 +644,39 @@ export function normalize3DCamera(raw) {
   };
 }
 
+export const VALID_MATERIAL_PRESETS = [
+  'wood-oak', 'wood-walnut', 'stone-marble', 'clay-terracotta',
+  'metal-gold', 'metal-silver', 'metal-iron', 'metal-steel', 'metal-aluminium', 'metal-copper',
+  'plastic-gloss', 'plastic-matte', 'carbon-fiber', 'glass-acrylic', 'gem-emerald', 'cyber-wireframe',
+  // Backward-compatibility aliases
+  'metallic-gloss', 'neumorphic-clay'
+];
+
+export const MATERIAL_DEFAULT_PBR = {
+  'wood-oak': { roughness: 0.45, metalness: 0.00, ior: 1.54, clearcoat: 0.30, specularGlow: 0.35, bevelExtrusion: 3 },
+  'wood-walnut': { roughness: 0.50, metalness: 0.00, ior: 1.54, clearcoat: 0.25, specularGlow: 0.30, bevelExtrusion: 3 },
+  'stone-marble': { roughness: 0.15, metalness: 0.05, ior: 1.58, clearcoat: 0.65, specularGlow: 0.70, bevelExtrusion: 4 },
+  'clay-terracotta': { roughness: 0.85, metalness: 0.00, ior: 1.48, clearcoat: 0.00, specularGlow: 0.15, bevelExtrusion: 4 },
+  'metal-gold': { roughness: 0.10, metalness: 0.95, ior: 1.35, clearcoat: 0.50, specularGlow: 0.85, bevelExtrusion: 3 },
+  'metal-silver': { roughness: 0.08, metalness: 0.98, ior: 1.30, clearcoat: 0.60, specularGlow: 0.90, bevelExtrusion: 3 },
+  'metal-iron': { roughness: 0.60, metalness: 0.80, ior: 1.70, clearcoat: 0.10, specularGlow: 0.40, bevelExtrusion: 4 },
+  'metal-steel': { roughness: 0.12, metalness: 0.90, ior: 1.85, clearcoat: 0.70, specularGlow: 0.80, bevelExtrusion: 3 },
+  'metal-aluminium': { roughness: 0.35, metalness: 0.85, ior: 1.45, clearcoat: 0.20, specularGlow: 0.65, bevelExtrusion: 3 },
+  'metal-copper': { roughness: 0.25, metalness: 0.88, ior: 1.40, clearcoat: 0.40, specularGlow: 0.75, bevelExtrusion: 3 },
+  'plastic-gloss': { roughness: 0.08, metalness: 0.00, ior: 1.52, clearcoat: 0.80, specularGlow: 0.75, bevelExtrusion: 2 },
+  'plastic-matte': { roughness: 0.70, metalness: 0.00, ior: 1.58, clearcoat: 0.05, specularGlow: 0.20, bevelExtrusion: 3 },
+  'carbon-fiber': { roughness: 0.20, metalness: 0.30, ior: 1.65, clearcoat: 0.85, specularGlow: 0.70, bevelExtrusion: 3 },
+  'glass-acrylic': { roughness: 0.18, metalness: 0.05, ior: 1.50, clearcoat: 0.75, specularGlow: 0.60, bevelExtrusion: 3 },
+  'gem-emerald': { roughness: 0.05, metalness: 0.10, ior: 1.76, clearcoat: 0.95, specularGlow: 0.95, bevelExtrusion: 4 },
+  'cyber-wireframe': { roughness: 0.00, metalness: 0.50, ior: 2.00, clearcoat: 1.00, specularGlow: 1.00, bevelExtrusion: 2 },
+  'metallic-gloss': { roughness: 0.10, metalness: 0.95, ior: 1.35, clearcoat: 0.50, specularGlow: 0.85, bevelExtrusion: 3 },
+  'neumorphic-clay': { roughness: 0.85, metalness: 0.00, ior: 1.48, clearcoat: 0.00, specularGlow: 0.20, bevelExtrusion: 4 }
+};
+
 export function normalize3DMaterials(raw) {
   const defaults = FACTORY_DEFAULTS.threeD.materials;
   if (!raw || typeof raw !== 'object') return { ...defaults };
-  const preset = (raw.preset === 'metallic-gloss' || raw.preset === 'neumorphic-clay' || raw.preset === 'cyber-wireframe' || raw.preset === 'glass-acrylic')
+  const preset = (raw.preset && VALID_MATERIAL_PRESETS.includes(raw.preset))
     ? raw.preset
     : defaults.preset;
   const specularGlow = typeof raw.specularGlow === 'number' && !isNaN(raw.specularGlow) ? clamp(raw.specularGlow, 0.0, 1.0, defaults.specularGlow) : defaults.specularGlow;
@@ -1524,6 +1553,10 @@ export function LabProvider({ children, initialSoundEnabled }) {
       root.style.setProperty('--3d-material-preset', threeD.materials?.preset || 'glass-acrylic');
       root.style.setProperty('--3d-specular-glow', `${threeD.materials?.specularGlow ?? 0.6}`);
       root.style.setProperty('--3d-bevel-extrusion', `${threeD.materials?.bevelExtrusion ?? 3}px`);
+      root.style.setProperty('--3d-roughness', `${threeD.materials?.roughness ?? 0.25}`);
+      root.style.setProperty('--3d-metalness', `${threeD.materials?.metalness ?? 0.20}`);
+      root.style.setProperty('--3d-ior', `${threeD.materials?.ior ?? 1.50}`);
+      root.style.setProperty('--3d-clearcoat', `${threeD.materials?.clearcoat ?? 0.40}`);
       root.style.setProperty('--3d-hover-pop', `${threeD.physics?.hoverPop ?? 12}px`);
       root.style.setProperty('--3d-elasticity', threeD.physics?.elasticity || 'snappy');
 
@@ -2384,7 +2417,8 @@ export function LabProvider({ children, initialSoundEnabled }) {
   }, []);
 
   const set3DMaterialPreset = useCallback((preset) => {
-    set3DMaterials({ preset });
+    const defaultsForPreset = MATERIAL_DEFAULT_PBR[preset] || {};
+    set3DMaterials({ preset, ...defaultsForPreset });
   }, [set3DMaterials]);
 
   const set3DSpecularGlow = useCallback((specularGlow) => {
@@ -2531,6 +2565,10 @@ export function LabProvider({ children, initialSoundEnabled }) {
       `--3d-material-preset: ${threeD.materials?.preset || 'glass-acrylic'};`,
       `--3d-specular-glow: ${threeD.materials?.specularGlow ?? 0.6};`,
       `--3d-bevel-extrusion: ${threeD.materials?.bevelExtrusion ?? 3}px;`,
+      `--3d-roughness: ${threeD.materials?.roughness ?? 0.25};`,
+      `--3d-metalness: ${threeD.materials?.metalness ?? 0.20};`,
+      `--3d-ior: ${threeD.materials?.ior ?? 1.50};`,
+      `--3d-clearcoat: ${threeD.materials?.clearcoat ?? 0.40};`,
       `--3d-hover-pop: ${threeD.physics?.hoverPop ?? 12}px;`,
       `--3d-elasticity: ${threeD.physics?.elasticity || 'snappy'};`,
       `--3d-explode-z: ${explodeZ}px;`,

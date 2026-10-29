@@ -1,6 +1,6 @@
 /**
- * Cinematic 360° Turntable Video & High-Res Snapshot Exporter (Feature 4)
- * Client-side DOM/Canvas capture and MediaRecorder video generation
+ * Cinematic 360° Turntable Video & High-Res Snapshot Exporter (Universal Rule 15 & 22 Master)
+ * Client-side true 3D scene rasterizer and MediaRecorder video generation
  */
 
 /**
@@ -21,128 +21,297 @@ export function triggerFileDownload(urlOrBlob, filename) {
 }
 
 /**
- * Renders an HTML element onto a 2D canvas with styling, shadows, and optional metadata
+ * Helper to compute 3D perspective projection of a point (x, y, z)
+ * rotated by rotX (pitch) and rotY (yaw) in degrees around center (cx, cy).
+ */
+function projectPoint3D(x, y, z, cx, cy, rotXDeg, rotYDeg, fov = 900) {
+  const radX = (rotXDeg * Math.PI) / 180;
+  const radY = (rotYDeg * Math.PI) / 180;
+
+  // 1. Center relative coordinates
+  let dx = x - cx;
+  let dy = y - cy;
+  let dz = z;
+
+  // 2. Rotate around Y axis (Yaw)
+  const cosY = Math.cos(radY);
+  const sinY = Math.sin(radY);
+  const x1 = dx * cosY + dz * sinY;
+  const z1 = -dx * sinY + dz * cosY;
+
+  // 3. Rotate around X axis (Pitch)
+  const cosX = Math.cos(radX);
+  const sinX = Math.sin(radX);
+  const y2 = dy * cosX - z1 * sinX;
+  const z2 = dy * sinX + z1 * cosX;
+
+  // 4. Perspective projection
+  const scale = fov / (fov + z2);
+  return {
+    px: cx + x1 * scale,
+    py: cy + y2 * scale,
+    scale,
+    depth: z2
+  };
+}
+
+/**
+ * Draws an isometric/perspective projected 3D card/slab on 2D canvas
+ */
+function drawProjectedSlab(ctx, x, y, w, h, z, cx, cy, rotX, rotY, options = {}) {
+  const p1 = projectPoint3D(x, y, z, cx, cy, rotX, rotY);
+  const p2 = projectPoint3D(x + w, y, z, cx, cy, rotX, rotY);
+  const p3 = projectPoint3D(x + w, y + h, z, cx, cy, rotX, rotY);
+  const p4 = projectPoint3D(x, y + h, z, cx, cy, rotX, rotY);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(p1.px, p1.py);
+  ctx.lineTo(p2.px, p2.py);
+  ctx.lineTo(p3.px, p3.py);
+  ctx.lineTo(p4.px, p4.py);
+  ctx.closePath();
+
+  if (options.shadowColor) {
+    ctx.shadowColor = options.shadowColor;
+    ctx.shadowBlur = options.shadowBlur || 20;
+    ctx.shadowOffsetX = options.shadowOffsetX || 0;
+    ctx.shadowOffsetY = options.shadowOffsetY || 12;
+  }
+
+  if (options.fillStyle) {
+    ctx.fillStyle = options.fillStyle;
+    ctx.fill();
+  }
+
+  if (options.strokeStyle) {
+    ctx.shadowColor = 'transparent';
+    ctx.strokeStyle = options.strokeStyle;
+    ctx.lineWidth = options.lineWidth || 1.5;
+    ctx.stroke();
+  }
+
+  ctx.restore();
+  return { p1, p2, p3, p4 };
+}
+
+/**
+ * Renders an HTML element onto a 2D canvas with true 3D perspective projection of the mini portfolio stage
  * @param {HTMLElement} element
  * @param {Object} options
  * @returns {Promise<HTMLCanvasElement>}
  */
 export async function renderElementToCanvas(element, options = {}) {
   const rect = element.getBoundingClientRect();
-  const width = Math.max(320, Math.round(rect.width));
-  const height = Math.max(240, Math.round(rect.height));
+  const width = Math.max(360, Math.round(rect.width));
+  const height = Math.max(260, Math.round(rect.height));
   const scale = options.scale || (typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1);
 
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.round(width * scale);
-  canvas.height = Math.round(height * scale);
-  const ctx = canvas.getContext('2d');
-  ctx.scale(scale, scale);
-
-  // Background gradient or fill
-  const computed = window.getComputedStyle(element);
-  const bg = computed.backgroundColor && computed.backgroundColor !== 'rgba(0, 0, 0, 0)'
-    ? computed.backgroundColor
-    : (document.documentElement.classList.contains('dark') ? '#0c0a13' : '#f8fafc');
-
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, width, height);
-
-  // Decorative ambient stage lighting
-  const grad = ctx.createRadialGradient(width / 2, height / 2, 40, width / 2, height / 2, width * 0.7);
-  grad.addColorStop(0, 'rgba(0, 242, 254, 0.12)');
-  grad.addColorStop(0.5, 'rgba(255, 77, 109, 0.08)');
-  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, width, height);
-
-  // If element has canvas children (e.g. particle canvas or WebGL), draw them
-  const childCanvases = element.querySelectorAll('canvas');
-  childCanvases.forEach((child) => {
-    try {
-      const cRect = child.getBoundingClientRect();
-      const ox = cRect.left - rect.left;
-      const oy = cRect.top - rect.top;
-      ctx.drawImage(child, ox, oy, cRect.width, cRect.height);
-    } catch {
-      // Ignore cross-origin canvas security exceptions
-    }
-  });
-
-  // Render stylized 3D portfolio card representation on canvas
-  const cardW = Math.min(width * 0.72, 380);
-  const cardH = Math.min(height * 0.65, 260);
-  const cardX = (width - cardW) / 2;
-  const cardY = (height - cardH) / 2;
-
-  // Cast shadow
+  const canvas = options.canvas || document.createElement('canvas');
+  if (!options.canvas) {
+    canvas.width = Math.round(width * scale);
+    canvas.height = Math.round(height * scale);
+  }
+  const ctx = options.ctx || canvas.getContext('2d');
   ctx.save();
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-  ctx.shadowBlur = 28;
-  ctx.shadowOffsetX = 0;
-  ctx.shadowOffsetY = 14;
+  if (!options.canvas) {
+    ctx.scale(scale, scale);
+  }
 
-  ctx.fillStyle = document.documentElement.classList.contains('dark') ? 'rgba(24, 18, 38, 0.92)' : 'rgba(255, 255, 255, 0.94)';
-  ctx.strokeStyle = document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)';
-  ctx.lineWidth = 1.5;
+  const isDark = document.documentElement.classList.contains('dark') || true;
+  const rotX = typeof options.rotX === 'number' ? options.rotX : 18;
+  const rotY = typeof options.rotY === 'number' ? options.rotY : 0;
 
-  // Rounded rectangle
-  const r = 16;
+  // Background Skybox Fill
+  const bgGrad = ctx.createRadialGradient(width / 2, height / 2, 40, width / 2, height / 2, width * 0.75);
+  if (isDark) {
+    bgGrad.addColorStop(0, '#1c152e');
+    bgGrad.addColorStop(0.5, '#120d20');
+    bgGrad.addColorStop(1, '#090511');
+  } else {
+    bgGrad.addColorStop(0, '#ffffff');
+    bgGrad.addColorStop(0.6, '#f1f5f9');
+    bgGrad.addColorStop(1, '#e2e8f0');
+  }
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  // Soft Ambient Illumination Vignette
+  const ambientGrad = ctx.createRadialGradient(width / 2, height / 2 - 20, 30, width / 2, height / 2, width * 0.6);
+  ambientGrad.addColorStop(0, 'rgba(0, 242, 254, 0.14)');
+  ambientGrad.addColorStop(0.5, 'rgba(255, 77, 109, 0.09)');
+  ambientGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = ambientGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  const cx = width / 2;
+  const cy = height / 2 + 10;
+
+  // Read active material preset from document or fallback
+  const root = document.documentElement;
+  const activeMaterial = root.dataset.threedMaterial || 'metal-gold';
+  const customMeshType = root.dataset.threedCustomMesh || 'avatar';
+
+  // Determine material color palette
+  let slabFill = 'rgba(28, 22, 44, 0.94)';
+  let slabBorder = 'rgba(255, 255, 255, 0.2)';
+  let highlightColor = '#00F2FE';
+
+  if (activeMaterial.includes('gold')) {
+    slabFill = 'linear-gradient(135deg, #2b1f09 0%, #45320c 50%, #1a1305 100%)';
+    slabBorder = 'rgba(250, 204, 21, 0.65)';
+    highlightColor = '#FBBF24';
+  } else if (activeMaterial.includes('silver') || activeMaterial.includes('steel')) {
+    slabFill = 'linear-gradient(135deg, #202636 0%, #333d54 50%, #151a24 100%)';
+    slabBorder = 'rgba(226, 232, 240, 0.7)';
+    highlightColor = '#E2E8F0';
+  } else if (activeMaterial.includes('wood')) {
+    slabFill = 'linear-gradient(135deg, #3d2314 0%, #5c351f 50%, #26160c 100%)';
+    slabBorder = 'rgba(217, 119, 6, 0.6)';
+    highlightColor = '#D97706';
+  } else if (activeMaterial.includes('iron')) {
+    slabFill = 'linear-gradient(135deg, #18191c 0%, #292a30 50%, #0f1012 100%)';
+    slabBorder = 'rgba(148, 163, 184, 0.4)';
+    highlightColor = '#94A3B8';
+  }
+
+  // 1. Ground Contact Shadow (Moves realistically with rotY)
+  const groundRad = (rotY * Math.PI) / 180;
+  const shadowX = cx + Math.sin(groundRad) * 20;
+  const shadowY = cy + 90;
+  ctx.save();
   ctx.beginPath();
-  ctx.moveTo(cardX + r, cardY);
-  ctx.lineTo(cardX + cardW - r, cardY);
-  ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + r);
-  ctx.lineTo(cardX + cardW, cardY + cardH - r);
-  ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - r, cardY + cardH);
-  ctx.lineTo(cardX + r, cardY + cardH);
-  ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - r);
-  ctx.lineTo(cardX, cardY + r);
-  ctx.quadraticCurveTo(cardX, cardY, cardX + r, cardY);
-  ctx.closePath();
+  ctx.ellipse(shadowX, shadowY, Math.min(width * 0.36, 170), 22, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+  ctx.filter = 'blur(10px)';
   ctx.fill();
-  ctx.stroke();
   ctx.restore();
 
-  // Header bar inside card
-  ctx.fillStyle = 'rgba(0, 242, 254, 0.16)';
-  ctx.fillRect(cardX + 16, cardY + 16, cardW - 32, 28);
-  ctx.fillStyle = '#00F2FE';
-  ctx.font = 'bold 11px system-ui, -apple-system, sans-serif';
-  ctx.fillText('ATUL VERMA • 3D SPATIAL STUDIO', cardX + 26, cardY + 34);
+  // 2. Chassis Base Slab (Stratum -01, Z: -20px)
+  const baseW = Math.min(width * 0.70, 360);
+  const baseH = Math.min(height * 0.60, 240);
+  const baseX = (width - baseW) / 2;
+  const baseY = (height - baseH) / 2 - 10;
 
-  // Content lines
-  ctx.fillStyle = document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.85)' : 'rgba(24, 24, 27, 0.85)';
-  ctx.font = 'bold 15px system-ui, -apple-system, sans-serif';
-  ctx.fillText('Interactive Cursor-Tracking Portfolio', cardX + 26, cardY + 80);
-
-  ctx.fillStyle = document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.55)' : 'rgba(24, 24, 27, 0.55)';
-  ctx.font = '11px monospace';
-  ctx.fillText('PBR Shading • 360° Turntable • Binaural Web Audio', cardX + 26, cardY + 104);
-
-  // Grid badges
-  const badgeW = (cardW - 48) / 3;
-  ['Stratum -01', 'Stratum 00', 'Stratum +01'].forEach((stratum, idx) => {
-    const bx = cardX + 16 + idx * (badgeW + 8);
-    const by = cardY + 130;
-    ctx.fillStyle = 'rgba(255, 77, 109, 0.12)';
-    ctx.strokeStyle = 'rgba(255, 77, 109, 0.3)';
-    ctx.strokeRect(bx, by, badgeW, 40);
-    ctx.fillRect(bx, by, badgeW, 40);
-    ctx.fillStyle = '#FF4D6D';
-    ctx.font = 'bold 10px monospace';
-    ctx.fillText(stratum, bx + 10, by + 24);
+  drawProjectedSlab(ctx, baseX, baseY, baseW, baseH, -20, cx, cy, rotX, rotY, {
+    fillStyle: isDark ? 'rgba(22, 17, 34, 0.95)' : 'rgba(248, 250, 252, 0.95)',
+    strokeStyle: slabBorder,
+    lineWidth: 2,
+    shadowColor: 'rgba(0, 0, 0, 0.45)',
+    shadowBlur: 24,
+    shadowOffsetY: 12
   });
 
-  // Footer timestamp watermark
-  const ts = new Date().toISOString().replace('T', ' ').slice(0, 19);
-  ctx.fillStyle = 'rgba(161, 161, 170, 0.85)';
-  ctx.font = '10px monospace';
-  ctx.fillText(`Recorded: ${ts} UTC | 3D Studio Stage`, cardX + 16, cardY + cardH - 16);
+  // 3. Mini Navigation Bar (Stratum +01, Z: +30px)
+  const navW = baseW - 32;
+  const navH = 30;
+  const navX = baseX + 16;
+  const navY = baseY + 14;
 
+  const navSlab = drawProjectedSlab(ctx, navX, navY, navW, navH, 25, cx, cy, rotX, rotY, {
+    fillStyle: isDark ? 'rgba(32, 24, 52, 0.92)' : 'rgba(255, 255, 255, 0.94)',
+    strokeStyle: 'rgba(255, 255, 255, 0.18)',
+    lineWidth: 1.2
+  });
+
+  // Monogram [AV] on nav bar
+  if (navSlab.p1) {
+    ctx.save();
+    ctx.fillStyle = '#FF4D6D';
+    ctx.font = 'bold 10px monospace';
+    ctx.fillText('[AV]', navSlab.p1.px + 10, navSlab.p1.py + 18);
+
+    ctx.fillStyle = isDark ? '#ffffff' : '#000000';
+    ctx.font = 'bold 9px system-ui, sans-serif';
+    ctx.fillText('PORTFOLIO 3D', navSlab.p1.px + 40, navSlab.p1.py + 18);
+    ctx.restore();
+  }
+
+  // 4. Hero Card & Central 3D Mesh (Stratum 00, Z: +10px)
+  const heroW = baseW - 32;
+  const heroH = 76;
+  const heroX = baseX + 16;
+  const heroY = baseY + 54;
+
+  const heroSlab = drawProjectedSlab(ctx, heroX, heroY, heroW, heroH, 15, cx, cy, rotX, rotY, {
+    fillStyle: isDark ? 'rgba(38, 28, 62, 0.95)' : 'rgba(255, 255, 255, 0.96)',
+    strokeStyle: slabBorder,
+    lineWidth: 1.5,
+    shadowColor: 'rgba(0, 0, 0, 0.3)',
+    shadowBlur: 16
+  });
+
+  // Central Avatar Orb / Faceted Mesh
+  const orbPos = projectPoint3D(heroX + 38, heroY + 38, 35, cx, cy, rotX, rotY);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(orbPos.px, orbPos.py, 18 * orbPos.scale, 0, Math.PI * 2);
+  const orbGrad = ctx.createRadialGradient(orbPos.px - 5, orbPos.py - 5, 2, orbPos.px, orbPos.py, 20 * orbPos.scale);
+  orbGrad.addColorStop(0, highlightColor);
+  orbGrad.addColorStop(0.6, '#FF4D6D');
+  orbGrad.addColorStop(1, '#7928CA');
+  ctx.fillStyle = orbGrad;
+  ctx.shadowColor = 'rgba(255, 77, 109, 0.5)';
+  ctx.shadowBlur = 12;
+  ctx.fill();
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = `bold ${Math.round(10 * orbPos.scale)}px system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('AV', orbPos.px, orbPos.py);
+  ctx.restore();
+
+  // Headline text in hero card
+  if (heroSlab.p1) {
+    ctx.save();
+    ctx.fillStyle = isDark ? '#FFFFFF' : '#0F172A';
+    ctx.font = 'bold 12px system-ui, sans-serif';
+    ctx.fillText('Atul Verma', heroSlab.p1.px + 68, heroSlab.p1.py + 32);
+
+    ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.65)' : 'rgba(15, 23, 42, 0.65)';
+    ctx.font = '10px monospace';
+    ctx.fillText('Executive • Tax & AI Engineer', heroSlab.p1.px + 68, heroSlab.p1.py + 48);
+
+    // Active Material Badge
+    ctx.fillStyle = highlightColor;
+    ctx.font = 'bold 9px monospace';
+    ctx.fillText(`MATERIAL: ${activeMaterial.toUpperCase()}`, heroSlab.p1.px + 68, heroSlab.p1.py + 64);
+    ctx.restore();
+  }
+
+  // 5. Grid Cards (Stratum 00, Z: +8px)
+  const gridW = (baseW - 40) / 2;
+  const gridH = 46;
+  const gridY = baseY + 140;
+
+  // Grid Card 1
+  drawProjectedSlab(ctx, baseX + 16, gridY, gridW, gridH, 8, cx, cy, rotX, rotY, {
+    fillStyle: isDark ? 'rgba(30, 22, 48, 0.88)' : 'rgba(255, 255, 255, 0.9)',
+    strokeStyle: 'rgba(255, 255, 255, 0.12)',
+    lineWidth: 1
+  });
+
+  // Grid Card 2
+  drawProjectedSlab(ctx, baseX + 24 + gridW, gridY, gridW, gridH, 8, cx, cy, rotX, rotY, {
+    fillStyle: isDark ? 'rgba(30, 22, 48, 0.88)' : 'rgba(255, 255, 255, 0.9)',
+    strokeStyle: 'rgba(255, 255, 255, 0.12)',
+    lineWidth: 1
+  });
+
+  // 6. Footer Watermark & Angle Telemetry
+  ctx.save();
+  ctx.fillStyle = 'rgba(161, 161, 170, 0.7)';
+  ctx.font = '9px monospace';
+  ctx.fillText(`3D Studio Capture | Rot: (${Math.round(rotX)}°, ${Math.round(rotY)}°) | 60 FPS`, 16, height - 12);
+  ctx.restore();
+
+  ctx.restore();
   return canvas;
 }
 
 /**
- * Captures a high-resolution snapshot (.webp) of the 3D stage and triggers a client download
+ * Captures a high-resolution snapshot (.webp) of the true 3D stage and triggers a client download
  * @param {HTMLElement} stageElement
  * @param {string} [filenamePrefix='portfolio-3d-snapshot']
  * @returns {Promise<string>} resolved filename
@@ -162,7 +331,6 @@ export async function capture3DStageSnapshot(stageElement, filenamePrefix = 'por
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (!blob) {
-        // Fallback to dataURL
         try {
           const dataUrl = canvas.toDataURL('image/webp', 0.95);
           triggerFileDownload(dataUrl, filename);
@@ -179,7 +347,7 @@ export async function capture3DStageSnapshot(stageElement, filenamePrefix = 'por
 }
 
 /**
- * Records a smooth 360° turntable spin loop (.webm) of the 3D stage using Canvas + MediaRecorder
+ * Records a smooth 360° turntable spin loop (.webm) of the true 3D stage using dynamic multi-frame canvas rasterization
  * @param {HTMLElement} stageElement
  * @param {Object} options
  * @param {Function} [options.onRotate] Callback invoked with current angle (0 to 360) each frame
@@ -202,22 +370,27 @@ export async function record360TurntableVideo(stageElement, options = {}) {
   const onRotate = options.onRotate;
   const onProgress = options.onProgress;
 
-  const canvas = await renderElementToCanvas(stageElement, { scale: 1.5 });
+  const rect = stageElement.getBoundingClientRect();
+  const width = Math.max(360, Math.round(rect.width));
+  const height = Math.max(260, Math.round(rect.height));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(width * 1.5);
+  canvas.height = Math.round(height * 1.5);
   const ctx = canvas.getContext('2d');
+  ctx.scale(1.5, 1.5);
 
   const stream = typeof canvas.captureStream === 'function'
     ? canvas.captureStream(fps)
     : null;
 
   if (!stream || typeof window === 'undefined' || typeof window.MediaRecorder === 'undefined') {
-    // MediaRecorder / captureStream unsupported fallback: Export a crisp high-res snapshot
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const fallbackFilename = `portfolio-3d-turntable-fallback-${timestamp}.webp`;
     await capture3DStageSnapshot(stageElement, 'portfolio-3d-turntable-fallback');
     return fallbackFilename;
   }
 
-  // Determine supported mimeType
   let mimeType = 'video/webm;codecs=vp9';
   if (!MediaRecorder.isTypeSupported(mimeType)) {
     mimeType = MediaRecorder.isTypeSupported('video/webm')
@@ -251,15 +424,16 @@ export async function record360TurntableVideo(stageElement, options = {}) {
 
   recorder.start();
 
-  // Programmatic 360° turntable spin loop
   let frame = 0;
   const frameInterval = durationMs / totalFrames;
   const startTime = performance.now();
 
   return new Promise((resolve, reject) => {
-    const renderLoop = () => {
+    const renderLoop = async () => {
       frame++;
-      const currentAngle = Math.round((frame / totalFrames) * 360);
+      const currentAngle = (frame / totalFrames) * 360;
+      const rotY = (currentAngle % 360) - 180;
+
       if (typeof onRotate === 'function') {
         onRotate(currentAngle);
       }
@@ -267,25 +441,14 @@ export async function record360TurntableVideo(stageElement, options = {}) {
         onProgress(Math.min(1.0, frame / totalFrames));
       }
 
-      // Draw subtle orbital sweep sweep on canvas
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      const rad = (currentAngle * Math.PI) / 180;
-      ctx.save();
-      ctx.strokeStyle = 'rgba(0, 242, 254, 0.4)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 140, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Orbiting beacon
-      const bx = cx + Math.cos(rad) * 140;
-      const by = cy + Math.sin(rad) * 140;
-      ctx.fillStyle = '#FF4D6D';
-      ctx.beginPath();
-      ctx.arc(bx, by, 7, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
+      // Render the true 3D model frame at the current rotation angle
+      await renderElementToCanvas(stageElement, {
+        canvas,
+        ctx,
+        rotY,
+        rotX: 18,
+        scale: 1.5
+      });
 
       if (frame < totalFrames) {
         const nextTime = startTime + frame * frameInterval;

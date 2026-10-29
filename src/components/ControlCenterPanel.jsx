@@ -347,10 +347,29 @@ const CAMERA_PRESETS = [
 ];
 
 const MATERIAL_PRESETS = [
-  { id: 'glass-acrylic', name: 'Glass Acrylic', desc: 'Semi-transparent frosted glass with specular highlight' },
-  { id: 'metallic-gloss', name: 'Metallic Gloss', desc: 'Reflective silver-chrome with sharp reflection sheen' },
-  { id: 'neumorphic-clay', name: 'Neumorphic Clay', desc: 'Velvety matte clay with convex embossed edges' },
-  { id: 'cyber-wireframe', name: 'Cyber Wireframe', desc: 'Deep transparent dark substrate with glowing wire contours' }
+  // 1. Organic & Natural
+  { id: 'wood-oak', name: 'Polished Oak', desc: 'Warm honey-amber timber with natural growth ring grain', badge: 'Wood' },
+  { id: 'wood-walnut', name: 'Dark Walnut', desc: 'Deep chocolate-espresso grain with rich dark timber undertones', badge: 'Wood' },
+  { id: 'stone-marble', name: 'Carrara Marble', desc: 'Milky white marble with delicate grey mineral veins and high gloss', badge: 'Stone' },
+  { id: 'clay-terracotta', name: 'Terracotta Clay', desc: 'Warm baked earth with ultra-soft diffuse scattering and tactile bevels', badge: 'Clay' },
+
+  // 2. Metals & Alloys
+  { id: 'metal-gold', name: '24K Polished Gold', desc: 'Radiant yellow-amber metallic luster with brilliant golden rim', badge: 'Metal' },
+  { id: 'metal-silver', name: 'Sterling Silver', desc: 'Neutral mirror-white reflection with crisp anisotropic chrome sheen', badge: 'Metal' },
+  { id: 'metal-iron', name: 'Industrial Iron', desc: 'Dark charcoal-slate cast iron with subtle micro-pitted cold sheen', badge: 'Metal' },
+  { id: 'metal-steel', name: 'Stainless Steel', desc: 'High-contrast mirror chrome with horizontal reflection horizon', badge: 'Metal' },
+  { id: 'metal-aluminium', name: 'Brushed Aluminium', desc: 'Soft directional brushed alloy sheen with diffused highlight bloom', badge: 'Metal' },
+  { id: 'metal-copper', name: 'Burnished Copper', desc: 'Warm reddish-bronze metallic glow with soft dark oxide edges', badge: 'Metal' },
+
+  // 3. Modern Polymers & Composites
+  { id: 'plastic-gloss', name: 'Glossy Plastic', desc: 'Vibrant pure polymer with razor-sharp white pinpoint specular', badge: 'Polymer' },
+  { id: 'plastic-matte', name: 'Matte Polymer', desc: 'Fingerprint-resistant industrial polycarbonate with low-glare absorption', badge: 'Polymer' },
+  { id: 'carbon-fiber', name: 'Carbon Fiber', desc: 'Dual-axis twill cross-weave graphite texture under clearcoat lacquer', badge: 'Composite' },
+
+  // 4. Glass, Crystals & Holograms
+  { id: 'glass-acrylic', name: 'Glass Acrylic', desc: 'Semi-transparent frosted glass with caustic underglow & refractive bevel', badge: 'Glass' },
+  { id: 'gem-emerald', name: 'Emerald Gem', desc: 'Deep vibrant forest green crystal with internal faceted refraction', badge: 'Crystal' },
+  { id: 'cyber-wireframe', name: 'Cyber Wireframe', desc: 'Transparent cosmic substrate with glowing neon cyan vector grid', badge: 'Cyber' }
 ];
 
 const ELASTICITY_PRESETS = [
@@ -360,8 +379,8 @@ const ELASTICITY_PRESETS = [
 ];
 
 const THREED_CLUSTERS = [
-  { id: 'all', label: 'All', count: 9, icon: LayoutGrid },
-  { id: 'design', label: 'Design', count: 3, icon: Palette },
+  { id: 'all', label: 'All', count: 10, icon: LayoutGrid },
+  { id: 'design', label: 'Design', count: 4, icon: Palette },
   { id: 'physics', label: 'Physics', count: 3, icon: Activity },
   { id: 'system', label: 'Environment', count: 3, icon: Globe }
 ];
@@ -1027,7 +1046,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
 
   const isSectionVisible = (secKey) => {
     if (!clusterFilter || clusterFilter === 'all') return true;
-    if (clusterFilter === 'design') return ['elements', 'materials', 'lighting'].includes(secKey);
+    if (clusterFilter === 'design') return ['elements', 'materials', 'shading', 'lighting'].includes(secKey);
     if (clusterFilter === 'physics') return ['camera', 'physics', 'exploded'].includes(secKey);
     if (clusterFilter === 'system') return ['environment', 'spatialAudio', 'performance'].includes(secKey);
     return true;
@@ -4256,6 +4275,59 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                       </div>
                     </div>
 
+                    {/* Cinematic Camera Waypoint Choreography Shortcuts */}
+                    <div className="pt-3 border-t border-stone-200/60 dark:border-stone-800/80 flex flex-col gap-2">
+                      <span className="text-[11px] font-mono font-bold text-stone-500 dark:text-stone-400">
+                        Cinematic Camera Waypoints:
+                      </span>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            set3DCameraPerspectiveFOV(650);
+                            setSandboxTilt({ rotX: 12, rotY: -15 });
+                            if (soundEnabled) soundFX.playLaserFocus();
+                          }}
+                          className="px-2.5 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white/70 dark:bg-stone-800/70 text-xs font-mono font-bold hover:border-cyan-400 cursor-pointer text-stone-700 dark:text-stone-300 transition-all text-center"
+                        >
+                          Dolly In (650px)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            set3DCameraPerspectiveFOV(900);
+                            setSandboxTilt({ rotX: 28, rotY: -25 });
+                            if (soundEnabled) soundFX.playLaserFocus();
+                          }}
+                          className="px-2.5 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white/70 dark:bg-stone-800/70 text-xs font-mono font-bold hover:border-cyan-400 cursor-pointer text-stone-700 dark:text-stone-300 transition-all text-center"
+                        >
+                          Swoop (28°, -25°)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            set3DCameraPerspectiveFOV(1100);
+                            setSandboxTilt({ rotX: 5, rotY: 45 });
+                            if (soundEnabled) soundFX.playLaserFocus();
+                          }}
+                          className="px-2.5 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white/70 dark:bg-stone-800/70 text-xs font-mono font-bold hover:border-cyan-400 cursor-pointer text-stone-700 dark:text-stone-300 transition-all text-center"
+                        >
+                          Horizon (5°, 45°)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            set3DCameraPerspectiveFOV(1000);
+                            setSandboxTilt({ rotX: 18, rotY: 0 });
+                            if (soundEnabled) soundFX.playCrystalChime();
+                          }}
+                          className="px-2.5 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white/70 dark:bg-stone-800/70 text-xs font-mono font-bold hover:border-rose-400 cursor-pointer text-stone-700 dark:text-stone-300 transition-all text-center"
+                        >
+                          Level (18°, 0°)
+                        </button>
+                      </div>
+                    </div>
+
                     {/* 3D Depth & Perspective Intensity Slider */}
                     <div className="flex flex-col gap-2.5 pt-4 border-t border-stone-200/60 dark:border-stone-800/80">
                       <div className="flex items-center justify-between">
@@ -4393,7 +4465,8 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             )}
 
             {/* ========================================================================= */}
-            {/* ACCORDION SECTION 4: MATERIALS & SHADING                                  */}
+            {/* ========================================================================= */}
+            {/* ACCORDION SECTION 4: MATERIALS LIBRARY (16 PURE SUBSTANCES)               */}
             {/* ========================================================================= */}
             {isSectionVisible('materials') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
@@ -4409,17 +4482,17 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                     </div>
                     <div>
                       <h5 className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white">
-                        Materials &amp; Shading
+                        Materials Library
                       </h5>
                       <p className="text-xs text-stone-500 dark:text-stone-400">
-                        Surface reflectance, glass acrylic opacity, metallic gloss &amp; edge beveling
+                        Pure physical surfaces: Wood, Gold, Silver, Iron, Steel, Aluminium, Plastics &amp; Crystals
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-bold px-2.5 py-0.5 rounded-full border bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30">
-                      {materials.preset} • {materials.bevelExtrusion}px bevel
+                      Active: {materials.preset}
                     </span>
                     {expandedAccordion === 'materials' ? (
                       <ChevronUp className="w-5 h-5 text-stone-400" />
@@ -4431,98 +4504,114 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
 
                 {expandedAccordion === 'materials' && (
                   <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
-                    {/* Material Presets */}
-                    <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
                         <Cuboid className="w-4 h-4 text-purple-500" />
-                        <span>Material Shading Preset</span>
+                        <span>Select Material Substance (16 Photorealistic Presets)</span>
                       </span>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {MATERIAL_PRESETS.map((mat) => {
-                          const isSelected = materials.preset === mat.id;
-                          return (
-                            <ThreeDPresetCard
-                              key={mat.id}
-                              isSelected={isSelected}
-                              isVisualOnly={isVisual3DOnly}
-                              lightingAngle={lighting?.angle ?? 45}
-                              depthIntensity={depthIntensity ?? 1.0}
-                              bevelExtrusion={materials?.bevelExtrusion ?? 3}
-                              onClick={() => {
-                                set3DMaterialPreset(mat.id);
-                                if (soundEnabled) soundFX.playLaserFocus();
-                              }}
-                              title={mat.name}
-                              desc={mat.desc}
-                              icon={Cuboid}
-                              visualPreview={<MaterialShaderSphere
-                                materialId={mat.id}
-                                lightingAngle={lighting?.angle ?? 45}
-                                specularGlow={materials?.specularGlow ?? 0.6}
-                                bevelExtrusion={materials?.bevelExtrusion ?? 3}
-                              />}
-                            />
-                          );
-                        })}
-                      </div>
+                      <span className="text-[10px] font-mono text-stone-400">
+                        Live 3D Shader Spheres
+                      </span>
                     </div>
 
-                    {/* Specular Glow & Bevel Extrusion Sliders */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-stone-200/60 dark:border-stone-800/80">
-                      {/* Specular Glow */}
-                      <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex flex-col justify-between gap-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-[#18181B] dark:text-white">
-                            Specular Highlight &amp; Glow
-                          </span>
-                          <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
-                            {Math.round(materials.specularGlow * 100)}%
-                          </span>
-                        </div>
-                        <input
-                          type="range"
-                          min="0.0"
-                          max="1.0"
-                          step="0.05"
-                          value={materials.specularGlow}
-                          onChange={(e) => set3DSpecularGlow(parseFloat(e.target.value))}
-                          className="w-full accent-purple-500 cursor-pointer"
-                          aria-label="3D Specular Highlight & Glow"
-                        />
-                        <div className="flex justify-between text-[10px] text-stone-400 font-mono">
-                          <span>0% (Matte)</span>
-                          <span>100% (High Sheen)</span>
-                        </div>
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {MATERIAL_PRESETS.map((mat) => {
+                        const isSelected = materials.preset === mat.id;
+                        return (
+                          <ThreeDPresetCard
+                            key={mat.id}
+                            isSelected={isSelected}
+                            isVisualOnly={isVisual3DOnly}
+                            lightingAngle={lighting?.angle ?? 45}
+                            depthIntensity={depthIntensity ?? 1.0}
+                            bevelExtrusion={materials?.bevelExtrusion ?? 3}
+                            onClick={() => {
+                              set3DMaterialPreset(mat.id);
+                              if (soundEnabled) soundFX.playLaserFocus();
+                            }}
+                            title={mat.name}
+                            desc={mat.desc}
+                            icon={Cuboid}
+                            visualPreview={<MaterialShaderSphere
+                              materialId={mat.id}
+                              lightingAngle={lighting?.angle ?? 45}
+                              specularGlow={materials?.specularGlow ?? 0.6}
+                              bevelExtrusion={materials?.bevelExtrusion ?? 3}
+                              roughness={materials?.roughness ?? 0.25}
+                              metalness={materials?.metalness ?? 0.20}
+                              ior={materials?.ior ?? 1.50}
+                              clearcoat={materials?.clearcoat ?? 0.40}
+                            />}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
-                      {/* Bevel Extrusion */}
-                      <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex flex-col justify-between gap-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-[#18181B] dark:text-white">
-                            Bevel &amp; Edge Extrusion
-                          </span>
-                          <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
-                            {materials.bevelExtrusion}px
-                          </span>
-                        </div>
-                        <input
-                          type="range"
-                          min="1"
-                          max="8"
-                          step="1"
-                          value={materials.bevelExtrusion}
-                          onChange={(e) => set3DBevelExtrusion(parseInt(e.target.value, 10))}
-                          className="w-full accent-purple-500 cursor-pointer"
-                          aria-label="3D Bevel and Edge Extrusion"
-                        />
-                        <div className="flex justify-between text-[10px] text-stone-400 font-mono">
-                          <span>1px (Micro-Chamfer)</span>
-                          <span>8px (Deep Tactile Bevel)</span>
-                        </div>
-                      </div>
+            {/* ========================================================================= */}
+            {/* ACCORDION SECTION 5: PBR SURFACE & SHADING ENGINE                         */}
+            {/* ========================================================================= */}
+            {isSectionVisible('shading') && (
+              <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
+                <button
+                  type="button"
+                  onClick={() => toggleAccordionSection('shading')}
+                  aria-expanded={expandedAccordion === 'shading'}
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-9 h-9 rounded-xl bg-purple-500/15 text-purple-500 flex items-center justify-center font-bold text-sm">
+                      <Sliders className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h5 className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white">
+                        PBR Surface &amp; Shading Engine
+                      </h5>
+                      <p className="text-xs text-stone-500 dark:text-stone-400">
+                        Roughness, metalness, specular highlight, IOR &amp; clearcoat optics
+                      </p>
+                    </div>
+                  </div>
 
-                      {/* Tactile PBR Sliders */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full border bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30">
+                      Rough: {Math.round((materials.roughness ?? 0.25) * 100)}% • Metal: {Math.round((materials.metalness ?? 0.20) * 100)}%
+                    </span>
+                    {expandedAccordion === 'shading' ? (
+                      <ChevronUp className="w-5 h-5 text-stone-400" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-stone-400" />
+                    )}
+                  </div>
+                </button>
+
+                {expandedAccordion === 'shading' && (
+                  <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
+                    <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-stone-800/80 pb-3">
+                      <div>
+                        <h6 className="text-xs font-bold text-[#18181B] dark:text-white">
+                          PBR Micro-Facet Optical Calibration
+                        </h6>
+                        <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                          Directly modifies light transport, anisotropic reflections, and surface chamfering
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          set3DMaterialPreset(materials.preset);
+                          if (soundEnabled) soundFX.playPop();
+                        }}
+                        className="px-2.5 py-1 rounded-lg border border-purple-500/30 text-xs font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 cursor-pointer"
+                      >
+                        Reset to Preset
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Surface Roughness */}
                       <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex flex-col justify-between gap-2">
                         <div className="flex items-center justify-between">
@@ -4570,8 +4659,60 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                           aria-label="3D Metallic Conductance"
                         />
                         <div className="flex justify-between text-[10px] text-stone-400 font-mono">
-                          <span>0% (Dielectric Plastic)</span>
-                          <span>100% (Polished Alloy)</span>
+                          <span>0% (Dielectric)</span>
+                          <span>100% (Pure Metal)</span>
+                        </div>
+                      </div>
+
+                      {/* Specular Highlight & Glow */}
+                      <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex flex-col justify-between gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#18181B] dark:text-white">
+                            Specular Highlight &amp; Glow
+                          </span>
+                          <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
+                            {Math.round((materials.specularGlow ?? 0.6) * 100)}%
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0.0"
+                          max="1.0"
+                          step="0.05"
+                          value={materials.specularGlow ?? 0.6}
+                          onChange={(e) => set3DSpecularGlow(parseFloat(e.target.value))}
+                          className="w-full accent-purple-500 cursor-pointer"
+                          aria-label="3D Specular Highlight & Glow"
+                        />
+                        <div className="flex justify-between text-[10px] text-stone-400 font-mono">
+                          <span>0% (Subdued)</span>
+                          <span>100% (High Sheen)</span>
+                        </div>
+                      </div>
+
+                      {/* Bevel Extrusion */}
+                      <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex flex-col justify-between gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#18181B] dark:text-white">
+                            Bevel &amp; Edge Extrusion
+                          </span>
+                          <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
+                            {materials.bevelExtrusion}px
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="8"
+                          step="1"
+                          value={materials.bevelExtrusion}
+                          onChange={(e) => set3DBevelExtrusion(parseInt(e.target.value, 10))}
+                          className="w-full accent-purple-500 cursor-pointer"
+                          aria-label="3D Bevel and Edge Extrusion"
+                        />
+                        <div className="flex justify-between text-[10px] text-stone-400 font-mono">
+                          <span>1px (Micro-Chamfer)</span>
+                          <span>8px (Deep Tactile Bevel)</span>
                         </div>
                       </div>
 
@@ -4601,6 +4742,32 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                           <span>2.42 (Diamond)</span>
                         </div>
                       </div>
+
+                      {/* Clearcoat Polish Layer */}
+                      <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex flex-col justify-between gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#18181B] dark:text-white">
+                            Clearcoat Polish Layer
+                          </span>
+                          <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
+                            {Math.round((materials.clearcoat ?? 0.40) * 100)}%
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={materials.clearcoat ?? 0.40}
+                          onChange={(e) => set3DMaterialClearcoat(parseFloat(e.target.value))}
+                          className="w-full accent-purple-500 cursor-pointer"
+                          aria-label="3D Clearcoat Polish Layer"
+                        />
+                        <div className="flex justify-between text-[10px] text-stone-400 font-mono">
+                          <span>0% (None)</span>
+                          <span>100% (High Lacquer)</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -4608,7 +4775,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             )}
 
             {/* ========================================================================= */}
-            {/* ACCORDION SECTION 5: INTERACTION & PHYSICS                                */}
+            {/* ACCORDION SECTION 6: INTERACTION & PHYSICS                                */}
             {/* ========================================================================= */}
             {isSectionVisible('physics') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
@@ -4858,7 +5025,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             )}
 
             {/* ========================================================================= */}
-            {/* ACCORDION SECTION 6: EXPLODED CAD & BLUEPRINT VIEW                        */}
+            {/* ACCORDION SECTION 7: EXPLODED CAD & BLUEPRINT VIEW                        */}
             {/* ========================================================================= */}
             {isSectionVisible('exploded') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
@@ -5105,7 +5272,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             )}
 
             {/* ========================================================================= */}
-            {/* ACCORDION SECTION 7: ENVIRONMENT & VOLUMETRIC FOG                         */}
+            {/* ACCORDION SECTION 8: ENVIRONMENT & VOLUMETRIC FOG                         */}
             {/* ========================================================================= */}
             {isSectionVisible('environment') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
@@ -5271,7 +5438,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             )}
 
             {/* ========================================================================= */}
-            {/* ACCORDION SECTION 8: 3D SPATIAL AUDIO & REVERB                            */}
+            {/* ACCORDION SECTION 9: 3D SPATIAL AUDIO & REVERB                            */}
             {/* ========================================================================= */}
             {isSectionVisible('spatialAudio') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
@@ -5410,7 +5577,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             )}
 
             {/* ========================================================================= */}
-            {/* ACCORDION SECTION 9: PERFORMANCE & GPU ACCELERATION                       */}
+            {/* ACCORDION SECTION 10: PERFORMANCE & GPU ACCELERATION                       */}
             {/* ========================================================================= */}
             {isSectionVisible('performance') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">

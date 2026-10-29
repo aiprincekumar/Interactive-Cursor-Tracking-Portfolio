@@ -1427,13 +1427,7 @@ export function UniversalMiniPortfolio({
   const ior = typeof materials.ior === 'number' ? materials.ior : 1.50;
   const clearcoat = typeof materials.clearcoat === 'number' ? materials.clearcoat : 0.40;
 
-  const normalizedMaterialPreset = (matPreset === 'metallic' || matPreset === 'metallic-gloss')
-    ? 'metallic-gloss'
-    : (matPreset === 'clay' || matPreset === 'neumorphic-clay')
-    ? 'neumorphic-clay'
-    : (matPreset === 'wireframe' || matPreset === 'cyber-wireframe')
-    ? 'cyber-wireframe'
-    : 'glass-acrylic';
+  const normalizedMaterialPreset = matPreset || 'glass-acrylic';
 
   const getMaterialSurfaceStyle = useCallback((elementKey, isElem3DActive = false) => {
     if (isWireframe) {
@@ -1476,6 +1470,96 @@ export function UniversalMiniPortfolio({
     };
 
     switch (normalizedMaterialPreset) {
+      // 1. POLISHED OAK WOOD
+      case 'wood-oak': {
+        const bg = isDark
+          ? 'linear-gradient(135deg, #451a03 0%, #78350f 50%, #290e02 100%)'
+          : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 45%, #d97706 85%, #b45309 100%)';
+        const borderColor = isDark ? 'rgba(217, 119, 6, 0.55)' : 'rgba(180, 83, 9, 0.6)';
+        const shadowBlur = Math.round(bevelExtrusion * (2.8 + roughness * 1.5));
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const satinSheen = `inset 0 1px 3px rgba(254, 243, 199, ${0.3 + specularGlow * 0.3})`;
+        const shadow = isMaster3DOn ? [presetHighlight, satinSheen, presetShadow, activeGlow].filter(Boolean).join(', ') : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      // 2. DARK WALNUT WOOD
+      case 'wood-walnut': {
+        const bg = isDark
+          ? 'linear-gradient(135deg, #1c0f06 0%, #2e1a0b 50%, #150a04 100%)'
+          : 'linear-gradient(135deg, #5c3a21 0%, #3d2314 60%, #26160c 100%)';
+        const borderColor = isDark ? 'rgba(120, 53, 15, 0.6)' : 'rgba(69, 26, 3, 0.8)';
+        const shadowBlur = Math.round(bevelExtrusion * (3.0 + roughness * 1.8));
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const shadow = isMaster3DOn ? [presetHighlight, presetShadow, activeGlow].filter(Boolean).join(', ') : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      // 3. 24K POLISHED GOLD
+      case 'metal-gold': {
+        const bg = isDark
+          ? 'linear-gradient(135deg, rgba(88, 55, 12, 0.96) 0%, rgba(146, 64, 14, 0.92) 48%, rgba(245, 158, 11, 0.98) 52%, rgba(55, 30, 5, 0.98) 100%)'
+          : 'linear-gradient(135deg, rgba(254, 240, 138, 0.98) 0%, rgba(250, 204, 21, 0.94) 48%, rgba(255, 255, 255, 1) 52%, rgba(217, 119, 6, 0.95) 100%)';
+        const borderColor = isDark ? 'rgba(250, 204, 21, 0.75)' : 'rgba(217, 119, 6, 0.85)';
+        const shadowBlur = Math.round(bevelExtrusion * (3.0 + roughness * 2.0));
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const goldSheen = `inset 0 0 ${Math.round(14 * (1 - roughness))}px rgba(254, 240, 138, ${0.4 + metalness * 0.4})`;
+        const shadow = isMaster3DOn ? [presetHighlight, goldSheen, presetShadow, activeGlow].filter(Boolean).join(', ') : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      // 4. STERLING SILVER
+      case 'metal-silver': {
+        const bg = isDark
+          ? 'linear-gradient(135deg, rgba(71, 85, 105, 0.95) 0%, rgba(30, 41, 59, 0.92) 48%, rgba(148, 163, 184, 0.98) 52%, rgba(15, 23, 42, 0.96) 100%)'
+          : 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(226, 232, 240, 0.95) 48%, rgba(255, 255, 255, 1) 52%, rgba(203, 213, 225, 0.94) 100%)';
+        const borderColor = isDark ? 'rgba(226, 232, 240, 0.7)' : 'rgba(255, 255, 255, 0.9)';
+        const shadowBlur = Math.round(bevelExtrusion * 3.0);
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const silverSheen = `inset 0 0 12px rgba(255, 255, 255, ${0.3 + metalness * 0.4})`;
+        const shadow = isMaster3DOn ? [presetHighlight, silverSheen, presetShadow, activeGlow].filter(Boolean).join(', ') : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      // 5. CAST INDUSTRIAL IRON
+      case 'metal-iron': {
+        const bg = isDark
+          ? 'linear-gradient(135deg, #18191c 0%, #292a30 50%, #0f1012 100%)'
+          : 'linear-gradient(135deg, #475569 0%, #334155 50%, #1e293b 100%)';
+        const borderColor = isDark ? 'rgba(100, 116, 139, 0.5)' : 'rgba(30, 41, 59, 0.7)';
+        const shadowBlur = Math.round(bevelExtrusion * 3.5);
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const shadow = isMaster3DOn ? [presetHighlight, presetShadow, activeGlow].filter(Boolean).join(', ') : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      // 6. POLISHED STAINLESS STEEL
+      case 'metal-steel':
       case 'metallic-gloss': {
         const bg = isDark
           ? `linear-gradient(135deg, rgba(${Math.round(65 + metalness * 40)}, ${Math.round(72 + metalness * 40)}, ${Math.round(88 + metalness * 50)}, 0.95) 0%, rgba(35, 40, 52, 0.92) 48%, rgba(${Math.round(90 + metalness * 50)}, ${Math.round(98 + metalness * 50)}, ${Math.round(118 + metalness * 60)}, 0.95) 52%, rgba(24, 28, 38, 0.95) 100%)`
@@ -1485,9 +1569,7 @@ export function UniversalMiniPortfolio({
         const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
         const metallicSheen = `inset 0 0 ${Math.round(12 * (1 - roughness))}px rgba(255, 255, 255, ${0.2 + metalness * 0.4})`;
         const fresnelGlare = ior > 1.3 ? `0 0 ${Math.round((ior - 1) * 8)}px rgba(255, 255, 255, ${0.15 + (ior - 1) * 0.2})` : '';
-        const shadow = isMaster3DOn
-          ? [presetHighlight, metallicSheen, presetShadow, fresnelGlare, activeGlow].filter(Boolean).join(', ')
-          : 'none';
+        const shadow = isMaster3DOn ? [presetHighlight, metallicSheen, presetShadow, fresnelGlare, activeGlow].filter(Boolean).join(', ') : 'none';
         return {
           background: bg,
           borderColor,
@@ -1496,9 +1578,138 @@ export function UniversalMiniPortfolio({
         };
       }
 
+      // 7. BRUSHED ALUMINIUM
+      case 'metal-aluminium': {
+        const bg = isDark
+          ? 'linear-gradient(135deg, #334155 0%, #1e293b 50%, #0f172a 100%)'
+          : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)';
+        const borderColor = isDark ? 'rgba(148, 163, 184, 0.5)' : 'rgba(203, 213, 225, 0.8)';
+        const shadowBlur = Math.round(bevelExtrusion * 2.8);
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const shadow = isMaster3DOn ? [presetHighlight, presetShadow, activeGlow].filter(Boolean).join(', ') : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      // 8. ANTIQUE BURNISHED COPPER
+      case 'metal-copper': {
+        const bg = isDark
+          ? 'linear-gradient(135deg, #431407 0%, #7c2d12 48%, #ea580c 52%, #270b04 100%)'
+          : 'linear-gradient(135deg, #ffedd5 0%, #fed7aa 48%, #ffffff 52%, #ea580c 100%)';
+        const borderColor = isDark ? 'rgba(234, 88, 12, 0.65)' : 'rgba(194, 65, 12, 0.8)';
+        const shadowBlur = Math.round(bevelExtrusion * 3.0);
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const copperSheen = `inset 0 0 10px rgba(254, 215, 170, ${0.3 + metalness * 0.35})`;
+        const shadow = isMaster3DOn ? [presetHighlight, copperSheen, presetShadow, activeGlow].filter(Boolean).join(', ') : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      // 9. HIGH-GLOSS DIELECTRIC PLASTIC
+      case 'plastic-gloss': {
+        const bg = isDark
+          ? 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 45%, #2563eb 70%, #1e40af 100%)'
+          : 'linear-gradient(135deg, #dbeafe 0%, #93c5fd 45%, #3b82f6 85%, #1d4ed8 100%)';
+        const borderColor = isDark ? 'rgba(96, 165, 250, 0.7)' : 'rgba(37, 99, 235, 0.6)';
+        const shadowBlur = Math.round(bevelExtrusion * 2.5);
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const glossyDot = 'inset 0 1.5px 2px rgba(255, 255, 255, 0.8)';
+        const shadow = isMaster3DOn ? [glossyDot, presetHighlight, presetShadow, activeGlow].filter(Boolean).join(', ') : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      // 10. MATTE POLYCARBONATE
+      case 'plastic-matte': {
+        const bg = isDark ? '#1e293b' : '#f1f5f9';
+        const borderColor = isDark ? 'rgba(71, 85, 105, 0.6)' : 'rgba(203, 213, 225, 0.8)';
+        const shadowBlur = Math.round(bevelExtrusion * 3.5);
+        const { shadow: presetShadow } = getLightingPresetEffects(shadowBlur);
+        const shadow = isMaster3DOn ? [presetShadow, activeGlow].filter(Boolean).join(', ') : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      // 11. ITALIAN CARRARA MARBLE
+      case 'stone-marble': {
+        const bg = isDark
+          ? 'linear-gradient(135deg, #334155 0%, #1e293b 60%, #0f172a 100%)'
+          : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #e2e8f0 100%)';
+        const borderColor = isDark ? 'rgba(148, 163, 184, 0.4)' : 'rgba(203, 213, 225, 0.9)';
+        const shadowBlur = Math.round(bevelExtrusion * 3.0);
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const porcelainSheen = 'inset 0 1px 3px rgba(255, 255, 255, 0.85)';
+        const shadow = isMaster3DOn ? [porcelainSheen, presetHighlight, presetShadow, activeGlow].filter(Boolean).join(', ') : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      // 12. DUAL-AXIS CARBON FIBER
+      case 'carbon-fiber': {
+        const bg = isDark
+          ? 'linear-gradient(135deg, #171717 0%, #262626 50%, #0a0a0a 100%)'
+          : 'linear-gradient(135deg, #404040 0%, #525252 50%, #262626 100%)';
+        const borderColor = isDark ? 'rgba(115, 115, 115, 0.5)' : 'rgba(82, 82, 82, 0.8)';
+        const shadowBlur = Math.round(bevelExtrusion * 3.0);
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const weaveSheen = 'inset 0 0 10px rgba(255, 255, 255, 0.2)';
+        const shadow = isMaster3DOn ? [weaveSheen, presetHighlight, presetShadow, activeGlow].filter(Boolean).join(', ') : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      // 13. EMERALD CRYSTAL GEMSTONE
+      case 'gem-emerald': {
+        const bg = isDark
+          ? 'linear-gradient(135deg, #064e3b 0%, #047857 45%, #10b981 70%, #022c22 100%)'
+          : 'linear-gradient(135deg, #d1fae5 0%, #6ee7b7 45%, #10b981 85%, #047857 100%)';
+        const borderColor = isDark ? 'rgba(52, 211, 153, 0.7)' : 'rgba(16, 185, 129, 0.8)';
+        const shadowBlur = Math.round(bevelExtrusion * 3.5);
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const crystalSheen = '0 0 14px rgba(16, 185, 129, 0.4), inset 0 0 10px rgba(167, 243, 208, 0.5)';
+        const shadow = isMaster3DOn ? [crystalSheen, presetHighlight, presetShadow, activeGlow].filter(Boolean).join(', ') : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      // 14. NEUMORPHIC / TERRACOTTA CLAY
+      case 'clay-terracotta':
       case 'neumorphic-clay': {
-        const bg = isDark ? '#221B2E' : '#ECE8DF';
-        const borderColor = isDark ? 'rgba(47, 37, 64, 0.85)' : 'rgba(222, 215, 203, 0.85)';
+        const isTerracotta = normalizedMaterialPreset === 'clay-terracotta';
+        const bg = isTerracotta
+          ? (isDark ? '#431407' : '#ea580c')
+          : (isDark ? '#221B2E' : '#ECE8DF');
+        const borderColor = isTerracotta
+          ? (isDark ? 'rgba(194, 65, 12, 0.6)' : 'rgba(251, 146, 60, 0.7)')
+          : (isDark ? 'rgba(47, 37, 64, 0.85)' : 'rgba(222, 215, 203, 0.85)');
         const blurAmt = Math.round(bevelExtrusion * (2.5 + roughness * 2.5) + 4);
         const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(blurAmt);
         const darkShadow = `${lightOffsetX * scale}px ${lightOffsetY * scale}px ${blurAmt}px ${isDark ? 'rgba(10, 8, 16, 0.65)' : 'rgba(175, 166, 152, 0.55)'}`;
@@ -1514,6 +1725,7 @@ export function UniversalMiniPortfolio({
         };
       }
 
+      // 15. CYBER WIREFRAME
       case 'cyber-wireframe': {
         const bg = 'rgba(8, 6, 17, 0.92)';
         const borderColor = 'rgba(6, 182, 212, 0.85)';
@@ -1532,6 +1744,7 @@ export function UniversalMiniPortfolio({
         };
       }
 
+      // 16. GLASS ACRYLIC (DEFAULT)
       case 'glass-acrylic':
       default: {
         const bg = isDark
