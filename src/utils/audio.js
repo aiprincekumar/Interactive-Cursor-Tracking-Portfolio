@@ -5,6 +5,8 @@ class SoundFX {
   constructor() {
     this.ctx = null;
     this.masterGain = null;
+    this.pannerNode = null;
+    this.currentPan = 0;
     this.enabled = true;
     this.masterVolume = 0.8; // 0.0 to 1.0 (0% to 100%)
     this.pitchMultiplier = 1.0; // 0.5x to 2.0x
@@ -21,6 +23,18 @@ class SoundFX {
         this.masterGain = this.ctx.createGain();
         const initialGain = this.enabled ? this.masterVolume : 0.0;
         this.masterGain.gain.setValueAtTime(initialGain, this.ctx.currentTime);
+
+        // Instantiate StereoPannerNode with graceful fallback
+        if (typeof this.ctx.createStereoPanner === 'function') {
+          try {
+            this.pannerNode = this.ctx.createStereoPanner();
+            this.pannerNode.pan.setValueAtTime(this.currentPan, this.ctx.currentTime);
+            this.pannerNode.connect(this.masterGain);
+          } catch {
+            this.pannerNode = null;
+          }
+        }
+
         this.masterGain.connect(this.ctx.destination);
       }
     }
@@ -29,6 +43,27 @@ class SoundFX {
         // Handled silently until user interaction
       });
     }
+  }
+
+  // --- Real-Time Binaural 3D Spatial Audio Node & Coordinate Panner ---
+
+  setPanning(panValue) {
+    let pan = typeof panValue === 'number' ? panValue : parseFloat(panValue);
+    if (isNaN(pan)) pan = 0;
+    this.currentPan = Math.max(-1.0, Math.min(1.0, parseFloat(pan.toFixed(3))));
+    if (this.ctx && this.pannerNode) {
+      try {
+        const t = this.ctx.currentTime;
+        this.pannerNode.pan.cancelScheduledValues(t);
+        this.pannerNode.pan.setTargetAtTime(this.currentPan, t, 0.015);
+      } catch {
+        // Fallback silently if audio context is in an unready state
+      }
+    }
+  }
+
+  getPanning() {
+    return this.currentPan;
   }
 
   // --- Volume & Master Controls ---
@@ -228,6 +263,7 @@ class SoundFX {
 
     this.triggerHaptic([6]);
     const t = this.ctx.currentTime;
+    const destNode = this.pannerNode || this.masterGain;
 
     // Body Chirp
     const osc = this.ctx.createOscillator();
@@ -238,7 +274,7 @@ class SoundFX {
     gain.gain.setValueAtTime(0.09, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.065);
     osc.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(destNode);
     osc.start(t);
     osc.stop(t + 0.065);
 
@@ -251,7 +287,7 @@ class SoundFX {
     transGain.gain.setValueAtTime(0.04, t);
     transGain.gain.exponentialRampToValueAtTime(0.001, t + 0.012);
     transient.connect(transGain);
-    transGain.connect(this.masterGain);
+    transGain.connect(destNode);
     transient.start(t);
     transient.stop(t + 0.012);
   }
@@ -369,6 +405,7 @@ class SoundFX {
 
     this.triggerHaptic([4]);
     const t = this.ctx.currentTime;
+    const destNode = this.pannerNode || this.masterGain;
 
     // Snappy transient tick
     const osc = this.ctx.createOscillator();
@@ -379,7 +416,7 @@ class SoundFX {
     gain.gain.setValueAtTime(0.09, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
     osc.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(destNode);
     osc.start(t);
     osc.stop(t + 0.015);
 
@@ -391,7 +428,7 @@ class SoundFX {
     bodyGain.gain.setValueAtTime(0.05, t);
     bodyGain.gain.exponentialRampToValueAtTime(0.001, t + 0.022);
     body.connect(bodyGain);
-    bodyGain.connect(this.masterGain);
+    bodyGain.connect(destNode);
     body.start(t);
     body.stop(t + 0.022);
   }
@@ -786,6 +823,14 @@ class SoundFX {
   // --- Backward-Compatible Aliases ---
 
   playShutter() {
+    this.playPolaroidShutter();
+  }
+
+  playShutterClick() {
+    this.playPolaroidShutter();
+  }
+
+  playCameraShutter() {
     this.playPolaroidShutter();
   }
 

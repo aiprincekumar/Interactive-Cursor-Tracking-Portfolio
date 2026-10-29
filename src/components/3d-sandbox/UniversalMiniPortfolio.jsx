@@ -16,11 +16,15 @@ import {
   Eye,
   EyeOff,
   Maximize2,
-  Box
+  Box,
+  Camera,
+  Film
 } from 'lucide-react';
 import { useLab3D } from '../../context/LabContext';
 import { soundFX } from '../../utils/audio';
+import { capture3DStageSnapshot, record360TurntableVideo } from '../../utils/mediaExport';
 import SandboxViewportContainer from './SandboxViewportContainer';
+import { GemMeshVisual, CyberCubeMeshVisual } from './Visual3DPresets';
 
 /**
  * Kinetic Spring Elasticity Transitions & Curves Specification
@@ -827,21 +831,53 @@ export function UniversalMiniPortfolio({
   const lighting = threeD.lighting || { angle: 45, shadowSoftness: 0.6 };
   const camera = threeD.camera || { perspectiveFOV: 1000, tiltSensitivity: 1.0 };
   const materials = threeD.materials || { preset: 'glass-acrylic', bevelExtrusion: 4, specularGlow: 0.5 };
-  const physics = threeD.physics || { hoverPop: 12, elasticity: 'snappy', clickDepression: true, magneticPull: false };
+  const physics = threeD.physics || { hoverPop: 12, elasticity: 'snappy', clickDepression: true, magneticPull: false, gravityDrop: false };
   const exploded = threeD.exploded || { enabled: false, separationDistance: 40, ghostOpacity: 0.4, layerStagger: 15, blueprintMode: false };
   const environment = threeD.environment || { skybox: 'dark-studio', fogDensity: 20, stardustParticles: true, particleCount: 30 };
+  const performanceConfig = threeD.performance || { fpsTarget: 60, autoThrottleIdle: true, gpuAcceleration: 'standard', lowPowerThreshold: true, showTelemetryHud: true };
+  const customMesh = threeD.customMesh || { type: 'avatar', customName: 'Atul Verma Avatar', scale: 1.0 };
 
   const hoverPop = typeof physics.hoverPop === 'number' ? physics.hoverPop : 12;
   const elasticityMode = physics.elasticity && ELASTICITY_TRANSITIONS[physics.elasticity] ? physics.elasticity : 'snappy';
   const activeElasticity = ELASTICITY_TRANSITIONS[elasticityMode] || ELASTICITY_TRANSITIONS.snappy;
   const isClickDepressionEnabled = physics.clickDepression ?? true;
   const isMagneticPullEnabled = Boolean(physics.magneticPull);
+  const isGravityDrop = Boolean(physics.gravityDrop);
 
   // Kinetic state for hover elevation pop & click depression
   const [hoveredElement, setHoveredElement] = useState(null);
   const [depressedElement, setDepressedElement] = useState(null);
 
   const themeStyle = THEME_PORTFOLIO_STYLES[masterTheme] || THEME_PORTFOLIO_STYLES['apple-glass'];
+
+  // Stratum Isolation & Solo Mode logic (Feature 3)
+  const isExplodedActive = Boolean(exploded?.enabled);
+  const rawSolo = exploded?.soloStrata;
+  const soloMode = (!isExplodedActive || !rawSolo || rawSolo === 'none') ? null : rawSolo;
+  const isChassisSolo = soloMode === 'chassis' || soloMode === 'strata-01';
+  const isContentSolo = soloMode === 'content' || soloMode === 'strata-02';
+  const isDockSolo = soloMode === 'dock' || soloMode === 'strata-03';
+
+  const getStrataDimStyle = (stratumKey) => {
+    if (!soloMode) return {};
+    let isTarget = false;
+    if (stratumKey === 'chassis' && isChassisSolo) isTarget = true;
+    if (stratumKey === 'content' && isContentSolo) isTarget = true;
+    if (stratumKey === 'dock' && isDockSolo) isTarget = true;
+
+    if (isTarget) {
+      return {
+        opacity: 1,
+        filter: 'none',
+        boxShadow: '0 0 24px rgba(6, 182, 212, 0.45)'
+      };
+    }
+    return {
+      opacity: 0.15,
+      filter: 'grayscale(80%)',
+      pointerEvents: 'none'
+    };
+  };
 
   // Reactive Dark Mode Detector for theme styling
   const [isDark, setIsDark] = useState(false);
@@ -897,6 +933,39 @@ export function UniversalMiniPortfolio({
   const [isDragging, setIsDragging] = useState(false);
   const [hoveredDockIcon, setHoveredDockIcon] = useState(null);
   const [internalWireframe, setInternalWireframe] = useState(false);
+
+  // Exporter progress & recording state (Feature 4)
+  const [isRecordingTurntable, setIsRecordingTurntable] = useState(false);
+  const [turntableProgress, setTurntableProgress] = useState(0);
+  const [isCapturingSnapshot, setIsCapturingSnapshot] = useState(false);
+  const [exportNotice, setExportNotice] = useState(null);
+
+  // Interactive Sun Handle Gizmo Dragging State (Feature 2)
+  const [isDraggingSun, setIsDraggingSun] = useState(false);
+  const sunLastClickDegRef = useRef(lighting.angle ?? 45);
+
+  // Real-Time FPS and Frame Latency Telemetry (Feature 8)
+  const [telemetry, setTelemetry] = useState({ fps: 60, latency: 16.6 });
+  const telemetryFrameCount = useRef(0);
+  const telemetryLastTime = useRef(typeof performance !== 'undefined' ? performance.now() : Date.now());
+
+  useEffect(() => {
+    let animId;
+    const tick = (now) => {
+      telemetryFrameCount.current += 1;
+      const delta = now - telemetryLastTime.current;
+      if (delta >= 500) {
+        const computedFps = Math.min(120, Math.round((telemetryFrameCount.current * 1000) / delta));
+        const computedLatency = (1000 / Math.max(1, computedFps)).toFixed(1);
+        setTelemetry({ fps: computedFps, latency: parseFloat(computedLatency) });
+        telemetryFrameCount.current = 0;
+        telemetryLastTime.current = now;
+      }
+      animId = requestAnimationFrame(tick);
+    };
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
+  }, []);
 
   // Camera Angle Presets Listener
   const prevAnglePresetRef = useRef(camera.anglePreset);
@@ -1028,15 +1097,97 @@ export function UniversalMiniPortfolio({
     return z;
   }, [isMaster3DOn, hoveredElement, hoverPop, isClickDepressionEnabled, depressedElement]);
 
-  // Combined 3D transform incorporating base Z, hover pop, click depression and magnetic micro-tilt
+  const getGravityDropTransform = useCallback((elementKey) => {
+    switch (elementKey) {
+      case 'navbar':
+        return 'translateY(180px) rotateZ(-12deg) rotateX(25deg)';
+      case 'hero':
+        return 'translateY(220px) rotateZ(8deg) rotateX(-15deg)';
+      case 'grid':
+      case 'grid-0':
+      case 'grid-1':
+        return 'translateY(160px) rotateZ(-6deg)';
+      case 'dock':
+        return 'translateY(140px) rotateZ(10deg)';
+      case 'footer':
+        return 'translateY(90px) rotateZ(4deg)';
+      default:
+        return 'translateY(160px) rotateZ(-6deg)';
+    }
+  }, []);
+
+  // Combined 3D transform incorporating base Z, hover pop, click depression, gravity drop and magnetic micro-tilt
   const getElementTransform = useCallback((elementKey, baseZ) => {
     if (!isMaster3DOn) return 'translateZ(0px)';
     const z = getElementZ(elementKey, baseZ);
+    if (isGravityDrop) {
+      return `translateZ(${z}px) ${getGravityDropTransform(elementKey)}`;
+    }
     if (isMagneticPullEnabled && hoveredElement === elementKey) {
       return `translateZ(${z}px) rotateX(${magneticTilt.rotX}deg) rotateY(${magneticTilt.rotY}deg)`;
     }
     return `translateZ(${z}px)`;
-  }, [isMaster3DOn, getElementZ, isMagneticPullEnabled, hoveredElement, magneticTilt]);
+  }, [isMaster3DOn, getElementZ, isGravityDrop, getGravityDropTransform, isMagneticPullEnabled, hoveredElement, magneticTilt]);
+
+  const gravityGroundShadow = '0 30px 45px -10px rgba(0, 0, 0, 0.75), 0 15px 20px -8px rgba(0, 0, 0, 0.6)';
+
+  const renderAvatarGeometry = () => {
+    const meshType = customMesh.type || 'avatar';
+    const meshScale = customMesh.scale || 1.0;
+
+    if (meshType === 'gem') {
+      return (
+        <div
+          data-testid="mini-mesh-gem"
+          className="w-9 h-9 rounded-full bg-[#181226] border border-cyan-400/50 shadow-lg flex items-center justify-center overflow-hidden"
+          style={{ transform: `scale(${meshScale})` }}
+        >
+          <GemMeshVisual scale={0.7} />
+        </div>
+      );
+    }
+
+    if (meshType === 'cube') {
+      return (
+        <div
+          data-testid="mini-mesh-cube"
+          className="w-9 h-9 rounded-full bg-[#181226] border border-cyan-400/60 shadow-[0_0_15px_rgba(0,242,254,0.4)] flex items-center justify-center overflow-hidden"
+          style={{ transform: `scale(${meshScale})` }}
+        >
+          <CyberCubeMeshVisual scale={0.75} />
+        </div>
+      );
+    }
+
+    if (meshType === 'custom') {
+      return (
+        <div
+          data-testid="mini-mesh-custom"
+          className="w-9 h-9 rounded-full bg-[#181226] border border-purple-500/60 shadow-[0_0_15px_rgba(168,85,247,0.4)] flex flex-col items-center justify-center text-center p-0.5"
+          style={{ transform: `scale(${meshScale})` }}
+          title={customMesh.customName || 'Custom Model'}
+        >
+          <Box className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+          <span className="text-[6.5px] font-mono font-bold text-purple-200 truncate max-w-[30px]">
+            {customMesh.customName ? customMesh.customName.slice(0, 4) : 'OBJ'}
+          </span>
+        </div>
+      );
+    }
+
+    // Default 'avatar': Classic gaze-tracking developer portrait with dynamic 3D elevation
+    return (
+      <div
+        data-testid="mini-mesh-avatar"
+        className={`w-9 h-9 rounded-full bg-gradient-to-tr ${themeStyle.hero.avatarGradient} p-0.5 shadow-md flex items-center justify-center`}
+        style={{ transform: `scale(${meshScale})` }}
+      >
+        <div className="w-full h-full rounded-full bg-[#181226] flex items-center justify-center text-[10px] font-bold text-white">
+          AV
+        </div>
+      </div>
+    );
+  };
 
   const dragStartRef = useRef({ x: 0, y: 0, startRotX: defaultTilt.rotX, startRotY: defaultTilt.rotY });
   const rafRef = useRef(null);
@@ -1065,10 +1216,18 @@ export function UniversalMiniPortfolio({
     const containerEl = containerRef.current || e.currentTarget;
     if (containerEl) {
       const rect = containerEl.getBoundingClientRect();
+      const clientX = e.clientX;
+      const clientY = e.clientY;
       setCursorPos({
-        x: Math.round(e.clientX - rect.left),
-        y: Math.round(e.clientY - rect.top)
+        x: Math.round(clientX - rect.left),
+        y: Math.round(clientY - rect.top)
       });
+
+      // Feature 5: Real-Time Binaural 3D Spatial Audio Node & Coordinate Panner
+      if (threeD.spatialAudio?.binauralPanning) {
+        const normX = ((clientX - rect.left) / Math.max(1, rect.width)) * 2 - 1;
+        soundFX.setPanning(Math.max(-1.0, Math.min(1.0, normX)));
+      }
     }
 
     if (typeof externalPointerMove === 'function') {
@@ -1143,6 +1302,101 @@ export function UniversalMiniPortfolio({
     }
   }, [isWireframe, onToggleWireframe]);
 
+  // Feature 4: Snapshot and Turntable Video Export Handlers
+  const handleTakeSnapshot = useCallback(async () => {
+    if (isCapturingSnapshot) return;
+    setIsCapturingSnapshot(true);
+    try {
+      soundFX.playPolaroidShutter();
+      const el = containerRef.current;
+      const filename = await capture3DStageSnapshot(el, 'portfolio-3d-snapshot');
+      setExportNotice({ type: 'success', message: `Saved ${filename}` });
+      setTimeout(() => setExportNotice(null), 3500);
+    } catch (err) {
+      setExportNotice({ type: 'error', message: err.message || 'Snapshot failed' });
+      setTimeout(() => setExportNotice(null), 3500);
+    } finally {
+      setIsCapturingSnapshot(false);
+    }
+  }, [isCapturingSnapshot]);
+
+  const handleRecordTurntable = useCallback(async () => {
+    if (isRecordingTurntable) return;
+    setIsRecordingTurntable(true);
+    setTurntableProgress(0);
+    soundFX.playLaserFocus();
+    try {
+      const el = containerRef.current;
+      const filename = await record360TurntableVideo(el, {
+        durationMs: 5000,
+        fps: 60,
+        onRotate: (deg) => {
+          setInternalTilt({ rotX: 18, rotY: (deg % 360) - 180 });
+        },
+        onProgress: (p) => {
+          setTurntableProgress(Math.round(p * 100));
+        }
+      });
+      soundFX.playCrystalChime();
+      setExportNotice({ type: 'success', message: `Recorded ${filename}` });
+      setTimeout(() => setExportNotice(null), 4000);
+    } catch (err) {
+      setExportNotice({ type: 'error', message: err.message || 'Turntable recording failed' });
+      setTimeout(() => setExportNotice(null), 4000);
+    } finally {
+      setIsRecordingTurntable(false);
+      setTurntableProgress(0);
+    }
+  }, [isRecordingTurntable]);
+
+  // Feature 2: Interactive Sun Handle Pointer Handlers
+  const handleSunPointerDown = useCallback((e) => {
+    e.stopPropagation();
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Safe fallback
+    }
+    setIsDraggingSun(true);
+    soundFX.playHapticClick();
+  }, []);
+
+  const handleSunPointerMove = useCallback((e) => {
+    if (!isDraggingSun) return;
+    e.stopPropagation();
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const dx = e.clientX - centerX;
+    const dy = e.clientY - centerY;
+    const angleDeg = Math.round((Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360);
+
+    if (Math.abs(angleDeg - sunLastClickDegRef.current) >= 15) {
+      soundFX.playHapticClick();
+      sunLastClickDegRef.current = angleDeg;
+    }
+
+    if (lab3D && typeof lab3D.set3DLightingAngle === 'function') {
+      lab3D.set3DLightingAngle(angleDeg);
+    } else if (lab3D && typeof lab3D.set3DLighting === 'function') {
+      lab3D.set3DLighting({ angle: angleDeg });
+    }
+  }, [isDraggingSun, lab3D]);
+
+  const handleSunPointerUp = useCallback((e) => {
+    if (!isDraggingSun) return;
+    e.stopPropagation();
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // Safe fallback
+    }
+    setIsDraggingSun(false);
+    soundFX.playHapticClick();
+  }, [isDraggingSun]);
+
   // Compute dynamic light directional shadow/highlight offset
   const lightRad = ((lighting.angle ?? 45) * Math.PI) / 180;
   const lightOffsetX = Math.round(Math.cos(lightRad) * 8);
@@ -1168,6 +1422,10 @@ export function UniversalMiniPortfolio({
   const matPreset = materials.preset || 'glass-acrylic';
   const specularGlow = typeof materials.specularGlow === 'number' ? materials.specularGlow : 0.5;
   const bevelExtrusion = typeof materials.bevelExtrusion === 'number' ? materials.bevelExtrusion : 4;
+  const roughness = typeof materials.roughness === 'number' ? materials.roughness : 0.25;
+  const metalness = typeof materials.metalness === 'number' ? materials.metalness : 0.20;
+  const ior = typeof materials.ior === 'number' ? materials.ior : 1.50;
+  const clearcoat = typeof materials.clearcoat === 'number' ? materials.clearcoat : 0.40;
 
   const normalizedMaterialPreset = (matPreset === 'metallic' || matPreset === 'metallic-gloss')
     ? 'metallic-gloss'
@@ -1220,26 +1478,28 @@ export function UniversalMiniPortfolio({
     switch (normalizedMaterialPreset) {
       case 'metallic-gloss': {
         const bg = isDark
-          ? 'linear-gradient(135deg, rgba(65, 72, 88, 0.95) 0%, rgba(35, 40, 52, 0.92) 48%, rgba(90, 98, 118, 0.95) 52%, rgba(24, 28, 38, 0.95) 100%)'
-          : 'linear-gradient(135deg, rgba(238, 242, 248, 0.96) 0%, rgba(198, 208, 222, 0.92) 48%, rgba(255, 255, 255, 0.98) 52%, rgba(170, 182, 200, 0.94) 100%)';
-        const borderColor = isDark ? 'rgba(200, 215, 235, 0.7)' : 'rgba(255, 255, 255, 0.95)';
-        const shadowBlur = Math.round(bevelExtrusion * 3.5);
+          ? `linear-gradient(135deg, rgba(${Math.round(65 + metalness * 40)}, ${Math.round(72 + metalness * 40)}, ${Math.round(88 + metalness * 50)}, 0.95) 0%, rgba(35, 40, 52, 0.92) 48%, rgba(${Math.round(90 + metalness * 50)}, ${Math.round(98 + metalness * 50)}, ${Math.round(118 + metalness * 60)}, 0.95) 52%, rgba(24, 28, 38, 0.95) 100%)`
+          : `linear-gradient(135deg, rgba(238, 242, 248, 0.96) 0%, rgba(${Math.round(198 - metalness * 30)}, ${Math.round(208 - metalness * 30)}, ${Math.round(222 - metalness * 25)}, 0.92) 48%, rgba(255, 255, 255, 0.98) 52%, rgba(170, 182, 200, 0.94) 100%)`;
+        const borderColor = isDark ? `rgba(200, 215, 235, ${0.5 + metalness * 0.4})` : `rgba(255, 255, 255, ${0.8 + metalness * 0.18})`;
+        const shadowBlur = Math.round(bevelExtrusion * (3.0 + roughness * 2.0));
         const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const metallicSheen = `inset 0 0 ${Math.round(12 * (1 - roughness))}px rgba(255, 255, 255, ${0.2 + metalness * 0.4})`;
+        const fresnelGlare = ior > 1.3 ? `0 0 ${Math.round((ior - 1) * 8)}px rgba(255, 255, 255, ${0.15 + (ior - 1) * 0.2})` : '';
         const shadow = isMaster3DOn
-          ? [presetHighlight, presetShadow, activeGlow].filter(Boolean).join(', ')
+          ? [presetHighlight, metallicSheen, presetShadow, fresnelGlare, activeGlow].filter(Boolean).join(', ')
           : 'none';
         return {
           background: bg,
           borderColor,
           boxShadow: shadow,
-          backdropFilter: 'none'
+          backdropFilter: roughness > 0.05 ? `blur(${Math.round(roughness * 12)}px)` : 'none'
         };
       }
 
       case 'neumorphic-clay': {
         const bg = isDark ? '#221B2E' : '#ECE8DF';
         const borderColor = isDark ? 'rgba(47, 37, 64, 0.85)' : 'rgba(222, 215, 203, 0.85)';
-        const blurAmt = Math.round(bevelExtrusion * 3 + 4);
+        const blurAmt = Math.round(bevelExtrusion * (2.5 + roughness * 2.5) + 4);
         const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(blurAmt);
         const darkShadow = `${lightOffsetX * scale}px ${lightOffsetY * scale}px ${blurAmt}px ${isDark ? 'rgba(10, 8, 16, 0.65)' : 'rgba(175, 166, 152, 0.55)'}`;
         const lightHighlight = `${-lightOffsetX * scale}px ${-lightOffsetY * scale}px ${blurAmt}px ${isDark ? 'rgba(58, 48, 78, 0.5)' : 'rgba(255, 255, 255, 0.9)'}`;
@@ -1257,8 +1517,8 @@ export function UniversalMiniPortfolio({
       case 'cyber-wireframe': {
         const bg = 'rgba(8, 6, 17, 0.92)';
         const borderColor = 'rgba(6, 182, 212, 0.85)';
-        const glowOuter = Math.round(10 + specularGlow * 15);
-        const glowInner = Math.round(6 + specularGlow * 10);
+        const glowOuter = Math.round((10 + specularGlow * 15) * (1.2 - roughness * 0.4));
+        const glowInner = Math.round((6 + specularGlow * 10) * (1.2 - roughness * 0.4));
         const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(glowOuter);
         const baseShadow = `0 0 ${glowOuter}px rgba(6, 182, 212, ${0.3 + specularGlow * 0.35}), inset 0 0 ${glowInner}px rgba(255, 0, 122, ${0.2 + specularGlow * 0.25})`;
         const shadow = isMaster3DOn
@@ -1277,21 +1537,23 @@ export function UniversalMiniPortfolio({
         const bg = isDark
           ? (themeSection?.darkBg || 'rgba(24, 18, 38, 0.72)')
           : (themeSection?.bg || 'rgba(255, 255, 255, 0.78)');
-        const borderColor = isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(255, 255, 255, 0.5)';
-        const shadowBlur = Math.round(bevelExtrusion * (elementKey === 'hero' ? 4 : (elementKey === 'grid' ? 3 : 3.5)));
+        const borderColor = isDark ? `rgba(255, 255, 255, ${0.12 + (ior - 1) * 0.08})` : `rgba(255, 255, 255, ${0.4 + (ior - 1) * 0.15})`;
+        const shadowBlur = Math.round(bevelExtrusion * (elementKey === 'hero' ? 4 : (elementKey === 'grid' ? 3 : 3.5)) * (0.8 + roughness * 0.5));
         const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const fresnelGlare = ior > 1.2 ? `inset 0 0 ${Math.round(8 * (ior - 1))}px rgba(255, 255, 255, ${0.2 + (ior - 1) * 0.25})` : '';
+        const clearcoatSheen = clearcoat > 0 ? `0 0 ${Math.round(clearcoat * 10)}px rgba(255, 255, 255, ${clearcoat * 0.25})` : '';
         const shadow = isMaster3DOn
-          ? [presetHighlight, presetShadow, activeGlow].filter(Boolean).join(', ')
+          ? [presetHighlight, fresnelGlare, clearcoatSheen, presetShadow, activeGlow].filter(Boolean).join(', ')
           : 'none';
         return {
           background: bg,
           borderColor,
           boxShadow: shadow,
-          backdropFilter: 'blur(16px)'
+          backdropFilter: `blur(${Math.max(4, Math.round(16 + roughness * 16))}px)`
         };
       }
     }
-  }, [isWireframe, themeStyle, normalizedMaterialPreset, isDark, bevelExtrusion, isMaster3DOn, specularGlow, lightOffsetX, lightOffsetY, lighting?.preset]);
+  }, [isWireframe, themeStyle, normalizedMaterialPreset, isDark, bevelExtrusion, isMaster3DOn, specularGlow, lightOffsetX, lightOffsetY, lighting?.preset, roughness, metalness, ior, clearcoat]);
 
   const matNavStyle = getMaterialSurfaceStyle('navbar', isNav3D);
   const matHeroStyle = getMaterialSurfaceStyle('hero', isHeroAny3D);
@@ -1331,6 +1593,34 @@ export function UniversalMiniPortfolio({
             <div className="font-mono text-[11px] px-2.5 py-1 rounded-lg bg-stone-100/90 dark:bg-stone-900/90 border border-stone-200/80 dark:border-stone-800 text-stone-600 dark:text-stone-300">
               Rot: {tilt.rotX}°, {tilt.rotY}° | Light: {lighting.angle ?? 45}°
             </div>
+
+            {/* Snapshot (.webp) Button */}
+            <button
+              type="button"
+              onClick={handleTakeSnapshot}
+              disabled={isCapturingSnapshot}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700 font-mono text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50"
+              title="Snapshot (.webp) — Capture 3D Stage"
+              aria-label="Snapshot (.webp)"
+            >
+              <Camera className="w-3.5 h-3.5 text-amber-500" />
+              <span className="hidden sm:inline">{isCapturingSnapshot ? 'Capturing...' : 'Snapshot (.webp)'}</span>
+            </button>
+
+            {/* Record 360° Spin (.webm) Button */}
+            <button
+              type="button"
+              onClick={handleRecordTurntable}
+              disabled={isRecordingTurntable}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700 font-mono text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50"
+              title="Record 360° Spin (.webm) — Cinematic Turntable Loop"
+              aria-label="Record 360° Spin (.webm)"
+            >
+              <Film className={`w-3.5 h-3.5 ${isRecordingTurntable ? 'text-rose-500 animate-pulse' : 'text-cyan-500'}`} />
+              <span className="hidden sm:inline">
+                {isRecordingTurntable ? `Recording ${turntableProgress}%` : 'Record 360° Spin (.webm)'}
+              </span>
+            </button>
 
             {/* Wireframe / CAD Mode Toggle */}
             <button
@@ -1379,6 +1669,10 @@ export function UniversalMiniPortfolio({
           '--3d-materials-preset': normalizedMaterialPreset,
           '--3d-specular-glow': specularGlow,
           '--3d-materials-bevel': `${bevelExtrusion}px`,
+          '--3d-roughness': roughness,
+          '--3d-metalness': metalness,
+          '--3d-ior': ior,
+          '--3d-clearcoat': clearcoat,
           '--3d-hover-pop': `${hoverPop}px`,
           '--3d-physics-curve': activeElasticity.curve
         }}
@@ -1483,6 +1777,10 @@ export function UniversalMiniPortfolio({
             '--3d-materials-preset': normalizedMaterialPreset,
             '--3d-specular-glow': specularGlow,
             '--3d-materials-bevel': `${bevelExtrusion}px`,
+            '--3d-roughness': roughness,
+            '--3d-metalness': metalness,
+            '--3d-ior': ior,
+            '--3d-clearcoat': clearcoat,
             '--3d-hover-pop': `${hoverPop}px`,
             '--3d-physics-curve': activeElasticity.curve,
             '--3d-physics-duration': activeElasticity.duration
@@ -1491,14 +1789,24 @@ export function UniversalMiniPortfolio({
           {/* Exploded Strata Layer 1 (Base Chassis) */}
           {exploded.enabled && (
             <div
-              className="absolute inset-0 rounded-2xl border border-cyan-500/40 bg-cyan-950/20 backdrop-blur-xs pointer-events-none"
+              className={`absolute inset-0 rounded-2xl border transition-all duration-300 pointer-events-none ${
+                isChassisSolo
+                  ? 'border-cyan-400 bg-cyan-950/40 ring-2 ring-cyan-400 shadow-[0_0_25px_rgba(6,182,212,0.5)]'
+                  : 'border-cyan-500/40 bg-cyan-950/20 backdrop-blur-xs'
+              }`}
               style={{
                 transform: `translateZ(-${exploded.separationDistance}px)`,
-                opacity: exploded.ghostOpacity || 0.4
+                opacity: isChassisSolo ? 1 : (soloMode ? 0.15 : (exploded.ghostOpacity || 0.4)),
+                filter: !isChassisSolo && soloMode ? 'grayscale(80%)' : 'none'
               }}
             >
-              <div className="p-2 text-[9px] font-mono text-cyan-400">
-                BASE CHASSIS [STRATA -01]
+              <div className="flex items-center justify-between p-2 text-[9px] font-mono text-cyan-400">
+                <span>BASE CHASSIS [STRATA -01]</span>
+                {isChassisSolo && (
+                  <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 border border-cyan-400/60 text-cyan-300 font-bold">
+                    SOLO ACTIVE
+                  </span>
+                )}
               </div>
             </div>
           )}
@@ -1538,10 +1846,11 @@ export function UniversalMiniPortfolio({
               transform: getElementTransform('navbar', zNav),
               background: isWireframe ? undefined : (matNavStyle.background || (isDark ? themeStyle.navbar.darkBg : themeStyle.navbar.bg)),
               borderColor: isWireframe ? undefined : matNavStyle.borderColor,
-              boxShadow: isWireframe ? undefined : matNavStyle.boxShadow,
+              boxShadow: isGravityDrop ? gravityGroundShadow : (isWireframe ? undefined : matNavStyle.boxShadow),
               backdropFilter: isWireframe ? undefined : matNavStyle.backdropFilter,
               borderWidth: isWireframe ? undefined : `${Math.max(1, Math.round(bevelExtrusion * 0.4))}px`,
-              transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`
+              transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`,
+              ...getStrataDimStyle('dock')
             }}
           >
             {/* Brand Monogram Initials */}
@@ -1613,14 +1922,15 @@ export function UniversalMiniPortfolio({
               transform: getElementTransform('hero', zHero),
               background: isWireframe ? undefined : (matHeroStyle.background || (isDark ? themeStyle.hero.darkBg : themeStyle.hero.bg)),
               borderColor: isWireframe ? undefined : matHeroStyle.borderColor,
-              boxShadow: isWireframe ? undefined : matHeroStyle.boxShadow,
+              boxShadow: isGravityDrop ? '0 35px 50px -10px rgba(0, 0, 0, 0.8), 0 20px 25px -8px rgba(0, 0, 0, 0.65)' : (isWireframe ? undefined : matHeroStyle.boxShadow),
               backdropFilter: isWireframe ? undefined : matHeroStyle.backdropFilter,
               borderWidth: isWireframe ? undefined : `${Math.max(1, Math.round(bevelExtrusion * 0.5))}px`,
               transformStyle: 'preserve-3d',
-              transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`
+              transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`,
+              ...getStrataDimStyle('content')
             }}
           >
-            {/* Avatar Orb */}
+            {/* Avatar Orb / 3D Custom Mesh Geometry (Feature 6) */}
             <div
               className="relative shrink-0"
               style={{
@@ -1629,11 +1939,7 @@ export function UniversalMiniPortfolio({
                 transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
               }}
             >
-              <div className={`w-9 h-9 rounded-full bg-gradient-to-tr ${themeStyle.hero.avatarGradient} p-0.5 shadow-md flex items-center justify-center`}>
-                <div className="w-full h-full rounded-full bg-[#181226] flex items-center justify-center text-[10px] font-bold text-white">
-                  AV
-                </div>
-              </div>
+              {renderAvatarGeometry()}
               <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#181226] animate-pulse" />
             </div>
 
@@ -1694,7 +2000,9 @@ export function UniversalMiniPortfolio({
             style={{
               transform: getElementTransform('grid', zGrid),
               transformStyle: 'preserve-3d',
-              transition: isDragging ? 'none' : activeElasticity.transition
+              boxShadow: isGravityDrop ? gravityGroundShadow : undefined,
+              transition: isDragging ? 'none' : activeElasticity.transition,
+              ...getStrataDimStyle('content')
             }}
           >
             {[
@@ -1758,10 +2066,11 @@ export function UniversalMiniPortfolio({
               transform: getElementTransform('dock', zDock),
               background: isWireframe ? undefined : (matDockStyle.background || (isDark ? themeStyle.dock.darkBg : themeStyle.dock.bg)),
               borderColor: isWireframe ? undefined : matDockStyle.borderColor,
-              boxShadow: isWireframe ? undefined : matDockStyle.boxShadow,
+              boxShadow: isGravityDrop ? gravityGroundShadow : (isWireframe ? undefined : matDockStyle.boxShadow),
               backdropFilter: isWireframe ? undefined : matDockStyle.backdropFilter,
               borderWidth: isWireframe ? undefined : `${Math.max(1, Math.round(bevelExtrusion * 0.4))}px`,
-              transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`
+              transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`,
+              ...getStrataDimStyle('dock')
             }}
           >
             {[
@@ -1826,6 +2135,94 @@ export function UniversalMiniPortfolio({
             </span>
           </div>
         </div>
+
+        {/* Real-Time Performance & GPU Telemetry HUD Pill (Feature 8) */}
+        {(performanceConfig.showTelemetryHud ?? true) && (
+          <div
+            data-testid="telemetry-hud"
+            className="absolute top-2.5 right-2.5 z-30 flex items-center gap-2 px-2.5 py-1 rounded-full bg-stone-900/85 text-white border border-stone-700/80 backdrop-blur-md shadow-lg pointer-events-none select-none font-mono text-[10px]"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34D399]" />
+            <span className="font-bold text-emerald-400">{telemetry.fps} FPS</span>
+            <span className="text-stone-400">•</span>
+            <span className="text-stone-300">{telemetry.latency}ms</span>
+            <span className="text-stone-400">•</span>
+            <span className="text-cyan-300 font-semibold tracking-wide">
+              {performanceConfig.gpuAcceleration === 'webgl-boost' ? 'WebGL Boost' : 'GPU Accelerated'}
+            </span>
+          </div>
+        )}
+
+        {/* Feature 2: Interactive On-Canvas 3D Sun & Light Arc Gizmo */}
+        {lighting.showSunGizmo !== false && (
+          <div
+            data-testid="3d-sun-arc-gizmo"
+            className="absolute inset-0 pointer-events-none z-25 flex items-center justify-center overflow-hidden"
+          >
+            {/* Orbital Ring Arc */}
+            <div
+              className="w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] rounded-full border border-dashed border-amber-400/25 dark:border-amber-400/35 relative pointer-events-none"
+              style={{
+                boxShadow: '0 0 25px rgba(245, 158, 11, 0.05)'
+              }}
+            >
+              {/* Radial Light Ray projecting to center */}
+              <div
+                className="absolute top-1/2 left-1/2 w-1/2 h-[1px] origin-left pointer-events-none opacity-40"
+                style={{
+                  transform: `rotate(${lighting.angle ?? 45}deg)`,
+                  background: 'linear-gradient(90deg, rgba(245, 158, 11, 0.8) 0%, transparent 100%)'
+                }}
+              />
+
+              {/* Draggable Sun Handle Orb */}
+              {(() => {
+                const angleRad = ((lighting.angle ?? 45) * Math.PI) / 180;
+                // Center is at 50% 50%, orbital radius = 50%
+                const orbLeft = `calc(50% + ${Math.cos(angleRad) * 50}% - 14px)`;
+                const orbTop = `calc(50% + ${Math.sin(angleRad) * 50}% - 14px)`;
+
+                return (
+                  <button
+                    type="button"
+                    data-testid="sun-gizmo-handle"
+                    onPointerDown={handleSunPointerDown}
+                    onPointerMove={handleSunPointerMove}
+                    onPointerUp={handleSunPointerUp}
+                    onPointerCancel={handleSunPointerUp}
+                    aria-label={`3D Sun Light Vector (${lighting.angle ?? 45}°)`}
+                    title={`Drag to rotate Sun Angle: ${lighting.angle ?? 45}°`}
+                    className={`absolute w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 text-amber-950 flex items-center justify-center shadow-[0_0_18px_rgba(245,158,11,0.7)] pointer-events-auto cursor-grab active:cursor-grabbing z-30 transition-transform ${
+                      isDraggingSun ? 'scale-125 ring-2 ring-amber-300 ring-offset-1' : 'hover:scale-115'
+                    }`}
+                    style={{
+                      left: orbLeft,
+                      top: orbTop,
+                      touchAction: 'none'
+                    }}
+                  >
+                    <Sun className="w-4 h-4 text-amber-950 animate-[spin_12s_linear_infinite]" />
+                  </button>
+                );
+              })()}
+            </div>
+          </div>
+        )}
+
+        {/* Export Notification Toast */}
+        {exportNotice && (
+          <div
+            data-testid="export-notice-toast"
+            className={`absolute bottom-3 right-3 z-30 flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-bold shadow-lg border backdrop-blur-md animate-fadeIn pointer-events-none ${
+              exportNotice.type === 'success'
+                ? 'bg-emerald-500/15 border-emerald-500/35 text-emerald-600 dark:text-emerald-300'
+                : 'bg-rose-500/15 border-rose-500/35 text-rose-600 dark:text-rose-300'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>{exportNotice.message}</span>
+          </div>
+        )}
 
         {/* Drag Guidance Toast Overlay */}
         {!compact && (

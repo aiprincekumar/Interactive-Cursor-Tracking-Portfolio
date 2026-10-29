@@ -498,4 +498,98 @@ export function LightingVectorPreview({
   );
 }
 
+/**
+ * GemMeshVisual
+ * Low-poly diamond gem with faceted reflections and 3D kinetic spin.
+ */
+export function GemMeshVisual({ className = '', scale = 1.0 }) {
+  return (
+    <div
+      className={`relative flex items-center justify-center select-none ${className}`}
+      style={{ perspective: '300px', transform: `scale(${scale})` }}
+      aria-label="3D Low-Poly Diamond Gem"
+    >
+      <div
+        className="w-10 h-10 relative threed-preserve"
+        style={{
+          transformStyle: 'preserve-3d',
+          animation: 'spin 8s linear infinite'
+        }}
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_0_12px_rgba(0,242,254,0.6)]">
+          <defs>
+            <linearGradient id="gemGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#00F2FE" />
+              <stop offset="100%" stopColor="#4FACFE" />
+            </linearGradient>
+            <linearGradient id="gemGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#FF4D6D" />
+              <stop offset="100%" stopColor="#7928CA" />
+            </linearGradient>
+            <linearGradient id="gemGrad3" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#00F2FE" stopOpacity="0.4" />
+            </linearGradient>
+          </defs>
+          <polygon points="50,10 78,35 50,55 22,35" fill="url(#gemGrad3)" stroke="#FFFFFF" strokeWidth="1.5" />
+          <polygon points="22,35 50,55 50,90" fill="url(#gemGrad1)" stroke="#00F2FE" strokeWidth="1" opacity="0.9" />
+          <polygon points="78,35 50,55 50,90" fill="url(#gemGrad2)" stroke="#FF4D6D" strokeWidth="1" opacity="0.9" />
+          <polygon points="50,10 22,35 10,40 50,90" fill="url(#gemGrad1)" opacity="0.5" />
+          <polygon points="50,10 78,35 90,40 50,90" fill="url(#gemGrad2)" opacity="0.5" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * CyberCubeMeshVisual
+ * Rotating 3D isometric cyber wireframe cube with neon borders.
+ */
+export function CyberCubeMeshVisual({ className = '', scale = 1.0 }) {
+  return (
+    <div
+      className={`relative flex items-center justify-center select-none ${className}`}
+      style={{ perspective: '300px', transform: `scale(${scale})` }}
+      aria-label="Cyber Hologram Cube"
+    >
+      <div
+        className="w-8 h-8 relative threed-preserve"
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: 'rotateX(25deg) rotateY(45deg)',
+          animation: 'spin 12s linear infinite'
+        }}
+      >
+        <div
+          className="absolute inset-0 border-2 border-cyan-400 bg-cyan-500/20 shadow-[0_0_10px_rgba(6,182,212,0.5)] flex items-center justify-center text-[7px] font-mono text-cyan-200"
+          style={{ transform: 'translateZ(16px)' }}
+        >
+          AV
+        </div>
+        <div
+          className="absolute inset-0 border-2 border-cyan-400/60 bg-blue-950/40"
+          style={{ transform: 'rotateY(180deg) translateZ(16px)' }}
+        />
+        <div
+          className="absolute inset-0 border-2 border-cyan-300 bg-cyan-300/30"
+          style={{ transform: 'rotateX(90deg) translateZ(16px)' }}
+        />
+        <div
+          className="absolute inset-0 border-2 border-cyan-500/50 bg-stone-900/40"
+          style={{ transform: 'rotateX(-90deg) translateZ(16px)' }}
+        />
+        <div
+          className="absolute inset-0 border-2 border-cyan-400/80 bg-indigo-500/20"
+          style={{ transform: 'rotateY(90deg) translateZ(16px)' }}
+        />
+        <div
+          className="absolute inset-0 border-2 border-cyan-400/80 bg-indigo-500/20"
+          style={{ transform: 'rotateY(-90deg) translateZ(16px)' }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default CameraCubePreview;

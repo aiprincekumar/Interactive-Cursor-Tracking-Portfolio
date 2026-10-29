@@ -76,13 +76,14 @@ import {
   Gem,
   Orbit,
   Play,
-  Pause
+  Pause,
+  Film
 } from 'lucide-react';
 import UniversalMiniPortfolio from './3d-sandbox/UniversalMiniPortfolio';
 import { CAMERA_PRESET_ANGLES } from './3d-sandbox/UniversalMiniPortfolio';
 import StickySandboxColumn from './3d-sandbox/StickySandboxColumn';
 import { ThreeDPresetCard, ThreeDActionKeycap, ThreeDToggleKey } from './3d-sandbox/ThreeDButtonPrimitives';
-import { CameraCubePreview, MaterialShaderSphere, ThemeExtrudedSlab, LightingVectorPreview } from './3d-sandbox/Visual3DPresets';
+import { CameraCubePreview, MaterialShaderSphere, ThemeExtrudedSlab, LightingVectorPreview, GemMeshVisual, CyberCubeMeshVisual } from './3d-sandbox/Visual3DPresets';
 import { SpringElasticityVisual, ExplodedCADLayerVisual } from './3d-sandbox/PhysicsAndCADVisuals';
 import useSandboxAutoSwitch from '../hooks/useSandboxAutoSwitch';
 import { useLab, useLabVisuals, useLabChat, DEFAULT_AI_CHAT_SETTINGS, POSE_INDEX_MAP } from '../context/LabContext';
@@ -91,6 +92,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useHighContrast } from '../context/HighContrastContext';
 import { useAnnounce } from '../context/AnnouncerContext';
 import { soundFX, SOUNDBOARD_SOUNDS } from '../utils/audio';
+import { capture3DStageSnapshot, record360TurntableVideo } from '../utils/mediaExport';
 
 const SOUND_ICONS = {
   shutter: Camera,
@@ -383,6 +385,37 @@ const FPS_PRESETS = [
   { id: 120, name: '120 FPS', badge: 'ProMotion Ultra', desc: 'Uncapped ultra-high-refresh rate rendering for Pro displays' }
 ];
 
+const MESH_GEOMETRY_PRESETS = [
+  {
+    id: 'avatar',
+    name: 'Developer 2.5D Avatar',
+    desc: 'Classic gaze-tracking developer portrait with dynamic 3D elevation',
+    icon: User,
+    badge: 'Default Profile'
+  },
+  {
+    id: 'gem',
+    name: 'Low-Poly Diamond Gem',
+    desc: '3D animated faceted crystal with dynamic chromatic reflections',
+    icon: Gem,
+    badge: 'Faceted Crystal'
+  },
+  {
+    id: 'cube',
+    name: 'Cyber Hologram Cube',
+    desc: '3D spinning neon wireframe cube with holographic edges',
+    icon: Box,
+    badge: 'Neon Wireframe'
+  },
+  {
+    id: 'custom',
+    name: 'Custom File Upload',
+    desc: 'Client-side .gltf / .obj / .glb model importer with custom geometry parsing',
+    icon: Upload,
+    badge: 'GLTF / OBJ 3D'
+  }
+];
+
 const AI_MODEL_CARDS = [
   {
     id: 'auto',
@@ -530,6 +563,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
     set3DLightingAngle,
     set3DCursorLight,
     set3DShadowSoftness,
+    set3DShowSunGizmo,
     set3DCamera,
     set3DCameraAnglePreset,
     set3DPerspectiveFOV,
@@ -540,13 +574,20 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
     set3DMaterialPreset,
     set3DSpecularGlow,
     set3DBevelExtrusion,
+    set3DMaterialRoughness,
+    set3DMaterialMetalness,
+    set3DMaterialIOR,
+    set3DMaterialClearcoat,
     set3DPhysics,
     set3DPhysicsHoverPop,
     set3DClickDepression,
     set3DElasticity,
     set3DMagneticPull,
+    set3DGravityDrop,
+    set3DCustomMesh,
     set3DClusterFilter,
     set3DExploded,
+    set3DSoloStrata,
     set3DEnvironment,
     set3DSpatialAudio,
     set3DPerformance,
@@ -975,7 +1016,8 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
   const lighting = threeDConfig.lighting || { preset: 'studio-soft', angle: 45, cursorLight: true, shadowSoftness: 0.7 };
   const camera = threeDConfig.camera || { anglePreset: 'isometric', perspectiveFOV: 1000, tiltSensitivity: 15, autoOrbit: false, orbitSpeed: 1.0 };
   const materials = threeDConfig.materials || { preset: 'glass-acrylic', specularGlow: 0.6, bevelExtrusion: 3 };
-  const physics = threeDConfig.physics || { hoverPop: 12, clickDepression: true, elasticity: 'snappy', magneticPull: false };
+  const physics = threeDConfig.physics || { hoverPop: 12, clickDepression: true, elasticity: 'snappy', magneticPull: false, gravityDrop: false };
+  const customMesh = threeDConfig.customMesh || { type: 'avatar', customName: 'Atul Verma Avatar', scale: 1.0 };
   const depthIntensity = threeDConfig.depthIntensity ?? 1.0;
   const stylePreset = threeDConfig.stylePreset || 'subtle';
   const exploded = threeDConfig.exploded || { enabled: false, separationDistance: 45, blueprintMode: false, layerStagger: 15, ghostOpacity: 0.4 };
@@ -993,7 +1035,56 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
 
   const [copiedCss, setCopiedCss] = useState(false);
   const [toolkitStatus, setToolkitStatus] = useState(null);
+  const [isToolkitCapturingSnapshot, setIsToolkitCapturingSnapshot] = useState(false);
+  const [isToolkitRecordingTurntable, setIsToolkitRecordingTurntable] = useState(false);
+  const [toolkitTurntableProgress, setToolkitTurntableProgress] = useState(0);
   const jsonFileInputRef = useRef(null);
+
+  const handleToolkitSnapshot = useCallback(async () => {
+    if (isToolkitCapturingSnapshot) return;
+    setIsToolkitCapturingSnapshot(true);
+    try {
+      if (soundEnabled) soundFX.playCameraShutter();
+      const stageEl = document.querySelector('.universal-mini-portfolio') || document.querySelector('[data-testid="3d-sandbox-viewport"]');
+      const filename = await capture3DStageSnapshot(stageEl, 'portfolio-3d-snapshot');
+      setToolkitStatus({ type: 'success', message: `Snapshot saved: ${filename}` });
+      setTimeout(() => setToolkitStatus(null), 3500);
+    } catch (err) {
+      setToolkitStatus({ type: 'error', message: 'Snapshot failed: ' + err.message });
+      setTimeout(() => setToolkitStatus(null), 3500);
+    } finally {
+      setIsToolkitCapturingSnapshot(false);
+    }
+  }, [isToolkitCapturingSnapshot, soundEnabled]);
+
+  const handleToolkitTurntable = useCallback(async () => {
+    if (isToolkitRecordingTurntable) return;
+    setIsToolkitRecordingTurntable(true);
+    setToolkitTurntableProgress(0);
+    if (soundEnabled) soundFX.playLaserFocus();
+    try {
+      const stageEl = document.querySelector('.universal-mini-portfolio') || document.querySelector('[data-testid="3d-sandbox-viewport"]');
+      const filename = await record360TurntableVideo(stageEl, {
+        durationMs: 5000,
+        fps: 60,
+        onRotate: (deg) => {
+          setSandboxTilt({ rotX: 18, rotY: (deg % 360) - 180 });
+        },
+        onProgress: (p) => {
+          setToolkitTurntableProgress(Math.round(p * 100));
+        }
+      });
+      if (soundEnabled) soundFX.playCrystalChime();
+      setToolkitStatus({ type: 'success', message: `360° Video saved: ${filename}` });
+      setTimeout(() => setToolkitStatus(null), 4000);
+    } catch (err) {
+      setToolkitStatus({ type: 'error', message: 'Turntable recording failed: ' + err.message });
+      setTimeout(() => setToolkitStatus(null), 4000);
+    } finally {
+      setIsToolkitRecordingTurntable(false);
+      setToolkitTurntableProgress(0);
+    }
+  }, [isToolkitRecordingTurntable, soundEnabled, setSandboxTilt]);
 
   const handleCopyCssVariables = useCallback(() => {
     try {
@@ -1058,6 +1149,30 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
     reader.readAsText(file);
     e.target.value = '';
   }, [import3DConfig, soundEnabled]);
+
+  const meshFileInputRef = useRef(null);
+
+  const handleMeshUploadClick = useCallback(() => {
+    meshFileInputRef.current?.click();
+  }, []);
+
+  const handleMeshFileChange = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const fileUrl = URL.createObjectURL(file);
+    if (set3DCustomMesh) {
+      set3DCustomMesh({
+        type: 'custom',
+        customName: file.name,
+        fileUrl,
+        scale: customMesh.scale || 1.0
+      });
+      setToolkitStatus({ type: 'success', message: `3D Custom Model loaded: ${file.name}` });
+      if (soundEnabled) soundFX.playLaserFocus();
+      setTimeout(() => setToolkitStatus(null), 3500);
+    }
+    e.target.value = '';
+  }, [set3DCustomMesh, customMesh.scale, soundEnabled]);
 
   const [availableVoices, setAvailableVoices] = useState([]);
   const [purgeStatus, setPurgeStatus] = useState(null);
@@ -3372,6 +3487,183 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                         <span className="sr-only">Reset Defaults</span>
                       </button>
                     </div>
+
+                    {/* Feature 4: Cinematic Exporter Actions (Snapshot & 360° Turntable Video) */}
+                    <div className="pt-2 border-t border-stone-200/60 dark:border-stone-800/80 flex flex-col gap-2">
+                      <span className="text-[11px] font-mono font-bold text-stone-500 dark:text-stone-400">
+                        Cinematic Exporters:
+                      </span>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <button
+                          type="button"
+                          onClick={handleToolkitSnapshot}
+                          disabled={isToolkitCapturingSnapshot}
+                          className="flex items-center justify-center gap-1.5 h-10 px-3 rounded-xl border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] text-xs font-mono font-bold text-stone-800 dark:text-stone-200 transition-all cursor-pointer shadow-xs active:scale-95 disabled:opacity-50"
+                          title="Snapshot (.webp) — Capture 3D Canvas"
+                          aria-label="Snapshot (.webp)"
+                        >
+                          <Camera className="w-4 h-4 text-amber-500 shrink-0" />
+                          <span>{isToolkitCapturingSnapshot ? 'Capturing...' : 'Snapshot (.webp)'}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleToolkitTurntable}
+                          disabled={isToolkitRecordingTurntable}
+                          className="flex items-center justify-center gap-1.5 h-10 px-3 rounded-xl border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] text-xs font-mono font-bold text-stone-800 dark:text-stone-200 transition-all cursor-pointer shadow-xs active:scale-95 disabled:opacity-50"
+                          title="Record 360° Spin (.webm) — Cinematic Loop"
+                          aria-label="Record 360° Spin (.webm)"
+                        >
+                          <Film className={`w-4 h-4 shrink-0 ${isToolkitRecordingTurntable ? 'text-rose-500 animate-pulse' : 'text-cyan-500'}`} />
+                          <span className="truncate">
+                            {isToolkitRecordingTurntable ? `Recording ${toolkitTurntableProgress}%` : 'Record 360° (.webm)'}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card D: 3D Avatar & Model Geometry Engine (Feature 6) */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ECE7DF] dark:border-[#2D2340]/60 pb-3">
+                      <div>
+                        <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
+                          <User className="w-4 h-4 text-purple-500" />
+                          <span>3D Avatar &amp; Model Geometry Engine</span>
+                        </h4>
+                        <p className="text-xs text-stone-500 dark:text-stone-400">
+                          Procedural 3D avatar geometry or client-side .gltf / .obj model importer
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                          Active: {customMesh.type.toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Hidden file input for custom mesh upload */}
+                    <input
+                      ref={meshFileInputRef}
+                      type="file"
+                      accept=".gltf,.glb,.obj"
+                      onChange={handleMeshFileChange}
+                      className="hidden"
+                      aria-label="Upload 3D Mesh Model"
+                    />
+
+                    {/* 4 Geometry Presets Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {MESH_GEOMETRY_PRESETS.map((preset) => {
+                        const isSelected = customMesh.type === preset.id;
+                        const Icon = preset.icon;
+                        return (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            onClick={() => {
+                              if (preset.id === 'custom') {
+                                handleMeshUploadClick();
+                              } else {
+                                set3DCustomMesh({ type: preset.id });
+                                if (soundEnabled) soundFX.playLaserFocus();
+                              }
+                            }}
+                            className={`p-3.5 rounded-xl border flex flex-col justify-between gap-2.5 text-left transition-all cursor-pointer relative ${
+                              isSelected
+                                ? 'bg-purple-500/15 border-purple-500 shadow-md ring-2 ring-purple-500/30'
+                                : 'bg-stone-50/60 dark:bg-stone-900/40 border-stone-200/80 dark:border-stone-800 hover:border-purple-400/50'
+                            }`}
+                            aria-label={`Select ${preset.name}`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                                isSelected ? 'bg-purple-600 text-white' : 'bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
+                              }`}>
+                                <Icon className="w-3.5 h-3.5" />
+                              </div>
+                              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full border ${
+                                isSelected
+                                  ? 'bg-purple-500 text-white border-purple-400'
+                                  : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                              }`}>
+                                {preset.badge}
+                              </span>
+                            </div>
+
+                            {/* Mini 3D Visual Preview */}
+                            <div className="h-14 flex items-center justify-center my-1">
+                              {preset.id === 'avatar' && (
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#FF4D6D] to-[#00F2FE] flex items-center justify-center text-white text-xs font-bold shadow-md">
+                                  AV
+                                </div>
+                              )}
+                              {preset.id === 'gem' && (
+                                <GemMeshVisual scale={0.85} />
+                              )}
+                              {preset.id === 'cube' && (
+                                <CyberCubeMeshVisual scale={0.9} />
+                              )}
+                              {preset.id === 'custom' && (
+                                <div className="flex flex-col items-center justify-center text-center">
+                                  <Upload className="w-5 h-5 text-purple-400 mb-0.5" />
+                                  <span className="text-[9px] font-mono font-bold text-purple-300">
+                                    {customMesh.type === 'custom' && customMesh.customName ? customMesh.customName.slice(0, 8) : '.GLTF / .OBJ'}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            <div>
+                              <div className="text-xs font-bold text-[#18181B] dark:text-white truncate">
+                                {preset.name}
+                              </div>
+                              <p className="text-[10px] text-stone-500 dark:text-stone-400 line-clamp-2 mt-0.5">
+                                {preset.desc}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Scale Calibration Slider & Custom Model Status */}
+                    <div className="pt-3 border-t border-stone-200/60 dark:border-stone-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-bold text-[#18181B] dark:text-white">
+                          Mesh Geometry Scale
+                        </span>
+                        <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
+                          {(customMesh.scale || 1.0).toFixed(1)}x
+                        </span>
+                        <input
+                          type="range"
+                          min="0.5"
+                          max="2.5"
+                          step="0.1"
+                          value={customMesh.scale || 1.0}
+                          onChange={(e) => set3DCustomMesh({ scale: parseFloat(e.target.value) })}
+                          className="w-32 accent-purple-500 cursor-pointer"
+                          aria-label="3D Mesh Geometry Scale"
+                        />
+                      </div>
+
+                      {customMesh.type === 'custom' && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono text-stone-500">
+                            Model: <strong className="text-purple-400">{customMesh.customName || 'Uploaded'}</strong>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleMeshUploadClick}
+                            className="px-2 py-1 rounded-lg border border-purple-500/40 text-[10px] font-bold text-purple-500 hover:bg-purple-500/10 cursor-pointer"
+                          >
+                            Replace Model
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -3682,6 +3974,44 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
 
                     {/* Cursor Spotlight & Shadow Softness */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-stone-200/60 dark:border-stone-800/80">
+                      {/* On-Canvas Sun Gizmo Toggle */}
+                      <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex items-center justify-between gap-3">
+                        <div>
+                          <div className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                            <Sun className="w-4 h-4 text-amber-500" />
+                            <span>On-Canvas Sun Gizmo</span>
+                          </div>
+                          <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
+                            Interactive orbital solar ring and draggable light vector handle on canvas
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={lighting.showSunGizmo !== false}
+                          aria-label="Toggle On-Canvas Sun Gizmo"
+                          onClick={() => {
+                            const nextState = !(lighting.showSunGizmo !== false);
+                            if (typeof set3DShowSunGizmo === 'function') {
+                              set3DShowSunGizmo(nextState);
+                            } else {
+                              set3DLighting({ showSunGizmo: nextState });
+                            }
+                            if (soundEnabled) soundFX.playHapticClick();
+                          }}
+                          className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/40 shrink-0 ${
+                            lighting.showSunGizmo !== false ? 'bg-amber-500' : 'bg-stone-300 dark:bg-stone-700'
+                          }`}
+                        >
+                          <span
+                            className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                              lighting.showSunGizmo !== false ? 'translate-x-5' : 'translate-x-0.5'
+                            }`}
+                          />
+                        </button>
+                      </div>
+
                       {/* Cursor Spotlight */}
                       <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex items-center justify-between gap-3">
                         <div>
@@ -4191,6 +4521,86 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                           <span>8px (Deep Tactile Bevel)</span>
                         </div>
                       </div>
+
+                      {/* Tactile PBR Sliders */}
+                      {/* Surface Roughness */}
+                      <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex flex-col justify-between gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#18181B] dark:text-white">
+                            Surface Roughness
+                          </span>
+                          <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
+                            {Math.round((materials.roughness ?? 0.25) * 100)}%
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={materials.roughness ?? 0.25}
+                          onChange={(e) => set3DMaterialRoughness(parseFloat(e.target.value))}
+                          className="w-full accent-purple-500 cursor-pointer"
+                          aria-label="3D Surface Roughness"
+                        />
+                        <div className="flex justify-between text-[10px] text-stone-400 font-mono">
+                          <span>0% (Mirror Gloss)</span>
+                          <span>100% (Matte Diffusion)</span>
+                        </div>
+                      </div>
+
+                      {/* Metallic Conductance */}
+                      <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex flex-col justify-between gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#18181B] dark:text-white">
+                            Metallic Conductance
+                          </span>
+                          <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
+                            {Math.round((materials.metalness ?? 0.20) * 100)}%
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={materials.metalness ?? 0.20}
+                          onChange={(e) => set3DMaterialMetalness(parseFloat(e.target.value))}
+                          className="w-full accent-purple-500 cursor-pointer"
+                          aria-label="3D Metallic Conductance"
+                        />
+                        <div className="flex justify-between text-[10px] text-stone-400 font-mono">
+                          <span>0% (Dielectric Plastic)</span>
+                          <span>100% (Polished Alloy)</span>
+                        </div>
+                      </div>
+
+                      {/* Refraction Index (IOR) */}
+                      <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex flex-col justify-between gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#18181B] dark:text-white">
+                            Refraction Index (IOR)
+                          </span>
+                          <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
+                            {(materials.ior ?? 1.50).toFixed(2)}
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="2.5"
+                          step="0.05"
+                          value={materials.ior ?? 1.50}
+                          onChange={(e) => set3DMaterialIOR(parseFloat(e.target.value))}
+                          className="w-full accent-purple-500 cursor-pointer"
+                          aria-label="3D Refraction Index (IOR)"
+                        />
+                        <div className="flex justify-between text-[10px] text-stone-400 font-mono">
+                          <span>1.00 (Air)</span>
+                          <span>1.50 (Glass)</span>
+                          <span>2.42 (Diamond)</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -4366,6 +4776,79 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               physics.magneticPull ? 'translate-x-5' : 'translate-x-0.5'
                             }`}
                           />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Kinetic Gravity Playground (Feature 7) */}
+                    <div className="pt-4 border-t border-stone-200/60 dark:border-stone-800/80 flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                          <Flame className="w-4 h-4 text-orange-500 animate-pulse" />
+                          <span>Kinetic Gravity Playground</span>
+                        </span>
+                        <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
+                          {physics.gravityDrop ? 'GRAVITY ENGAGED' : 'ZERO-G ASSEMBLED'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                        Toggle kinetic gravity drop to release cards into a simulated physical collision state or reassemble back to 3D grid.
+                      </p>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Gravity Drop Toggle */}
+                        <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex items-center justify-between gap-3">
+                          <div>
+                            <div className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                              <Flame className="w-3.5 h-3.5 text-orange-500" />
+                              <span>Gravity Drop Mode</span>
+                            </div>
+                            <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
+                              Simulate physical gravitational collapse
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={Boolean(physics.gravityDrop)}
+                            aria-label="Toggle Gravity Drop Mode"
+                            onClick={() => {
+                              const nextVal = !physics.gravityDrop;
+                              set3DGravityDrop(nextVal);
+                              if (soundEnabled) {
+                                if (nextVal) soundFX.playHapticClick();
+                                else soundFX.playLaserFocus();
+                              }
+                            }}
+                            className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500/40 shrink-0 ${
+                              physics.gravityDrop ? 'bg-orange-500' : 'bg-stone-300 dark:bg-stone-700'
+                            }`}
+                          >
+                            <span
+                              className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                                physics.gravityDrop ? 'translate-x-5' : 'translate-x-0.5'
+                              }`}
+                            />
+                          </button>
+                        </div>
+
+                        {/* Reassemble Scene Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            set3DGravityDrop(false);
+                            if (soundEnabled) soundFX.playLaserFocus();
+                          }}
+                          className={`p-3.5 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all cursor-pointer select-none ${
+                            isTab3DActive
+                              ? 'border-indigo-500/50 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 hover:from-indigo-500/20 hover:to-pink-500/20 text-indigo-600 dark:text-indigo-400 shadow-[0_2px_0_0_#4338CA] active:translate-y-[1px]'
+                              : 'border-indigo-500/30 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 active:scale-95'
+                          }`}
+                          aria-label="Reassemble Scene"
+                        >
+                          <Sparkles className="w-4 h-4 text-indigo-500" />
+                          <span>Reassemble Scene</span>
                         </button>
                       </div>
                     </div>
@@ -4570,6 +5053,50 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                           <span>0px (Uniform)</span>
                           <span>50px (Staggered Cascade)</span>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Stratum Isolation & Solo Lens (Feature 3) */}
+                    <div className="pt-4 border-t border-stone-200/60 dark:border-stone-800/80 flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                          <Layers className="w-4 h-4 text-cyan-500" />
+                          <span>Stratum Isolation &amp; Solo Lens</span>
+                        </span>
+                        <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+                          {exploded.soloStrata ? `SOLO: ${exploded.soloStrata.toUpperCase()}` : 'ALL STRATA VISIBLE'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                        Isolate and spotlight individual structural strata in CAD perspective while dimming ambient components.
+                      </p>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { id: null, label: 'All Strata' },
+                          { id: 'chassis', label: 'Chassis -01' },
+                          { id: 'content', label: 'Content 00' },
+                          { id: 'dock', label: 'Dock +01' }
+                        ].map((stratum) => {
+                          const isActive = exploded.soloStrata === stratum.id;
+                          return (
+                            <button
+                              key={stratum.label}
+                              type="button"
+                              onClick={() => {
+                                set3DSoloStrata(stratum.id);
+                                if (soundEnabled) soundFX.playHapticClick();
+                              }}
+                              className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                                isActive
+                                  ? 'bg-cyan-500 text-white border-cyan-600 shadow-xs'
+                                  : 'bg-white/40 dark:bg-stone-900/40 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-cyan-400'
+                              }`}
+                            >
+                              <span>{stratum.label}</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -5019,6 +5546,39 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                           <span
                             className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
                               performanceConfig.lowPowerThreshold ? 'translate-x-5' : 'translate-x-0.5'
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Real-Time Telemetry HUD Toggle (Feature 4) */}
+                      <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex items-center justify-between gap-3 sm:col-span-2">
+                        <div>
+                          <div className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
+                            <Activity className="w-4 h-4 text-orange-500" />
+                            <span>Show Real-Time Telemetry HUD</span>
+                          </div>
+                          <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
+                            Displays floating rolling FPS counter &amp; frame latency readout in 3D sandbox viewport
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={Boolean(performanceConfig.showTelemetryHud)}
+                          aria-label="Toggle Show Real-Time Telemetry HUD"
+                          onClick={() => {
+                            set3DPerformance({ showTelemetryHud: !performanceConfig.showTelemetryHud });
+                            if (soundEnabled) soundFX.playHapticClick();
+                          }}
+                          className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500/40 shrink-0 ${
+                            performanceConfig.showTelemetryHud ? 'bg-orange-500' : 'bg-stone-300 dark:bg-stone-700'
+                          }`}
+                        >
+                          <span
+                            className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                              performanceConfig.showTelemetryHud ? 'translate-x-5' : 'translate-x-0.5'
                             }`}
                           />
                         </button>

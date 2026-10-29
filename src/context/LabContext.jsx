@@ -112,6 +112,7 @@ export const FACTORY_DEFAULTS = {
       angle: 45, // 0 to 360 degrees
       cursorLight: true,
       shadowSoftness: 0.7, // 0.1 to 1.0
+      showSunGizmo: true, // on-canvas interactive Sun Handle along orbital arc
     },
     camera: {
       anglePreset: 'isometric', // 'isometric' | 'top-down' | 'eye-level' | 'cinematic'
@@ -124,12 +125,17 @@ export const FACTORY_DEFAULTS = {
       preset: 'glass-acrylic', // 'glass-acrylic' | 'metallic-gloss' | 'neumorphic-clay' | 'cyber-wireframe'
       specularGlow: 0.6, // 0 to 1.0
       bevelExtrusion: 3, // 1 to 8 px
+      roughness: 0.25, // 0.0 to 1.0 (PBR micro-facet dispersion)
+      metalness: 0.20, // 0.0 to 1.0 (PBR metallic conductance)
+      ior: 1.50, // 1.0 to 2.5 (PBR Index of Refraction)
+      clearcoat: 0.40, // 0.0 to 1.0 (PBR reflective clearcoat lacquer)
     },
     physics: {
       hoverPop: 12, // 4 to 32 px
       clickDepression: true,
       elasticity: 'snappy', // 'rigid' | 'snappy' | 'bouncy'
       magneticPull: false,
+      gravityDrop: false, // boolean toggle for kinetic physics collision & gravity drop
     },
     // NEW SECTION 6: Exploded View & CAD Blueprint
     exploded: {
@@ -162,6 +168,13 @@ export const FACTORY_DEFAULTS = {
       autoThrottleIdle: true,
       gpuAcceleration: 'standard', // 'standard' | 'webgl-boost'
       lowPowerThreshold: true,
+      showTelemetryHud: true, // boolean toggle for real-time performance telemetry HUD
+    },
+    // NEW SECTION 10: Custom 3D Mesh & Avatar Model Importer (Feature 6)
+    customMesh: {
+      type: 'avatar', // 'avatar' | 'gem' | 'cube' | 'custom'
+      customName: 'Atul Verma Avatar',
+      scale: 1.0,
     }
   }
 };
@@ -608,7 +621,8 @@ export function normalize3DLighting(raw) {
   const angle = typeof raw.angle === 'number' && !isNaN(raw.angle) ? clamp(raw.angle, 0, 360, defaults.angle) : defaults.angle;
   const cursorLight = typeof raw.cursorLight === 'boolean' ? raw.cursorLight : defaults.cursorLight;
   const shadowSoftness = typeof raw.shadowSoftness === 'number' && !isNaN(raw.shadowSoftness) ? clamp(raw.shadowSoftness, 0.1, 1.0, defaults.shadowSoftness) : defaults.shadowSoftness;
-  return { preset, angle: Math.round(angle), cursorLight, shadowSoftness: parseFloat(shadowSoftness.toFixed(2)) };
+  const showSunGizmo = typeof raw.showSunGizmo === 'boolean' ? raw.showSunGizmo : (defaults.showSunGizmo ?? true);
+  return { preset, angle: Math.round(angle), cursorLight, shadowSoftness: parseFloat(shadowSoftness.toFixed(2)), showSunGizmo };
 }
 
 export function normalize3DCamera(raw) {
@@ -638,10 +652,18 @@ export function normalize3DMaterials(raw) {
     : defaults.preset;
   const specularGlow = typeof raw.specularGlow === 'number' && !isNaN(raw.specularGlow) ? clamp(raw.specularGlow, 0.0, 1.0, defaults.specularGlow) : defaults.specularGlow;
   const bevelExtrusion = typeof raw.bevelExtrusion === 'number' && !isNaN(raw.bevelExtrusion) ? clamp(raw.bevelExtrusion, 1, 8, defaults.bevelExtrusion) : defaults.bevelExtrusion;
+  const roughness = typeof raw.roughness === 'number' && !isNaN(raw.roughness) ? clamp(raw.roughness, 0.0, 1.0, defaults.roughness) : defaults.roughness;
+  const metalness = typeof raw.metalness === 'number' && !isNaN(raw.metalness) ? clamp(raw.metalness, 0.0, 1.0, defaults.metalness) : defaults.metalness;
+  const ior = typeof raw.ior === 'number' && !isNaN(raw.ior) ? clamp(raw.ior, 1.0, 2.5, defaults.ior) : defaults.ior;
+  const clearcoat = typeof raw.clearcoat === 'number' && !isNaN(raw.clearcoat) ? clamp(raw.clearcoat, 0.0, 1.0, defaults.clearcoat) : defaults.clearcoat;
   return {
     preset,
     specularGlow: parseFloat(specularGlow.toFixed(2)),
-    bevelExtrusion: Math.round(bevelExtrusion)
+    bevelExtrusion: Math.round(bevelExtrusion),
+    roughness: parseFloat(roughness.toFixed(2)),
+    metalness: parseFloat(metalness.toFixed(2)),
+    ior: parseFloat(ior.toFixed(2)),
+    clearcoat: parseFloat(clearcoat.toFixed(2))
   };
 }
 
@@ -654,11 +676,13 @@ export function normalize3DPhysics(raw) {
     ? raw.elasticity
     : defaults.elasticity;
   const magneticPull = typeof raw.magneticPull === 'boolean' ? raw.magneticPull : defaults.magneticPull;
+  const gravityDrop = typeof raw.gravityDrop === 'boolean' ? raw.gravityDrop : Boolean(raw.gravityDrop);
   return {
     hoverPop: Math.round(hoverPop),
     clickDepression,
     elasticity,
-    magneticPull
+    magneticPull,
+    gravityDrop: Boolean(gravityDrop)
   };
 }
 
@@ -686,7 +710,7 @@ export function normalize3DExploded(raw) {
   const ghostOpacity = typeof raw.ghostOpacity === 'number' && !isNaN(raw.ghostOpacity)
     ? clamp(raw.ghostOpacity, 0.1, 1.0, defaults.ghostOpacity)
     : defaults.ghostOpacity;
-  const validStrata = ['strata-01', 'strata-02', 'strata-03'];
+  const validStrata = ['strata-01', 'strata-02', 'strata-03', 'chassis', 'content', 'dock'];
   const soloStrata = (typeof raw.soloStrata === 'string' && validStrata.includes(raw.soloStrata.trim().toLowerCase()))
     ? raw.soloStrata.trim().toLowerCase()
     : null;
@@ -758,11 +782,34 @@ export function normalize3DPerformance(raw) {
     ? raw.gpuAcceleration
     : defaults.gpuAcceleration;
   const lowPowerThreshold = typeof raw.lowPowerThreshold === 'boolean' ? raw.lowPowerThreshold : defaults.lowPowerThreshold;
+  const showTelemetryHud = typeof raw.showTelemetryHud === 'boolean' ? raw.showTelemetryHud : defaults.showTelemetryHud;
   return {
     fpsTarget,
     autoThrottleIdle,
     gpuAcceleration,
-    lowPowerThreshold
+    lowPowerThreshold,
+    showTelemetryHud
+  };
+}
+
+export function normalize3DCustomMesh(raw) {
+  const defaults = FACTORY_DEFAULTS.threeD.customMesh;
+  if (!raw || typeof raw !== 'object') return { ...defaults };
+  const validTypes = ['avatar', 'gem', 'cube', 'custom'];
+  const type = (typeof raw.type === 'string' && validTypes.includes(raw.type.trim().toLowerCase()))
+    ? raw.type.trim().toLowerCase()
+    : defaults.type;
+  const customName = typeof raw.customName === 'string' && raw.customName.trim()
+    ? raw.customName.trim()
+    : defaults.customName;
+  const scale = typeof raw.scale === 'number' && !isNaN(raw.scale)
+    ? clamp(raw.scale, 0.2, 3.0, defaults.scale)
+    : defaults.scale;
+  return {
+    type,
+    customName,
+    scale: parseFloat(scale.toFixed(2)),
+    ...(raw.fileUrl ? { fileUrl: raw.fileUrl } : {})
   };
 }
 
@@ -787,7 +834,8 @@ export function normalizeThreeD(raw) {
     exploded: normalize3DExploded(raw.exploded),
     environment: normalize3DEnvironment(raw.environment),
     spatialAudio: normalize3DSpatialAudio(raw.spatialAudio),
-    performance: normalize3DPerformance(raw.performance)
+    performance: normalize3DPerformance(raw.performance),
+    customMesh: normalize3DCustomMesh(raw.customMesh)
   };
 }
 
@@ -810,6 +858,10 @@ export function computeScopedSandboxStyles(threeD = FACTORY_DEFAULTS.threeD, ove
     '--3d-material-preset': cfg.materials?.preset || 'glass-acrylic',
     '--3d-specular-glow': `${cfg.materials?.specularGlow ?? 0.6}`,
     '--3d-bevel-extrusion': `${cfg.materials?.bevelExtrusion ?? 3}px`,
+    '--3d-roughness': `${cfg.materials?.roughness ?? 0.25}`,
+    '--3d-metalness': `${cfg.materials?.metalness ?? 0.20}`,
+    '--3d-ior': `${cfg.materials?.ior ?? 1.50}`,
+    '--3d-clearcoat': `${cfg.materials?.clearcoat ?? 0.40}`,
     '--3d-hover-pop': `${cfg.physics?.hoverPop ?? 12}px`,
     '--3d-elasticity': cfg.physics?.elasticity || 'snappy',
     '--3d-explode-z': `${explodeZ}px`,
@@ -931,7 +983,8 @@ export function loadSavedControlCenterConfig() {
             exploded: normalize3DExploded(threeDRaw.exploded),
             environment: normalize3DEnvironment(threeDRaw.environment),
             spatialAudio: normalize3DSpatialAudio(threeDRaw.spatialAudio),
-            performance: normalize3DPerformance(threeDRaw.performance)
+            performance: normalize3DPerformance(threeDRaw.performance),
+            customMesh: normalize3DCustomMesh(threeDRaw.customMesh)
           }
         };
       }
@@ -2292,6 +2345,10 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DLighting({ shadowSoftness });
   }, [set3DLighting]);
 
+  const set3DShowSunGizmo = useCallback((showSunGizmo) => {
+    set3DLighting({ showSunGizmo: Boolean(showSunGizmo) });
+  }, [set3DLighting]);
+
   const set3DCamera = useCallback((patch) => {
     setThreeDState((prev) => ({
       ...prev,
@@ -2338,6 +2395,22 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DMaterials({ bevelExtrusion });
   }, [set3DMaterials]);
 
+  const set3DMaterialRoughness = useCallback((roughness) => {
+    set3DMaterials({ roughness });
+  }, [set3DMaterials]);
+
+  const set3DMaterialMetalness = useCallback((metalness) => {
+    set3DMaterials({ metalness });
+  }, [set3DMaterials]);
+
+  const set3DMaterialIOR = useCallback((ior) => {
+    set3DMaterials({ ior });
+  }, [set3DMaterials]);
+
+  const set3DMaterialClearcoat = useCallback((clearcoat) => {
+    set3DMaterials({ clearcoat });
+  }, [set3DMaterials]);
+
   const set3DPhysics = useCallback((patch) => {
     setThreeDState((prev) => ({
       ...prev,
@@ -2361,6 +2434,19 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DPhysics({ magneticPull: Boolean(magneticPull) });
   }, [set3DPhysics]);
 
+  const set3DGravityDrop = useCallback((gravityDrop) => {
+    set3DPhysics({ gravityDrop: Boolean(gravityDrop) });
+  }, [set3DPhysics]);
+
+  const set3DCustomMesh = useCallback((meshConfig) => {
+    setThreeDState((prev) => ({
+      ...prev,
+      customMesh: normalize3DCustomMesh(
+        typeof meshConfig === 'function' ? meshConfig(prev.customMesh) : { ...prev.customMesh, ...meshConfig }
+      )
+    }));
+  }, []);
+
   const set3DClusterFilter = useCallback((clusterFilter) => {
     setThreeDState((prev) => ({
       ...prev,
@@ -2376,6 +2462,10 @@ export function LabProvider({ children, initialSoundEnabled }) {
       )
     }));
   }, []);
+
+  const set3DSoloStrata = useCallback((strataKey) => {
+    set3DExploded({ soloStrata: strataKey ?? null });
+  }, [set3DExploded]);
 
   const set3DEnvironment = useCallback((patch) => {
     setThreeDState((prev) => ({
@@ -2983,6 +3073,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DLightingAngle,
     set3DCursorLight,
     set3DShadowSoftness,
+    set3DShowSunGizmo,
     set3DCamera,
     set3DCameraAnglePreset,
     set3DPerspectiveFOV,
@@ -2993,13 +3084,20 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DMaterialPreset,
     set3DSpecularGlow,
     set3DBevelExtrusion,
+    set3DMaterialRoughness,
+    set3DMaterialMetalness,
+    set3DMaterialIOR,
+    set3DMaterialClearcoat,
     set3DPhysics,
     set3DPhysicsHoverPop,
     set3DClickDepression,
     set3DElasticity,
     set3DMagneticPull,
+    set3DGravityDrop,
+    set3DCustomMesh,
     set3DClusterFilter,
     set3DExploded,
+    set3DSoloStrata,
     set3DEnvironment,
     set3DSpatialAudio,
     set3DPerformance,
@@ -3144,6 +3242,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DLightingAngle,
     set3DCursorLight,
     set3DShadowSoftness,
+    set3DShowSunGizmo,
     set3DCamera,
     set3DCameraAnglePreset,
     set3DPerspectiveFOV,
@@ -3154,13 +3253,20 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DMaterialPreset,
     set3DSpecularGlow,
     set3DBevelExtrusion,
+    set3DMaterialRoughness,
+    set3DMaterialMetalness,
+    set3DMaterialIOR,
+    set3DMaterialClearcoat,
     set3DPhysics,
     set3DPhysicsHoverPop,
     set3DClickDepression,
     set3DElasticity,
     set3DMagneticPull,
+    set3DGravityDrop,
+    set3DCustomMesh,
     set3DClusterFilter,
     set3DExploded,
+    set3DSoloStrata,
     set3DEnvironment,
     set3DSpatialAudio,
     set3DPerformance,
@@ -3349,6 +3455,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DLightingAngle,
     set3DCursorLight,
     set3DShadowSoftness,
+    set3DShowSunGizmo,
     set3DCamera,
     set3DCameraAnglePreset,
     set3DPerspectiveFOV,
@@ -3359,13 +3466,20 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DMaterialPreset,
     set3DSpecularGlow,
     set3DBevelExtrusion,
+    set3DMaterialRoughness,
+    set3DMaterialMetalness,
+    set3DMaterialIOR,
+    set3DMaterialClearcoat,
     set3DPhysics,
     set3DPhysicsHoverPop,
     set3DClickDepression,
     set3DElasticity,
     set3DMagneticPull,
+    set3DGravityDrop,
+    set3DCustomMesh,
     set3DClusterFilter,
     set3DExploded,
+    set3DSoloStrata,
     set3DEnvironment,
     set3DSpatialAudio,
     set3DPerformance,
@@ -3389,6 +3503,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DLightingAngle,
     set3DCursorLight,
     set3DShadowSoftness,
+    set3DShowSunGizmo,
     set3DCamera,
     set3DCameraAnglePreset,
     set3DPerspectiveFOV,
@@ -3399,13 +3514,20 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DMaterialPreset,
     set3DSpecularGlow,
     set3DBevelExtrusion,
+    set3DMaterialRoughness,
+    set3DMaterialMetalness,
+    set3DMaterialIOR,
+    set3DMaterialClearcoat,
     set3DPhysics,
     set3DPhysicsHoverPop,
     set3DClickDepression,
     set3DElasticity,
     set3DMagneticPull,
+    set3DGravityDrop,
+    set3DCustomMesh,
     set3DClusterFilter,
     set3DExploded,
+    set3DSoloStrata,
     set3DEnvironment,
     set3DSpatialAudio,
     set3DPerformance,

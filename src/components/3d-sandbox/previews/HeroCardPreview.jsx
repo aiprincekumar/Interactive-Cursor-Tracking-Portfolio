@@ -7,11 +7,13 @@ import {
   Shield,
   Zap,
   Activity,
-  Code
+  Code,
+  Box
 } from 'lucide-react';
 import { useLab3D } from '../../../context/LabContext';
 import { soundFX } from '../../../utils/audio';
 import { THEME_PORTFOLIO_STYLES, ELASTICITY_TRANSITIONS } from '../UniversalMiniPortfolio';
+import { GemMeshVisual, CyberCubeMeshVisual } from '../Visual3DPresets';
 
 /**
  * HeroCardPreview
@@ -35,7 +37,11 @@ export function HeroCardPreview({
   const masterTheme = threeD.masterTheme || 'apple-glass';
   const elements = threeD.elements || {};
   const lighting = threeD.lighting || { angle: 45, shadowSoftness: 0.6, intensity: 1 };
-  const materials = threeD.materials || { preset: 'glass-acrylic', bevelExtrusion: 4, specularGlow: 0.7 };
+  const materials = threeD.materials || { preset: 'glass-acrylic', bevelExtrusion: 4, specularGlow: 0.7, roughness: 0.25, metalness: 0.20, ior: 1.50, clearcoat: 0.40 };
+  const roughness = typeof materials.roughness === 'number' ? materials.roughness : 0.25;
+  const metalness = typeof materials.metalness === 'number' ? materials.metalness : 0.20;
+  const ior = typeof materials.ior === 'number' ? materials.ior : 1.50;
+  const clearcoat = typeof materials.clearcoat === 'number' ? materials.clearcoat : 0.40;
   const physics = threeD.physics || { hoverPop: 12, elasticity: 'snappy', clickDepression: true };
   const hoverPop = typeof physics.hoverPop === 'number' ? physics.hoverPop : 12;
   const isClickDepressionEnabled = physics.clickDepression ?? true;
@@ -86,9 +92,9 @@ export function HeroCardPreview({
       case 'metallic':
       case 'metallic-gloss':
         return {
-          background: 'linear-gradient(135deg, rgba(220, 225, 235, 0.9) 0%, rgba(160, 170, 190, 0.85) 100%)',
-          borderColor: 'rgba(255, 255, 255, 0.8)',
-          boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.4), inset 0 1px ${bevel}px rgba(255, 255, 255, 0.7)`
+          background: `linear-gradient(135deg, rgba(${Math.round(220 - metalness * 40)}, ${Math.round(225 - metalness * 30)}, ${Math.round(235 - metalness * 20)}, 0.9) 0%, rgba(160, 170, 190, 0.85) 100%)`,
+          borderColor: `rgba(255, 255, 255, ${0.7 + metalness * 0.25})`,
+          boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.4), inset 0 1px ${bevel}px rgba(255, 255, 255, ${0.5 + metalness * 0.4}), 0 0 ${Math.round((ior - 1) * 10)}px rgba(255, 255, 255, 0.2)`
         };
       case 'clay':
       case 'neumorphic-clay':
@@ -131,13 +137,87 @@ export function HeroCardPreview({
         }
         return {
           background: 'rgba(255, 255, 255, 0.82)',
-          borderColor: 'rgba(255, 77, 109, 0.35)',
-          boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.32)`
+          borderColor: `rgba(255, 77, 109, ${0.25 + (ior - 1) * 0.15})`,
+          boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.32), inset 0 0 ${Math.round(8 * (ior - 1))}px rgba(255, 255, 255, 0.3), 0 0 ${Math.round(clearcoat * 12)}px rgba(255, 255, 255, 0.25)`
         };
     }
   };
 
   const matStyle = getMaterialStyles();
+  const customMesh = threeD.customMesh || { type: 'avatar', customName: 'Atul Verma Avatar', scale: 1.0 };
+
+  const renderHeroAvatarGeometry = () => {
+    const meshType = customMesh.type || 'avatar';
+    const meshScale = customMesh.scale || 1.0;
+
+    if (meshType === 'gem') {
+      return (
+        <div
+          data-testid="hero-mesh-gem"
+          className="w-20 h-20 rounded-full bg-[#181226] border-2 border-cyan-400 shadow-[0_0_25px_rgba(0,242,254,0.5)] flex flex-col items-center justify-center relative overflow-hidden"
+          style={{ transform: `scale(${meshScale})` }}
+        >
+          <GemMeshVisual scale={1.2} />
+          <span className="text-[8px] font-mono font-bold text-cyan-300 mt-0.5">3D GEM</span>
+        </div>
+      );
+    }
+
+    if (meshType === 'cube') {
+      return (
+        <div
+          data-testid="hero-mesh-cube"
+          className="w-20 h-20 rounded-full bg-[#181226] border-2 border-cyan-400 shadow-[0_0_25px_rgba(0,242,254,0.5)] flex flex-col items-center justify-center relative overflow-hidden"
+          style={{ transform: `scale(${meshScale})` }}
+        >
+          <CyberCubeMeshVisual scale={1.3} />
+          <span className="text-[8px] font-mono font-bold text-cyan-300 mt-0.5">CYBER CUBE</span>
+        </div>
+      );
+    }
+
+    if (meshType === 'custom') {
+      return (
+        <div
+          data-testid="hero-mesh-custom"
+          className="w-20 h-20 rounded-full bg-[#181226] border-2 border-purple-500 shadow-[0_0_25px_rgba(168,85,247,0.5)] flex flex-col items-center justify-center relative overflow-hidden p-2 text-center"
+          style={{ transform: `scale(${meshScale})` }}
+        >
+          <Box className="w-6 h-6 text-purple-400 animate-pulse mb-1" />
+          <span className="text-[8px] font-mono font-bold text-purple-200 truncate max-w-[65px]">
+            {customMesh.customName || 'CUSTOM MESH'}
+          </span>
+          <span className="text-[7px] font-mono text-purple-400">
+            {customMesh.scale?.toFixed(1) || '1.0'}x SCALE
+          </span>
+        </div>
+      );
+    }
+
+    // Default 'avatar': Classic gaze-tracking developer portrait with dynamic 3D elevation
+    return (
+      <div
+        data-testid="hero-mesh-avatar"
+        className={`w-20 h-20 rounded-full bg-gradient-to-tr ${themeStyle.hero.avatarGradient || 'from-[#FF4D6D] via-[#7928CA] to-[#00F2FE]'} p-1 shadow-xl flex items-center justify-center`}
+        style={{ transform: `scale(${meshScale})` }}
+      >
+        <div className="w-full h-full rounded-full bg-[#181226] text-white flex flex-col items-center justify-center relative overflow-hidden border border-white/20">
+          <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
+            AV
+          </span>
+          <span className="text-[9px] font-mono text-cyan-400 opacity-90">STUDIO</span>
+
+          {/* Specular glint on avatar */}
+          <div
+            className="absolute inset-0 pointer-events-none rounded-full"
+            style={{
+              background: `radial-gradient(circle at ${50 + lightOffsetX * 2}% ${50 - lightOffsetY * 2}%, rgba(255, 255, 255, 0.45) 0%, transparent 60%)`
+            }}
+          />
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div
@@ -170,6 +250,10 @@ export function HeroCardPreview({
         transformStyle: 'preserve-3d',
         borderWidth: `${bevel}px`,
         transition: `transform ${activeElasticity.duration} ${activeElasticity.curve}, box-shadow ${activeElasticity.duration} ease`,
+        '--3d-roughness': roughness,
+        '--3d-metalness': metalness,
+        '--3d-ior': ior,
+        '--3d-clearcoat': clearcoat,
         ...matStyle
       }}
     >
@@ -192,33 +276,18 @@ export function HeroCardPreview({
           </span>
         )}
 
-        {/* STRATUM 2: AVATAR ORB */}
+        {/* STRATUM 2: AVATAR ORB / 3D GEOMETRY */}
         <div
           className="relative group cursor-pointer transition-transform duration-200"
           style={{ transform: `translateZ(${zAvatar}px)`, transformStyle: 'preserve-3d' }}
         >
           {isExploded && (
             <span className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-mono uppercase px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-              [STRATUM 2: AVATAR ORB]
+              [STRATUM 2: {customMesh.type === 'gem' ? 'GEM CRYSTAL' : customMesh.type === 'cube' ? 'CYBER CUBE' : customMesh.type === 'custom' ? 'CUSTOM MESH' : 'AVATAR ORB'}]
             </span>
           )}
 
-          <div className={`w-20 h-20 rounded-full bg-gradient-to-tr ${themeStyle.hero.avatarGradient || 'from-[#FF4D6D] via-[#7928CA] to-[#00F2FE]'} p-1 shadow-xl flex items-center justify-center`}>
-            <div className="w-full h-full rounded-full bg-[#181226] text-white flex flex-col items-center justify-center relative overflow-hidden border border-white/20">
-              <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
-                AV
-              </span>
-              <span className="text-[9px] font-mono text-cyan-400 opacity-90">STUDIO</span>
-
-              {/* Specular glint on avatar */}
-              <div
-                className="absolute inset-0 pointer-events-none rounded-full"
-                style={{
-                  background: `radial-gradient(circle at ${50 + lightOffsetX * 2}% ${50 - lightOffsetY * 2}%, rgba(255, 255, 255, 0.45) 0%, transparent 60%)`
-                }}
-              />
-            </div>
-          </div>
+          {renderHeroAvatarGeometry()}
 
           {/* Animated online status indicator */}
           <div
