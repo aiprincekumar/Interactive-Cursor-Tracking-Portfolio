@@ -13,7 +13,7 @@ import {
 import { useLab3D } from '../../../context/LabContext';
 import { soundFX } from '../../../utils/audio';
 import { THEME_PORTFOLIO_STYLES, ELASTICITY_TRANSITIONS } from '../UniversalMiniPortfolio';
-import { GemMeshVisual, CyberCubeMeshVisual } from '../Visual3DPresets';
+import { GemMeshVisual, CyberCubeMeshVisual, GeodesicSphereMeshVisual, QuantumTorusMeshVisual } from '../Visual3DPresets';
 
 /**
  * HeroCardPreview
@@ -80,67 +80,73 @@ export function HeroCardPreview({
 
   // Material style computation
   const getMaterialStyles = () => {
-    if (isBlueprint) {
-      return {
-        background: 'rgba(6, 182, 212, 0.08)',
-        borderColor: 'rgba(6, 182, 212, 0.6)',
-        color: '#22d3ee',
-        boxShadow: `0 0 25px rgba(6, 182, 212, 0.25), inset 0 0 15px rgba(6, 182, 212, 0.15)`
-      };
-    }
+    let base = {};
     switch (materials.preset) {
       case 'metallic':
       case 'metallic-gloss':
-        return {
+        base = {
           background: `linear-gradient(135deg, rgba(${Math.round(220 - metalness * 40)}, ${Math.round(225 - metalness * 30)}, ${Math.round(235 - metalness * 20)}, 0.9) 0%, rgba(160, 170, 190, 0.85) 100%)`,
           borderColor: `rgba(255, 255, 255, ${0.7 + metalness * 0.25})`,
           boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.4), inset 0 1px ${bevel}px rgba(255, 255, 255, ${0.5 + metalness * 0.4}), 0 0 ${Math.round((ior - 1) * 10)}px rgba(255, 255, 255, 0.2)`
         };
+        break;
       case 'clay':
       case 'neumorphic-clay':
-        return {
+        base = {
           background: '#ECE8DF',
           borderColor: '#e2e8f0',
           boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(100, 116, 139, 0.3), ${-lightOffsetX}px ${-lightOffsetY}px ${shadowBlur}px rgba(255, 255, 255, 0.7)`
         };
+        break;
       case 'wireframe':
       case 'cyber-wireframe':
-        return {
+        base = {
           background: 'rgba(5, 5, 12, 0.85)',
           borderColor: '#06b6d4',
           borderStyle: 'dashed',
           boxShadow: `0 0 20px rgba(6, 182, 212, 0.3), inset 0 0 10px rgba(6, 182, 212, 0.15)`
         };
+        break;
       case 'glass':
       case 'glass-acrylic':
       default:
         if (masterTheme === 'cyber-neon') {
-          return {
+          base = {
             background: '#0B0813',
             borderColor: '#FF007A',
             boxShadow: `0 0 20px rgba(255, 0, 122, 0.4), inset 0 0 12px rgba(0, 242, 254, 0.25)`
           };
-        }
-        if (masterTheme === 'studio-matte') {
-          return {
+        } else if (masterTheme === 'studio-matte') {
+          base = {
             background: '#EAE6DE',
             borderColor: '#BEB8AC',
             boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.16), inset 0 1px 3px rgba(255, 255, 255, 0.3)`
           };
-        }
-        if (masterTheme === 'floating-hologram') {
-          return {
+        } else if (masterTheme === 'floating-hologram') {
+          base = {
             background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.35) 0%, rgba(147, 51, 234, 0.4) 100%)',
             borderColor: 'rgba(192, 132, 252, 0.65)',
             boxShadow: `0 0 24px rgba(147, 51, 234, 0.45), inset 0 0 14px rgba(129, 140, 248, 0.3)`
           };
+        } else {
+          base = {
+            background: 'rgba(255, 255, 255, 0.82)',
+            borderColor: `rgba(255, 77, 109, ${0.25 + (ior - 1) * 0.15})`,
+            boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.32), inset 0 0 ${Math.round(8 * (ior - 1))}px rgba(255, 255, 255, 0.3), 0 0 ${Math.round(clearcoat * 12)}px rgba(255, 255, 255, 0.25)`
+          };
         }
-        return {
-          background: 'rgba(255, 255, 255, 0.82)',
-          borderColor: `rgba(255, 77, 109, ${0.25 + (ior - 1) * 0.15})`,
-          boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.32), inset 0 0 ${Math.round(8 * (ior - 1))}px rgba(255, 255, 255, 0.3), 0 0 ${Math.round(clearcoat * 12)}px rgba(255, 255, 255, 0.25)`
-        };
+        break;
     }
+
+    if (isBlueprint) {
+      return {
+        ...base,
+        borderStyle: 'dashed',
+        borderColor: 'rgba(6, 182, 212, 0.75)',
+        boxShadow: `${base.boxShadow ? base.boxShadow + ', ' : ''}0 0 25px rgba(6, 182, 212, 0.35), inset 0 0 15px rgba(6, 182, 212, 0.15)`
+      };
+    }
+    return base;
   };
 
   const matStyle = getMaterialStyles();
@@ -172,6 +178,32 @@ export function HeroCardPreview({
         >
           <CyberCubeMeshVisual scale={1.3} />
           <span className="text-[8px] font-mono font-bold text-cyan-300 mt-0.5">CYBER CUBE</span>
+        </div>
+      );
+    }
+
+    if (meshType === 'sphere') {
+      return (
+        <div
+          data-testid="hero-mesh-sphere"
+          className="w-20 h-20 rounded-full bg-[#181226] border-2 border-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.5)] flex flex-col items-center justify-center relative overflow-hidden"
+          style={{ transform: `scale(${meshScale})` }}
+        >
+          <GeodesicSphereMeshVisual scale={1.2} />
+          <span className="text-[8px] font-mono font-bold text-purple-300 mt-0.5">GEODESIC</span>
+        </div>
+      );
+    }
+
+    if (meshType === 'torus') {
+      return (
+        <div
+          data-testid="hero-mesh-torus"
+          className="w-20 h-20 rounded-full bg-[#181226] border-2 border-pink-400 shadow-[0_0_25px_rgba(236,72,153,0.5)] flex flex-col items-center justify-center relative overflow-hidden"
+          style={{ transform: `scale(${meshScale})` }}
+        >
+          <QuantumTorusMeshVisual scale={1.2} />
+          <span className="text-[8px] font-mono font-bold text-pink-300 mt-0.5">TORUS RING</span>
         </div>
       );
     }

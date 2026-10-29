@@ -83,7 +83,7 @@ import UniversalMiniPortfolio from './3d-sandbox/UniversalMiniPortfolio';
 import { CAMERA_PRESET_ANGLES } from './3d-sandbox/UniversalMiniPortfolio';
 import StickySandboxColumn from './3d-sandbox/StickySandboxColumn';
 import { ThreeDPresetCard, ThreeDActionKeycap, ThreeDToggleKey } from './3d-sandbox/ThreeDButtonPrimitives';
-import { CameraCubePreview, MaterialShaderSphere, ThemeExtrudedSlab, LightingVectorPreview, GemMeshVisual, CyberCubeMeshVisual } from './3d-sandbox/Visual3DPresets';
+import { CameraCubePreview, MaterialShaderSphere, ThemeExtrudedSlab, LightingVectorPreview, GemMeshVisual, CyberCubeMeshVisual, GeodesicSphereMeshVisual, QuantumTorusMeshVisual } from './3d-sandbox/Visual3DPresets';
 import { SpringElasticityVisual, ExplodedCADLayerVisual } from './3d-sandbox/PhysicsAndCADVisuals';
 import useSandboxAutoSwitch from '../hooks/useSandboxAutoSwitch';
 import { useLab, useLabVisuals, useLabChat, DEFAULT_AI_CHAT_SETTINGS, POSE_INDEX_MAP } from '../context/LabContext';
@@ -410,26 +410,40 @@ const MESH_GEOMETRY_PRESETS = [
     name: 'Developer 2.5D Avatar',
     desc: 'Classic gaze-tracking developer portrait with dynamic 3D elevation',
     icon: User,
-    badge: 'Default Profile'
+    badge: 'Studio Profile'
   },
   {
     id: 'gem',
     name: 'Low-Poly Diamond Gem',
-    desc: '3D animated faceted crystal with dynamic chromatic reflections',
+    desc: 'Kinetic faceted crystal with chromatic refraction angles',
     icon: Gem,
     badge: 'Faceted Crystal'
   },
   {
     id: 'cube',
     name: 'Cyber Hologram Cube',
-    desc: '3D spinning neon wireframe cube with holographic edges',
+    desc: 'Isometric 3D holographic cube with glowing cyber edges',
     icon: Box,
     badge: 'Neon Wireframe'
   },
   {
+    id: 'sphere',
+    name: 'Geodesic Wireframe Sphere',
+    desc: 'Spherical coordinate lattice with orbital planetary latitude rings',
+    icon: Globe,
+    badge: 'Orbital Lattice'
+  },
+  {
+    id: 'torus',
+    name: 'Quantum Torus Gyroscope',
+    desc: 'Dual counter-rotating particle energy rings with core nucleus',
+    icon: CircleDot,
+    badge: 'Quantum Ring'
+  },
+  {
     id: 'custom',
     name: 'Custom File Upload',
-    desc: 'Client-side .gltf / .obj / .glb model importer with custom geometry parsing',
+    desc: 'Client-side .gltf, .glb, or .obj geometry drag & drop loader',
     icon: Upload,
     badge: 'GLTF / OBJ 3D'
   }
@@ -625,9 +639,9 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
   } = lab;
 
   const [expandedAccordion, setExpandedAccordion] = useState(null);
-  const [expandedPresetSandboxSection, setExpandedPresetSandboxSection] = useState(null); // null | 'universal' | 'preview'
-  const togglePresetSandboxSection = useCallback((secKey) => {
-    setExpandedPresetSandboxSection((prev) => (prev === secKey ? null : secKey));
+  const [expandedPresetSection, setExpandedPresetSection] = useState(null); // null by default (all collapsed) | 'engine' | 'sandbox' | 'toolkit' | 'geometry'
+  const togglePresetSection = useCallback((secKey) => {
+    setExpandedPresetSection((prev) => (prev === secKey ? null : secKey));
     if (soundEnabled) soundFX.playHapticClick();
   }, [soundEnabled]);
   const [active3DSubTab, setActive3DSubTab] = useState('themes'); // 'themes' | 'all' | 'design' | 'physics' | 'system' | 'preset'
@@ -637,6 +651,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
     handleManualTabSelect,
     isAutoSwitchPaused,
     resumeAutoSwitch,
+    pauseAutoSwitch,
     notifyAccordionChange
   } = useSandboxAutoSwitch({ initialTab: 'universal' });
 
@@ -803,6 +818,15 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
       set3DExploded({ enabled: false, separationDistance: 40, blueprintMode: false });
     }
 
+    if (typeof set3DCamera === 'function') {
+      set3DCamera({ autoOrbit: false });
+    }
+    if (typeof set3DExploded === 'function') {
+      set3DExploded({ enabled: false, blueprintMode: false });
+    }
+    if (typeof resumeAutoSwitch === 'function') {
+      resumeAutoSwitch();
+    }
     resetSandboxView();
 
     if (soundEnabled) {
@@ -2879,810 +2903,982 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                   </div>
                 </div>
               ) : active3DSubTab === 'preset' ? (
-                /* 2. Preset & Developer Toolkit View (Card A + Card B + Card C) */
+                /* 2. Preset & Developer Toolkit View (All 4 Collapsible Sections - Default Collapsed, Single-Open) */
                 <div className="flex flex-col gap-4 animate-fadeIn">
-                  {/* Card A: Unified Global 3D & Scene Engine Hub (3-in-1 Compact Grid) */}
-                  <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ECE7DF] dark:border-[#2D2340]/60 pb-3">
-                      <div>
-                        <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
-                          <Box className="w-4 h-4 text-[#FF4D6D]" />
-                          <span>Global 3D &amp; Scene Engine Hub</span>
-                        </h4>
-                        <p className="text-xs text-stone-500 dark:text-stone-400">
-                          Unified switches for global 3D matrix, visual tactile keycaps, and batch scene controls
-                        </p>
+                  {/* ========================================================================= */}
+                  {/* PRESET ACCORDION 1: GLOBAL 3D & SCENE ENGINE HUB                         */}
+                  {/* ========================================================================= */}
+                  <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
+                    <button
+                      type="button"
+                      onClick={() => togglePresetSection('engine')}
+                      aria-expanded={expandedPresetSection === 'engine'}
+                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-[#FF4D6D]/15 text-[#FF4D6D] flex items-center justify-center font-bold text-sm shrink-0">
+                          <Box className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <h5 className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white truncate">
+                            Global 3D &amp; Scene Engine Hub
+                          </h5>
+                          <p className="text-xs text-stone-500 dark:text-stone-400">
+                            Unified switches for global 3D matrix, visual tactile keycaps, and batch scene controls
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 self-start sm:self-auto">
+
+                      <div className="flex items-center gap-2.5 shrink-0">
                         <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700">
                           {active3DCount} of 10 Elements Enabled
                         </span>
-                      </div>
-                    </div>
-
-                    {/* 3-in-1 Tactile Buttons Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {/* Button 1: Master 3D Mode */}
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={isMaster3DOn}
-                        aria-label="Master 3D Mode Toggle"
-                        onClick={() => {
-                          setMaster3D(!isMaster3DOn);
-                          if (soundEnabled) soundFX.playShutterClick();
-                        }}
-                        className={`group relative flex flex-col justify-between p-3 sm:p-3.5 rounded-xl border text-left cursor-pointer transition-all min-h-[78px] select-none ${
-                          isTab3DActive
-                            ? isMaster3DOn
-                              ? 'bg-gradient-to-br from-[#FF4D6D]/12 via-white/95 to-[#FF4D6D]/8 dark:from-[#FF4D6D]/20 dark:via-[#1D162E]/95 dark:to-[#2B1428] border-[#FF4D6D]/50 shadow-[0_3px_0_0_#D93856] active:translate-y-[1.5px]'
-                              : 'bg-white/95 hover:bg-stone-50 dark:bg-[#1D162E]/95 dark:hover:bg-[#251D3D] border-stone-200/90 dark:border-stone-700/80 shadow-[0_3px_0_0_#D1CBC1] dark:shadow-[0_3px_0_0_#140D20] active:translate-y-[1.5px]'
-                            : isMaster3DOn
-                              ? 'bg-gradient-to-br from-[#FF4D6D]/10 via-white/90 to-[#FF4D6D]/5 dark:from-[#FF4D6D]/15 dark:via-[#181226] dark:to-[#221324] border-[#FF4D6D]/40 shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#2D2340] active:scale-[0.99]'
-                              : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#2D2340] active:scale-[0.99]'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between w-full mb-2">
-                          <div
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                              isMaster3DOn
-                                ? 'bg-[#FF4D6D]/15 text-[#FF4D6D]'
-                                : 'bg-stone-100 dark:bg-stone-800 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300'
-                            }`}
-                          >
-                            <Box className="w-3.5 h-3.5" />
-                          </div>
-                          <span
-                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border transition-all ${
-                              isMaster3DOn
-                                ? 'bg-[#FF4D6D]/15 text-[#FF4D6D] border-[#FF4D6D]/30'
-                                : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
-                            }`}
-                          >
-                            {isMaster3DOn ? '3D Active' : 'Classic 2D'}
-                          </span>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-xs font-bold text-[#18181B] dark:text-white truncate">
-                            Master 3D Mode
-                          </div>
-                          <p className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
-                            Global Engine &amp; Transforms
-                          </p>
-                        </div>
-                      </button>
-
-                      {/* Button 2: Master 3D Tab UI Mode (3D Visual Keycaps) */}
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={isTab3DActive}
-                        aria-label="Master 3D Tab UI Mode Toggle"
-                        title="Master 3D Tab UI Mode"
-                        onClick={() => {
-                          if (typeof setTabUI3DMode === 'function') {
-                            setTabUI3DMode(!isTab3DActive);
-                          } else if (typeof toggleTabUI3DMode === 'function') {
-                            toggleTabUI3DMode();
-                          } else if (typeof toggle3DVisualMode === 'function') {
-                            toggle3DVisualMode();
-                          }
-                          if (soundEnabled) soundFX.playShutterClick();
-                        }}
-                        className={`group relative flex flex-col justify-between p-3 sm:p-3.5 rounded-xl border text-left cursor-pointer transition-all min-h-[78px] select-none ${
-                          isTab3DActive
-                            ? 'bg-gradient-to-br from-[#FF4D6D]/12 via-white/95 to-[#FF4D6D]/8 dark:from-[#FF4D6D]/20 dark:via-[#1D162E]/95 dark:to-[#2B1428] border-[#FF4D6D]/50 shadow-[0_3px_0_0_#D93856] active:translate-y-[1.5px]'
-                            : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#2D2340] active:scale-[0.99]'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between w-full mb-2">
-                          <div
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                              isTab3DActive
-                                ? 'bg-[#FF4D6D]/15 text-[#FF4D6D]'
-                                : 'bg-stone-100 dark:bg-stone-800 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300'
-                            }`}
-                          >
-                            <Sparkles className={`w-3.5 h-3.5 ${isTab3DActive ? 'animate-pulse' : ''}`} />
-                          </div>
-                          <span
-                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border transition-all ${
-                              isTab3DActive
-                                ? 'bg-[#FF4D6D] text-white border-[#FF4D6D] shadow-xs'
-                                : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-300 dark:border-stone-700'
-                            }`}
-                          >
-                            {isTab3DActive ? 'Visual 3D' : 'Classic 2D'}
-                            <span className="sr-only">
-                              {isTab3DActive ? '3D Visual Active (Zero-Text)' : 'Classic 2D Text Active'}
-                            </span>
-                          </span>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-xs font-bold text-[#18181B] dark:text-white truncate">
-                            3D Keycaps
-                          </div>
-                          <p className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
-                            Tactile Beveled Buttons
-                          </p>
-                        </div>
-                      </button>
-
-                      {/* Button 3: All 10 Elements Smart Bulk Switch */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (active3DCount > 0) {
-                            disableAll3D();
-                            if (soundEnabled) soundFX.playHapticClick();
-                          } else {
-                            enableAll3D();
-                            if (soundEnabled) soundFX.playLaserFocus();
-                          }
-                        }}
-                        title={active3DCount > 0 ? 'Disable All 3D Elements (Revert to 2D)' : 'Enable All 3D Elements'}
-                        aria-label={active3DCount > 0 ? 'Disable All 2D' : 'Enable All 3D'}
-                        className={`group relative flex flex-col justify-between p-3 sm:p-3.5 rounded-xl border text-left cursor-pointer transition-all min-h-[78px] select-none ${
-                          isTab3DActive
-                            ? active3DCount > 0
-                              ? 'bg-gradient-to-br from-emerald-500/12 via-white/95 to-emerald-500/8 dark:from-emerald-500/20 dark:via-[#1D162E]/95 dark:to-[#172B1E] border-emerald-500/50 shadow-[0_3px_0_0_#059669] active:translate-y-[1.5px]'
-                              : 'bg-white/95 hover:bg-stone-50 dark:bg-[#1D162E]/95 dark:hover:bg-[#251D3D] border-stone-200/90 dark:border-stone-700/80 shadow-[0_3px_0_0_#D1CBC1] dark:shadow-[0_3px_0_0_#140D20] active:translate-y-[1.5px]'
-                            : active3DCount > 0
-                              ? 'bg-gradient-to-br from-emerald-500/10 via-white/90 to-emerald-500/5 dark:from-emerald-500/15 dark:via-[#181226] dark:to-[#17261B] border-emerald-500/40 shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#2D2340] active:scale-[0.99]'
-                              : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#2D2340] active:scale-[0.99]'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between w-full mb-2">
-                          <div
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                              active3DCount > 0
-                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                                : 'bg-stone-100 dark:bg-stone-800 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300'
-                            }`}
-                          >
-                            {active3DCount > 0 ? (
-                              <CheckCheck className="w-3.5 h-3.5" />
-                            ) : (
-                              <Layers className="w-3.5 h-3.5" />
-                            )}
-                          </div>
-                          <span
-                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border transition-all ${
-                              active3DCount > 0
-                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                                : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
-                            }`}
-                          >
-                            {active3DCount} / 10 Active
-                          </span>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-xs font-bold text-[#18181B] dark:text-white truncate">
-                            All 10 Elements
-                          </div>
-                          <p className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
-                            {active3DCount > 0 ? 'Click to Flatten All (2D)' : 'Click to Activate All (3D)'}
-                          </p>
-                        </div>
-                        <span className="sr-only">Enable All 3D / Disable All 2D</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Card: Spatial Sandbox Controls & Calibration */}
-                  <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ECE7DF] dark:border-[#2D2340]/60 pb-3">
-                      <div>
-                        <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
-                          <Sliders className="w-4 h-4 text-[#FF4D6D]" />
-                          <span>Spatial Sandbox Controls &amp; Calibration</span>
-                        </h4>
-                        <p className="text-xs text-stone-500 dark:text-stone-400">
-                          Centralized calibration for universal sandbox replica and dedicated preview controls
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1.5 self-start sm:self-auto">
-                        <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                          Single-Open Accordion
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      {/* Section 1: Universal (Universal Main Sandbox Controls) */}
-                      <div className="rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/50 dark:bg-[#1D162E]/50 overflow-hidden transition-all">
-                        <button
-                          type="button"
-                          onClick={() => togglePresetSandboxSection('universal')}
-                          aria-expanded={expandedPresetSandboxSection === 'universal'}
-                          className={`w-full flex items-center justify-between p-3.5 bg-stone-50/80 dark:bg-[#231A38]/80 hover:bg-stone-100/80 dark:hover:bg-[#281D40] transition-colors cursor-pointer text-left ${
-                            expandedPresetSandboxSection === 'universal' ? 'ring-2 ring-indigo-500/40 ring-inset bg-indigo-50/20 dark:bg-indigo-950/20' : ''
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                              expandedPresetSandboxSection === 'universal'
-                                ? 'bg-indigo-600 text-white shadow-xs'
-                                : 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400'
-                            }`}>
-                              <Box className="w-4 h-4" />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="text-xs font-bold text-[#18181B] dark:text-white">
-                                  Universal
-                                </span>
-                                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30">
-                                  Universal Main Sandbox Controls
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
-                                CAD Wireframe, orientation calibration, live portfolio sync &amp; defaults
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            {expandedPresetSandboxSection === 'universal' ? (
-                              <ChevronUp className="w-4 h-4 text-stone-400" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4 text-stone-400" />
-                            )}
-                          </div>
-                        </button>
-
-                        {expandedPresetSandboxSection === 'universal' && (
-                          <div className="p-4 border-t border-stone-200/80 dark:border-stone-800 flex flex-col gap-3 bg-white/40 dark:bg-[#181226]/40 animate-fadeIn">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                              {/* 1. CAD Wireframe Mode Toggle */}
-                              <div className="p-3 rounded-xl border border-stone-200/70 dark:border-stone-800 bg-white/70 dark:bg-[#1D162E]/70 flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${exploded.blueprintMode ? 'bg-cyan-500/20 text-cyan-500' : 'bg-stone-100 dark:bg-stone-800 text-stone-400'}`}>
-                                    <Grid className="w-4 h-4" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="text-xs font-bold text-[#18181B] dark:text-white">
-                                        CAD Wireframe
-                                      </span>
-                                      <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${exploded.blueprintMode ? 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/30' : 'bg-stone-100 dark:bg-stone-800 text-stone-400 border-stone-200 dark:border-stone-700'}`}>
-                                        {exploded.blueprintMode ? 'CAD Active' : 'Off'}
-                                      </span>
-                                    </div>
-                                    <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
-                                      Blueprint grid rendering
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  role="switch"
-                                  aria-checked={exploded.blueprintMode}
-                                  aria-label="Toggle CAD Wireframe Mode"
-                                  onClick={() => {
-                                    set3DExploded({ blueprintMode: !exploded.blueprintMode });
-                                    if (soundEnabled) soundFX.playLaserFocus();
-                                  }}
-                                  className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500/40 shrink-0 ${
-                                    exploded.blueprintMode ? 'bg-cyan-500' : 'bg-stone-300 dark:bg-stone-700'
-                                  }`}
-                                >
-                                  <span
-                                    className={`block w-3.5 h-3.5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                                      exploded.blueprintMode ? 'translate-x-4.5' : 'translate-x-0.5'
-                                    }`}
-                                  />
-                                </button>
-                              </div>
-
-                              {/* 2. Reset Orientation */}
-                              <div className="p-3 rounded-xl border border-stone-200/70 dark:border-stone-800 bg-white/70 dark:bg-[#1D162E]/70 flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <div className="w-8 h-8 rounded-lg bg-indigo-500/15 text-indigo-500 flex items-center justify-center shrink-0">
-                                    <RotateCcw className="w-4 h-4" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <span className="text-xs font-bold text-[#18181B] dark:text-white block">
-                                      Reset Orientation
-                                    </span>
-                                    <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
-                                      Center tilt ({sandboxTilt.rotX}°, {sandboxTilt.rotY}°)
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    resetSandboxView();
-                                    if (soundEnabled) soundFX.playHapticClick();
-                                  }}
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none shrink-0 ${
-                                    isTab3DActive
-                                      ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2px_0_0_#D1CBC1] dark:shadow-[0_2px_0_0_#140D20] text-stone-800 dark:text-stone-200 active:translate-y-[1px]'
-                                      : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 shadow-xs active:scale-95'
-                                  }`}
-                                  aria-label="Reset Sandbox View Orientation"
-                                >
-                                  <span>Reset Orientation</span>
-                                </button>
-                              </div>
-
-                              {/* 3. Live Portfolio Sync Toggle */}
-                              <div className="p-3 rounded-xl border border-stone-200/70 dark:border-stone-800 bg-white/70 dark:bg-[#1D162E]/70 flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isLive3DApplied ? 'bg-emerald-500/20 text-emerald-500' : 'bg-stone-100 dark:bg-stone-800 text-stone-400'}`}>
-                                    <Sparkles className="w-4 h-4" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="text-xs font-bold text-[#18181B] dark:text-white">
-                                        Live Portfolio Sync
-                                      </span>
-                                      <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${isLive3DApplied ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'bg-stone-100 dark:bg-stone-800 text-stone-400 border-stone-200 dark:border-stone-700'}`}>
-                                        {isLive3DApplied ? 'Live Active' : 'Isolated'}
-                                      </span>
-                                    </div>
-                                    <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
-                                      {isLive3DApplied ? '3D applied to main portfolio' : 'Isolated in sandbox'}
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (isLive3DApplied) {
-                                      revertLivePortfolio();
-                                      if (soundEnabled) soundFX.playHapticClick();
-                                    } else {
-                                      applyToLivePortfolio();
-                                      if (soundEnabled) soundFX.playCrystalChime();
-                                    }
-                                  }}
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none shrink-0 ${
-                                    isLive3DApplied
-                                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-xs active:scale-95'
-                                      : isTab3DActive
-                                        ? 'border border-[#FF4D6D]/40 bg-[#FF4D6D]/10 hover:bg-[#FF4D6D]/20 text-[#FF4D6D] shadow-[0_2px_0_0_#D93856] active:translate-y-[1px]'
-                                        : 'bg-[#FF4D6D] hover:bg-[#E63956] text-white shadow-xs active:scale-95'
-                                  }`}
-                                  aria-label="Toggle Live Portfolio Sync"
-                                >
-                                  <span>{isLive3DApplied ? 'Revert Live' : 'Apply Live'}</span>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
+                        {expandedPresetSection === 'engine' ? (
+                          <ChevronUp className="w-5 h-5 text-stone-400 shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-stone-400 shrink-0" />
                         )}
                       </div>
+                    </button>
 
-                      {/* Section 2: Preview Mode Only (Dedicated Preview Controls) */}
-                      <div className="rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/50 dark:bg-[#1D162E]/50 overflow-hidden transition-all">
-                        <button
-                          type="button"
-                          onClick={() => togglePresetSandboxSection('preview')}
-                          aria-expanded={expandedPresetSandboxSection === 'preview'}
-                          className={`w-full flex items-center justify-between p-3.5 bg-stone-50/80 dark:bg-[#231A38]/80 hover:bg-stone-100/80 dark:hover:bg-[#281D40] transition-colors cursor-pointer text-left ${
-                            expandedPresetSandboxSection === 'preview' ? 'ring-2 ring-indigo-500/40 ring-inset bg-indigo-50/20 dark:bg-indigo-950/20' : ''
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                              expandedPresetSandboxSection === 'preview'
-                                ? 'bg-indigo-600 text-white shadow-xs'
-                                : 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400'
-                            }`}>
-                              <Eye className="w-4 h-4" />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="text-xs font-bold text-[#18181B] dark:text-white">
-                                  Preview Mode Only
-                                </span>
-                                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                                  Dedicated Preview Controls
-                                </span>
+                    {expandedPresetSection === 'engine' && (
+                      <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-4 animate-fadeIn">
+                        {/* 3-in-1 Tactile Buttons Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          {/* Button 1: Master 3D Mode */}
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={isMaster3DOn}
+                            aria-label="Master 3D Mode Toggle"
+                            onClick={() => {
+                              setMaster3D(!isMaster3DOn);
+                              if (soundEnabled) soundFX.playShutterClick();
+                            }}
+                            className={`group relative flex flex-col justify-between p-3 sm:p-3.5 rounded-xl border text-left cursor-pointer transition-all min-h-[78px] select-none ${
+                              isTab3DActive
+                                ? isMaster3DOn
+                                  ? 'bg-gradient-to-br from-[#FF4D6D]/12 via-white/95 to-[#FF4D6D]/8 dark:from-[#FF4D6D]/20 dark:via-[#1D162E]/95 dark:to-[#2B1428] border-[#FF4D6D]/50 shadow-[0_3px_0_0_#D93856] active:translate-y-[1.5px]'
+                                  : 'bg-white/95 hover:bg-stone-50 dark:bg-[#1D162E]/95 dark:hover:bg-[#251D3D] border-stone-200/90 dark:border-stone-700/80 shadow-[0_3px_0_0_#D1CBC1] dark:shadow-[0_3px_0_0_#140D20] active:translate-y-[1.5px]'
+                                : isMaster3DOn
+                                  ? 'bg-gradient-to-br from-[#FF4D6D]/10 via-white/90 to-[#FF4D6D]/5 dark:from-[#FF4D6D]/15 dark:via-[#181226] dark:to-[#221324] border-[#FF4D6D]/40 shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#2D2340] active:scale-[0.99]'
+                                  : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#2D2340] active:scale-[0.99]'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between w-full mb-2">
+                              <div
+                                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                  isMaster3DOn
+                                    ? 'bg-[#FF4D6D]/15 text-[#FF4D6D]'
+                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300'
+                                }`}
+                              >
+                                <Box className="w-3.5 h-3.5" />
                               </div>
-                              <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
-                                Auto-switch tracking, component-specific reset &amp; preview calibration
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            {expandedPresetSandboxSection === 'preview' ? (
-                              <ChevronUp className="w-4 h-4 text-stone-400" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4 text-stone-400" />
-                            )}
-                          </div>
-                        </button>
-
-                        {expandedPresetSandboxSection === 'preview' && (
-                          <div className="p-4 border-t border-stone-200/80 dark:border-stone-800 flex flex-col gap-3 bg-white/40 dark:bg-[#181226]/40 animate-fadeIn">
-                            {/* Target Preview status badge banner */}
-                            <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-stone-100/80 dark:bg-[#150F21]/80 border border-stone-200/70 dark:border-stone-800 text-xs">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                <span className="font-semibold text-stone-700 dark:text-stone-200">
-                                  Target Preview:
-                                </span>
-                                <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 uppercase">
-                                  {activePreviewTab}
-                                </span>
-                                {highlightedComponent && (
-                                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#FF4D6D]/15 text-[#FF4D6D] border border-[#FF4D6D]/30">
-                                    Highlight: {highlightedComponent}
-                                  </span>
-                                )}
-                              </div>
-                              <span className="text-[10px] text-stone-500 dark:text-stone-400 font-mono">
-                                Dedicated Preview
+                              <span
+                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border transition-all ${
+                                  isMaster3DOn
+                                    ? 'bg-[#FF4D6D]/15 text-[#FF4D6D] border-[#FF4D6D]/30'
+                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                                }`}
+                              >
+                                {isMaster3DOn ? '3D Active' : 'Classic 2D'}
                               </span>
                             </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              {/* 1. Auto-Switch Tracking Pause/Resume */}
-                              <div className="p-3 rounded-xl border border-stone-200/70 dark:border-stone-800 bg-white/70 dark:bg-[#1D162E]/70 flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isAutoSwitchPaused ? 'bg-amber-500/15 text-amber-500' : 'bg-emerald-500/15 text-emerald-500'}`}>
-                                    {isAutoSwitchPaused ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                                  </div>
-                                  <div className="min-w-0">
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="text-xs font-bold text-[#18181B] dark:text-white">
-                                        Auto-Switch Tracking
-                                      </span>
-                                      <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${isAutoSwitchPaused ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'}`}>
-                                        {isAutoSwitchPaused ? 'Paused' : 'Active'}
-                                      </span>
-                                    </div>
-                                    <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
-                                      {isAutoSwitchPaused ? 'Tracking locked to current tab' : 'Syncing with accordion focus'}
-                                    </p>
-                                  </div>
-                                </div>
-                                {isAutoSwitchPaused ? (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      resumeAutoSwitch();
-                                      if (soundEnabled) soundFX.playLaserFocus();
-                                    }}
-                                    className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
-                                    aria-label="Resume Auto-Switch Tracking"
-                                  >
-                                    <span>Resume</span>
-                                  </button>
-                                ) : (
-                                  <span className="text-[11px] font-mono text-stone-400 dark:text-stone-500 px-2 py-1">
-                                    Tracking
-                                  </span>
-                                )}
+                            <div className="min-w-0">
+                              <div className="text-xs font-bold text-[#18181B] dark:text-white truncate">
+                                Master 3D Mode
                               </div>
-
-                              {/* 2. Reset Component Defaults */}
-                              <div className="p-3 rounded-xl border border-stone-200/70 dark:border-stone-800 bg-white/70 dark:bg-[#1D162E]/70 flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <div className="w-8 h-8 rounded-lg bg-indigo-500/15 text-indigo-500 flex items-center justify-center shrink-0">
-                                    <RotateCcw className="w-4 h-4" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <span className="text-xs font-bold text-[#18181B] dark:text-white block">
-                                      Reset Component Defaults
-                                    </span>
-                                    <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
-                                      Reset {activePreviewTab.toUpperCase()} parameters
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={handleResetPreviewComponentDefaults}
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none shrink-0 ${
-                                    isTab3DActive
-                                      ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2px_0_0_#D1CBC1] dark:shadow-[0_2px_0_0_#140D20] text-stone-800 dark:text-stone-200 active:translate-y-[1px]'
-                                      : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 shadow-xs active:scale-95'
-                                  }`}
-                                  aria-label="Reset Component Defaults"
-                                >
-                                  <span>Reset Component</span>
-                                </button>
-                              </div>
+                              <p className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
+                                Global Engine &amp; Transforms
+                              </p>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                          </button>
 
-                  {/* Card C: 3D Profile, Export & Developer Toolkit Card */}
-                  <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
-                          <Code className="w-4 h-4 text-[#FF4D6D]" />
-                          <span>3D Profile, Export &amp; Developer Toolkit</span>
-                        </h4>
-                        <p className="text-xs text-stone-500 dark:text-stone-400">
-                          Export or restore full JSON profiles, copy CSS custom properties &amp; inspect real-time spatial tokens
-                        </p>
-                      </div>
-
-                      {toolkitStatus && (
-                        <div className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border ${
-                          toolkitStatus.type === 'success'
-                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
-                            : 'bg-rose-500/10 text-rose-600 border-rose-500/30'
-                        }`}>
-                          <span>{toolkitStatus.message}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Hidden file input for import */}
-                    <input
-                      ref={jsonFileInputRef}
-                      type="file"
-                      accept=".json"
-                      onChange={handleJsonFileChange}
-                      className="hidden"
-                      aria-label="Upload 3D JSON Configuration"
-                    />
-
-                    <div className="grid grid-cols-4 gap-2.5">
-                      <button
-                        type="button"
-                        onClick={handleExportJson}
-                        className={`flex items-center justify-center h-10 sm:h-10.5 rounded-xl transition-all cursor-pointer select-none ${
-                          isTab3DActive
-                            ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-800 dark:text-stone-200 active:translate-y-[1.5px]'
-                            : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 shadow-xs text-stone-800 dark:text-stone-200 active:scale-95'
-                        }`}
-                        title="Export 3D Profile (.json)"
-                        aria-label="Export 3D Profile (.json)"
-                      >
-                        <Download className="w-4.5 h-4.5 text-[#FF4D6D] shrink-0" />
-                        <span className="sr-only">Export 3D Profile (.json)</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleImportJsonClick}
-                        className={`flex items-center justify-center h-10 sm:h-10.5 rounded-xl transition-all cursor-pointer select-none ${
-                          isTab3DActive
-                            ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-800 dark:text-stone-200 active:translate-y-[1.5px]'
-                            : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 shadow-xs text-stone-800 dark:text-stone-200 active:scale-95'
-                        }`}
-                        title="Import Profile (.json)"
-                        aria-label="Import Profile (.json)"
-                      >
-                        <Upload className="w-4.5 h-4.5 text-cyan-500 shrink-0" />
-                        <span className="sr-only">Import Profile (.json)</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleCopyCssVariables}
-                        className={`flex items-center justify-center h-10 sm:h-10.5 rounded-xl transition-all cursor-pointer select-none ${
-                          copiedCss
-                            ? isTab3DActive
-                              ? 'bg-emerald-500 text-white border border-emerald-600 shadow-[0_2.5px_0_0_#047857] active:translate-y-[1.5px]'
-                              : 'bg-emerald-500 text-white border border-emerald-600 shadow-xs active:scale-95'
-                            : isTab3DActive
-                              ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-800 dark:text-stone-200 active:translate-y-[1.5px]'
-                              : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 shadow-xs text-stone-800 dark:text-stone-200 active:scale-95'
-                        }`}
-                        title={copiedCss ? 'Copied CSS Variables!' : 'Copy CSS Custom Properties'}
-                        aria-label={copiedCss ? 'Copied CSS Variables!' : 'Copy CSS Custom Properties'}
-                      >
-                        {copiedCss ? (
-                          <>
-                            <Check className="w-4.5 h-4.5 shrink-0" />
-                            <span className="sr-only">Copied CSS Variables!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-4.5 h-4.5 text-amber-500 shrink-0" />
-                            <span className="sr-only">Copy CSS Custom Properties</span>
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          reset3DDefaults();
-                          if (soundEnabled) soundFX.playCrystalChime();
-                        }}
-                        className={`flex items-center justify-center h-10 sm:h-10.5 rounded-xl transition-all cursor-pointer select-none ${
-                          isTab3DActive
-                            ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-[#FF4D6D]/10 hover:border-[#FF4D6D]/40 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-800 dark:text-stone-200 hover:text-[#FF4D6D] dark:hover:text-[#FF4D6D] active:translate-y-[1.5px]'
-                            : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-[#FF4D6D]/15 dark:bg-stone-800 dark:hover:bg-stone-700 shadow-xs text-stone-800 dark:text-stone-200 hover:text-[#FF4D6D] dark:hover:text-[#FF4D6D] active:scale-95'
-                        }`}
-                        title="Reset Defaults"
-                        aria-label="Reset Defaults"
-                      >
-                        <RotateCcw className="w-4.5 h-4.5 text-[#FF4D6D] shrink-0" />
-                        <span className="sr-only">Reset Defaults</span>
-                      </button>
-                    </div>
-
-                    {/* Feature 4: Cinematic Exporter Actions (Snapshot & 360° Turntable Video) */}
-                    <div className="pt-2 border-t border-stone-200/60 dark:border-stone-800/80 flex flex-col gap-2">
-                      <span className="text-[11px] font-mono font-bold text-stone-500 dark:text-stone-400">
-                        Cinematic Exporters:
-                      </span>
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <button
-                          type="button"
-                          onClick={handleToolkitSnapshot}
-                          disabled={isToolkitCapturingSnapshot}
-                          className="flex items-center justify-center gap-1.5 h-10 px-3 rounded-xl border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] text-xs font-mono font-bold text-stone-800 dark:text-stone-200 transition-all cursor-pointer shadow-xs active:scale-95 disabled:opacity-50"
-                          title="Snapshot (.webp) — Capture 3D Canvas"
-                          aria-label="Snapshot (.webp)"
-                        >
-                          <Camera className="w-4 h-4 text-amber-500 shrink-0" />
-                          <span>{isToolkitCapturingSnapshot ? 'Capturing...' : 'Snapshot (.webp)'}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={handleToolkitTurntable}
-                          disabled={isToolkitRecordingTurntable}
-                          className="flex items-center justify-center gap-1.5 h-10 px-3 rounded-xl border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] text-xs font-mono font-bold text-stone-800 dark:text-stone-200 transition-all cursor-pointer shadow-xs active:scale-95 disabled:opacity-50"
-                          title="Record 360° Spin (.webm) — Cinematic Loop"
-                          aria-label="Record 360° Spin (.webm)"
-                        >
-                          <Film className={`w-4 h-4 shrink-0 ${isToolkitRecordingTurntable ? 'text-rose-500 animate-pulse' : 'text-cyan-500'}`} />
-                          <span className="truncate">
-                            {isToolkitRecordingTurntable ? `Recording ${toolkitTurntableProgress}%` : 'Record 360° (.webm)'}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Card D: 3D Avatar & Model Geometry Engine (Feature 6) */}
-                  <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-col gap-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ECE7DF] dark:border-[#2D2340]/60 pb-3">
-                      <div>
-                        <h4 className="text-sm font-bold text-[#18181B] dark:text-white flex items-center gap-2">
-                          <User className="w-4 h-4 text-purple-500" />
-                          <span>3D Avatar &amp; Model Geometry Engine</span>
-                        </h4>
-                        <p className="text-xs text-stone-500 dark:text-stone-400">
-                          Procedural 3D avatar geometry or client-side .gltf / .obj model importer
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-                          Active: {customMesh.type.toUpperCase()}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Hidden file input for custom mesh upload */}
-                    <input
-                      ref={meshFileInputRef}
-                      type="file"
-                      accept=".gltf,.glb,.obj"
-                      onChange={handleMeshFileChange}
-                      className="hidden"
-                      aria-label="Upload 3D Mesh Model"
-                    />
-
-                    {/* 4 Geometry Presets Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                      {MESH_GEOMETRY_PRESETS.map((preset) => {
-                        const isSelected = customMesh.type === preset.id;
-                        const Icon = preset.icon;
-                        return (
+                          {/* Button 2: Master 3D Tab UI Mode (3D Visual Keycaps) */}
                           <button
-                            key={preset.id}
+                            type="button"
+                            role="switch"
+                            aria-checked={isTab3DActive}
+                            aria-label="Master 3D Tab UI Mode Toggle"
+                            title="Master 3D Tab UI Mode"
+                            onClick={() => {
+                              if (typeof setTabUI3DMode === 'function') {
+                                setTabUI3DMode(!isTab3DActive);
+                              } else if (typeof toggleTabUI3DMode === 'function') {
+                                toggleTabUI3DMode();
+                              } else if (typeof toggle3DVisualMode === 'function') {
+                                toggle3DVisualMode();
+                              }
+                              if (soundEnabled) soundFX.playShutterClick();
+                            }}
+                            className={`group relative flex flex-col justify-between p-3 sm:p-3.5 rounded-xl border text-left cursor-pointer transition-all min-h-[78px] select-none ${
+                              isTab3DActive
+                                ? 'bg-gradient-to-br from-[#FF4D6D]/12 via-white/95 to-[#FF4D6D]/8 dark:from-[#FF4D6D]/20 dark:via-[#1D162E]/95 dark:to-[#2B1428] border-[#FF4D6D]/50 shadow-[0_3px_0_0_#D93856] active:translate-y-[1.5px]'
+                                : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#2D2340] active:scale-[0.99]'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between w-full mb-2">
+                              <div
+                                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                  isTab3DActive
+                                    ? 'bg-[#FF4D6D]/15 text-[#FF4D6D]'
+                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300'
+                                }`}
+                              >
+                                <Sparkles className={`w-3.5 h-3.5 ${isTab3DActive ? 'animate-pulse' : ''}`} />
+                              </div>
+                              <span
+                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border transition-all ${
+                                  isTab3DActive
+                                    ? 'bg-[#FF4D6D] text-white border-[#FF4D6D] shadow-xs'
+                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-300 dark:border-stone-700'
+                                }`}
+                              >
+                                {isTab3DActive ? 'Visual 3D' : 'Classic 2D'}
+                                <span className="sr-only">
+                                  {isTab3DActive ? '3D Visual Active (Zero-Text)' : 'Classic 2D Text Active'}
+                                </span>
+                              </span>
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-xs font-bold text-[#18181B] dark:text-white truncate">
+                                3D Keycaps
+                              </div>
+                              <p className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
+                                Tactile Beveled Buttons
+                              </p>
+                            </div>
+                          </button>
+
+                          {/* Button 3: All 10 Elements Smart Bulk Switch */}
+                          <button
                             type="button"
                             onClick={() => {
-                              if (preset.id === 'custom') {
-                                handleMeshUploadClick();
+                              if (active3DCount > 0) {
+                                disableAll3D();
+                                if (soundEnabled) soundFX.playHapticClick();
                               } else {
-                                set3DCustomMesh({ type: preset.id });
+                                enableAll3D();
                                 if (soundEnabled) soundFX.playLaserFocus();
                               }
                             }}
-                            className={`p-3.5 rounded-xl border flex flex-col justify-between gap-2.5 text-left transition-all cursor-pointer relative ${
-                              isSelected
-                                ? 'bg-purple-500/15 border-purple-500 shadow-md ring-2 ring-purple-500/30'
-                                : 'bg-stone-50/60 dark:bg-stone-900/40 border-stone-200/80 dark:border-stone-800 hover:border-purple-400/50'
+                            title={active3DCount > 0 ? 'Disable All 3D Elements (Revert to 2D)' : 'Enable All 3D Elements'}
+                            aria-label={active3DCount > 0 ? 'Disable All 2D' : 'Enable All 3D'}
+                            className={`group relative flex flex-col justify-between p-3 sm:p-3.5 rounded-xl border text-left cursor-pointer transition-all min-h-[78px] select-none ${
+                              isTab3DActive
+                                ? active3DCount > 0
+                                  ? 'bg-gradient-to-br from-emerald-500/12 via-white/95 to-emerald-500/8 dark:from-emerald-500/20 dark:via-[#1D162E]/95 dark:to-[#172B1E] border-emerald-500/50 shadow-[0_3px_0_0_#059669] active:translate-y-[1.5px]'
+                                  : 'bg-white/95 hover:bg-stone-50 dark:bg-[#1D162E]/95 dark:hover:bg-[#251D3D] border-stone-200/90 dark:border-stone-700/80 shadow-[0_3px_0_0_#D1CBC1] dark:shadow-[0_3px_0_0_#140D20] active:translate-y-[1.5px]'
+                                : active3DCount > 0
+                                  ? 'bg-gradient-to-br from-emerald-500/10 via-white/90 to-emerald-500/5 dark:from-emerald-500/15 dark:via-[#181226] dark:to-[#17261B] border-emerald-500/40 shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#2D2340] active:scale-[0.99]'
+                                  : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#2D2340] active:scale-[0.99]'
                             }`}
-                            aria-label={`Select ${preset.name}`}
                           >
-                            <div className="flex items-center justify-between">
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                                isSelected ? 'bg-purple-600 text-white' : 'bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
-                              }`}>
-                                <Icon className="w-3.5 h-3.5" />
+                            <div className="flex items-center justify-between w-full mb-2">
+                              <div
+                                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                  active3DCount > 0
+                                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300'
+                                }`}
+                              >
+                                {active3DCount > 0 ? (
+                                  <CheckCheck className="w-3.5 h-3.5" />
+                                ) : (
+                                  <Layers className="w-3.5 h-3.5" />
+                                )}
                               </div>
-                              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full border ${
-                                isSelected
-                                  ? 'bg-purple-500 text-white border-purple-400'
-                                  : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
-                              }`}>
-                                {preset.badge}
+                              <span
+                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border transition-all ${
+                                  active3DCount > 0
+                                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                                }`}
+                              >
+                                {active3DCount} / 10 Active
                               </span>
                             </div>
-
-                            {/* Mini 3D Visual Preview */}
-                            <div className="h-14 flex items-center justify-center my-1">
-                              {preset.id === 'avatar' && (
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#FF4D6D] to-[#00F2FE] flex items-center justify-center text-white text-xs font-bold shadow-md">
-                                  AV
-                                </div>
-                              )}
-                              {preset.id === 'gem' && (
-                                <GemMeshVisual scale={0.85} />
-                              )}
-                              {preset.id === 'cube' && (
-                                <CyberCubeMeshVisual scale={0.9} />
-                              )}
-                              {preset.id === 'custom' && (
-                                <div className="flex flex-col items-center justify-center text-center">
-                                  <Upload className="w-5 h-5 text-purple-400 mb-0.5" />
-                                  <span className="text-[9px] font-mono font-bold text-purple-300">
-                                    {customMesh.type === 'custom' && customMesh.customName ? customMesh.customName.slice(0, 8) : '.GLTF / .OBJ'}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-
-                            <div>
+                            <div className="min-w-0">
                               <div className="text-xs font-bold text-[#18181B] dark:text-white truncate">
-                                {preset.name}
+                                All 10 Elements
                               </div>
-                              <p className="text-[10px] text-stone-500 dark:text-stone-400 line-clamp-2 mt-0.5">
-                                {preset.desc}
+                              <p className="text-[10px] text-stone-500 dark:text-stone-400 truncate">
+                                {active3DCount > 0 ? 'Click to Flatten All (2D)' : 'Click to Activate All (3D)'}
                               </p>
                             </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Scale Calibration Slider & Custom Model Status */}
-                    <div className="pt-3 border-t border-stone-200/60 dark:border-stone-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold text-[#18181B] dark:text-white">
-                          Mesh Geometry Scale
-                        </span>
-                        <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
-                          {(customMesh.scale || 1.0).toFixed(1)}x
-                        </span>
-                        <input
-                          type="range"
-                          min="0.5"
-                          max="2.5"
-                          step="0.1"
-                          value={customMesh.scale || 1.0}
-                          onChange={(e) => set3DCustomMesh({ scale: parseFloat(e.target.value) })}
-                          className="w-32 accent-purple-500 cursor-pointer"
-                          aria-label="3D Mesh Geometry Scale"
-                        />
-                      </div>
-
-                      {customMesh.type === 'custom' && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono text-stone-500">
-                            Model: <strong className="text-purple-400">{customMesh.customName || 'Uploaded'}</strong>
-                          </span>
-                          <button
-                            type="button"
-                            onClick={handleMeshUploadClick}
-                            className="px-2 py-1 rounded-lg border border-purple-500/40 text-[10px] font-bold text-purple-500 hover:bg-purple-500/10 cursor-pointer"
-                          >
-                            Replace Model
+                            <span className="sr-only">Enable All 3D / Disable All 2D</span>
                           </button>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ========================================================================= */}
+                  {/* PRESET ACCORDION 2: SPATIAL SANDBOX CONTROLS & CALIBRATION (MERGED COMPACT)*/}
+                  {/* ========================================================================= */}
+                  <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
+                    <button
+                      type="button"
+                      onClick={() => togglePresetSection('sandbox')}
+                      aria-expanded={expandedPresetSection === 'sandbox'}
+                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0">
+                          <Sliders className="w-5 h-5 text-[#FF4D6D]" />
+                        </div>
+                        <div className="min-w-0">
+                          <h5 className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white truncate">
+                            Spatial Sandbox Controls &amp; Calibration
+                          </h5>
+                          <p className="text-xs text-stone-500 dark:text-stone-400">
+                            Centralized calibration for universal sandbox replica and dedicated preview controls
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700">
+                          4 Core Controls
+                        </span>
+                        {expandedPresetSection === 'sandbox' ? (
+                          <ChevronUp className="w-5 h-5 text-stone-400 shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-stone-400 shrink-0" />
+                        )}
+                      </div>
+                    </button>
+
+                    {expandedPresetSection === 'sandbox' && (
+                      <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-3.5 animate-fadeIn">
+                        {/* Mode-Adaptive Calibration Controls: 6 Cohesive 3D Tactile Keycaps vs 2D Compact Buttons */}
+                        {isTab3DActive ? (
+                          /* ========================================================================= */
+                          /* 3D MODE: TACTILE ICON-ONLY KEYCAPS (Zero Text Paragraph Clutter)          */
+                          /* ========================================================================= */
+                          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 sm:gap-3.5 max-w-2xl mx-auto w-full">
+                            {/* Keycap 1: CAD Wireframe Mode */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={exploded.blueprintMode}
+                              title={exploded.blueprintMode ? 'CAD Wireframe: ON (Click to toggle off)' : 'CAD Wireframe: OFF (Click to activate)'}
+                              aria-label="Toggle CAD Wireframe Mode"
+                              onClick={() => {
+                                set3DExploded({ blueprintMode: !exploded.blueprintMode });
+                                if (soundEnabled) soundFX.playLaserFocus();
+                              }}
+                              className={`group relative h-14 sm:h-16 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
+                                exploded.blueprintMode
+                                  ? 'bg-gradient-to-b from-cyan-400 to-cyan-600 text-white shadow-[0_5px_0_0_#0891B2,0_8px_16px_rgba(6,182,212,0.35)] border-cyan-300/40 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#0891B2]'
+                                  : 'bg-gradient-to-b from-white to-stone-100 dark:from-[#251D38] dark:to-[#181226] text-stone-600 dark:text-stone-300 shadow-[0_5px_0_0_#D1CBC1] dark:shadow-[0_5px_0_0_#0D0917] border-stone-200/80 dark:border-stone-700/80 hover:text-cyan-600 dark:hover:text-cyan-400 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#D1CBC1] dark:active:shadow-[0_2px_0_0_#0D0917]'
+                              }`}
+                            >
+                              <Grid className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full mt-1.5 transition-all ${
+                                  exploded.blueprintMode
+                                    ? 'bg-white shadow-[0_0_8px_#ffffff]'
+                                    : 'bg-stone-300 dark:bg-stone-600'
+                                }`}
+                              />
+                            </button>
+
+                            {/* Keycap 2: Exploded Strata Layers */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={exploded.enabled}
+                              title={exploded.enabled ? 'Exploded Strata View: ON (Click to flatten)' : 'Exploded Strata View: OFF (Click to deconstruct layers)'}
+                              aria-label="Toggle Exploded Strata View"
+                              onClick={() => {
+                                set3DExploded({ enabled: !exploded.enabled });
+                                if (soundEnabled) soundFX.playPop();
+                              }}
+                              className={`group relative h-14 sm:h-16 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
+                                exploded.enabled
+                                  ? 'bg-gradient-to-b from-purple-500 to-indigo-600 text-white shadow-[0_5px_0_0_#6D28D9,0_8px_16px_rgba(147,51,234,0.35)] border-purple-300/40 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#6D28D9]'
+                                  : 'bg-gradient-to-b from-white to-stone-100 dark:from-[#251D38] dark:to-[#181226] text-stone-600 dark:text-stone-300 shadow-[0_5px_0_0_#D1CBC1] dark:shadow-[0_5px_0_0_#0D0917] border-stone-200/80 dark:border-stone-700/80 hover:text-purple-600 dark:hover:text-purple-400 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#D1CBC1] dark:active:shadow-[0_2px_0_0_#0D0917]'
+                              }`}
+                            >
+                              <Layers className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full mt-1.5 transition-all ${
+                                  exploded.enabled
+                                    ? 'bg-white shadow-[0_0_8px_#ffffff]'
+                                    : 'bg-stone-300 dark:bg-stone-600'
+                                }`}
+                              />
+                            </button>
+
+                            {/* Keycap 3: Turntable 360° Auto-Orbit */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={camera.autoOrbit}
+                              title={camera.autoOrbit ? 'Turntable 360° Orbit: ACTIVE (Click to pause)' : 'Turntable 360° Orbit: PAUSED (Click to spin)'}
+                              aria-label="Toggle Turntable 360 Auto-Orbit"
+                              onClick={() => {
+                                set3DAutoOrbit(!camera.autoOrbit);
+                                if (soundEnabled) soundFX.playLaserFocus();
+                              }}
+                              className={`group relative h-14 sm:h-16 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
+                                camera.autoOrbit
+                                  ? 'bg-gradient-to-b from-sky-400 to-blue-600 text-white shadow-[0_5px_0_0_#0284C7,0_8px_16px_rgba(14,165,233,0.35)] border-sky-300/40 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#0284C7]'
+                                  : 'bg-gradient-to-b from-white to-stone-100 dark:from-[#251D38] dark:to-[#181226] text-stone-600 dark:text-stone-300 shadow-[0_5px_0_0_#D1CBC1] dark:shadow-[0_5px_0_0_#0D0917] border-stone-200/80 dark:border-stone-700/80 hover:text-sky-600 dark:hover:text-sky-400 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#D1CBC1] dark:active:shadow-[0_2px_0_0_#0D0917]'
+                              }`}
+                            >
+                              <Orbit className={`w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110 ${camera.autoOrbit ? 'animate-spin' : ''}`} style={{ animationDuration: '8s' }} />
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full mt-1.5 transition-all ${
+                                  camera.autoOrbit
+                                    ? 'bg-white shadow-[0_0_8px_#ffffff]'
+                                    : 'bg-stone-300 dark:bg-stone-600'
+                                }`}
+                              />
+                            </button>
+
+                            {/* Keycap 4: Auto-Switch Tracking */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={!isAutoSwitchPaused}
+                              title={!isAutoSwitchPaused ? 'Auto-Switch Tracking: ACTIVE (Click to pause)' : 'Auto-Switch Tracking: PAUSED (Click to resume)'}
+                              aria-label="Toggle Auto-Switch Tracking"
+                              onClick={() => {
+                                if (isAutoSwitchPaused) {
+                                  resumeAutoSwitch();
+                                  if (soundEnabled) soundFX.playLaserFocus();
+                                } else {
+                                  pauseAutoSwitch(9999999);
+                                  if (soundEnabled) soundFX.playHapticClick();
+                                }
+                              }}
+                              className={`group relative h-14 sm:h-16 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
+                                !isAutoSwitchPaused
+                                  ? 'bg-gradient-to-b from-indigo-400 to-indigo-600 text-white shadow-[0_5px_0_0_#4338CA,0_8px_16px_rgba(99,102,241,0.35)] border-indigo-300/40 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#4338CA]'
+                                  : 'bg-gradient-to-b from-white to-stone-100 dark:from-[#251D38] dark:to-[#181226] text-stone-600 dark:text-stone-300 shadow-[0_5px_0_0_#D1CBC1] dark:shadow-[0_5px_0_0_#0D0917] border-stone-200/80 dark:border-stone-700/80 hover:text-indigo-600 dark:hover:text-indigo-400 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#D1CBC1] dark:active:shadow-[0_2px_0_0_#0D0917]'
+                              }`}
+                            >
+                              <Eye className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full mt-1.5 transition-all ${
+                                  !isAutoSwitchPaused
+                                    ? 'bg-white shadow-[0_0_8px_#ffffff]'
+                                    : 'bg-stone-300 dark:bg-stone-600'
+                                }`}
+                              />
+                            </button>
+
+                            {/* Keycap 5: Live Portfolio Sync */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={isLive3DApplied}
+                              title={isLive3DApplied ? 'Live Portfolio Sync: APPLIED (Click to revert)' : 'Live Portfolio Sync: SANDBOX ONLY (Click to apply)'}
+                              aria-label="Toggle Live Portfolio Sync"
+                              onClick={() => {
+                                if (isLive3DApplied) {
+                                  revertLivePortfolio();
+                                  if (soundEnabled) soundFX.playHapticClick();
+                                } else {
+                                  applyToLivePortfolio();
+                                  if (soundEnabled) soundFX.playCrystalChime();
+                                }
+                              }}
+                              className={`group relative h-14 sm:h-16 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
+                                isLive3DApplied
+                                  ? 'bg-gradient-to-b from-emerald-400 to-emerald-600 text-white shadow-[0_5px_0_0_#047857,0_8px_16px_rgba(16,185,129,0.35)] border-emerald-300/40 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#047857]'
+                                  : 'bg-gradient-to-b from-white to-stone-100 dark:from-[#251D38] dark:to-[#181226] text-stone-600 dark:text-stone-300 shadow-[0_5px_0_0_#D1CBC1] dark:shadow-[0_5px_0_0_#0D0917] border-stone-200/80 dark:border-stone-700/80 hover:text-emerald-600 dark:hover:text-emerald-400 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#D1CBC1] dark:active:shadow-[0_2px_0_0_#0D0917]'
+                              }`}
+                            >
+                              <Zap className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full mt-1.5 transition-all ${
+                                  isLive3DApplied
+                                    ? 'bg-white shadow-[0_0_8px_#ffffff]'
+                                    : 'bg-stone-300 dark:bg-stone-600'
+                                }`}
+                              />
+                            </button>
+
+                            {/* Keycap 6: Reset Sandbox Defaults */}
+                            <button
+                              type="button"
+                              onClick={handleResetPreviewComponentDefaults}
+                              title="Reset Sandbox Defaults and Calibration"
+                              aria-label="Reset Sandbox and Component Defaults"
+                              className="group relative h-14 sm:h-16 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none bg-gradient-to-b from-amber-400 to-amber-600 text-white shadow-[0_5px_0_0_#B45309,0_8px_16px_rgba(245,158,11,0.35)] border-amber-300/40 hover:from-amber-300 hover:to-amber-500 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#B45309]"
+                            >
+                              <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-rotate-45" />
+                              <div className="w-1.5 h-1.5 rounded-full mt-1.5 bg-amber-200 shadow-[0_0_6px_#fde68a]" />
+                            </button>
+                          </div>
+                        ) : (
+                          /* ========================================================================= */
+                          /* 2D MODE: COMPACT TEXT + ICON MIXUP BUTTONS (Sleek, No Clutter)            */
+                          /* ========================================================================= */
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2.5">
+                            {/* Button 1: CAD Wireframe Mode */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={exploded.blueprintMode}
+                              aria-label="Toggle CAD Wireframe Mode"
+                              onClick={() => {
+                                set3DExploded({ blueprintMode: !exploded.blueprintMode });
+                                if (soundEnabled) soundFX.playLaserFocus();
+                              }}
+                              className={`h-11 px-3 rounded-xl border flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
+                                exploded.blueprintMode
+                                  ? 'bg-cyan-500/10 hover:bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 shadow-xs'
+                                  : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-xs'
+                              }`}
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Grid className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                                <span className="text-xs font-semibold truncate">CAD Wire</span>
+                              </div>
+                              <span
+                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
+                                  exploded.blueprintMode
+                                    ? 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border-cyan-500/30'
+                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                                }`}
+                              >
+                                {exploded.blueprintMode ? 'On' : 'Off'}
+                              </span>
+                            </button>
+
+                            {/* Button 2: Exploded Strata Layers */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={exploded.enabled}
+                              aria-label="Toggle Exploded Strata View"
+                              onClick={() => {
+                                set3DExploded({ enabled: !exploded.enabled });
+                                if (soundEnabled) soundFX.playPop();
+                              }}
+                              className={`h-11 px-3 rounded-xl border flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
+                                exploded.enabled
+                                  ? 'bg-purple-500/10 hover:bg-purple-500/15 border-purple-500/40 text-purple-700 dark:text-purple-300 shadow-xs'
+                                  : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-xs'
+                              }`}
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Layers className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                                <span className="text-xs font-semibold truncate">Exploded</span>
+                              </div>
+                              <span
+                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
+                                  exploded.enabled
+                                    ? 'bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30'
+                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                                }`}
+                              >
+                                {exploded.enabled ? 'On' : 'Flat'}
+                              </span>
+                            </button>
+
+                            {/* Button 3: Turntable 360° Auto-Orbit */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={camera.autoOrbit}
+                              aria-label="Toggle Turntable 360 Auto-Orbit"
+                              onClick={() => {
+                                set3DAutoOrbit(!camera.autoOrbit);
+                                if (soundEnabled) soundFX.playLaserFocus();
+                              }}
+                              className={`h-11 px-3 rounded-xl border flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
+                                camera.autoOrbit
+                                  ? 'bg-sky-500/10 hover:bg-sky-500/15 border-sky-500/40 text-sky-700 dark:text-sky-300 shadow-xs'
+                                  : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-xs'
+                              }`}
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Orbit className={`w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0 ${camera.autoOrbit ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
+                                <span className="text-xs font-semibold truncate">Turntable</span>
+                              </div>
+                              <span
+                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
+                                  camera.autoOrbit
+                                    ? 'bg-sky-500/20 text-sky-600 dark:text-sky-400 border-sky-500/30'
+                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                                }`}
+                              >
+                                {camera.autoOrbit ? 'Spin' : 'Off'}
+                              </span>
+                            </button>
+
+                            {/* Button 4: Auto-Switch Tracking */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={!isAutoSwitchPaused}
+                              aria-label="Toggle Auto-Switch Tracking"
+                              onClick={() => {
+                                if (isAutoSwitchPaused) {
+                                  resumeAutoSwitch();
+                                  if (soundEnabled) soundFX.playLaserFocus();
+                                } else {
+                                  pauseAutoSwitch(9999999);
+                                  if (soundEnabled) soundFX.playHapticClick();
+                                }
+                              }}
+                              className={`h-11 px-3 rounded-xl border flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
+                                !isAutoSwitchPaused
+                                  ? 'bg-indigo-500/10 hover:bg-indigo-500/15 border-indigo-500/40 text-indigo-700 dark:text-indigo-300 shadow-xs'
+                                  : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-xs'
+                              }`}
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Eye className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                <span className="text-xs font-semibold truncate">Tracking</span>
+                              </div>
+                              <span
+                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
+                                  !isAutoSwitchPaused
+                                    ? 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
+                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                                }`}
+                              >
+                                {!isAutoSwitchPaused ? 'On' : 'Paused'}
+                              </span>
+                            </button>
+
+                            {/* Button 5: Live Portfolio Sync */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={isLive3DApplied}
+                              aria-label="Toggle Live Portfolio Sync"
+                              onClick={() => {
+                                if (isLive3DApplied) {
+                                  revertLivePortfolio();
+                                  if (soundEnabled) soundFX.playHapticClick();
+                                } else {
+                                  applyToLivePortfolio();
+                                  if (soundEnabled) soundFX.playCrystalChime();
+                                }
+                              }}
+                              className={`h-11 px-3 rounded-xl border flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
+                                isLive3DApplied
+                                  ? 'bg-emerald-500/10 hover:bg-emerald-500/15 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 shadow-xs'
+                                  : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-xs'
+                              }`}
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Zap className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                <span className="text-xs font-semibold truncate">Live 3D</span>
+                              </div>
+                              <span
+                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
+                                  isLive3DApplied
+                                    ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                                }`}
+                              >
+                                {isLive3DApplied ? 'Active' : 'Sandbox'}
+                              </span>
+                            </button>
+
+                            {/* Button 6: Reset Defaults */}
+                            <button
+                              type="button"
+                              onClick={handleResetPreviewComponentDefaults}
+                              title="Reset 3D Sandbox Orientation and Parameters"
+                              aria-label="Reset Sandbox and Component Defaults"
+                              className="h-11 px-3 rounded-xl border flex items-center justify-between gap-2 transition-all cursor-pointer select-none bg-amber-500/10 hover:bg-amber-500/15 border-amber-500/30 text-amber-700 dark:text-amber-300 shadow-xs group"
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <RotateCcw className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 group-hover:-rotate-45 transition-transform" />
+                                <span className="text-xs font-semibold truncate">Reset</span>
+                              </div>
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30">
+                                Restore
+                              </span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PRESET ACCORDION 3: 3D PROFILE, EXPORT & DEVELOPER TOOLKIT                */}
+                  {/* ========================================================================= */}
+                  <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
+                    <button
+                      type="button"
+                      onClick={() => togglePresetSection('toolkit')}
+                      aria-expanded={expandedPresetSection === 'toolkit'}
+                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-[#FF4D6D]/15 text-[#FF4D6D] flex items-center justify-center font-bold text-sm shrink-0">
+                          <Code className="w-5 h-5 text-[#FF4D6D]" />
+                        </div>
+                        <div className="min-w-0">
+                          <h5 className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white truncate">
+                            3D Profile, Export &amp; Developer Toolkit
+                          </h5>
+                          <p className="text-xs text-stone-500 dark:text-stone-400">
+                            Export or restore full JSON profiles, copy CSS custom properties &amp; inspect real-time spatial tokens
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        {toolkitStatus && (
+                          <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                            toolkitStatus.type === 'success'
+                              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
+                              : 'bg-rose-500/10 text-rose-600 border-rose-500/30'
+                          }`}>
+                            {toolkitStatus.message}
+                          </span>
+                        )}
+                        {expandedPresetSection === 'toolkit' ? (
+                          <ChevronUp className="w-5 h-5 text-stone-400 shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-stone-400 shrink-0" />
+                        )}
+                      </div>
+                    </button>
+
+                    {expandedPresetSection === 'toolkit' && (
+                      <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-4 animate-fadeIn">
+                        {/* Hidden file input for import */}
+                        <input
+                          ref={jsonFileInputRef}
+                          type="file"
+                          accept=".json"
+                          onChange={handleJsonFileChange}
+                          className="hidden"
+                          aria-label="Upload 3D JSON Configuration"
+                        />
+
+                        <div className="grid grid-cols-4 gap-2.5">
+                          <button
+                            type="button"
+                            onClick={handleExportJson}
+                            className={`flex items-center justify-center h-10 sm:h-10.5 rounded-xl transition-all cursor-pointer select-none ${
+                              isTab3DActive
+                                ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-800 dark:text-stone-200 active:translate-y-[1.5px]'
+                                : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 shadow-xs text-stone-800 dark:text-stone-200 active:scale-95'
+                            }`}
+                            title="Export 3D Profile (.json)"
+                            aria-label="Export 3D Profile (.json)"
+                          >
+                            <Download className="w-4.5 h-4.5 text-[#FF4D6D] shrink-0" />
+                            <span className="sr-only">Export 3D Profile (.json)</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleImportJsonClick}
+                            className={`flex items-center justify-center h-10 sm:h-10.5 rounded-xl transition-all cursor-pointer select-none ${
+                              isTab3DActive
+                                ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-800 dark:text-stone-200 active:translate-y-[1.5px]'
+                                : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 shadow-xs text-stone-800 dark:text-stone-200 active:scale-95'
+                            }`}
+                            title="Import Profile (.json)"
+                            aria-label="Import Profile (.json)"
+                          >
+                            <Upload className="w-4.5 h-4.5 text-cyan-500 shrink-0" />
+                            <span className="sr-only">Import Profile (.json)</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleCopyCssVariables}
+                            className={`flex items-center justify-center h-10 sm:h-10.5 rounded-xl transition-all cursor-pointer select-none ${
+                              copiedCss
+                                ? isTab3DActive
+                                  ? 'bg-emerald-500 text-white border border-emerald-600 shadow-[0_2.5px_0_0_#047857] active:translate-y-[1.5px]'
+                                  : 'bg-emerald-500 text-white border border-emerald-600 shadow-xs active:scale-95'
+                                : isTab3DActive
+                                  ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-800 dark:text-stone-200 active:translate-y-[1.5px]'
+                                  : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 shadow-xs text-stone-800 dark:text-stone-200 active:scale-95'
+                            }`}
+                            title={copiedCss ? 'Copied CSS Variables!' : 'Copy CSS Custom Properties'}
+                            aria-label={copiedCss ? 'Copied CSS Variables!' : 'Copy CSS Custom Properties'}
+                          >
+                            {copiedCss ? (
+                              <>
+                                <Check className="w-4.5 h-4.5 shrink-0" />
+                                <span className="sr-only">Copied CSS Variables!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-4.5 h-4.5 text-amber-500 shrink-0" />
+                                <span className="sr-only">Copy CSS Custom Properties</span>
+                              </>
+                            )}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              reset3DDefaults();
+                              if (soundEnabled) soundFX.playCrystalChime();
+                            }}
+                            className={`flex items-center justify-center h-10 sm:h-10.5 rounded-xl transition-all cursor-pointer select-none ${
+                              isTab3DActive
+                                ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-[#FF4D6D]/10 hover:border-[#FF4D6D]/40 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-800 dark:text-stone-200 hover:text-[#FF4D6D] dark:hover:text-[#FF4D6D] active:translate-y-[1.5px]'
+                                : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-[#FF4D6D]/15 dark:bg-stone-800 dark:hover:bg-stone-700 shadow-xs text-stone-800 dark:text-stone-200 hover:text-[#FF4D6D] dark:hover:text-[#FF4D6D] active:scale-95'
+                            }`}
+                            title="Reset Defaults"
+                            aria-label="Reset Defaults"
+                          >
+                            <RotateCcw className="w-4.5 h-4.5 text-[#FF4D6D] shrink-0" />
+                            <span className="sr-only">Reset Defaults</span>
+                          </button>
+                        </div>
+
+                        {/* Feature 4: Cinematic Exporter Actions (Snapshot & 360° Turntable Video) */}
+                        <div className="pt-2 border-t border-stone-200/60 dark:border-stone-800/80 flex flex-col gap-2">
+                          <span className="text-[11px] font-mono font-bold text-stone-500 dark:text-stone-400">
+                            Cinematic Exporters:
+                          </span>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <button
+                              type="button"
+                              onClick={handleToolkitSnapshot}
+                              disabled={isToolkitCapturingSnapshot}
+                              className="flex items-center justify-center gap-1.5 h-10 px-3 rounded-xl border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] text-xs font-mono font-bold text-stone-800 dark:text-stone-200 transition-all cursor-pointer shadow-xs active:scale-95 disabled:opacity-50"
+                              title="Snapshot (.webp) — Capture 3D Canvas"
+                              aria-label="Snapshot (.webp)"
+                            >
+                              <Camera className="w-4 h-4 text-amber-500 shrink-0" />
+                              <span>{isToolkitCapturingSnapshot ? 'Capturing...' : 'Snapshot (.webp)'}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={handleToolkitTurntable}
+                              disabled={isToolkitRecordingTurntable}
+                              className="flex items-center justify-center gap-1.5 h-10 px-3 rounded-xl border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] text-xs font-mono font-bold text-stone-800 dark:text-stone-200 transition-all cursor-pointer shadow-xs active:scale-95 disabled:opacity-50"
+                              title="Record 360° Spin (.webm) — Cinematic Loop"
+                              aria-label="Record 360° Spin (.webm)"
+                            >
+                              <Film className={`w-4 h-4 shrink-0 ${isToolkitRecordingTurntable ? 'text-rose-500 animate-pulse' : 'text-cyan-500'}`} />
+                              <span className="truncate">
+                                {isToolkitRecordingTurntable ? `Recording ${toolkitTurntableProgress}%` : 'Record 360° (.webm)'}
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ========================================================================= */}
+                  {/* PRESET ACCORDION 4: 3D AVATAR & MODEL GEOMETRY ENGINE                     */}
+                  {/* ========================================================================= */}
+                  <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
+                    <button
+                      type="button"
+                      onClick={() => togglePresetSection('geometry')}
+                      aria-expanded={expandedPresetSection === 'geometry'}
+                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-sm shrink-0">
+                          <User className="w-5 h-5 text-purple-500" />
+                        </div>
+                        <div className="min-w-0">
+                          <h5 className="text-sm sm:text-base font-bold text-[#18181B] dark:text-white truncate">
+                            3D Avatar &amp; Model Geometry Engine
+                          </h5>
+                          <p className="text-xs text-stone-500 dark:text-stone-400">
+                            Procedural 3D avatar geometry or client-side .gltf / .obj model importer
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                          {MESH_GEOMETRY_PRESETS.find(p => p.id === customMesh.type)?.name || 'Custom'} ({(customMesh.scale || 1.0).toFixed(1)}x)
+                        </span>
+                        {expandedPresetSection === 'geometry' ? (
+                          <ChevronUp className="w-5 h-5 text-stone-400 shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-stone-400 shrink-0" />
+                        )}
+                      </div>
+                    </button>
+
+                    {expandedPresetSection === 'geometry' && (
+                      <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-4 animate-fadeIn">
+                        {/* Hidden file input for custom mesh upload */}
+                        <input
+                          ref={meshFileInputRef}
+                          type="file"
+                          accept=".gltf,.glb,.obj"
+                          onChange={handleMeshFileChange}
+                          className="hidden"
+                          aria-label="Upload 3D Mesh Model"
+                        />
+
+                        {/* 6 Geometry Presets Grid (Balanced 3-column layout) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                          {MESH_GEOMETRY_PRESETS.map((preset) => {
+                            const isSelected = customMesh.type === preset.id;
+                            const Icon = preset.icon;
+                            return (
+                              <button
+                                key={preset.id}
+                                type="button"
+                                onClick={() => {
+                                  if (preset.id === 'custom') {
+                                    handleMeshUploadClick();
+                                  } else {
+                                    set3DCustomMesh({ type: preset.id });
+                                    if (soundEnabled) soundFX.playLaserFocus();
+                                  }
+                                }}
+                                className={`group relative flex flex-col justify-between p-3.5 sm:p-4 rounded-xl border text-left cursor-pointer transition-all select-none min-h-[175px] ${
+                                  isSelected
+                                    ? isTab3DActive
+                                      ? 'bg-gradient-to-br from-purple-500/15 via-white/95 to-purple-500/8 dark:from-purple-500/20 dark:via-[#1D162E]/95 dark:to-[#221332] border-purple-500/60 shadow-[0_3px_0_0_#7C3AED] ring-2 ring-purple-500/30 active:translate-y-[1.5px]'
+                                      : 'bg-purple-500/10 dark:bg-purple-950/20 border-purple-500/60 shadow-md ring-2 ring-purple-500/30'
+                                    : isTab3DActive
+                                      ? 'bg-white/95 hover:bg-stone-50 dark:bg-[#1D162E]/95 dark:hover:bg-[#251D3D] border-stone-200/90 dark:border-stone-700/80 shadow-[0_3px_0_0_#D1CBC1] dark:shadow-[0_3px_0_0_#140D20] active:translate-y-[1.5px]'
+                                      : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] shadow-xs hover:border-purple-400/50'
+                                }`}
+                                aria-label={`Select ${preset.name}`}
+                              >
+                                {/* Top Row: Icon + Badge */}
+                                <div className="flex items-center justify-between w-full mb-2">
+                                  <div
+                                    className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                      isSelected
+                                        ? 'bg-purple-600 text-white shadow-xs'
+                                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 group-hover:text-purple-500'
+                                    }`}
+                                  >
+                                    <Icon className="w-3.5 h-3.5" />
+                                  </div>
+                                  <span
+                                    className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border transition-all ${
+                                      isSelected
+                                        ? 'bg-purple-500/20 text-purple-600 dark:text-purple-300 border-purple-400/40'
+                                        : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                                    }`}
+                                  >
+                                    {preset.badge}
+                                  </span>
+                                </div>
+
+                                {/* Center: 3D Showcase Stage Viewport */}
+                                <div className="w-full h-20 rounded-xl bg-gradient-to-b from-stone-900/50 to-stone-950/70 border border-stone-800/80 flex items-center justify-center relative overflow-hidden my-1 shadow-inner">
+                                  {/* Soft ambient radial glow */}
+                                  <div
+                                    className={`absolute inset-0 pointer-events-none transition-opacity ${
+                                      isSelected ? 'opacity-100' : 'opacity-40 group-hover:opacity-75'
+                                    }`}
+                                    style={{
+                                      background: isSelected
+                                        ? 'radial-gradient(circle at 50% 50%, rgba(168,85,247,0.25) 0%, transparent 70%)'
+                                        : 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06) 0%, transparent 70%)'
+                                    }}
+                                  />
+
+                                  {preset.id === 'avatar' && (
+                                    <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#FF4D6D] to-[#00F2FE] p-0.5 shadow-md flex items-center justify-center">
+                                      <div className="w-full h-full rounded-full bg-[#181226] flex items-center justify-center text-white text-[11px] font-extrabold tracking-tight">
+                                        AV
+                                      </div>
+                                    </div>
+                                  )}
+                                  {preset.id === 'gem' && <GemMeshVisual scale={0.9} />}
+                                  {preset.id === 'cube' && <CyberCubeMeshVisual scale={0.95} />}
+                                  {preset.id === 'sphere' && <GeodesicSphereMeshVisual scale={0.9} />}
+                                  {preset.id === 'torus' && <QuantumTorusMeshVisual scale={0.9} />}
+                                  {preset.id === 'custom' && (
+                                    <div className="flex flex-col items-center justify-center text-center">
+                                      <Upload className="w-5 h-5 text-purple-400 mb-0.5 group-hover:translate-y-[-2px] transition-transform" />
+                                      <span className="text-[9px] font-mono font-bold text-purple-300">
+                                        {customMesh.type === 'custom' && customMesh.customName ? customMesh.customName.slice(0, 10) : '.GLTF / .OBJ'}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Bottom Row: Title + Description */}
+                                <div className="min-w-0 mt-2">
+                                  <div className="text-xs font-bold text-[#18181B] dark:text-white truncate">
+                                    {preset.name}
+                                  </div>
+                                  <p className="text-[10px] text-stone-500 dark:text-stone-400 line-clamp-1 mt-0.5">
+                                    {preset.desc}
+                                  </p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Bottom Calibration & Model Management Strip */}
+                        <div className="pt-3.5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col md:flex-row md:items-center justify-between gap-3.5">
+                          {/* Left: Scale slider control with quick reset */}
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <span className="text-xs font-bold text-[#18181B] dark:text-white">
+                              Mesh Geometry Scale
+                            </span>
+                            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                              {(customMesh.scale || 1.0).toFixed(1)}x
+                            </span>
+                            <input
+                              type="range"
+                              min="0.5"
+                              max="2.5"
+                              step="0.1"
+                              value={customMesh.scale || 1.0}
+                              onChange={(e) => set3DCustomMesh({ scale: parseFloat(e.target.value) })}
+                              className="w-28 sm:w-36 accent-purple-500 cursor-pointer"
+                              aria-label="3D Mesh Geometry Scale"
+                            />
+                            {customMesh.scale !== 1.0 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  set3DCustomMesh({ scale: 1.0 });
+                                  if (soundEnabled) soundFX.playHapticClick();
+                                }}
+                                className="text-[10px] font-semibold text-stone-500 hover:text-purple-500 underline cursor-pointer"
+                                title="Reset Scale to 1.0x"
+                              >
+                                Reset
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Right: Custom Upload info or live status note */}
+                          {customMesh.type === 'custom' ? (
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-xs font-mono text-stone-500">
+                                Model: <strong className="text-purple-400">{customMesh.customName || 'Uploaded'}</strong>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={handleMeshUploadClick}
+                                className="px-3 py-1.5 rounded-lg border border-purple-500/40 text-xs font-bold text-purple-500 hover:bg-purple-500/10 transition-colors cursor-pointer select-none"
+                              >
+                                Replace Model
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="text-[11px] text-stone-500 dark:text-stone-400 font-mono">
+                              <span>Live rendering across Universal Sandbox &amp; Hero preview stages</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

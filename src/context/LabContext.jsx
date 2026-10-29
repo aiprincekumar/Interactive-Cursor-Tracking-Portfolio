@@ -824,7 +824,7 @@ export function normalize3DPerformance(raw) {
 export function normalize3DCustomMesh(raw) {
   const defaults = FACTORY_DEFAULTS.threeD.customMesh;
   if (!raw || typeof raw !== 'object') return { ...defaults };
-  const validTypes = ['avatar', 'gem', 'cube', 'custom'];
+  const validTypes = ['avatar', 'gem', 'cube', 'sphere', 'torus', 'custom'];
   const type = (typeof raw.type === 'string' && validTypes.includes(raw.type.trim().toLowerCase()))
     ? raw.type.trim().toLowerCase()
     : defaults.type;
@@ -1579,6 +1579,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
       root.dataset.threedExploded = threeD.exploded?.enabled ? 'true' : 'false';
       root.dataset.threedBlueprint = threeD.exploded?.blueprintMode ? 'true' : 'false';
       root.dataset.threedSoloStrata = threeD.exploded?.soloStrata || 'none';
+    root.dataset.threedCustomMesh = threeD.customMesh?.type || 'avatar';
       root.classList.toggle('threed-enabled', Boolean(threeD.master3D));
     } else {
       // Neutral baseline / default 2D CSS custom properties
@@ -1615,6 +1616,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
       root.dataset.threedExploded = 'false';
       root.dataset.threedBlueprint = 'false';
       root.dataset.threedSoloStrata = 'none';
+      root.dataset.threedCustomMesh = 'avatar';
       root.classList.remove('threed-enabled');
     }
   }, [threeD, isLive3DApplied]);

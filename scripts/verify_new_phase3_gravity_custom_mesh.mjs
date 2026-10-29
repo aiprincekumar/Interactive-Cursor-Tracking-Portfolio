@@ -89,7 +89,11 @@ runTest('LabContext: FACTORY_DEFAULTS.threeD includes customMesh configuration',
 
 runTest('LabContext: normalize3DCustomMesh validates type, customName and scale', () => {
   assert(labContextSrc.includes('export function normalize3DCustomMesh'), 'Must export normalize3DCustomMesh');
-  assert(labContextSrc.includes("validTypes = ['avatar', 'gem', 'cube', 'custom']"), 'Must validate customMesh types');
+  assert(
+    labContextSrc.includes("validTypes = ['avatar', 'gem', 'cube', 'sphere', 'torus', 'custom']") ||
+    labContextSrc.includes("validTypes = ['avatar', 'gem', 'cube', 'custom']"),
+    'Must validate customMesh types'
+  );
 });
 
 runTest('LabContext: helper set3DCustomMesh is defined and exposed via useLab and useLab3D', () => {

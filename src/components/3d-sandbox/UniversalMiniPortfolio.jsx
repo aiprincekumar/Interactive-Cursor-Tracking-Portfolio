@@ -24,7 +24,7 @@ import { useLab3D } from '../../context/LabContext';
 import { soundFX } from '../../utils/audio';
 import { capture3DStageSnapshot, record360TurntableVideo } from '../../utils/mediaExport';
 import SandboxViewportContainer from './SandboxViewportContainer';
-import { GemMeshVisual, CyberCubeMeshVisual } from './Visual3DPresets';
+import { GemMeshVisual, CyberCubeMeshVisual, GeodesicSphereMeshVisual, QuantumTorusMeshVisual } from './Visual3DPresets';
 
 /**
  * Kinetic Spring Elasticity Transitions & Curves Specification
@@ -1159,6 +1159,30 @@ export function UniversalMiniPortfolio({
       );
     }
 
+    if (meshType === 'sphere') {
+      return (
+        <div
+          data-testid="mini-mesh-sphere"
+          className="w-9 h-9 rounded-full bg-[#181226] border border-purple-400/60 shadow-[0_0_15px_rgba(168,85,247,0.4)] flex items-center justify-center overflow-hidden"
+          style={{ transform: `scale(${meshScale})` }}
+        >
+          <GeodesicSphereMeshVisual scale={0.7} />
+        </div>
+      );
+    }
+
+    if (meshType === 'torus') {
+      return (
+        <div
+          data-testid="mini-mesh-torus"
+          className="w-9 h-9 rounded-full bg-[#181226] border border-pink-400/60 shadow-[0_0_15px_rgba(236,72,153,0.4)] flex items-center justify-center overflow-hidden"
+          style={{ transform: `scale(${meshScale})` }}
+        >
+          <QuantumTorusMeshVisual scale={0.7} />
+        </div>
+      );
+    }
+
     if (meshType === 'custom') {
       return (
         <div
@@ -1430,9 +1454,7 @@ export function UniversalMiniPortfolio({
   const normalizedMaterialPreset = matPreset || 'glass-acrylic';
 
   const getMaterialSurfaceStyle = useCallback((elementKey, isElem3DActive = false) => {
-    if (isWireframe) {
-      return {};
-    }
+    const computeSurface = () => {
 
     const themeSection = elementKey === 'grid' ? themeStyle.gridItem : themeStyle[elementKey];
     const scale = elementKey === 'navbar' ? 0.5 : (elementKey === 'grid' ? 0.6 : 1.0);
@@ -1766,6 +1788,18 @@ export function UniversalMiniPortfolio({
         };
       }
     }
+    };
+    const style = computeSurface() || {};
+    if (isWireframe) {
+      return {
+        ...style,
+        borderColor: 'rgba(6, 182, 212, 0.85)',
+        boxShadow: style.boxShadow && style.boxShadow !== 'none'
+          ? `${style.boxShadow}, 0 0 16px rgba(6, 182, 212, 0.4), inset 0 0 8px rgba(6, 182, 212, 0.2)`
+          : '0 0 16px rgba(6, 182, 212, 0.4), inset 0 0 8px rgba(6, 182, 212, 0.2)'
+      };
+    }
+    return style;
   }, [isWireframe, themeStyle, normalizedMaterialPreset, isDark, bevelExtrusion, isMaster3DOn, specularGlow, lightOffsetX, lightOffsetY, lighting?.preset, roughness, metalness, ior, clearcoat]);
 
   const matNavStyle = getMaterialSurfaceStyle('navbar', isNav3D);
@@ -1896,7 +1930,7 @@ export function UniversalMiniPortfolio({
         onPointerCancel={handlePointerUp}
       >
         {/* Illumination Atmosphere Preset Overlay */}
-        {lighting.preset === 'sunset' && !isWireframe && (
+        {lighting.preset === 'sunset' && (
           <div
             className="absolute inset-0 pointer-events-none z-10 transition-opacity duration-500"
             style={{
@@ -1905,7 +1939,7 @@ export function UniversalMiniPortfolio({
             }}
           />
         )}
-        {(lighting.preset === 'cyber-neon' || lighting.preset === 'cyber-spotlight') && !isWireframe && (
+        {(lighting.preset === 'cyber-neon' || lighting.preset === 'cyber-spotlight') && (
           <div
             className="absolute inset-0 pointer-events-none z-10 transition-opacity duration-500"
             style={{
@@ -1914,7 +1948,7 @@ export function UniversalMiniPortfolio({
             }}
           />
         )}
-        {lighting.preset === 'dramatic-side' && !isWireframe && (
+        {lighting.preset === 'dramatic-side' && (
           <div
             className="absolute inset-0 pointer-events-none z-10 transition-opacity duration-500"
             style={{
@@ -1947,7 +1981,7 @@ export function UniversalMiniPortfolio({
         )}
 
         {/* Volumetric Fog Overlay */}
-        {environment.fogDensity > 0 && !isWireframe && (
+        {environment.fogDensity > 0 && (
           <div
             className="absolute inset-0 pointer-events-none transition-opacity duration-300"
             style={{
@@ -1959,7 +1993,7 @@ export function UniversalMiniPortfolio({
         )}
 
         {/* Floating Stardust Particles */}
-        {environment.stardustParticles && !isWireframe && (
+        {environment.stardustParticles && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             {stardustPoints.map((pt, idx) => (
               <div
@@ -2057,11 +2091,11 @@ export function UniversalMiniPortfolio({
             }`}
             style={{
               transform: getElementTransform('navbar', zNav),
-              background: isWireframe ? undefined : (matNavStyle.background || (isDark ? themeStyle.navbar.darkBg : themeStyle.navbar.bg)),
-              borderColor: isWireframe ? undefined : matNavStyle.borderColor,
-              boxShadow: isGravityDrop ? gravityGroundShadow : (isWireframe ? undefined : matNavStyle.boxShadow),
-              backdropFilter: isWireframe ? undefined : matNavStyle.backdropFilter,
-              borderWidth: isWireframe ? undefined : `${Math.max(1, Math.round(bevelExtrusion * 0.4))}px`,
+              background: (matNavStyle.background || (isDark ? themeStyle.navbar.darkBg : themeStyle.navbar.bg)),
+              borderColor: isWireframe ? 'rgba(6, 182, 212, 0.85)' : matNavStyle.borderColor,
+              boxShadow: isGravityDrop ? gravityGroundShadow : matNavStyle.boxShadow,
+              backdropFilter: matNavStyle.backdropFilter,
+              borderWidth: `${Math.max(1, Math.round(bevelExtrusion * 0.4))}px`,
               transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`,
               ...getStrataDimStyle('dock')
             }}
@@ -2133,11 +2167,11 @@ export function UniversalMiniPortfolio({
             }`}
             style={{
               transform: getElementTransform('hero', zHero),
-              background: isWireframe ? undefined : (matHeroStyle.background || (isDark ? themeStyle.hero.darkBg : themeStyle.hero.bg)),
-              borderColor: isWireframe ? undefined : matHeroStyle.borderColor,
-              boxShadow: isGravityDrop ? '0 35px 50px -10px rgba(0, 0, 0, 0.8), 0 20px 25px -8px rgba(0, 0, 0, 0.65)' : (isWireframe ? undefined : matHeroStyle.boxShadow),
-              backdropFilter: isWireframe ? undefined : matHeroStyle.backdropFilter,
-              borderWidth: isWireframe ? undefined : `${Math.max(1, Math.round(bevelExtrusion * 0.5))}px`,
+              background: (matHeroStyle.background || (isDark ? themeStyle.hero.darkBg : themeStyle.hero.bg)),
+              borderColor: isWireframe ? 'rgba(6, 182, 212, 0.85)' : matHeroStyle.borderColor,
+              boxShadow: isGravityDrop ? '0 35px 50px -10px rgba(0, 0, 0, 0.8), 0 20px 25px -8px rgba(0, 0, 0, 0.65)' : matHeroStyle.boxShadow,
+              backdropFilter: matHeroStyle.backdropFilter,
+              borderWidth: `${Math.max(1, Math.round(bevelExtrusion * 0.5))}px`,
               transformStyle: 'preserve-3d',
               transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`,
               ...getStrataDimStyle('content')
@@ -2235,11 +2269,11 @@ export function UniversalMiniPortfolio({
                   }`}
                   style={{
                     transform: isContent3D ? 'translateZ(14px)' : 'translateZ(0px)',
-                    background: isWireframe ? undefined : (matGridStyle.background || (isDark ? themeStyle.gridItem.darkBg : themeStyle.gridItem.bg)),
-                    borderColor: isWireframe ? undefined : matGridStyle.borderColor,
-                    boxShadow: isWireframe ? undefined : matGridStyle.boxShadow,
-                    backdropFilter: isWireframe ? undefined : matGridStyle.backdropFilter,
-                    borderWidth: isWireframe ? undefined : `${Math.max(1, Math.round(bevelExtrusion * 0.35))}px`,
+                    background: (matGridStyle.background || (isDark ? themeStyle.gridItem.darkBg : themeStyle.gridItem.bg)),
+                    borderColor: isWireframe ? 'rgba(6, 182, 212, 0.85)' : matGridStyle.borderColor,
+                    boxShadow: matGridStyle.boxShadow,
+                    backdropFilter: matGridStyle.backdropFilter,
+                    borderWidth: `${Math.max(1, Math.round(bevelExtrusion * 0.35))}px`,
                     transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`
                   }}
                 >
@@ -2277,11 +2311,11 @@ export function UniversalMiniPortfolio({
             }`}
             style={{
               transform: getElementTransform('dock', zDock),
-              background: isWireframe ? undefined : (matDockStyle.background || (isDark ? themeStyle.dock.darkBg : themeStyle.dock.bg)),
-              borderColor: isWireframe ? undefined : matDockStyle.borderColor,
-              boxShadow: isGravityDrop ? gravityGroundShadow : (isWireframe ? undefined : matDockStyle.boxShadow),
-              backdropFilter: isWireframe ? undefined : matDockStyle.backdropFilter,
-              borderWidth: isWireframe ? undefined : `${Math.max(1, Math.round(bevelExtrusion * 0.4))}px`,
+              background: (matDockStyle.background || (isDark ? themeStyle.dock.darkBg : themeStyle.dock.bg)),
+              borderColor: isWireframe ? 'rgba(6, 182, 212, 0.85)' : matDockStyle.borderColor,
+              boxShadow: isGravityDrop ? gravityGroundShadow : matDockStyle.boxShadow,
+              backdropFilter: matDockStyle.backdropFilter,
+              borderWidth: `${Math.max(1, Math.round(bevelExtrusion * 0.4))}px`,
               transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`,
               ...getStrataDimStyle('dock')
             }}

@@ -670,4 +670,77 @@ export function CyberCubeMeshVisual({ className = '', scale = 1.0 }) {
   );
 }
 
+/**
+ * GeodesicSphereMeshVisual
+ * Rotating 3D geodesic wireframe sphere with latitude & longitude coordinate grid rings.
+ */
+export function GeodesicSphereMeshVisual({ className = '', scale = 1.0 }) {
+  return (
+    <div
+      className={`relative flex items-center justify-center select-none ${className}`}
+      style={{ perspective: '300px', transform: `scale(${scale})` }}
+      aria-label="3D Geodesic Wireframe Sphere"
+    >
+      <div
+        className="w-10 h-10 relative threed-preserve"
+        style={{
+          transformStyle: 'preserve-3d',
+          animation: 'spin 10s linear infinite'
+        }}
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_0_12px_rgba(168,85,247,0.6)]">
+          <defs>
+            <linearGradient id="geoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#C084FC" />
+              <stop offset="100%" stopColor="#7C3AED" />
+            </linearGradient>
+          </defs>
+          <circle cx="50" cy="50" r="42" fill="none" stroke="#A855F7" strokeWidth="1.5" strokeDasharray="3 2" opacity="0.7" />
+          <ellipse cx="50" cy="50" rx="42" ry="18" fill="none" stroke="url(#geoGrad)" strokeWidth="1.5" />
+          <ellipse cx="50" cy="50" rx="18" ry="42" fill="none" stroke="url(#geoGrad)" strokeWidth="1.5" />
+          <line x1="50" y1="8" x2="50" y2="92" stroke="#E9D5FF" strokeWidth="1" strokeDasharray="2 2" opacity="0.8" />
+          <line x1="8" y1="50" x2="92" y2="50" stroke="#E9D5FF" strokeWidth="1" strokeDasharray="2 2" opacity="0.8" />
+          <circle cx="50" cy="50" r="4" fill="#F3E8FF" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * QuantumTorusMeshVisual
+ * Multi-ring orbital quantum gyroscope torus with glowing counter-rotating rings.
+ */
+export function QuantumTorusMeshVisual({ className = '', scale = 1.0 }) {
+  return (
+    <div
+      className={`relative flex items-center justify-center select-none ${className}`}
+      style={{ perspective: '300px', transform: `scale(${scale})` }}
+      aria-label="3D Quantum Torus Gyroscope"
+    >
+      <div
+        className="w-10 h-10 relative threed-preserve"
+        style={{
+          transformStyle: 'preserve-3d',
+          animation: 'spin 8s linear infinite reverse'
+        }}
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_0_12px_rgba(236,72,153,0.6)]">
+          <defs>
+            <linearGradient id="torusGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#F472B6" />
+              <stop offset="100%" stopColor="#DB2777" />
+            </linearGradient>
+          </defs>
+          <ellipse cx="50" cy="50" rx="42" ry="22" fill="none" stroke="url(#torusGrad)" strokeWidth="2" strokeDasharray="4 2" />
+          <ellipse cx="50" cy="50" rx="26" ry="12" fill="none" stroke="#FDA4AF" strokeWidth="1.5" opacity="0.8" />
+          <ellipse cx="50" cy="50" rx="42" ry="22" fill="none" stroke="#F43F5E" strokeWidth="1" transform="rotate(60 50 50)" />
+          <ellipse cx="50" cy="50" rx="42" ry="22" fill="none" stroke="#EC4899" strokeWidth="1" transform="rotate(-60 50 50)" />
+          <circle cx="50" cy="50" r="5" fill="#FFE4E6" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 export default CameraCubePreview;
