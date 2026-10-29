@@ -209,6 +209,15 @@ Every single change to repository files must be logged with full forensic diffs 
 - **Direct User Mandate (अनिवार्य यूजर आदेश):** आगे से जब भी यूजर 3D टैब या पोर्टफोलियो सेटिंग्स में किसी भी बदलाव या कस्टमाइज़ेशन का निर्देश दें, वह बदलाव **केवल और केवल इसी मुख्य पोर्टफोलियो प्रोजेक्ट (`Interactive Cursor-Tracking Portfolio`)** में ही लागू होगा।
 - **External Standalone Studio Invariant (स्टैंडअलोन स्टूडियो पर पूर्ण सुरक्षा लॉक):** डेस्कटॉप पर मौजूद स्टैंडअलोन स्टूडियो कॉपी (`Interactive Cursor-Tracking 3D-Studio/`) में तब तक कोई भी बदलाव, एडिट या ऑटो-सिंक नहीं किया जाएगा जब तक यूजर स्पष्ट रूप से उस प्रोजेक्ट का नाम लेकर निर्देश न दें (*"उस प्रोजेक्ट में अलग से डिफाइन करके बोलेंगे कि हां, इस प्रोजेक्ट में करना है"*). बिना स्पष्ट निर्देश के स्टैंडअलोन स्टूडियो को स्पर्श करना सख्त वर्जित है।
 
+### 2.12 Universal Rule 26: Mandatory Subagent Background Task Hygiene & Zero-Hang Termination Standard (अनिवार्य सब-एजेंट बैकग्राउंड टास्क स्वच्छता मानक)
+- **Problem & Root Cause (समस्या व कारण):** Whenever subagents execute shell or background operations, unexpected command timeouts or syntax traps can leave running/zombie background processes registered in the system background task queue. Even if the subagent completes its coding, tests, and git changes log, any lingering background task causes Antigravity to keep reporting the subagent as **"Work in Progress"** or **"Running"** in the chat UI, creating user confusion.
+- **Mandatory Pre-Handoff Background Task Audit (`manage_task: list`):**
+  - Before concluding any task or sending the completion report to the Supreme CEO, every subagent MUST invoke `manage_task(Action='list')`.
+  - **Zero Zombie Task Invariant:** If any unintended, hung, or orphan background process exists, the subagent must immediately terminate it via `manage_task(Action='kill', TaskId=...)`.
+  - Only explicitly requested standing daemons (e.g. dev server with `IsDaemon=true`) are permitted to persist.
+  - The subagent must verify that `manage_task('list')` returns clean (`No background tasks are currently running.`).
+- **CEO & QA Verification Gatekeeper:** The Supreme CEO Orchestrator and independent QA Subagent verify background task hygiene before accepting task completion, ensuring the UI status immediately transitions to **Complete / Idle**.
+
 ---
 
 ## 🛠️ 3. Standard Developer & Verification Commands

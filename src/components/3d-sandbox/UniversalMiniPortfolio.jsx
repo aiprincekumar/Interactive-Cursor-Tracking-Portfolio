@@ -19,7 +19,29 @@ import {
   Box
 } from 'lucide-react';
 import { useLab3D } from '../../context/LabContext';
+import { soundFX } from '../../utils/audio';
 import SandboxViewportContainer from './SandboxViewportContainer';
+
+/**
+ * Kinetic Spring Elasticity Transitions & Curves Specification
+ */
+export const ELASTICITY_TRANSITIONS = {
+  rigid: {
+    transition: 'transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1.0), box-shadow 0.18s ease',
+    curve: 'cubic-bezier(0.2, 0.8, 0.2, 1.0)',
+    duration: '0.18s'
+  },
+  snappy: {
+    transition: 'transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1.0), box-shadow 0.32s ease',
+    curve: 'cubic-bezier(0.34, 1.56, 0.64, 1.0)',
+    duration: '0.32s'
+  },
+  bouncy: {
+    transition: 'transform 0.52s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.52s ease',
+    curve: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+    duration: '0.52s'
+  }
+};
 
 /**
  * 16 Master 3D Portfolio Themes Visual Styling Specification
@@ -746,6 +768,18 @@ const SKYBOX_GRADIENTS = {
 };
 
 /**
+ * Camera Viewing Angle Presets (RotX, RotY)
+ */
+export const CAMERA_PRESET_ANGLES = {
+  'isometric': { rotX: 18, rotY: -22 },
+  'top-down': { rotX: 25, rotY: 0 },
+  'dramatic-low': { rotX: -18, rotY: 20 },
+  'flat-ortho': { rotX: 0, rotY: 0 },
+  'eye-level': { rotX: 0, rotY: 0 },
+  'cinematic': { rotX: 12, rotY: -15 }
+};
+
+/**
  * Helper to normalize component key for visual linking
  */
 export function normalizeMiniKey(key) {
@@ -792,9 +826,20 @@ export function UniversalMiniPortfolio({
   const elements = threeD.elements || {};
   const lighting = threeD.lighting || { angle: 45, shadowSoftness: 0.6 };
   const camera = threeD.camera || { perspectiveFOV: 1000, tiltSensitivity: 1.0 };
-  const materials = threeD.materials || { bevelExtrusion: 4, specularGlow: 0.5 };
+  const materials = threeD.materials || { preset: 'glass-acrylic', bevelExtrusion: 4, specularGlow: 0.5 };
+  const physics = threeD.physics || { hoverPop: 12, elasticity: 'snappy', clickDepression: true, magneticPull: false };
   const exploded = threeD.exploded || { enabled: false, separationDistance: 40, ghostOpacity: 0.4, layerStagger: 15, blueprintMode: false };
   const environment = threeD.environment || { skybox: 'dark-studio', fogDensity: 20, stardustParticles: true, particleCount: 30 };
+
+  const hoverPop = typeof physics.hoverPop === 'number' ? physics.hoverPop : 12;
+  const elasticityMode = physics.elasticity && ELASTICITY_TRANSITIONS[physics.elasticity] ? physics.elasticity : 'snappy';
+  const activeElasticity = ELASTICITY_TRANSITIONS[elasticityMode] || ELASTICITY_TRANSITIONS.snappy;
+  const isClickDepressionEnabled = physics.clickDepression ?? true;
+  const isMagneticPullEnabled = Boolean(physics.magneticPull);
+
+  // Kinetic state for hover elevation pop & click depression
+  const [hoveredElement, setHoveredElement] = useState(null);
+  const [depressedElement, setDepressedElement] = useState(null);
 
   const themeStyle = THEME_PORTFOLIO_STYLES[masterTheme] || THEME_PORTFOLIO_STYLES['apple-glass'];
 
@@ -853,6 +898,64 @@ export function UniversalMiniPortfolio({
   const [hoveredDockIcon, setHoveredDockIcon] = useState(null);
   const [internalWireframe, setInternalWireframe] = useState(false);
 
+  // Camera Angle Presets Listener
+  const prevAnglePresetRef = useRef(camera.anglePreset);
+  useEffect(() => {
+    if (camera.anglePreset && camera.anglePreset !== prevAnglePresetRef.current) {
+      prevAnglePresetRef.current = camera.anglePreset;
+      if (!isDragging) {
+        const targetAngle = CAMERA_PRESET_ANGLES[camera.anglePreset] || { rotX: 0, rotY: 0 };
+        setInternalTilt(targetAngle);
+      }
+    }
+  }, [camera.anglePreset, isDragging]);
+
+  // Turntable Auto-Orbit Animation Loop
+  useEffect(() => {
+    if (!camera.autoOrbit || isDragging) return;
+
+    let animId;
+    const speed = typeof camera.orbitSpeed === 'number' ? camera.orbitSpeed : 1.0;
+    const step = speed * 0.35;
+
+    const orbitLoop = () => {
+      setInternalTilt((prev) => {
+        let nextRotY = prev.rotY + step;
+        if (nextRotY > 180) nextRotY -= 360;
+        else if (nextRotY < -180) nextRotY += 360;
+        return {
+          rotX: prev.rotX,
+          rotY: Math.round(nextRotY * 10) / 10
+        };
+      });
+      animId = requestAnimationFrame(orbitLoop);
+    };
+
+    animId = requestAnimationFrame(orbitLoop);
+
+    return () => {
+      if (animId) {
+        cancelAnimationFrame(animId);
+      }
+    };
+  }, [camera.autoOrbit, camera.orbitSpeed, isDragging]);
+
+  const containerRef = useRef(null);
+  const [cursorPos, setCursorPos] = useState({ x: 190, y: 280 });
+
+  // Initialize cursorPos to center of container
+  useEffect(() => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setCursorPos({
+          x: Math.round(rect.width / 2),
+          y: Math.round(rect.height / 2)
+        });
+      }
+    }
+  }, []);
+
   const tilt = sandboxTilt || internalTilt;
 
   // Active wireframe state can be controlled via prop or internal toggle or exploded blueprint mode
@@ -866,6 +969,74 @@ export function UniversalMiniPortfolio({
   const isGridHighlighted = normalizeMiniKey(highlightedComponent) === 'showcase';
   const isDockHighlighted = normalizeMiniKey(highlightedComponent) === 'dock';
   const isFooterHighlighted = normalizeMiniKey(highlightedComponent) === 'footer';
+
+  // Kinetic interaction handlers for mini elements (Hover Pop & Click Depression)
+  const handleElementMouseEnter = useCallback((elementKey) => {
+    setHoveredElement(elementKey);
+    onHighlightComponent?.(elementKey === 'grid' ? 'showcase' : elementKey);
+  }, [onHighlightComponent]);
+
+  const handleElementMouseLeave = useCallback((elementKey) => {
+    setHoveredElement((prev) => (prev === elementKey ? null : prev));
+    setDepressedElement((prev) => (prev === elementKey ? null : prev));
+    onHighlightComponent?.(null);
+  }, [onHighlightComponent]);
+
+  const handleElementPointerDown = useCallback((elementKey) => {
+    if (isClickDepressionEnabled) {
+      setDepressedElement(elementKey);
+      try {
+        soundFX?.playHapticClick?.();
+      } catch {
+        // Safe audio fallback
+      }
+    }
+  }, [isClickDepressionEnabled]);
+
+  const handleElementPointerUp = useCallback((elementKey) => {
+    setDepressedElement((prev) => (prev === elementKey ? null : prev));
+  }, []);
+
+  // Magnetic micro-tilt calculation for hovered element
+  const magneticTilt = useMemo(() => {
+    if (!isMagneticPullEnabled || !hoveredElement || !containerRef.current) {
+      return { rotX: 0, rotY: 0 };
+    }
+    const rect = containerRef.current.getBoundingClientRect();
+    const width = rect.width || 384;
+    const height = rect.height || 560;
+    const relX = (cursorPos.x - width / 2) / (width / 2);
+    const relY = (cursorPos.y - height / 2) / (height / 2);
+    const clampedX = Math.max(-1, Math.min(1, relX));
+    const clampedY = Math.max(-1, Math.min(1, relY));
+    return {
+      rotX: Math.round(-clampedY * 8 * 10) / 10,
+      rotY: Math.round(clampedX * 10 * 10) / 10
+    };
+  }, [isMagneticPullEnabled, hoveredElement, cursorPos]);
+
+  // Dynamic Z elevation factoring hover pop and click depression
+  const getElementZ = useCallback((elementKey, baseZ) => {
+    if (!isMaster3DOn) return 0;
+    let z = baseZ;
+    if (hoveredElement === elementKey) {
+      z += hoverPop;
+    }
+    if (isClickDepressionEnabled && depressedElement === elementKey) {
+      z -= 6;
+    }
+    return z;
+  }, [isMaster3DOn, hoveredElement, hoverPop, isClickDepressionEnabled, depressedElement]);
+
+  // Combined 3D transform incorporating base Z, hover pop, click depression and magnetic micro-tilt
+  const getElementTransform = useCallback((elementKey, baseZ) => {
+    if (!isMaster3DOn) return 'translateZ(0px)';
+    const z = getElementZ(elementKey, baseZ);
+    if (isMagneticPullEnabled && hoveredElement === elementKey) {
+      return `translateZ(${z}px) rotateX(${magneticTilt.rotX}deg) rotateY(${magneticTilt.rotY}deg)`;
+    }
+    return `translateZ(${z}px)`;
+  }, [isMaster3DOn, getElementZ, isMagneticPullEnabled, hoveredElement, magneticTilt]);
 
   const dragStartRef = useRef({ x: 0, y: 0, startRotX: defaultTilt.rotX, startRotY: defaultTilt.rotY });
   const rafRef = useRef(null);
@@ -891,6 +1062,19 @@ export function UniversalMiniPortfolio({
   }, [isMaster3DOn, tilt.rotX, tilt.rotY, externalPointerDown]);
 
   const handlePointerMove = useCallback((e) => {
+    const containerEl = containerRef.current || e.currentTarget;
+    if (containerEl) {
+      const rect = containerEl.getBoundingClientRect();
+      setCursorPos({
+        x: Math.round(e.clientX - rect.left),
+        y: Math.round(e.clientY - rect.top)
+      });
+    }
+
+    if (typeof externalPointerMove === 'function') {
+      externalPointerMove(e);
+    }
+
     if (!isDragging || !isMaster3DOn) return;
     const clientX = e.clientX;
     const clientY = e.clientY;
@@ -915,13 +1099,10 @@ export function UniversalMiniPortfolio({
       setInternalTilt({ rotX: clampedRotX, rotY: clampedRotY });
       rafRef.current = null;
     });
-
-    if (typeof externalPointerMove === 'function') {
-      externalPointerMove(e);
-    }
   }, [isDragging, isMaster3DOn, camera.tiltSensitivity, externalPointerMove]);
 
   const handlePointerUp = useCallback((e) => {
+    setDepressedElement(null);
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -940,6 +1121,8 @@ export function UniversalMiniPortfolio({
   }, [isDragging, externalPointerUp]);
 
   const handlePointerLeave = useCallback((e) => {
+    setHoveredElement(null);
+    setDepressedElement(null);
     if (isDragging) {
       handlePointerUp(e);
     }
@@ -980,6 +1163,140 @@ export function UniversalMiniPortfolio({
     { x: 82, y: 55, z: -15, delay: 1.1 },
     { x: 50, y: 40, z: 50, delay: 0.6 }
   ], []);
+
+  // Materials Presets & Visual Surface Engine (Phase 1)
+  const matPreset = materials.preset || 'glass-acrylic';
+  const specularGlow = typeof materials.specularGlow === 'number' ? materials.specularGlow : 0.5;
+  const bevelExtrusion = typeof materials.bevelExtrusion === 'number' ? materials.bevelExtrusion : 4;
+
+  const normalizedMaterialPreset = (matPreset === 'metallic' || matPreset === 'metallic-gloss')
+    ? 'metallic-gloss'
+    : (matPreset === 'clay' || matPreset === 'neumorphic-clay')
+    ? 'neumorphic-clay'
+    : (matPreset === 'wireframe' || matPreset === 'cyber-wireframe')
+    ? 'cyber-wireframe'
+    : 'glass-acrylic';
+
+  const getMaterialSurfaceStyle = useCallback((elementKey, isElem3DActive = false) => {
+    if (isWireframe) {
+      return {};
+    }
+
+    const themeSection = elementKey === 'grid' ? themeStyle.gridItem : themeStyle[elementKey];
+    const scale = elementKey === 'navbar' ? 0.5 : (elementKey === 'grid' ? 0.6 : 1.0);
+    const activeGlow = isElem3DActive && themeSection?.activeGlowRim;
+    const lightingPreset = lighting?.preset || 'studio-soft';
+
+    // Compute illumination preset specific shadow tint and highlight intensity
+    const getLightingPresetEffects = (baseBlur) => {
+      switch (lightingPreset) {
+        case 'sunset': {
+          const warmShadow = `${lightOffsetX * scale}px ${lightOffsetY * scale}px ${baseBlur}px rgba(245, 158, 11, 0.25)`;
+          const ambientWarmth = `0 ${Math.round(baseBlur * 0.8)}px ${Math.round(baseBlur * 1.5)}px rgba(180, 83, 9, ${isDark ? 0.35 : 0.2})`;
+          const warmHighlight = specularGlow > 0 ? `inset 0 1px 2px rgba(254, 243, 199, ${0.4 + specularGlow * 0.4})` : '';
+          return { shadow: `${warmShadow}, ${ambientWarmth}`, highlight: warmHighlight };
+        }
+        case 'cyber-neon':
+        case 'cyber-spotlight': {
+          const cyanGlow = `0 0 ${Math.round(baseBlur * 1.4)}px rgba(6, 182, 212, 0.45)`;
+          const magentaRim = `inset 0 0 ${Math.round(baseBlur * 0.8)}px rgba(236, 72, 153, 0.35)`;
+          const directionalShadow = `${lightOffsetX * scale}px ${lightOffsetY * scale}px ${baseBlur}px rgba(0, 0, 0, 0.55)`;
+          return { shadow: `${directionalShadow}, ${cyanGlow}`, highlight: magentaRim };
+        }
+        case 'dramatic-side': {
+          const hardShadow = `${Math.round(lightOffsetX * scale * 1.6)}px ${Math.round(lightOffsetY * scale * 1.6)}px ${Math.round(baseBlur * 0.8)}px rgba(0, 0, 0, ${isDark ? 0.6 : 0.45})`;
+          const sharpHighlight = specularGlow > 0 ? `inset 0 1px 1px rgba(255, 255, 255, ${0.5 + specularGlow * 0.45})` : '';
+          return { shadow: hardShadow, highlight: sharpHighlight };
+        }
+        case 'studio-soft':
+        default: {
+          const softShadow = `${lightOffsetX * scale}px ${lightOffsetY * scale}px ${baseBlur}px rgba(0, 0, 0, ${isDark ? 0.35 : 0.22})`;
+          const softHighlight = specularGlow > 0 ? `inset 0 1px 1.5px rgba(255, 255, 255, ${0.3 + specularGlow * 0.45})` : '';
+          return { shadow: softShadow, highlight: softHighlight };
+        }
+      }
+    };
+
+    switch (normalizedMaterialPreset) {
+      case 'metallic-gloss': {
+        const bg = isDark
+          ? 'linear-gradient(135deg, rgba(65, 72, 88, 0.95) 0%, rgba(35, 40, 52, 0.92) 48%, rgba(90, 98, 118, 0.95) 52%, rgba(24, 28, 38, 0.95) 100%)'
+          : 'linear-gradient(135deg, rgba(238, 242, 248, 0.96) 0%, rgba(198, 208, 222, 0.92) 48%, rgba(255, 255, 255, 0.98) 52%, rgba(170, 182, 200, 0.94) 100%)';
+        const borderColor = isDark ? 'rgba(200, 215, 235, 0.7)' : 'rgba(255, 255, 255, 0.95)';
+        const shadowBlur = Math.round(bevelExtrusion * 3.5);
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const shadow = isMaster3DOn
+          ? [presetHighlight, presetShadow, activeGlow].filter(Boolean).join(', ')
+          : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      case 'neumorphic-clay': {
+        const bg = isDark ? '#221B2E' : '#ECE8DF';
+        const borderColor = isDark ? 'rgba(47, 37, 64, 0.85)' : 'rgba(222, 215, 203, 0.85)';
+        const blurAmt = Math.round(bevelExtrusion * 3 + 4);
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(blurAmt);
+        const darkShadow = `${lightOffsetX * scale}px ${lightOffsetY * scale}px ${blurAmt}px ${isDark ? 'rgba(10, 8, 16, 0.65)' : 'rgba(175, 166, 152, 0.55)'}`;
+        const lightHighlight = `${-lightOffsetX * scale}px ${-lightOffsetY * scale}px ${blurAmt}px ${isDark ? 'rgba(58, 48, 78, 0.5)' : 'rgba(255, 255, 255, 0.9)'}`;
+        const shadow = isMaster3DOn
+          ? [darkShadow, lightHighlight, presetShadow, presetHighlight, activeGlow].filter(Boolean).join(', ')
+          : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'none'
+        };
+      }
+
+      case 'cyber-wireframe': {
+        const bg = 'rgba(8, 6, 17, 0.92)';
+        const borderColor = 'rgba(6, 182, 212, 0.85)';
+        const glowOuter = Math.round(10 + specularGlow * 15);
+        const glowInner = Math.round(6 + specularGlow * 10);
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(glowOuter);
+        const baseShadow = `0 0 ${glowOuter}px rgba(6, 182, 212, ${0.3 + specularGlow * 0.35}), inset 0 0 ${glowInner}px rgba(255, 0, 122, ${0.2 + specularGlow * 0.25})`;
+        const shadow = isMaster3DOn
+          ? [baseShadow, presetShadow, presetHighlight, activeGlow].filter(Boolean).join(', ')
+          : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'blur(8px)'
+        };
+      }
+
+      case 'glass-acrylic':
+      default: {
+        const bg = isDark
+          ? (themeSection?.darkBg || 'rgba(24, 18, 38, 0.72)')
+          : (themeSection?.bg || 'rgba(255, 255, 255, 0.78)');
+        const borderColor = isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(255, 255, 255, 0.5)';
+        const shadowBlur = Math.round(bevelExtrusion * (elementKey === 'hero' ? 4 : (elementKey === 'grid' ? 3 : 3.5)));
+        const { shadow: presetShadow, highlight: presetHighlight } = getLightingPresetEffects(shadowBlur);
+        const shadow = isMaster3DOn
+          ? [presetHighlight, presetShadow, activeGlow].filter(Boolean).join(', ')
+          : 'none';
+        return {
+          background: bg,
+          borderColor,
+          boxShadow: shadow,
+          backdropFilter: 'blur(16px)'
+        };
+      }
+    }
+  }, [isWireframe, themeStyle, normalizedMaterialPreset, isDark, bevelExtrusion, isMaster3DOn, specularGlow, lightOffsetX, lightOffsetY, lighting?.preset]);
+
+  const matNavStyle = getMaterialSurfaceStyle('navbar', isNav3D);
+  const matHeroStyle = getMaterialSurfaceStyle('hero', isHeroAny3D);
+  const matGridStyle = getMaterialSurfaceStyle('grid', isGrid3D);
+  const matDockStyle = getMaterialSurfaceStyle('dock', isDock3D);
 
   const hasCustomHeight = /(?:^|\s)(?:h-|min-h-|max-h-)/.test(className);
   const heightClass = hasCustomHeight
@@ -1048,14 +1365,22 @@ export function UniversalMiniPortfolio({
 
       {/* Main Sandbox Viewport Container */}
       <SandboxViewportContainer
+        ref={containerRef}
         perspective={camera.perspectiveFOV || 1000}
         className={`w-full ${heightClass} ${containerFrameClass} relative flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none transition-colors duration-500 ${
           isWireframe && !compact ? 'bg-cyan-950/40' : ''
         }`}
-        style={compact ? {} : {
-          background: isWireframe
-            ? 'radial-gradient(circle at center, rgba(0, 242, 254, 0.12) 0%, rgba(6, 15, 30, 0.98) 100%)'
-            : (themeStyle?.stageBg || skyboxBg)
+        style={{
+          ...(compact ? {} : {
+            background: isWireframe
+              ? 'radial-gradient(circle at center, rgba(0, 242, 254, 0.12) 0%, rgba(6, 15, 30, 0.98) 100%)'
+              : (themeStyle?.stageBg || skyboxBg)
+          }),
+          '--3d-materials-preset': normalizedMaterialPreset,
+          '--3d-specular-glow': specularGlow,
+          '--3d-materials-bevel': `${bevelExtrusion}px`,
+          '--3d-hover-pop': `${hoverPop}px`,
+          '--3d-physics-curve': activeElasticity.curve
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -1063,6 +1388,46 @@ export function UniversalMiniPortfolio({
         onPointerLeave={handlePointerLeave}
         onPointerCancel={handlePointerUp}
       >
+        {/* Illumination Atmosphere Preset Overlay */}
+        {lighting.preset === 'sunset' && !isWireframe && (
+          <div
+            className="absolute inset-0 pointer-events-none z-10 transition-opacity duration-500"
+            style={{
+              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(239, 68, 68, 0.08) 50%, transparent 100%)',
+              mixBlendMode: 'color-dodge'
+            }}
+          />
+        )}
+        {(lighting.preset === 'cyber-neon' || lighting.preset === 'cyber-spotlight') && !isWireframe && (
+          <div
+            className="absolute inset-0 pointer-events-none z-10 transition-opacity duration-500"
+            style={{
+              background: 'radial-gradient(ellipse at 80% 20%, rgba(6, 182, 212, 0.14) 0%, rgba(236, 72, 153, 0.1) 60%, transparent 100%)',
+              mixBlendMode: 'screen'
+            }}
+          />
+        )}
+        {lighting.preset === 'dramatic-side' && !isWireframe && (
+          <div
+            className="absolute inset-0 pointer-events-none z-10 transition-opacity duration-500"
+            style={{
+              background: `linear-gradient(${lighting.angle ?? 45}deg, rgba(255, 255, 255, 0.08) 0%, transparent 40%, rgba(0, 0, 0, 0.28) 100%)`,
+              mixBlendMode: 'overlay'
+            }}
+          />
+        )}
+
+        {/* Cursor Spotlight Overlay */}
+        {lighting.cursorLight && (
+          <div
+            className="absolute inset-0 pointer-events-none z-20 transition-opacity duration-300"
+            style={{
+              background: `radial-gradient(circle 220px at ${cursorPos.x}px ${cursorPos.y}px, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.04) 45%, transparent 75%)`,
+              mixBlendMode: 'screen'
+            }}
+          />
+        )}
+
         {/* CAD Blueprint Grid Overlay (when wireframe active) */}
         {isWireframe && (
           <div
@@ -1114,7 +1479,13 @@ export function UniversalMiniPortfolio({
               ? `rotateX(${tilt.rotX}deg) rotateY(${tilt.rotY}deg) scale(1.02)`
               : 'none',
             transformStyle: 'preserve-3d',
-            transition: isDragging ? 'none' : 'transform 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+            transition: isDragging ? 'none' : `transform ${activeElasticity.duration} ${activeElasticity.curve}`,
+            '--3d-materials-preset': normalizedMaterialPreset,
+            '--3d-specular-glow': specularGlow,
+            '--3d-materials-bevel': `${bevelExtrusion}px`,
+            '--3d-hover-pop': `${hoverPop}px`,
+            '--3d-physics-curve': activeElasticity.curve,
+            '--3d-physics-duration': activeElasticity.duration
           }}
         >
           {/* Exploded Strata Layer 1 (Base Chassis) */}
@@ -1152,24 +1523,25 @@ export function UniversalMiniPortfolio({
           {/* ======================================================== */}
           <div
             data-mini-element="navbar"
-            onMouseEnter={() => onHighlightComponent?.('navbar')}
-            onMouseLeave={() => onHighlightComponent?.(null)}
+            onMouseEnter={() => handleElementMouseEnter('navbar')}
+            onMouseLeave={() => handleElementMouseLeave('navbar')}
+            onPointerDown={() => handleElementPointerDown('navbar')}
+            onPointerUp={() => handleElementPointerUp('navbar')}
             className={`w-full flex items-center justify-between px-3 py-1.5 rounded-full border transition-all duration-300 ${
               isNavHighlighted ? 'ring-2 ring-[#FF4D6D] ring-offset-2 shadow-[0_0_20px_rgba(255,77,109,0.35)]' : ''
             } ${
               isWireframe
                 ? 'border-cyan-400 bg-cyan-950/70 text-cyan-300 font-mono shadow-[0_0_12px_rgba(0,242,254,0.3)]'
-                : `${themeStyle.navbar.border} ${themeStyle.navbar.text} backdrop-blur-md shadow-md`
+                : `${themeStyle.navbar.border} ${themeStyle.navbar.text} ${normalizedMaterialPreset === 'glass-acrylic' ? 'backdrop-blur-md' : ''} shadow-md`
             }`}
             style={{
-              transform: isMaster3DOn ? `translateZ(${zNav}px)` : 'translateZ(0px)',
-              background: isWireframe ? undefined : (isDark ? themeStyle.navbar.darkBg : themeStyle.navbar.bg),
-              boxShadow: isMaster3DOn
-                ? (isNav3D
-                    ? `${themeStyle.navbar.activeGlowRim}, ${lightOffsetX * 0.5}px ${lightOffsetY * 0.5}px 14px rgba(0,0,0,0.22)`
-                    : `${lightOffsetX * 0.5}px ${lightOffsetY * 0.5}px 10px rgba(0,0,0,0.18)`)
-                : 'none',
-              transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, background 0.35s ease'
+              transform: getElementTransform('navbar', zNav),
+              background: isWireframe ? undefined : (matNavStyle.background || (isDark ? themeStyle.navbar.darkBg : themeStyle.navbar.bg)),
+              borderColor: isWireframe ? undefined : matNavStyle.borderColor,
+              boxShadow: isWireframe ? undefined : matNavStyle.boxShadow,
+              backdropFilter: isWireframe ? undefined : matNavStyle.backdropFilter,
+              borderWidth: isWireframe ? undefined : `${Math.max(1, Math.round(bevelExtrusion * 0.4))}px`,
+              transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`
             }}
           >
             {/* Brand Monogram Initials */}
@@ -1226,25 +1598,26 @@ export function UniversalMiniPortfolio({
           {/* ======================================================== */}
           <div
             data-mini-element="hero"
-            onMouseEnter={() => onHighlightComponent?.('hero')}
-            onMouseLeave={() => onHighlightComponent?.(null)}
+            onMouseEnter={() => handleElementMouseEnter('hero')}
+            onMouseLeave={() => handleElementMouseLeave('hero')}
+            onPointerDown={() => handleElementPointerDown('hero')}
+            onPointerUp={() => handleElementPointerUp('hero')}
             className={`w-full rounded-2xl p-3.5 flex items-center gap-3 border transition-all duration-300 ${
               isHeroHighlighted ? 'ring-2 ring-[#FF4D6D] ring-offset-2 shadow-[0_0_20px_rgba(255,77,109,0.35)]' : ''
             } ${
               isWireframe
                 ? 'border-cyan-400 bg-cyan-950/80 text-cyan-200 shadow-[0_0_20px_rgba(0,242,254,0.35)]'
-                : `${themeStyle.hero.border} backdrop-blur-xl shadow-xl`
+                : `${themeStyle.hero.border} ${normalizedMaterialPreset === 'glass-acrylic' ? 'backdrop-blur-xl' : ''} shadow-xl`
             }`}
             style={{
-              transform: isMaster3DOn ? `translateZ(${zHero}px)` : 'translateZ(0px)',
-              background: isWireframe ? undefined : (isDark ? themeStyle.hero.darkBg : themeStyle.hero.bg),
-              boxShadow: isMaster3DOn
-                ? (isHeroAny3D
-                    ? `${themeStyle.hero.activeGlowRim}, ${lightOffsetX}px ${lightOffsetY}px ${Math.round(materials.bevelExtrusion * 4)}px rgba(0,0,0,0.28)`
-                    : `${lightOffsetX}px ${lightOffsetY}px ${Math.round(materials.bevelExtrusion * 4)}px rgba(0,0,0,0.25)`)
-                : 'none',
+              transform: getElementTransform('hero', zHero),
+              background: isWireframe ? undefined : (matHeroStyle.background || (isDark ? themeStyle.hero.darkBg : themeStyle.hero.bg)),
+              borderColor: isWireframe ? undefined : matHeroStyle.borderColor,
+              boxShadow: isWireframe ? undefined : matHeroStyle.boxShadow,
+              backdropFilter: isWireframe ? undefined : matHeroStyle.backdropFilter,
+              borderWidth: isWireframe ? undefined : `${Math.max(1, Math.round(bevelExtrusion * 0.5))}px`,
               transformStyle: 'preserve-3d',
-              transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, background 0.35s ease'
+              transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`
             }}
           >
             {/* Avatar Orb */}
@@ -1311,15 +1684,17 @@ export function UniversalMiniPortfolio({
           {/* ======================================================== */}
           <div
             data-mini-element="grid"
-            onMouseEnter={() => onHighlightComponent?.('showcase')}
-            onMouseLeave={() => onHighlightComponent?.(null)}
+            onMouseEnter={() => handleElementMouseEnter('grid')}
+            onMouseLeave={() => handleElementMouseLeave('grid')}
+            onPointerDown={() => handleElementPointerDown('grid')}
+            onPointerUp={() => handleElementPointerUp('grid')}
             className={`w-full grid grid-cols-2 gap-2 p-1 rounded-2xl transition-all duration-300 ${
               isGridHighlighted ? 'ring-2 ring-[#FF4D6D] ring-offset-2 shadow-[0_0_20px_rgba(255,77,109,0.35)]' : ''
             }`}
             style={{
-              transform: isMaster3DOn ? `translateZ(${zGrid}px)` : 'translateZ(0px)',
+              transform: getElementTransform('grid', zGrid),
               transformStyle: 'preserve-3d',
-              transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
+              transition: isDragging ? 'none' : activeElasticity.transition
             }}
           >
             {[
@@ -1335,17 +1710,16 @@ export function UniversalMiniPortfolio({
                   className={`p-2 rounded-xl border flex flex-col justify-between gap-1.5 transition-all ${
                     isWireframe
                       ? 'border-cyan-400/80 bg-cyan-950/60 text-cyan-300 font-mono shadow-[0_0_10px_rgba(0,242,254,0.2)]'
-                      : `${themeStyle.gridItem.border} ${themeStyle.gridItem.text} backdrop-blur-md shadow-sm`
+                      : `${themeStyle.gridItem.border} ${themeStyle.gridItem.text} ${normalizedMaterialPreset === 'glass-acrylic' ? 'backdrop-blur-md' : ''} shadow-sm`
                   }`}
                   style={{
                     transform: isContent3D ? 'translateZ(14px)' : 'translateZ(0px)',
-                    background: isWireframe ? undefined : (isDark ? themeStyle.gridItem.darkBg : themeStyle.gridItem.bg),
-                    boxShadow: isMaster3DOn
-                      ? (isGrid3D
-                          ? `${lightOffsetX * 0.6}px ${lightOffsetY * 0.6}px ${Math.round(materials.bevelExtrusion * 3)}px rgba(0,0,0,0.24), ${themeStyle.gridItem.activeGlowRim}`
-                          : `${lightOffsetX * 0.6}px ${lightOffsetY * 0.6}px ${Math.round(materials.bevelExtrusion * 2)}px rgba(0,0,0,0.18)`)
-                      : 'none',
-                    transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, background 0.35s ease'
+                    background: isWireframe ? undefined : (matGridStyle.background || (isDark ? themeStyle.gridItem.darkBg : themeStyle.gridItem.bg)),
+                    borderColor: isWireframe ? undefined : matGridStyle.borderColor,
+                    boxShadow: isWireframe ? undefined : matGridStyle.boxShadow,
+                    backdropFilter: isWireframe ? undefined : matGridStyle.backdropFilter,
+                    borderWidth: isWireframe ? undefined : `${Math.max(1, Math.round(bevelExtrusion * 0.35))}px`,
+                    transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`
                   }}
                 >
                   <div className="flex items-center justify-between">
@@ -1369,24 +1743,25 @@ export function UniversalMiniPortfolio({
           {/* ======================================================== */}
           <div
             data-mini-element="dock"
-            onMouseEnter={() => onHighlightComponent?.('dock')}
-            onMouseLeave={() => onHighlightComponent?.(null)}
+            onMouseEnter={() => handleElementMouseEnter('dock')}
+            onMouseLeave={() => handleElementMouseLeave('dock')}
+            onPointerDown={() => handleElementPointerDown('dock')}
+            onPointerUp={() => handleElementPointerUp('dock')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border transition-all duration-300 ${
               isDockHighlighted ? 'ring-2 ring-[#FF4D6D] ring-offset-2 shadow-[0_0_20px_rgba(255,77,109,0.35)]' : ''
             } ${
               isWireframe
                 ? 'border-cyan-400 bg-cyan-950/90 text-cyan-300 shadow-[0_0_15px_rgba(0,242,254,0.4)]'
-                : `${themeStyle.dock.border} backdrop-blur-lg shadow-lg`
+                : `${themeStyle.dock.border} ${normalizedMaterialPreset === 'glass-acrylic' ? 'backdrop-blur-lg' : ''} shadow-lg`
             }`}
             style={{
-              transform: isMaster3DOn ? `translateZ(${zDock}px)` : 'translateZ(0px)',
-              background: isWireframe ? undefined : (isDark ? themeStyle.dock.darkBg : themeStyle.dock.bg),
-              boxShadow: isMaster3DOn
-                ? (isDock3D
-                    ? `${lightOffsetX}px ${lightOffsetY}px 24px rgba(0,0,0,0.32), ${themeStyle.dock.activeGlowRim}`
-                    : `${lightOffsetX}px ${lightOffsetY}px 14px rgba(0,0,0,0.22)`)
-                : 'none',
-              transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, background 0.35s ease'
+              transform: getElementTransform('dock', zDock),
+              background: isWireframe ? undefined : (matDockStyle.background || (isDark ? themeStyle.dock.darkBg : themeStyle.dock.bg)),
+              borderColor: isWireframe ? undefined : matDockStyle.borderColor,
+              boxShadow: isWireframe ? undefined : matDockStyle.boxShadow,
+              backdropFilter: isWireframe ? undefined : matDockStyle.backdropFilter,
+              borderWidth: isWireframe ? undefined : `${Math.max(1, Math.round(bevelExtrusion * 0.4))}px`,
+              transition: isDragging ? 'none' : `${activeElasticity.transition}, background 0.35s ease, border-color 0.35s ease`
             }}
           >
             {[
@@ -1413,9 +1788,9 @@ export function UniversalMiniPortfolio({
                   }`}
                   style={{
                     transform: isHovered
-                      ? 'translateZ(10px) scale(1.2)'
+                      ? `translateZ(${10 + (hoverPop - 12) * 0.5}px) scale(1.2)`
                       : (isDock3D ? 'translateZ(8px)' : 'translateZ(0px)'),
-                    transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                    transition: `transform ${activeElasticity.duration} ${activeElasticity.curve}`
                   }}
                   title={item.label}
                   aria-label={item.label}
@@ -1432,14 +1807,16 @@ export function UniversalMiniPortfolio({
           {/* ======================================================== */}
           <div
             data-mini-element="footer"
-            onMouseEnter={() => onHighlightComponent?.('footer')}
-            onMouseLeave={() => onHighlightComponent?.(null)}
+            onMouseEnter={() => handleElementMouseEnter('footer')}
+            onMouseLeave={() => handleElementMouseLeave('footer')}
+            onPointerDown={() => handleElementPointerDown('footer')}
+            onPointerUp={() => handleElementPointerUp('footer')}
             className={`w-full flex items-center justify-between text-[8px] font-mono text-stone-400 dark:text-stone-500 pt-1 border-t border-stone-200/40 dark:border-stone-800/40 transition-all duration-300 ${
               isFooterHighlighted ? 'ring-2 ring-[#FF4D6D] ring-offset-2 shadow-[0_0_20px_rgba(255,77,109,0.35)] rounded-lg px-2 py-1' : ''
             }`}
             style={{
-              transform: isMaster3DOn ? `translateZ(${zFooter}px)` : 'translateZ(0px)',
-              transition: 'transform 0.35s ease'
+              transform: getElementTransform('footer', zFooter),
+              transition: isDragging ? 'none' : activeElasticity.transition
             }}
           >
             <span>© 2026 Atul Verma • All Systems Nominal</span>

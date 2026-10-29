@@ -79,6 +79,7 @@ import {
   Pause
 } from 'lucide-react';
 import UniversalMiniPortfolio from './3d-sandbox/UniversalMiniPortfolio';
+import { CAMERA_PRESET_ANGLES } from './3d-sandbox/UniversalMiniPortfolio';
 import StickySandboxColumn from './3d-sandbox/StickySandboxColumn';
 import { ThreeDPresetCard, ThreeDActionKeycap, ThreeDToggleKey } from './3d-sandbox/ThreeDButtonPrimitives';
 import { CameraCubePreview, MaterialShaderSphere, ThemeExtrudedSlab, LightingVectorPreview } from './3d-sandbox/Visual3DPresets';
@@ -670,6 +671,30 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
     };
   }, []);
 
+  // Camera Turntable Auto-Orbit Animation Loop for Sandbox Viewports
+  useEffect(() => {
+    if (!threeD?.camera?.autoOrbit || isDraggingSandbox) return;
+    let animId;
+    const speed = typeof threeD?.camera?.orbitSpeed === 'number' ? threeD.camera.orbitSpeed : 1.0;
+    const step = speed * 0.35;
+    const loop = () => {
+      setSandboxTilt((prev) => {
+        let nextRotY = prev.rotY + step;
+        if (nextRotY > 180) nextRotY -= 360;
+        else if (nextRotY < -180) nextRotY += 360;
+        return {
+          rotX: prev.rotX,
+          rotY: Math.round(nextRotY * 10) / 10
+        };
+      });
+      animId = requestAnimationFrame(loop);
+    };
+    animId = requestAnimationFrame(loop);
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+    };
+  }, [threeD?.camera?.autoOrbit, threeD?.camera?.orbitSpeed, isDraggingSandbox]);
+
   const resetSandboxView = useCallback(() => {
     setSandboxTilt({ rotX: 0, rotY: 0 });
     if (soundEnabled) soundFX.playHapticClick();
@@ -711,6 +736,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
       set3DMaterials({ preset: 'glass-acrylic', specularGlow: 0.6, bevelExtrusion: 3, roughness: 0.2 });
     } else if (activePreviewTab === 'camera' && typeof set3DCamera === 'function') {
       set3DCamera({ anglePreset: 'isometric', perspectiveFOV: 1000, tiltSensitivity: 15, autoOrbit: false, orbitSpeed: 30 });
+      setSandboxTilt(CAMERA_PRESET_ANGLES['isometric'] || { rotX: 0, rotY: 0 });
     } else if (activePreviewTab === 'physics' && typeof set3DPhysics === 'function') {
       set3DPhysics({ elasticity: 'snappy', hoverPop: 12, clickDepression: 6, magneticPull: 0.5 });
     } else if (activePreviewTab === 'exploded' && typeof set3DExploded === 'function') {
@@ -2435,7 +2461,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             </div>
           </div>
           {/* 2. Interactive Mini 3D Sandbox Preview Card (Universal Top Mini-DOM Replica - Phase 2) */}
-          <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all w-full">
+          <div className="lg:hidden rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all w-full">
             <div className="p-4 sm:p-5 flex items-center justify-between border-b border-[#ECE7DF]/70 dark:border-[#2D2340]/70 bg-white/80 dark:bg-[#1D162E]/80">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-500 flex items-center justify-center font-bold text-sm">
@@ -2494,6 +2520,21 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                     <div className="font-mono text-[11px] px-2.5 py-1 rounded-lg bg-white/90 dark:bg-stone-900/90 border border-stone-200/80 dark:border-stone-800 text-stone-600 dark:text-stone-300">
                       Rot: {sandboxTilt.rotX}°, {sandboxTilt.rotY}° | Light: {lighting?.angle ?? 45}°
                     </div>
+
+                    {/* Reset Orientation */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        resetSandboxView();
+                        if (soundEnabled) soundFX.playHapticClick();
+                      }}
+                      className="px-2.5 py-1 rounded-lg border border-stone-200/80 dark:border-stone-800 bg-white/90 dark:bg-stone-900/90 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+                      title="Reset Orientation"
+                      aria-label="Reset Orientation"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-cyan-500" />
+                      <span>Reset Orientation</span>
+                    </button>
                   </div>
                 </div>
 
@@ -2777,12 +2818,13 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                         </div>
                       </button>
 
-                      {/* Button 2: 3D Visual Keycaps */}
+                      {/* Button 2: Master 3D Tab UI Mode (3D Visual Keycaps) */}
                       <button
                         type="button"
                         role="switch"
                         aria-checked={isTab3DActive}
-                        aria-label="3D Visual Keycaps Toggle"
+                        aria-label="Master 3D Tab UI Mode Toggle"
+                        title="Master 3D Tab UI Mode"
                         onClick={() => {
                           if (typeof setTabUI3DMode === 'function') {
                             setTabUI3DMode(!isTab3DActive);
@@ -2817,6 +2859,9 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                             }`}
                           >
                             {isTab3DActive ? 'Visual 3D' : 'Classic 2D'}
+                            <span className="sr-only">
+                              {isTab3DActive ? '3D Visual Active (Zero-Text)' : 'Classic 2D Text Active'}
+                            </span>
                           </span>
                         </div>
                         <div className="min-w-0">
@@ -2954,7 +2999,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
 
                         {expandedPresetSandboxSection === 'universal' && (
                           <div className="p-4 border-t border-stone-200/80 dark:border-stone-800 flex flex-col gap-3 bg-white/40 dark:bg-[#181226]/40 animate-fadeIn">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                               {/* 1. CAD Wireframe Mode Toggle */}
                               <div className="p-3 rounded-xl border border-stone-200/70 dark:border-stone-800 bg-white/70 dark:bg-[#1D162E]/70 flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-2.5 min-w-0">
@@ -3024,7 +3069,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                   }`}
                                   aria-label="Reset Sandbox View Orientation"
                                 >
-                                  <span>Reset View</span>
+                                  <span>Reset Orientation</span>
                                 </button>
                               </div>
 
@@ -3069,38 +3114,6 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                   aria-label="Toggle Live Portfolio Sync"
                                 >
                                   <span>{isLive3DApplied ? 'Revert Live' : 'Apply Live'}</span>
-                                </button>
-                              </div>
-
-                              {/* 4. Reset Sandbox Defaults */}
-                              <div className="p-3 rounded-xl border border-stone-200/70 dark:border-stone-800 bg-white/70 dark:bg-[#1D162E]/70 flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <div className="w-8 h-8 rounded-lg bg-[#FF4D6D]/15 text-[#FF4D6D] flex items-center justify-center shrink-0">
-                                    <RotateCcw className="w-4 h-4" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <span className="text-xs font-bold text-[#18181B] dark:text-white block">
-                                      Reset Sandbox Defaults
-                                    </span>
-                                    <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
-                                      Factory 3D sandbox state
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    reset3DDefaults();
-                                    if (soundEnabled) soundFX.playCrystalChime();
-                                  }}
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none shrink-0 ${
-                                    isTab3DActive
-                                      ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2px_0_0_#D1CBC1] dark:shadow-[0_2px_0_0_#140D20] text-[#FF4D6D] active:translate-y-[1px]'
-                                      : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-[#FF4D6D] shadow-xs active:scale-95'
-                                  }`}
-                                  aria-label="Reset Sandbox Defaults"
-                                >
-                                  <span>Reset All</span>
                                 </button>
                               </div>
                             </div>
@@ -3239,38 +3252,6 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                   aria-label="Reset Component Defaults"
                                 >
                                   <span>Reset Component</span>
-                                </button>
-                              </div>
-
-                              {/* 3. Reset Preview View Orientation */}
-                              <div className="p-3 rounded-xl border border-stone-200/70 dark:border-stone-800 bg-white/70 dark:bg-[#1D162E]/70 flex items-center justify-between gap-3 sm:col-span-2">
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <div className="w-8 h-8 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-500 flex items-center justify-center shrink-0">
-                                    <RotateCcw className="w-4 h-4" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <span className="text-xs font-bold text-[#18181B] dark:text-white block">
-                                      Reset Preview View Orientation
-                                    </span>
-                                    <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
-                                      Re-center preview perspective rotation to neutral 0°, 0°
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    resetSandboxView();
-                                    if (soundEnabled) soundFX.playHapticClick();
-                                  }}
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none shrink-0 ${
-                                    isTab3DActive
-                                      ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2px_0_0_#D1CBC1] dark:shadow-[0_2px_0_0_#140D20] text-stone-800 dark:text-stone-200 active:translate-y-[1px]'
-                                      : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 shadow-xs active:scale-95'
-                                  }`}
-                                  aria-label="Reset Preview View Orientation"
-                                >
-                                  <span>Reset Orientation</span>
                                 </button>
                               </div>
                             </div>
@@ -3824,6 +3805,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               bevelExtrusion={materials?.bevelExtrusion ?? 3}
                               onClick={() => {
                                 set3DCameraAnglePreset(cp.id);
+                                setSandboxTilt(CAMERA_PRESET_ANGLES[cp.id] || { rotX: 0, rotY: 0 });
                                 if (soundEnabled) soundFX.playLaserFocus();
                               }}
                               title={cp.name}

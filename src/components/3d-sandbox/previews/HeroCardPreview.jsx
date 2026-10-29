@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   User,
   Sparkles,
@@ -10,7 +10,8 @@ import {
   Code
 } from 'lucide-react';
 import { useLab3D } from '../../../context/LabContext';
-import { THEME_PORTFOLIO_STYLES } from '../UniversalMiniPortfolio';
+import { soundFX } from '../../../utils/audio';
+import { THEME_PORTFOLIO_STYLES, ELASTICITY_TRANSITIONS } from '../UniversalMiniPortfolio';
 
 /**
  * HeroCardPreview
@@ -34,7 +35,12 @@ export function HeroCardPreview({
   const masterTheme = threeD.masterTheme || 'apple-glass';
   const elements = threeD.elements || {};
   const lighting = threeD.lighting || { angle: 45, shadowSoftness: 0.6, intensity: 1 };
-  const materials = threeD.materials || { preset: 'glass', bevelWidth: 2, specularGlow: 0.7 };
+  const materials = threeD.materials || { preset: 'glass-acrylic', bevelExtrusion: 4, specularGlow: 0.7 };
+  const physics = threeD.physics || { hoverPop: 12, elasticity: 'snappy', clickDepression: true };
+  const hoverPop = typeof physics.hoverPop === 'number' ? physics.hoverPop : 12;
+  const isClickDepressionEnabled = physics.clickDepression ?? true;
+  const elasticityMode = physics.elasticity && ELASTICITY_TRANSITIONS[physics.elasticity] ? physics.elasticity : 'snappy';
+  const activeElasticity = ELASTICITY_TRANSITIONS[elasticityMode] || ELASTICITY_TRANSITIONS.snappy;
   const explodedConfig = threeD.exploded || { enabled: false, separationDistance: 40, blueprintMode: false };
 
   const themeStyle = THEME_PORTFOLIO_STYLES[masterTheme] || THEME_PORTFOLIO_STYLES['apple-glass'];
@@ -43,20 +49,25 @@ export function HeroCardPreview({
   const separation = separationDistance ?? explodedConfig.separationDistance ?? 40;
   const isBlueprint = explodedConfig.blueprintMode ?? false;
 
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDepressed, setIsDepressed] = useState(false);
+
   // 10 Element Toggles state mapping for Hero preview
   const isProfilePic3D = isMaster3DOn && Boolean(elements.profilePic);
   const isHeader3D = isMaster3DOn && Boolean(elements.header);
   const isSubHeader3D = isMaster3DOn && Boolean(elements.subHeader);
   const isDescription3D = isMaster3DOn && Boolean(elements.description);
 
-  // Dynamic light calculations
+  // Dynamic bevel & light calculations
+  const bevel = materials.bevelExtrusion ?? materials.bevelWidth ?? 4;
   const rad = ((lighting.angle ?? 45) * Math.PI) / 180;
   const lightOffsetX = Math.round(Math.cos(rad) * 16);
   const lightOffsetY = Math.round(Math.sin(rad) * 16);
-  const shadowBlur = Math.round(24 * (lighting.shadowSoftness ?? 0.6));
+  const shadowBlur = Math.round(24 * (lighting.shadowSoftness ?? 0.6)) + bevel;
 
   // Strata Z-offsets honoring master 3D, theme & 10 toggles
-  const zBase = !isMaster3DOn ? 0 : (isExploded ? 0 : 4);
+  const heroElevationZ = (isHovered ? hoverPop : 0) + (isDepressed && isClickDepressionEnabled ? -6 : 0);
+  const zBase = !isMaster3DOn ? 0 : (isExploded ? 0 : 4) + heroElevationZ;
   const zAvatar = !isMaster3DOn ? 0 : (isExploded ? Math.round(separation * 0.9) : (isProfilePic3D ? 30 : 0));
   const zInfo = !isMaster3DOn ? 0 : (isExploded ? Math.round(separation * 1.25) : (isHeader3D || isSubHeader3D ? 20 : 0));
   const zMetrics = !isMaster3DOn ? 0 : (isExploded ? Math.round(separation * 1.6) : (isDescription3D ? 12 : 0));
@@ -73,25 +84,29 @@ export function HeroCardPreview({
     }
     switch (materials.preset) {
       case 'metallic':
+      case 'metallic-gloss':
         return {
           background: 'linear-gradient(135deg, rgba(220, 225, 235, 0.9) 0%, rgba(160, 170, 190, 0.85) 100%)',
           borderColor: 'rgba(255, 255, 255, 0.8)',
-          boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.7)`
+          boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(0, 0, 0, 0.4), inset 0 1px ${bevel}px rgba(255, 255, 255, 0.7)`
         };
       case 'clay':
+      case 'neumorphic-clay':
         return {
-          background: '#f8fafc',
+          background: '#ECE8DF',
           borderColor: '#e2e8f0',
-          boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(100, 116, 139, 0.3)`
+          boxShadow: `${lightOffsetX}px ${lightOffsetY}px ${shadowBlur}px rgba(100, 116, 139, 0.3), ${-lightOffsetX}px ${-lightOffsetY}px ${shadowBlur}px rgba(255, 255, 255, 0.7)`
         };
       case 'wireframe':
+      case 'cyber-wireframe':
         return {
-          background: 'transparent',
+          background: 'rgba(5, 5, 12, 0.85)',
           borderColor: '#06b6d4',
           borderStyle: 'dashed',
-          boxShadow: `0 0 20px rgba(6, 182, 212, 0.3)`
+          boxShadow: `0 0 20px rgba(6, 182, 212, 0.3), inset 0 0 10px rgba(6, 182, 212, 0.15)`
         };
       case 'glass':
+      case 'glass-acrylic':
       default:
         if (masterTheme === 'cyber-neon') {
           return {
@@ -127,15 +142,34 @@ export function HeroCardPreview({
   return (
     <div
       data-testid="hero-card-preview"
-      onMouseEnter={() => onHighlight?.('hero')}
-      onMouseLeave={() => onHighlight?.(null)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        onHighlight?.('hero');
+      }}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setIsDepressed(false);
+        onHighlight?.(null);
+      }}
+      onPointerDown={() => {
+        if (isClickDepressionEnabled) {
+          setIsDepressed(true);
+          try {
+            soundFX?.playHapticClick?.();
+          } catch {
+            // Audio fallback safe
+          }
+        }
+      }}
+      onPointerUp={() => setIsDepressed(false)}
       className={`relative w-full max-w-[310px] p-5 rounded-2xl select-none transition-all duration-300 ${
         isHighlighted ? 'ring-2 ring-[#FF4D6D] ring-offset-2 shadow-[0_0_20px_rgba(255,77,109,0.35)]' : ''
       } ${className}`}
       style={{
         transform: `rotateX(${tilt.rotX}deg) rotateY(${tilt.rotY}deg) translateZ(${zBase}px)`,
         transformStyle: 'preserve-3d',
-        borderWidth: `${materials.bevelWidth ?? 2}px`,
+        borderWidth: `${bevel}px`,
+        transition: `transform ${activeElasticity.duration} ${activeElasticity.curve}, box-shadow ${activeElasticity.duration} ease`,
         ...matStyle
       }}
     >

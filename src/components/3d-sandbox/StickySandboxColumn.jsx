@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useLab3D, useLabAudio } from '../../context/LabContext';
 import SandboxViewportContainer from './SandboxViewportContainer';
-import UniversalMiniPortfolio from './UniversalMiniPortfolio';
+import UniversalMiniPortfolio, { CAMERA_PRESET_ANGLES } from './UniversalMiniPortfolio';
 import HeroCardPreview from './previews/HeroCardPreview';
 import Navbar3DPreview from './previews/Navbar3DPreview';
 import Footer3DPreview from './previews/Footer3DPreview';
@@ -160,6 +160,43 @@ export function StickySandboxColumn({
   const dragStartRef = useRef({ x: 0, y: 0, rotX: 0, rotY: 0 });
   const rafRef = useRef(null);
 
+  // Camera Angle Presets Listener
+  const prevAnglePresetRef = useRef(camera.anglePreset);
+  useEffect(() => {
+    if (camera.anglePreset && camera.anglePreset !== prevAnglePresetRef.current) {
+      prevAnglePresetRef.current = camera.anglePreset;
+      if (!isDragging && !externalTilt) {
+        setInternalTilt(CAMERA_PRESET_ANGLES[camera.anglePreset] || { rotX: 0, rotY: 0 });
+      }
+    }
+  }, [camera.anglePreset, isDragging, externalTilt]);
+
+  // Turntable Auto-Orbit Animation Loop
+  useEffect(() => {
+    if (!camera?.autoOrbit || isDragging || externalTilt) return;
+    let animId;
+    const speed = typeof camera?.orbitSpeed === 'number' ? camera.orbitSpeed : 1.0;
+    const step = speed * 0.35;
+    const orbitLoop = () => {
+      setInternalTilt((prev) => {
+        let nextRotY = prev.rotY + step;
+        if (nextRotY > 180) nextRotY -= 360;
+        else if (nextRotY < -180) nextRotY += 360;
+        return {
+          rotX: prev.rotX,
+          rotY: Math.round(nextRotY * 10) / 10
+        };
+      });
+      animId = requestAnimationFrame(orbitLoop);
+    };
+    animId = requestAnimationFrame(orbitLoop);
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+    };
+  }, [camera?.autoOrbit, camera?.orbitSpeed, isDragging, externalTilt]);
+
+  const [cursorPos, setCursorPos] = useState({ x: 180, y: 150 });
+
   const currentTilt = externalTilt || internalTilt;
 
   const handlePointerDown = useCallback((e) => {
@@ -179,6 +216,14 @@ export function StickySandboxColumn({
   }, [interactive, currentTilt]);
 
   const handlePointerMove = useCallback((e) => {
+    if (threeD?.lighting?.cursorLight) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setCursorPos({
+        x: Math.round(e.clientX - rect.left),
+        y: Math.round(e.clientY - rect.top)
+      });
+    }
+
     if (!interactive || !isDragging) return;
     const clientX = e.clientX;
     const clientY = e.clientY;
@@ -196,7 +241,7 @@ export function StickySandboxColumn({
       setInternalTilt({ rotX: Math.round(nextRotX), rotY: Math.round(nextRotY) });
       rafRef.current = null;
     });
-  }, [interactive, isDragging, camera.tiltSensitivity]);
+  }, [threeD?.lighting?.cursorLight, interactive, isDragging, camera.tiltSensitivity]);
 
   const handlePointerUp = useCallback((e) => {
     if (rafRef.current) {
@@ -273,6 +318,7 @@ export function StickySandboxColumn({
       lab3D.set3DMaterials({ preset: 'glass-acrylic', specularGlow: 0.6, bevelExtrusion: 3, roughness: 0.2 });
     } else if (currentTab === 'camera' && typeof lab3D?.set3DCamera === 'function') {
       lab3D.set3DCamera({ anglePreset: 'isometric', perspectiveFOV: 1000, tiltSensitivity: 15, autoOrbit: false, orbitSpeed: 30 });
+      setInternalTilt(CAMERA_PRESET_ANGLES['isometric'] || { rotX: 0, rotY: 0 });
     } else if (currentTab === 'physics' && typeof lab3D?.set3DPhysics === 'function') {
       lab3D.set3DPhysics({ elasticity: 'snappy', hoverPop: 12, clickDepression: 6, magneticPull: 0.5 });
     } else if (currentTab === 'exploded' && typeof lab3D?.set3DExploded === 'function') {
@@ -450,6 +496,17 @@ export function StickySandboxColumn({
               <Sparkles className="w-2.5 h-2.5" />
               <span>Linked in Settings</span>
             </div>
+          )}
+
+          {/* Cursor Spotlight Overlay (when lighting.cursorLight is active) */}
+          {threeD.lighting?.cursorLight && (
+            <div
+              className="absolute inset-0 pointer-events-none z-20 transition-opacity duration-300"
+              style={{
+                background: `radial-gradient(circle 200px at ${cursorPos.x}px ${cursorPos.y}px, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.04) 45%, transparent 75%)`,
+                mixBlendMode: 'screen'
+              }}
+            />
           )}
 
           {/* 1. Universal Mini Portfolio Preview */}

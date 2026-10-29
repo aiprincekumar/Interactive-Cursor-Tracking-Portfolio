@@ -7,11 +7,11 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 export const ACCORDION_TO_PREVIEW_MAP = {
   // 9 Core 3D Settings Accordions mapped to dedicated live preview stages
   elements: 'showcase',
-  lighting: 'hero',
-  camera: 'universal',
-  materials: 'hero',
-  physics: 'dock',
-  exploded: 'hero',
+  lighting: 'lighting',
+  camera: 'camera',
+  materials: 'materials',
+  physics: 'physics',
+  exploded: 'exploded',
   environment: 'universal',
   spatialAudio: 'universal',
   performance: 'universal',
@@ -27,7 +27,9 @@ export const ACCORDION_TO_PREVIEW_MAP = {
   cards: 'showcase',
   showcase: 'showcase',
   universal: 'universal',
-  portfolio: 'universal'
+  portfolio: 'universal',
+  material: 'materials',
+  light: 'lighting'
 };
 
 /**
@@ -69,6 +71,11 @@ export function normalizeComponentKey(key) {
   if (k === 'dock' || k === 'floatingbutton') return 'dock';
   if (k === 'showcase' || k === 'cards' || k === 'grid' || k === 'container' || k === 'containercontent' || k === 'containers') return 'showcase';
   if (k === 'universal') return 'universal';
+  if (k === 'lighting' || k === 'light') return 'lighting';
+  if (k === 'materials' || k === 'material') return 'materials';
+  if (k === 'camera') return 'camera';
+  if (k === 'physics') return 'physics';
+  if (k === 'exploded') return 'exploded';
   return k;
 }
 

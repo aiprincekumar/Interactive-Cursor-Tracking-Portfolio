@@ -113,18 +113,18 @@ import {
 } from '../src/hooks/useSandboxAutoSwitch.js';
 
 runTest('ACCORDION_TO_PREVIEW_MAP correctly maps settings sections to preview tabs', () => {
-  assert.strictEqual(ACCORDION_TO_PREVIEW_MAP.lighting, 'hero', 'lighting must map to hero');
-  assert.strictEqual(ACCORDION_TO_PREVIEW_MAP.materials, 'hero', 'materials must map to hero');
-  assert.strictEqual(ACCORDION_TO_PREVIEW_MAP.exploded, 'hero', 'exploded must map to hero');
-  assert.strictEqual(ACCORDION_TO_PREVIEW_MAP.physics, 'dock', 'physics must map to dock');
-  assert.strictEqual(ACCORDION_TO_PREVIEW_MAP.camera, 'universal', 'camera must map to universal');
+  assert.strictEqual(ACCORDION_TO_PREVIEW_MAP.lighting, 'lighting', 'lighting must map to lighting');
+  assert.strictEqual(ACCORDION_TO_PREVIEW_MAP.materials, 'materials', 'materials must map to materials');
+  assert.strictEqual(ACCORDION_TO_PREVIEW_MAP.exploded, 'exploded', 'exploded must map to exploded');
+  assert.strictEqual(ACCORDION_TO_PREVIEW_MAP.physics, 'physics', 'physics must map to physics');
+  assert.strictEqual(ACCORDION_TO_PREVIEW_MAP.camera, 'camera', 'camera must map to camera');
   assert.strictEqual(ACCORDION_TO_PREVIEW_MAP.environment, 'universal', 'environment must map to universal');
   assert.strictEqual(ACCORDION_TO_PREVIEW_MAP.elements, 'showcase', 'elements must map to showcase');
 });
 
 runTest('getPreviewTabForAccordion resolves direct element keys and aliases case-insensitively', () => {
-  assert.strictEqual(getPreviewTabForAccordion('LIGHTING'), 'hero');
-  assert.strictEqual(getPreviewTabForAccordion('Physics'), 'dock');
+  assert.strictEqual(getPreviewTabForAccordion('LIGHTING'), 'lighting');
+  assert.strictEqual(getPreviewTabForAccordion('Physics'), 'physics');
   assert.strictEqual(getPreviewTabForAccordion('nav'), 'navbar');
   assert.strictEqual(getPreviewTabForAccordion('navbar'), 'navbar');
   assert.strictEqual(getPreviewTabForAccordion('dock'), 'dock');

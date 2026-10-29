@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useLab3D } from '../../../context/LabContext';
 import { soundFX } from '../../../utils/audio';
-import { THEME_PORTFOLIO_STYLES } from '../UniversalMiniPortfolio';
+import { THEME_PORTFOLIO_STYLES, ELASTICITY_TRANSITIONS } from '../UniversalMiniPortfolio';
 
 const DOCK_ITEMS = [
   { id: 'globe', label: 'Home Portfolio', icon: Globe },
@@ -42,7 +42,11 @@ export function FloatingDockPreview({
   const masterTheme = threeD.masterTheme || 'apple-glass';
   const elements = threeD.elements || {};
   const lighting = threeD.lighting || { angle: 45, shadowSoftness: 0.6 };
-  const physics = threeD.physics || { hoverPopScale: 1.15, elasticity: 0.8 };
+  const physics = threeD.physics || { hoverPop: 12, elasticity: 'snappy', clickDepression: true };
+  const hoverPopVal = physics.hoverPop ?? 12;
+  const elasticityMode = physics.elasticity && ELASTICITY_TRANSITIONS[physics.elasticity] ? physics.elasticity : 'snappy';
+  const activeElasticity = ELASTICITY_TRANSITIONS[elasticityMode] || ELASTICITY_TRANSITIONS.snappy;
+  const isClickDepressionEnabled = physics.clickDepression ?? true;
   const explodedConfig = threeD.exploded || { enabled: false, separationDistance: 40, blueprintMode: false };
 
   const themeStyle = THEME_PORTFOLIO_STYLES[masterTheme] || THEME_PORTFOLIO_STYLES['apple-glass'];
@@ -55,6 +59,7 @@ export function FloatingDockPreview({
 
   const [mouseIndex, setMouseIndex] = useState(null);
   const [activeItem, setActiveItem] = useState('lab');
+  const [depressedItem, setDepressedItem] = useState(null);
   const lastSoundIndexRef = useRef(null);
 
   // Dynamic light calculations
@@ -173,9 +178,10 @@ export function FloatingDockPreview({
             const maxDistance = 2.0;
             if (distance < maxDistance) {
               const factor = (1 - distance / maxDistance);
-              const maxBoost = (physics.hoverPopScale ?? 1.15) - 1 + 0.35;
+              const maxBoost = (hoverPopVal / 32) * 0.45 + 0.15;
+              const zBoost = (hoverPopVal / 12) * 20;
               scale = 1 + factor * maxBoost;
-              zElevate = 6 + factor * 22;
+              zElevate = 6 + factor * zBoost;
             }
           }
 
@@ -183,18 +189,30 @@ export function FloatingDockPreview({
             zElevate += (idx % 2 === 0 ? 12 : 20);
           }
 
+          if (isClickDepressionEnabled && depressedItem === item.id) {
+            zElevate -= 4;
+          }
+
           return (
             <button
               key={item.id}
               type="button"
               onClick={() => handleClickItem(item.id)}
-              className={`w-9 h-9 rounded-xl flex flex-col items-center justify-center transition-all duration-100 cursor-pointer relative ${
+              onPointerDown={() => {
+                if (isClickDepressionEnabled) {
+                  setDepressedItem(item.id);
+                }
+              }}
+              onPointerUp={() => setDepressedItem(null)}
+              onPointerLeave={() => setDepressedItem(null)}
+              className={`w-9 h-9 rounded-xl flex flex-col items-center justify-center cursor-pointer relative active:translate-y-1 ${
                 isActive
                   ? 'bg-gradient-to-tr from-[#FF4D6D] to-[#00F2FE] text-white shadow-md'
                   : 'bg-stone-100/90 dark:bg-stone-800/90 text-stone-700 dark:text-stone-300 hover:text-stone-900 border border-stone-200/80 dark:border-stone-700'
               }`}
               style={{
                 transform: `translateZ(${zElevate}px) scale(${scale})`,
+                transition: `transform ${activeElasticity.duration} ${activeElasticity.curve}, box-shadow ${activeElasticity.duration} ease`,
                 boxShadow: scale > 1.05
                   ? `0 ${Math.round(scale * 6)}px ${Math.round(scale * 12)}px rgba(0, 0, 0, 0.3)`
                   : 'none'
@@ -214,10 +232,10 @@ export function FloatingDockPreview({
       {/* Physics Feedback telemetry */}
       <div className="flex items-center gap-2 text-[10px] font-mono text-stone-500">
         <span className="px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700">
-          Hover Pop: &times;{physics.hoverPopScale ?? 1.15}
+          Hover Pop: +{hoverPopVal}px
         </span>
         <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 border border-cyan-500/20">
-          Elasticity: {physics.elasticity ?? 0.8}
+          Elasticity: {elasticityMode}
         </span>
       </div>
     </div>

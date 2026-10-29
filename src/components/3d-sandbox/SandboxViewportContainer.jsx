@@ -11,13 +11,13 @@ import { useLab3D } from '../../context/LabContext';
  * and its descendant DOM tree. Prevents preview/experimental lighting, materials,
  * camera perspective, and exploded stratum effects from bleeding into the live portfolio DOM.
  */
-export function SandboxViewportContainer({
+const SandboxViewportContainerComponent = React.forwardRef(function SandboxViewportContainer({
   children,
   className = '',
   perspective,
   style = {},
   ...restProps
-}) {
+}, ref) {
   const lab3D = useLab3D ? useLab3D() : null;
   const getScopedSandboxStyles = lab3D?.getScopedSandboxStyles;
   const threeD = lab3D?.threeD;
@@ -32,6 +32,7 @@ export function SandboxViewportContainer({
 
   return (
     <div
+      ref={ref}
       className={`sandbox-viewport relative overflow-hidden select-none touch-none ${className}`}
       style={{
         ...scopedStyles,
@@ -45,6 +46,10 @@ export function SandboxViewportContainer({
       {children}
     </div>
   );
+});
+
+export function SandboxViewportContainer(props) {
+  return <SandboxViewportContainerComponent {...props} />;
 }
 
-export default SandboxViewportContainer;
+export default SandboxViewportContainerComponent;
