@@ -827,6 +827,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
     if (typeof resumeAutoSwitch === 'function') {
       resumeAutoSwitch();
     }
+    if (typeof set3DShowSunGizmo === 'function') {
+      set3DShowSunGizmo(true);
+    }
+    if (typeof set3DCursorLight === 'function') {
+      set3DCursorLight(true);
+    }
     resetSandboxView();
 
     if (soundEnabled) {
@@ -3152,12 +3158,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
 
                     {expandedPresetSection === 'sandbox' && (
                       <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-3.5 animate-fadeIn">
-                        {/* Mode-Adaptive Calibration Controls: 6 Cohesive 3D Tactile Keycaps vs 2D Compact Buttons */}
+                        {/* Mode-Adaptive Calibration Controls: 8 Symmetrical 3D Tactile Keycaps vs 2D Compact Buttons */}
                         {isTab3DActive ? (
                           /* ========================================================================= */
                           /* 3D MODE: TACTILE ICON-ONLY KEYCAPS (Zero Text Paragraph Clutter)          */
                           /* ========================================================================= */
-                          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 sm:gap-3.5 max-w-2xl mx-auto w-full">
+                          <div className="grid grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-2.5 max-w-4xl mx-auto w-full">
                             {/* Keycap 1: CAD Wireframe Mode */}
                             <button
                               type="button"
@@ -3169,13 +3175,13 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                 set3DExploded({ blueprintMode: !exploded.blueprintMode });
                                 if (soundEnabled) soundFX.playLaserFocus();
                               }}
-                              className={`group relative h-14 sm:h-16 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
+                              className={`group relative h-13 sm:h-15 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
                                 exploded.blueprintMode
                                   ? 'bg-gradient-to-b from-cyan-400 to-cyan-600 text-white shadow-[0_5px_0_0_#0891B2,0_8px_16px_rgba(6,182,212,0.35)] border-cyan-300/40 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#0891B2]'
                                   : 'bg-gradient-to-b from-white to-stone-100 dark:from-[#251D38] dark:to-[#181226] text-stone-600 dark:text-stone-300 shadow-[0_5px_0_0_#D1CBC1] dark:shadow-[0_5px_0_0_#0D0917] border-stone-200/80 dark:border-stone-700/80 hover:text-cyan-600 dark:hover:text-cyan-400 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#D1CBC1] dark:active:shadow-[0_2px_0_0_#0D0917]'
                               }`}
                             >
-                              <Grid className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
+                              <Grid className="w-5 h-5 transition-transform group-hover:scale-110" />
                               <div
                                 className={`w-1.5 h-1.5 rounded-full mt-1.5 transition-all ${
                                   exploded.blueprintMode
@@ -3196,13 +3202,13 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                 set3DExploded({ enabled: !exploded.enabled });
                                 if (soundEnabled) soundFX.playPop();
                               }}
-                              className={`group relative h-14 sm:h-16 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
+                              className={`group relative h-13 sm:h-15 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
                                 exploded.enabled
                                   ? 'bg-gradient-to-b from-purple-500 to-indigo-600 text-white shadow-[0_5px_0_0_#6D28D9,0_8px_16px_rgba(147,51,234,0.35)] border-purple-300/40 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#6D28D9]'
                                   : 'bg-gradient-to-b from-white to-stone-100 dark:from-[#251D38] dark:to-[#181226] text-stone-600 dark:text-stone-300 shadow-[0_5px_0_0_#D1CBC1] dark:shadow-[0_5px_0_0_#0D0917] border-stone-200/80 dark:border-stone-700/80 hover:text-purple-600 dark:hover:text-purple-400 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#D1CBC1] dark:active:shadow-[0_2px_0_0_#0D0917]'
                               }`}
                             >
-                              <Layers className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
+                              <Layers className="w-5 h-5 transition-transform group-hover:scale-110" />
                               <div
                                 className={`w-1.5 h-1.5 rounded-full mt-1.5 transition-all ${
                                   exploded.enabled
@@ -3223,13 +3229,13 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                 set3DAutoOrbit(!camera.autoOrbit);
                                 if (soundEnabled) soundFX.playLaserFocus();
                               }}
-                              className={`group relative h-14 sm:h-16 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
+                              className={`group relative h-13 sm:h-15 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
                                 camera.autoOrbit
                                   ? 'bg-gradient-to-b from-sky-400 to-blue-600 text-white shadow-[0_5px_0_0_#0284C7,0_8px_16px_rgba(14,165,233,0.35)] border-sky-300/40 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#0284C7]'
                                   : 'bg-gradient-to-b from-white to-stone-100 dark:from-[#251D38] dark:to-[#181226] text-stone-600 dark:text-stone-300 shadow-[0_5px_0_0_#D1CBC1] dark:shadow-[0_5px_0_0_#0D0917] border-stone-200/80 dark:border-stone-700/80 hover:text-sky-600 dark:hover:text-sky-400 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#D1CBC1] dark:active:shadow-[0_2px_0_0_#0D0917]'
                               }`}
                             >
-                              <Orbit className={`w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110 ${camera.autoOrbit ? 'animate-spin' : ''}`} style={{ animationDuration: '8s' }} />
+                              <Orbit className={`w-5 h-5 transition-transform group-hover:scale-110 ${camera.autoOrbit ? 'animate-spin' : ''}`} style={{ animationDuration: '8s' }} />
                               <div
                                 className={`w-1.5 h-1.5 rounded-full mt-1.5 transition-all ${
                                   camera.autoOrbit
@@ -3239,7 +3245,65 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               />
                             </button>
 
-                            {/* Keycap 4: Auto-Switch Tracking */}
+                            {/* Keycap 4: Sun Arc Gizmo */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={lighting.showSunGizmo !== false}
+                              title={lighting.showSunGizmo !== false ? 'Interactive Sun Gizmo: ON (Click to hide handle)' : 'Interactive Sun Gizmo: OFF (Click to show handle)'}
+                              aria-label="Toggle Interactive Sun Gizmo"
+                              onClick={() => {
+                                if (typeof set3DShowSunGizmo === 'function') {
+                                  set3DShowSunGizmo(!(lighting.showSunGizmo !== false));
+                                  if (soundEnabled) soundFX.playLaserFocus();
+                                }
+                              }}
+                              className={`group relative h-13 sm:h-15 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
+                                lighting.showSunGizmo !== false
+                                  ? 'bg-gradient-to-b from-amber-400 to-orange-500 text-white shadow-[0_5px_0_0_#C2410C,0_8px_16px_rgba(249,115,22,0.35)] border-amber-300/40 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#C2410C]'
+                                  : 'bg-gradient-to-b from-white to-stone-100 dark:from-[#251D38] dark:to-[#181226] text-stone-600 dark:text-stone-300 shadow-[0_5px_0_0_#D1CBC1] dark:shadow-[0_5px_0_0_#0D0917] border-stone-200/80 dark:border-stone-700/80 hover:text-amber-600 dark:hover:text-amber-400 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#D1CBC1] dark:active:shadow-[0_2px_0_0_#0D0917]'
+                              }`}
+                            >
+                              <Sun className="w-5 h-5 transition-transform group-hover:scale-110 group-hover:rotate-45" />
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full mt-1.5 transition-all ${
+                                  lighting.showSunGizmo !== false
+                                    ? 'bg-white shadow-[0_0_8px_#ffffff]'
+                                    : 'bg-stone-300 dark:bg-stone-600'
+                                }`}
+                              />
+                            </button>
+
+                            {/* Keycap 5: Cursor Spotlight */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={lighting.cursorLight}
+                              title={lighting.cursorLight ? 'Cursor Spotlight Cone: ON (Click to disable)' : 'Cursor Spotlight Cone: OFF (Click to enable)'}
+                              aria-label="Toggle Cursor Spotlight Cone"
+                              onClick={() => {
+                                if (typeof set3DCursorLight === 'function') {
+                                  set3DCursorLight(!lighting.cursorLight);
+                                  if (soundEnabled) soundFX.playPop();
+                                }
+                              }}
+                              className={`group relative h-13 sm:h-15 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
+                                lighting.cursorLight
+                                  ? 'bg-gradient-to-b from-pink-400 to-rose-600 text-white shadow-[0_5px_0_0_#BE123C,0_8px_16px_rgba(244,63,94,0.35)] border-pink-300/40 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#BE123C]'
+                                  : 'bg-gradient-to-b from-white to-stone-100 dark:from-[#251D38] dark:to-[#181226] text-stone-600 dark:text-stone-300 shadow-[0_5px_0_0_#D1CBC1] dark:shadow-[0_5px_0_0_#0D0917] border-stone-200/80 dark:border-stone-700/80 hover:text-pink-600 dark:hover:text-pink-400 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#D1CBC1] dark:active:shadow-[0_2px_0_0_#0D0917]'
+                              }`}
+                            >
+                              <Sparkles className="w-5 h-5 transition-transform group-hover:scale-110" />
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full mt-1.5 transition-all ${
+                                  lighting.cursorLight
+                                    ? 'bg-white shadow-[0_0_8px_#ffffff]'
+                                    : 'bg-stone-300 dark:bg-stone-600'
+                                }`}
+                              />
+                            </button>
+
+                            {/* Keycap 6: Auto-Switch Tracking */}
                             <button
                               type="button"
                               role="switch"
@@ -3255,13 +3319,13 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                   if (soundEnabled) soundFX.playHapticClick();
                                 }
                               }}
-                              className={`group relative h-14 sm:h-16 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
+                              className={`group relative h-13 sm:h-15 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
                                 !isAutoSwitchPaused
                                   ? 'bg-gradient-to-b from-indigo-400 to-indigo-600 text-white shadow-[0_5px_0_0_#4338CA,0_8px_16px_rgba(99,102,241,0.35)] border-indigo-300/40 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#4338CA]'
                                   : 'bg-gradient-to-b from-white to-stone-100 dark:from-[#251D38] dark:to-[#181226] text-stone-600 dark:text-stone-300 shadow-[0_5px_0_0_#D1CBC1] dark:shadow-[0_5px_0_0_#0D0917] border-stone-200/80 dark:border-stone-700/80 hover:text-indigo-600 dark:hover:text-indigo-400 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#D1CBC1] dark:active:shadow-[0_2px_0_0_#0D0917]'
                               }`}
                             >
-                              <Eye className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
+                              <Eye className="w-5 h-5 transition-transform group-hover:scale-110" />
                               <div
                                 className={`w-1.5 h-1.5 rounded-full mt-1.5 transition-all ${
                                   !isAutoSwitchPaused
@@ -3271,7 +3335,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               />
                             </button>
 
-                            {/* Keycap 5: Live Portfolio Sync */}
+                            {/* Keycap 7: Live Portfolio Sync */}
                             <button
                               type="button"
                               role="switch"
@@ -3287,13 +3351,13 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                   if (soundEnabled) soundFX.playCrystalChime();
                                 }
                               }}
-                              className={`group relative h-14 sm:h-16 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
+                              className={`group relative h-13 sm:h-15 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none ${
                                 isLive3DApplied
                                   ? 'bg-gradient-to-b from-emerald-400 to-emerald-600 text-white shadow-[0_5px_0_0_#047857,0_8px_16px_rgba(16,185,129,0.35)] border-emerald-300/40 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#047857]'
                                   : 'bg-gradient-to-b from-white to-stone-100 dark:from-[#251D38] dark:to-[#181226] text-stone-600 dark:text-stone-300 shadow-[0_5px_0_0_#D1CBC1] dark:shadow-[0_5px_0_0_#0D0917] border-stone-200/80 dark:border-stone-700/80 hover:text-emerald-600 dark:hover:text-emerald-400 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#D1CBC1] dark:active:shadow-[0_2px_0_0_#0D0917]'
                               }`}
                             >
-                              <Zap className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
+                              <Zap className="w-5 h-5 transition-transform group-hover:scale-110" />
                               <div
                                 className={`w-1.5 h-1.5 rounded-full mt-1.5 transition-all ${
                                   isLive3DApplied
@@ -3303,15 +3367,15 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               />
                             </button>
 
-                            {/* Keycap 6: Reset Sandbox Defaults */}
+                            {/* Keycap 8: Reset Sandbox Defaults */}
                             <button
                               type="button"
                               onClick={handleResetPreviewComponentDefaults}
                               title="Reset Sandbox Defaults and Calibration"
                               aria-label="Reset Sandbox and Component Defaults"
-                              className="group relative h-14 sm:h-16 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none bg-gradient-to-b from-amber-400 to-amber-600 text-white shadow-[0_5px_0_0_#B45309,0_8px_16px_rgba(245,158,11,0.35)] border-amber-300/40 hover:from-amber-300 hover:to-amber-500 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#B45309]"
+                              className="group relative h-13 sm:h-15 flex flex-col items-center justify-center rounded-2xl border transition-all cursor-pointer select-none bg-gradient-to-b from-amber-400 to-amber-600 text-white shadow-[0_5px_0_0_#B45309,0_8px_16px_rgba(245,158,11,0.35)] border-amber-300/40 hover:from-amber-300 hover:to-amber-500 active:translate-y-[2.5px] active:shadow-[0_2px_0_0_#B45309]"
                             >
-                              <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-rotate-45" />
+                              <RotateCcw className="w-5 h-5 transition-transform group-hover:-rotate-45" />
                               <div className="w-1.5 h-1.5 rounded-full mt-1.5 bg-amber-200 shadow-[0_0_6px_#fde68a]" />
                             </button>
                           </div>
@@ -3319,7 +3383,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                           /* ========================================================================= */
                           /* 2D MODE: COMPACT TEXT + ICON MIXUP BUTTONS (Sleek, No Clutter)            */
                           /* ========================================================================= */
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2.5">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-2">
                             {/* Button 1: CAD Wireframe Mode */}
                             <button
                               type="button"
@@ -3330,18 +3394,18 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                 set3DExploded({ blueprintMode: !exploded.blueprintMode });
                                 if (soundEnabled) soundFX.playLaserFocus();
                               }}
-                              className={`h-11 px-3 rounded-xl border flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
+                              className={`h-11 px-2.5 rounded-xl border flex items-center justify-between gap-1.5 transition-all cursor-pointer select-none ${
                                 exploded.blueprintMode
                                   ? 'bg-cyan-500/10 hover:bg-cyan-500/15 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 shadow-xs'
                                   : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-xs'
                               }`}
                             >
                               <div className="flex items-center gap-1.5 min-w-0">
-                                <Grid className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
-                                <span className="text-xs font-semibold truncate">CAD Wire</span>
+                                <Grid className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                                <span className="text-[11px] font-semibold truncate">Wireframe</span>
                               </div>
                               <span
-                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
+                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
                                   exploded.blueprintMode
                                     ? 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border-cyan-500/30'
                                     : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
@@ -3361,18 +3425,18 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                 set3DExploded({ enabled: !exploded.enabled });
                                 if (soundEnabled) soundFX.playPop();
                               }}
-                              className={`h-11 px-3 rounded-xl border flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
+                              className={`h-11 px-2.5 rounded-xl border flex items-center justify-between gap-1.5 transition-all cursor-pointer select-none ${
                                 exploded.enabled
                                   ? 'bg-purple-500/10 hover:bg-purple-500/15 border-purple-500/40 text-purple-700 dark:text-purple-300 shadow-xs'
                                   : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-xs'
                               }`}
                             >
                               <div className="flex items-center gap-1.5 min-w-0">
-                                <Layers className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
-                                <span className="text-xs font-semibold truncate">Exploded</span>
+                                <Layers className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                                <span className="text-[11px] font-semibold truncate">Exploded</span>
                               </div>
                               <span
-                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
+                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
                                   exploded.enabled
                                     ? 'bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30'
                                     : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
@@ -3392,18 +3456,18 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                 set3DAutoOrbit(!camera.autoOrbit);
                                 if (soundEnabled) soundFX.playLaserFocus();
                               }}
-                              className={`h-11 px-3 rounded-xl border flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
+                              className={`h-11 px-2.5 rounded-xl border flex items-center justify-between gap-1.5 transition-all cursor-pointer select-none ${
                                 camera.autoOrbit
                                   ? 'bg-sky-500/10 hover:bg-sky-500/15 border-sky-500/40 text-sky-700 dark:text-sky-300 shadow-xs'
                                   : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-xs'
                               }`}
                             >
                               <div className="flex items-center gap-1.5 min-w-0">
-                                <Orbit className={`w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0 ${camera.autoOrbit ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
-                                <span className="text-xs font-semibold truncate">Turntable</span>
+                                <Orbit className={`w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0 ${camera.autoOrbit ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
+                                <span className="text-[11px] font-semibold truncate">Turntable</span>
                               </div>
                               <span
-                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
+                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
                                   camera.autoOrbit
                                     ? 'bg-sky-500/20 text-sky-600 dark:text-sky-400 border-sky-500/30'
                                     : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
@@ -3413,7 +3477,73 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               </span>
                             </button>
 
-                            {/* Button 4: Auto-Switch Tracking */}
+                            {/* Button 4: Sun Arc Gizmo */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={lighting.showSunGizmo !== false}
+                              aria-label="Toggle Interactive Sun Gizmo"
+                              onClick={() => {
+                                if (typeof set3DShowSunGizmo === 'function') {
+                                  set3DShowSunGizmo(!(lighting.showSunGizmo !== false));
+                                  if (soundEnabled) soundFX.playLaserFocus();
+                                }
+                              }}
+                              className={`h-11 px-2.5 rounded-xl border flex items-center justify-between gap-1.5 transition-all cursor-pointer select-none ${
+                                lighting.showSunGizmo !== false
+                                  ? 'bg-amber-500/10 hover:bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-300 shadow-xs'
+                                  : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-xs'
+                              }`}
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Sun className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                                <span className="text-[11px] font-semibold truncate">Sun Gizmo</span>
+                              </div>
+                              <span
+                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
+                                  lighting.showSunGizmo !== false
+                                    ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                                }`}
+                              >
+                                {lighting.showSunGizmo !== false ? 'On' : 'Off'}
+                              </span>
+                            </button>
+
+                            {/* Button 5: Cursor Spotlight */}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={lighting.cursorLight}
+                              aria-label="Toggle Cursor Spotlight Cone"
+                              onClick={() => {
+                                if (typeof set3DCursorLight === 'function') {
+                                  set3DCursorLight(!lighting.cursorLight);
+                                  if (soundEnabled) soundFX.playPop();
+                                }
+                              }}
+                              className={`h-11 px-2.5 rounded-xl border flex items-center justify-between gap-1.5 transition-all cursor-pointer select-none ${
+                                lighting.cursorLight
+                                  ? 'bg-pink-500/10 hover:bg-pink-500/15 border-pink-500/40 text-pink-700 dark:text-pink-300 shadow-xs'
+                                  : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-xs'
+                              }`}
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Sparkles className="w-3.5 h-3.5 text-pink-600 dark:text-pink-400 shrink-0" />
+                                <span className="text-[11px] font-semibold truncate">Spotlight</span>
+                              </div>
+                              <span
+                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
+                                  lighting.cursorLight
+                                    ? 'bg-pink-500/20 text-pink-600 dark:text-pink-400 border-pink-500/30'
+                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
+                                }`}
+                              >
+                                {lighting.cursorLight ? 'On' : 'Off'}
+                              </span>
+                            </button>
+
+                            {/* Button 6: Auto-Switch Tracking */}
                             <button
                               type="button"
                               role="switch"
@@ -3428,18 +3558,18 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                   if (soundEnabled) soundFX.playHapticClick();
                                 }
                               }}
-                              className={`h-11 px-3 rounded-xl border flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
+                              className={`h-11 px-2.5 rounded-xl border flex items-center justify-between gap-1.5 transition-all cursor-pointer select-none ${
                                 !isAutoSwitchPaused
                                   ? 'bg-indigo-500/10 hover:bg-indigo-500/15 border-indigo-500/40 text-indigo-700 dark:text-indigo-300 shadow-xs'
                                   : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-xs'
                               }`}
                             >
                               <div className="flex items-center gap-1.5 min-w-0">
-                                <Eye className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                                <span className="text-xs font-semibold truncate">Tracking</span>
+                                <Eye className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                <span className="text-[11px] font-semibold truncate">Tracking</span>
                               </div>
                               <span
-                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
+                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
                                   !isAutoSwitchPaused
                                     ? 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
                                     : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
@@ -3449,7 +3579,7 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               </span>
                             </button>
 
-                            {/* Button 5: Live Portfolio Sync */}
+                            {/* Button 7: Live Portfolio Sync */}
                             <button
                               type="button"
                               role="switch"
@@ -3464,18 +3594,18 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                                   if (soundEnabled) soundFX.playCrystalChime();
                                 }
                               }}
-                              className={`h-11 px-3 rounded-xl border flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
+                              className={`h-11 px-2.5 rounded-xl border flex items-center justify-between gap-1.5 transition-all cursor-pointer select-none ${
                                 isLive3DApplied
                                   ? 'bg-emerald-500/10 hover:bg-emerald-500/15 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 shadow-xs'
                                   : 'bg-white/80 hover:bg-stone-100/70 dark:bg-[#181226]/90 dark:hover:bg-[#1F1732] border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-xs'
                               }`}
                             >
                               <div className="flex items-center gap-1.5 min-w-0">
-                                <Zap className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                <span className="text-xs font-semibold truncate">Live 3D</span>
+                                <Zap className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                <span className="text-[11px] font-semibold truncate">Live 3D</span>
                               </div>
                               <span
-                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
+                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 transition-all ${
                                   isLive3DApplied
                                     ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                                     : 'bg-stone-100 dark:bg-stone-800 text-stone-500 border-stone-200 dark:border-stone-700'
@@ -3485,19 +3615,19 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                               </span>
                             </button>
 
-                            {/* Button 6: Reset Defaults */}
+                            {/* Button 8: Reset Defaults */}
                             <button
                               type="button"
                               onClick={handleResetPreviewComponentDefaults}
                               title="Reset 3D Sandbox Orientation and Parameters"
                               aria-label="Reset Sandbox and Component Defaults"
-                              className="h-11 px-3 rounded-xl border flex items-center justify-between gap-2 transition-all cursor-pointer select-none bg-amber-500/10 hover:bg-amber-500/15 border-amber-500/30 text-amber-700 dark:text-amber-300 shadow-xs group"
+                              className="h-11 px-2.5 rounded-xl border flex items-center justify-between gap-1.5 transition-all cursor-pointer select-none bg-amber-500/10 hover:bg-amber-500/15 border-amber-500/30 text-amber-700 dark:text-amber-300 shadow-xs group"
                             >
                               <div className="flex items-center gap-1.5 min-w-0">
-                                <RotateCcw className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 group-hover:-rotate-45 transition-transform" />
-                                <span className="text-xs font-semibold truncate">Reset</span>
+                                <RotateCcw className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 group-hover:-rotate-45 transition-transform" />
+                                <span className="text-[11px] font-semibold truncate">Reset</span>
                               </div>
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30">
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30">
                                 Restore
                               </span>
                             </button>
