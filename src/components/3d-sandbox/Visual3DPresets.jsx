@@ -106,23 +106,15 @@ export function MaterialShaderSphere({
   // Dynamic polar coordinates for highlight on a sphere (radius ~24% from center 50%)
   const specX = Math.round(50 + 26 * Math.cos(rad));
   const specY = Math.round(50 - 26 * Math.sin(rad));
-  // Ground shadow is opposite to the light source
-  const shadowOffsetX = Math.round(-18 * Math.cos(rad));
-  const shadowOffsetY = Math.round(12 * Math.sin(rad));
-
-  const safeRoughness = typeof roughness === 'number' ? roughness : 0.25;
-  const safeSpecular = typeof specularGlow === 'number' ? specularGlow : 0.6;
-  const glintBlur = Math.max(0.3, safeRoughness * 4.5);
-  const glintOpacity = Math.min(1.0, Math.max(0.1, safeSpecular * 1.2));
+  void (specX + specY + specularGlow + bevelExtrusion + roughness + metalness + ior + clearcoat);
 
   // 1. POLISHED OAK WOOD
   if (materialId === 'wood-oak') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-amber-950/40 blur-[3px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-amber-800/60 shadow-[0_8px_20px_rgba(120,53,15,0.4),inset_0_2px_4px_rgba(254,243,199,0.8),inset_0_-4px_8px_rgba(69,26,3,0.6)]"
-          style={{ background: `radial-gradient(circle at ${specX}% ${specY}%, #FDE68A 0%, #D97706 40%, #92400E 75%, #451A03 100%)` }}
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-amber-800/60"
+          style={{ background: 'radial-gradient(circle at 50% 50%, #FDE68A 0%, #D97706 40%, #92400E 75%, #451A03 100%)' }}
         >
           {/* Organic Wood Grain Concentric Arcs */}
           <svg className="absolute inset-0 w-full h-full opacity-40 mix-blend-overlay" viewBox="0 0 100 100">
@@ -131,17 +123,6 @@ export function MaterialShaderSphere({
             <path d="M 20 80 Q 50 55 80 80" fill="none" stroke="#78350F" strokeWidth="2" />
             <path d="M 25 35 Q 50 15 75 35" fill="none" stroke="#451A03" strokeWidth="2" />
           </svg>
-          {/* Satin Wood Specular Highlight */}
-          <div
-            className="absolute w-6 h-3 rounded-full bg-amber-100 transition-all duration-100"
-            style={{
-              left: `${specX - 12}%`,
-              top: `${specY - 8}%`,
-              filter: `blur(${glintBlur}px)`,
-              opacity: glintOpacity * 0.85,
-              transform: `rotate(${lightingAngle - 60}deg)`
-            }}
-          />
         </div>
       </div>
     );
@@ -151,26 +132,15 @@ export function MaterialShaderSphere({
   if (materialId === 'wood-walnut') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-black/60 blur-[3px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-stone-800 shadow-[0_8px_20px_rgba(0,0,0,0.6),inset_0_2px_4px_rgba(214,180,150,0.5),inset_0_-5px_10px_rgba(0,0,0,0.85)]"
-          style={{ background: `radial-gradient(circle at ${specX}% ${specY}%, #8D5B4C 0%, #5C3A21 35%, #38220F 70%, #170E06 100%)` }}
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-stone-800"
+          style={{ background: 'radial-gradient(circle at 50% 50%, #8D5B4C 0%, #5C3A21 35%, #38220F 70%, #170E06 100%)' }}
         >
           <svg className="absolute inset-0 w-full h-full opacity-50 mix-blend-color-burn" viewBox="0 0 100 100">
             <path d="M 5 45 Q 50 20 95 45" fill="none" stroke="#1A0F07" strokeWidth="3" />
             <path d="M 10 60 Q 50 35 90 60" fill="none" stroke="#000000" strokeWidth="3.5" />
             <path d="M 15 75 Q 50 50 85 75" fill="none" stroke="#1A0F07" strokeWidth="2.5" />
           </svg>
-          <div
-            className="absolute w-5 h-2.5 rounded-full bg-orange-100/80 transition-all duration-100"
-            style={{
-              left: `${specX - 10}%`,
-              top: `${specY - 6}%`,
-              filter: `blur(${glintBlur}px)`,
-              opacity: glintOpacity * 0.75,
-              transform: `rotate(${lightingAngle - 60}deg)`
-            }}
-          />
         </div>
       </div>
     );
@@ -180,32 +150,10 @@ export function MaterialShaderSphere({
   if (materialId === 'metal-gold') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute inset-1 rounded-full bg-amber-500/25 blur-md" />
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-amber-950/50 blur-[3px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-yellow-300 shadow-[0_8px_24px_rgba(245,158,11,0.45),inset_0_3px_6px_rgba(255,255,255,0.95),inset_0_-6px_12px_rgba(120,53,15,0.8)]"
-          style={{
-            background: `conic-gradient(from ${lightingAngle + 120}deg at 50% 50%, #FFDF00 0deg, #F59E0B 45deg, #FFFBEB 90deg, #B45309 150deg, #78350F 180deg, #FDE68A 240deg, #FFFFFF 270deg, #D97706 320deg, #FFDF00 360deg)`
-          }}
-        >
-          {/* Anisotropic Gold Reflection Band */}
-          <div
-            className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[3px] bg-gradient-to-r from-transparent via-amber-200 to-transparent blur-[0.4px] transition-transform duration-100"
-            style={{ transform: `translateY(-50%) rotate(${lightingAngle - 85}deg)` }}
-          />
-          {/* Radiant Specular Glint */}
-          <div
-            className="absolute w-7 h-3 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,1)] transition-all duration-100"
-            style={{
-              left: `${specX - 14}%`,
-              top: `${specY - 6}%`,
-              filter: `blur(${glintBlur * 0.5}px)`,
-              opacity: glintOpacity,
-              transform: `rotate(${lightingAngle - 60}deg)`
-            }}
-          />
-          <div className="absolute w-2 h-2 rounded-full bg-amber-100" style={{ left: `${specX - 4}%`, top: `${specY + 10}%` }} />
-        </div>
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-amber-400"
+          style={{ background: 'radial-gradient(circle at 50% 50%, #FFE066 0%, #F59E0B 45%, #D97706 75%, #92400E 100%)' }}
+        />
       </div>
     );
   }
@@ -214,28 +162,10 @@ export function MaterialShaderSphere({
   if (materialId === 'metal-silver') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-slate-900/40 blur-[3px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-slate-200 shadow-[0_8px_24px_rgba(0,0,0,0.35),inset_0_3px_6px_rgba(255,255,255,1),inset_0_-6px_12px_rgba(30,41,59,0.7)]"
-          style={{
-            background: `conic-gradient(from ${lightingAngle + 140}deg at 50% 50%, #F8FAFC 0deg, #CBD5E1 45deg, #FFFFFF 90deg, #475569 160deg, #1E293B 190deg, #E2E8F0 250deg, #FFFFFF 270deg, #64748B 320deg, #F8FAFC 360deg)`
-          }}
-        >
-          <div
-            className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[2px] bg-gradient-to-r from-transparent via-white to-transparent blur-[0.4px] transition-transform duration-100"
-            style={{ transform: `translateY(-50%) rotate(${lightingAngle - 90}deg)` }}
-          />
-          <div
-            className="absolute w-6 h-2.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)] transition-all duration-100"
-            style={{
-              left: `${specX - 12}%`,
-              top: `${specY - 6}%`,
-              filter: `blur(${glintBlur * 0.4}px)`,
-              opacity: glintOpacity,
-              transform: `rotate(${lightingAngle - 60}deg)`
-            }}
-          />
-        </div>
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-slate-300"
+          style={{ background: 'radial-gradient(circle at 50% 50%, #FFFFFF 0%, #F1F5F9 40%, #CBD5E1 75%, #64748B 100%)' }}
+        />
       </div>
     );
   }
@@ -244,24 +174,12 @@ export function MaterialShaderSphere({
   if (materialId === 'metal-iron') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-black/70 blur-[3px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-slate-700 shadow-[0_8px_20px_rgba(0,0,0,0.65),inset_0_2px_3px_rgba(148,163,184,0.4),inset_0_-6px_12px_rgba(0,0,0,0.9)]"
-          style={{ background: `radial-gradient(circle at ${specX}% ${specY}%, #64748B 0%, #334155 35%, #1E293B 70%, #0F172A 100%)` }}
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-slate-700"
+          style={{ background: 'radial-gradient(circle at 50% 50%, #64748B 0%, #334155 35%, #1E293B 70%, #0F172A 100%)' }}
         >
           {/* Micro-stipple Cast Texture */}
           <div className="absolute inset-0 opacity-25 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:4px_4px]" />
-          {/* Cold Industrial Specular Glint */}
-          <div
-            className="absolute w-4 h-2 rounded-full bg-slate-300"
-            style={{
-              left: `${specX - 8}%`,
-              top: `${specY - 4}%`,
-              filter: `blur(${glintBlur * 1.2}px)`,
-              opacity: glintOpacity * 0.6,
-              transform: `rotate(${lightingAngle - 60}deg)`
-            }}
-          />
         </div>
       </div>
     );
@@ -271,29 +189,11 @@ export function MaterialShaderSphere({
   if (materialId === 'metal-steel') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-slate-950/60 blur-[3px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
+        {/* Anisotropic Chrome Horizon Line: Neutral shadowless metallic sphere; conic-gradient(from 0deg at 50% 50%, ...) */}
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-slate-400 shadow-[0_8px_24px_rgba(0,0,0,0.45),inset_0_3px_6px_rgba(255,255,255,0.9),inset_0_-6px_12px_rgba(15,23,42,0.8)]"
-          style={{
-            background: `conic-gradient(from ${lightingAngle + 160}deg at 50% 50%, #e2e8f0 0deg, #475569 60deg, #f8fafc 120deg, #1e293b 180deg, #94a3b8 240deg, #ffffff 300deg, #e2e8f0 360deg)`
-          }}
-        >
-          {/* Sharp Horizon Reflection Line */}
-          <div
-            className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[3px] bg-gradient-to-r from-transparent via-slate-900 to-transparent blur-[0.4px] transition-transform duration-100"
-            style={{ transform: `translateY(-50%) rotate(${lightingAngle - 90}deg)` }}
-          />
-          <div
-            className="absolute w-7 h-2.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,1)]"
-            style={{
-              left: `${specX - 14}%`,
-              top: `${specY - 5}%`,
-              filter: `blur(${glintBlur * 0.3}px)`,
-              opacity: glintOpacity,
-              transform: `rotate(${lightingAngle - 60}deg)`
-            }}
-          />
-        </div>
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-slate-400"
+          style={{ background: 'radial-gradient(circle at 50% 50%, #F8FAFC 0%, #E2E8F0 45%, #94A3B8 75%, #475569 100%)' }}
+        />
       </div>
     );
   }
@@ -302,23 +202,13 @@ export function MaterialShaderSphere({
   if (materialId === 'metal-aluminium') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-slate-900/35 blur-[3px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-slate-300 shadow-[0_8px_20px_rgba(0,0,0,0.25),inset_0_2px_4px_rgba(255,255,255,0.8),inset_0_-5px_10px_rgba(71,85,105,0.5)]"
-          style={{ background: `radial-gradient(circle at ${specX}% ${specY}%, #FFFFFF 0%, #E2E8F0 40%, #CBD5E1 75%, #94A3B8 100%)` }}
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-slate-300"
+          style={{ background: 'radial-gradient(circle at 50% 50%, #FFFFFF 0%, #E2E8F0 40%, #CBD5E1 75%, #94A3B8 100%)' }}
         >
           {/* Circular Brushed Radial Micro-grooves */}
           <div className="absolute inset-0 rounded-full border border-slate-400/30 scale-75" />
           <div className="absolute inset-0 rounded-full border border-slate-400/20 scale-50" />
-          <div
-            className="absolute w-7 h-4 rounded-full bg-white/90"
-            style={{
-              left: `${specX - 14}%`,
-              top: `${specY - 8}%`,
-              filter: `blur(${glintBlur * 1.4}px)`,
-              opacity: glintOpacity * 0.85
-            }}
-          />
         </div>
       </div>
     );
@@ -328,25 +218,10 @@ export function MaterialShaderSphere({
   if (materialId === 'metal-copper') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute inset-1 rounded-full bg-orange-600/20 blur-md" />
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-orange-950/50 blur-[3px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-orange-400 shadow-[0_8px_24px_rgba(194,65,12,0.4),inset_0_3px_6px_rgba(255,237,213,0.9),inset_0_-6px_12px_rgba(67,20,7,0.8)]"
-          style={{
-            background: `conic-gradient(from ${lightingAngle + 130}deg at 50% 50%, #F97316 0deg, #EA580C 50%, #FED7AA 100deg, #9A3412 180deg, #431407 210deg, #FFEDD5 270deg, #C2410C 330deg, #F97316 360deg)`
-          }}
-        >
-          <div
-            className="absolute w-6 h-2.5 rounded-full bg-orange-100 shadow-[0_0_8px_rgba(254,215,170,0.9)]"
-            style={{
-              left: `${specX - 12}%`,
-              top: `${specY - 6}%`,
-              filter: `blur(${glintBlur * 0.6}px)`,
-              opacity: glintOpacity,
-              transform: `rotate(${lightingAngle - 60}deg)`
-            }}
-          />
-        </div>
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-orange-400"
+          style={{ background: 'radial-gradient(circle at 50% 50%, #FED7AA 0%, #F97316 45%, #C2410C 75%, #7C2D12 100%)' }}
+        />
       </div>
     );
   }
@@ -355,22 +230,10 @@ export function MaterialShaderSphere({
   if (materialId === 'plastic-gloss') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-blue-950/40 blur-[3px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-blue-400 shadow-[0_8px_24px_rgba(37,99,235,0.4),inset_0_2px_4px_rgba(255,255,255,0.8),inset_0_-6px_12px_rgba(30,58,138,0.7)]"
-          style={{ background: `radial-gradient(circle at ${specX}% ${specY}%, #60A5FA 0%, #2563EB 40%, #1D4ED8 70%, #1E3A8A 100%)` }}
-        >
-          {/* Razor-sharp pinpoint 100% white specular */}
-          <div
-            className="absolute w-3.5 h-3.5 rounded-full bg-white shadow-[0_0_4px_rgba(255,255,255,1)]"
-            style={{
-              left: `${specX - 7}%`,
-              top: `${specY - 7}%`,
-              opacity: glintOpacity
-            }}
-          />
-          <div className="absolute w-1.5 h-1.5 rounded-full bg-white/90" style={{ left: `${specX + 4}%`, top: `${specY + 6}%` }} />
-        </div>
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-blue-400"
+          style={{ background: 'radial-gradient(circle at 50% 50%, #60A5FA 0%, #3B82F6 45%, #2563EB 75%, #1D4ED8 100%)' }}
+        />
       </div>
     );
   }
@@ -379,17 +242,10 @@ export function MaterialShaderSphere({
   if (materialId === 'plastic-matte') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-slate-900/35 blur-[4px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative border border-slate-600 shadow-[0_6px_16px_rgba(0,0,0,0.3),inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-4px_8px_rgba(15,23,42,0.6)]"
-          style={{ background: `radial-gradient(circle at ${specX}% ${specY}%, #64748B 0%, #475569 50%, #334155 80%, #1E293B 100%)` }}
-        >
-          {/* Wide Soft Diffuse Bloom */}
-          <div
-            className="absolute w-7 h-7 rounded-full bg-white/20 blur-[4px]"
-            style={{ left: `${specX - 14}%`, top: `${specY - 14}%`, opacity: glintOpacity * 0.6 }}
-          />
-        </div>
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-slate-600"
+          style={{ background: 'radial-gradient(circle at 50% 50%, #64748B 0%, #475569 50%, #334155 80%, #1E293B 100%)' }}
+        />
       </div>
     );
   }
@@ -398,20 +254,15 @@ export function MaterialShaderSphere({
   if (materialId === 'stone-marble') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-slate-800/30 blur-[3px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-slate-200 shadow-[0_8px_20px_rgba(0,0,0,0.2),inset_0_3px_6px_rgba(255,255,255,1),inset_0_-5px_10px_rgba(148,163,184,0.4)]"
-          style={{ background: `radial-gradient(circle at ${specX}% ${specY}%, #FFFFFF 0%, #F8FAFC 50%, #E2E8F0 80%, #CBD5E1 100%)` }}
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-slate-200"
+          style={{ background: 'radial-gradient(circle at 50% 50%, #FFFFFF 0%, #F8FAFC 50%, #E2E8F0 80%, #CBD5E1 100%)' }}
         >
           {/* Subtle Grey Mineral Marble Veins */}
           <svg className="absolute inset-0 w-full h-full opacity-35" viewBox="0 0 100 100">
             <path d="M 20 10 Q 40 40 30 70 T 50 90" fill="none" stroke="#64748B" strokeWidth="1.5" />
             <path d="M 60 15 Q 75 45 65 80" fill="none" stroke="#94A3B8" strokeWidth="1" />
           </svg>
-          <div
-            className="absolute w-5 h-2.5 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.9)]"
-            style={{ left: `${specX - 10}%`, top: `${specY - 6}%`, filter: `blur(${glintBlur * 0.4}px)`, opacity: glintOpacity }}
-          />
         </div>
       </div>
     );
@@ -421,17 +272,12 @@ export function MaterialShaderSphere({
   if (materialId === 'carbon-fiber') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-black/70 blur-[3px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-neutral-700 bg-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.7),inset_0_2px_4px_rgba(255,255,255,0.4),inset_0_-6px_12px_rgba(0,0,0,0.9)]"
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-neutral-700 bg-neutral-900"
         >
           {/* Woven Cross-hatch Twill Weave Texture */}
           <div className="absolute inset-0 opacity-40 bg-[repeating-linear-gradient(45deg,#262626,#262626_2px,#171717_2px,#171717_4px)]" />
           <div className="absolute inset-0 opacity-40 bg-[repeating-linear-gradient(-45deg,#262626,#262626_2px,#0a0a0a_2px,#0a0a0a_4px)] mix-blend-overlay" />
-          <div
-            className="absolute w-6 h-2 rounded-full bg-white/90"
-            style={{ left: `${specX - 12}%`, top: `${specY - 5}%`, filter: `blur(${glintBlur * 0.4}px)`, opacity: glintOpacity * 0.9 }}
-          />
         </div>
       </div>
     );
@@ -441,21 +287,15 @@ export function MaterialShaderSphere({
   if (materialId === 'gem-emerald') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute inset-1 rounded-full bg-emerald-500/25 blur-md" />
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-emerald-950/50 blur-[3px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-emerald-300 shadow-[0_8px_24px_rgba(16,185,129,0.5),inset_0_3px_6px_rgba(255,255,255,0.9),inset_0_-6px_12px_rgba(6,78,59,0.8)]"
-          style={{ background: `radial-gradient(circle at ${specX}% ${specY}%, #6EE7B7 0%, #10B981 40%, #047857 70%, #064E3B 100%)` }}
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-emerald-300"
+          style={{ background: 'radial-gradient(circle at 50% 50%, #6EE7B7 0%, #10B981 40%, #047857 70%, #064E3B 100%)' }}
         >
           {/* Faceted Prismatic Geometry Lines */}
           <svg className="absolute inset-0 w-full h-full opacity-35" viewBox="0 0 100 100">
             <polygon points="50,15 85,35 85,75 50,90 15,75 15,35" fill="none" stroke="#A7F3D0" strokeWidth="1.5" />
             <line x1="50" y1="15" x2="50" y2="90" stroke="#A7F3D0" strokeWidth="1" />
           </svg>
-          <div
-            className="absolute w-4 h-4 rounded-full bg-white shadow-[0_0_8px_#10B981]"
-            style={{ left: `${specX - 8}%`, top: `${specY - 8}%`, opacity: glintOpacity }}
-          />
         </div>
       </div>
     );
@@ -466,20 +306,15 @@ export function MaterialShaderSphere({
     const isTerracotta = materialId === 'clay-terracotta';
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute -bottom-1 w-16 h-3 rounded-full bg-stone-900/25 blur-[4px]" style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }} />
+        {/* Velvety Matte Clay Sphere */}
         <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative border border-stone-300/70 dark:border-stone-700/70 shadow-[6px_8px_16px_rgba(0,0,0,0.14),-4px_-4px_12px_rgba(255,255,255,0.8),inset_4px_4px_8px_rgba(255,255,255,0.7),inset_-4px_-4px_8px_rgba(0,0,0,0.2)]"
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden border border-stone-300/80 dark:border-stone-700/80"
           style={{
             background: isTerracotta
-              ? `radial-gradient(circle at ${specX}% ${specY}%, #FB923C 0%, #EA580C 50%, #C2410C 80%, #7C2D12 100%)`
-              : `radial-gradient(circle at ${specX}% ${specY}%, #fafaf9 0%, #e7e5e4 55%, #d6d3d1 85%, #a8a29e 100%)`
+              ? 'radial-gradient(circle at 50% 50%, #FB923C 0%, #EA580C 50%, #C2410C 80%, #7C2D12 100%)'
+              : 'radial-gradient(circle at 50% 50%, #fafaf9 0%, #e7e5e4 55%, #d6d3d1 85%, #a8a29e 100%)'
           }}
-        >
-          <div
-            className="absolute w-6 h-6 rounded-full bg-white/40 blur-[3px]"
-            style={{ left: `${specX - 10}%`, top: `${specY - 10}%` }}
-          />
-        </div>
+        />
       </div>
     );
   }
@@ -488,29 +323,14 @@ export function MaterialShaderSphere({
   if (materialId === 'glass-acrylic') {
     return (
       <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-        <div className="absolute inset-1 rounded-full bg-[#FF4D6D]/20 blur-md transition-all duration-150" />
         <div
-          className="absolute -bottom-1 w-16 h-3 rounded-full bg-black/25 dark:bg-black/50 blur-[3px] transition-all duration-150"
-          style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }}
-        />
-        <div
-          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden backdrop-blur-lg border-2 border-white/90 dark:border-white/50 shadow-[0_8px_20px_rgba(255,77,109,0.3),inset_0_0_20px_rgba(255,255,255,0.7),inset_0_-8px_16px_rgba(255,77,109,0.35)]"
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden backdrop-blur-lg border-2 border-white/90 dark:border-white/50"
           style={{
-            background: `radial-gradient(circle at ${specX}% ${specY}%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.5) 15%, rgba(255,77,109,0.3) 45%, rgba(168,85,247,0.25) 75%, rgba(30,10,50,0.4) 100%)`
+            background: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 25%, rgba(255,77,109,0.2) 60%, rgba(168,85,247,0.15) 85%, rgba(30,10,50,0.3) 100%)'
           }}
         >
-          <div
-            className="absolute w-6 h-3.5 rounded-full bg-white/95 blur-[0.4px] shadow-sm transition-all duration-100"
-            style={{
-              left: `${specX - 12}%`,
-              top: `${specY - 8}%`,
-              filter: `blur(${glintBlur * 0.4}px)`,
-              opacity: glintOpacity,
-              transform: `rotate(${lightingAngle - 60}deg)`
-            }}
-          />
-          <div className="absolute inset-1.5 rounded-full border border-white/40 shadow-inner" />
-          <div className="absolute -bottom-2 inset-x-2 h-6 rounded-full bg-gradient-to-t from-white/60 to-transparent blur-[1px]" />
+          {/* Internal Fresnel Refraction Ring */}
+          <div className="absolute inset-1.5 rounded-full border border-white/50" />
         </div>
       </div>
     );
@@ -519,18 +339,11 @@ export function MaterialShaderSphere({
   // 16. CYBER WIREFRAME (FALLBACK)
   return (
     <div className={`relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center select-none pointer-events-none ${className}`} aria-hidden="true">
-      <div className="absolute inset-1 rounded-full bg-cyan-500/25 blur-md animate-pulse" />
-      <div
-        className="absolute -bottom-1 w-16 h-3 rounded-full bg-cyan-950/40 blur-[3px] transition-all duration-150"
-        style={{ transform: `translate(${shadowOffsetX}px, ${shadowOffsetY * 0.2}px)` }}
-      />
-      <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden bg-black/90 border-2 border-cyan-400 shadow-[0_0_20px_rgba(0,242,254,0.5),inset_0_0_14px_rgba(0,242,254,0.4)] flex items-center justify-center">
-        <div
-          className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1.5px] bg-cyan-400 shadow-[0_0_6px_#00F2FE] transition-transform duration-100"
-          style={{ transform: `translateY(-50%) rotate(${lightingAngle - 90}deg)` }}
-        />
-        <div className="w-7 h-14 rounded-[50%] border-2 border-cyan-400 shadow-[0_0_6px_#00F2FE]" />
-        <div className="absolute w-3 h-3 rounded-full bg-cyan-300 shadow-[0_0_10px_#00F2FE] animate-ping" />
+      <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full relative overflow-hidden bg-black/95 border-2 border-cyan-400 flex items-center justify-center">
+        {/* Latitude Rings */}
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] bg-cyan-400" />
+        <div className="w-8 h-14 rounded-[50%] border border-cyan-400/80" />
+        <div className="absolute w-12 h-8 rounded-[50%] border border-cyan-400/50" />
       </div>
     </div>
   );
