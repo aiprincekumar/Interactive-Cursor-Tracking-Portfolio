@@ -19,7 +19,7 @@ This department eradicates cookie-cutter generic AI template looks, engineering 
 ## 💎 2. Core Mandates & Anti-Generic Design Standards
 
 ### 2.1 Mandatory Root DESIGN.md
-- Every frontend workspace must maintain an authoritative [`DESIGN.md`](file:///DESIGN.md) at its project root defining design philosophy, color palettes, typography scales, spacing tokens, and component patterns.
+- Every frontend workspace must maintain an authoritative [`DESIGN.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/DESIGN.md) at its project root defining design philosophy, color palettes, typography scales, spacing tokens, and component patterns.
 
 ### 2.2 Design Tokens & Color Harmony
 - Disallow arbitrary or discordant hex codes in CSS. Strictly utilize CSS custom properties or design token configurations:

@@ -56,6 +56,8 @@ describe('calculateOrderDiscount', () => {
 - **Resilient Selectors:** Prefer accessible roles (`getByRole('button', { name: /submit/i })`) or dedicated `data-testid` attributes over brittle CSS class selectors.
 - **Zero-Flakiness Standard:** Strictly ban hardcoded timeouts (`sleep` or `waitForTimeout(5000)`); rely exclusively on web-first assertions (`await expect(locator).toBeVisible()`).
 
+### 3.3 Dev-Server Lifecycle & Test Port Isolation: Ensure Playwright and preview servers boot on clean, isolated ports; terminate listeners immediately post-test run.
+
 ---
 
 ## 🕵️ 4. Mandatory Independent Verification Subagent Protocol (Rule 1 & Rule 13)
@@ -66,6 +68,7 @@ describe('calculateOrderDiscount', () => {
   - [ ] Branch code coverage meets or exceeds the required threshold (minimum 80-85%).
   - [ ] Typecheck (`tsc --noEmit`) and linter pass with zero errors and zero warnings.
   - [ ] Zero unhandled promise rejections, memory leaks, or console errors.
+  - [ ] Rules Health & Integrity Sentinel: Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion (Universal Rule 27).
 
 ---
 
@@ -139,4 +142,5 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
 
 1. **Gate 8-A (Test Pass Rate):** 100% of automated tests must be passing green.
 2. **Gate 8-B (Verification Signoff):** Independent Verification Subagent must submit a formal signoff report.
-3. **Downstream Handoff:** Upon QA signoff, deliverables advance to **Dept 09: Performance** and **Dept 12: DevOps**.
+3. **Gate 8-C (Rules Health & Integrity Sentinel):** Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion (Universal Rule 27).
+4. **Downstream Handoff:** Upon QA signoff, deliverables advance to **Dept 09: Performance** and **Dept 12: DevOps**.

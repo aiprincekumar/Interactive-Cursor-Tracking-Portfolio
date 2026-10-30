@@ -22,10 +22,13 @@ Clear operational boundaries and precedence rules govern interactions between Gl
 
 - **Tier 1: Non-Negotiable Constitutional Governance (Universal Rules ALWAYS WIN):**
   - **Supreme CEO Model & Subagent Delegation:** Main Agent never directly edits code or executes shell commands; subagents and independent QA verification subagents are mandatory.
+  - **Mandatory Subagent Prompt Anchor Template:** Whenever invoking a subagent, the prompt must explicitly enforce departmental rule anchoring: `"Mandatory: First load and adhere to .agents/rules/XX_..._dept.md (or C:\Users\Atul Verma\.gemini\config\rules\XX_..._dept.md) and memory.md before executing instructions."`
   - **Zero-Scan Bootstrap (Rule 0 / 21):** Strict prohibition on blind recursive workspace scans (`dir /s`, `Get-ChildItem -Recurse`, `find`, `grep -r`); immediate mandatory anchoring to `memory.md`.
   - **Developer Identity & Remote Git Gatekeeper (Rule 15 & 16):** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com`). Absolute ban on unauthorized `git commit` / `git push` without prior explicit user consent.
   - **Security & InfoSec (Rule 10 & 20):** Zero hardcoded secrets, mandatory SAST scanning, and independent QA pass.
   - **Backup & Encoding Standard (Rule 5 & 23):** 10-day FIFO backup rotation in desktop backup directory; strict UTF-8 with BOM (`0xEF, 0xBB, 0xBF`) encoding for backup manifests.
+  - **Rules Health & Integrity Gatekeeper (Rule 27):** Mandatory execution of `npm run rules:check` on every rule, documentation, configuration, or structural change to guarantee zero truncation, 100% link validity, language purity, and binary sync.
+  - **Pre-Task Discovery Interview Protocol (Rule 24):** Active by default across all chats without requiring the user to type '/grill-me'; executed directly by the Supreme CEO via ask_question.
   *> No project-level rule may override, bypass, or weaken Tier 1 constitutional rules.*
 
 - **Tier 2: Domain & Technical Implementation Overrides (Project-Level Rules WIN):**
@@ -42,23 +45,23 @@ Clear operational boundaries and precedence rules govern interactions between Gl
 
 ## 🏢 3. Department Directory & Quick Routing
 
-| Department | Name | Core Scope | Dedicated Rule Document |
-| :--- | :--- | :--- | :--- |
-| **Foundation** | **Foundation & Core Rules** | CEO model, Zero-Scan, developer profile, ecosystem subagents | [`foundation_and_special_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/foundation_and_special_rules.md) |
-| **Dept 01** | **Product Requirements** | PRD, user stories, scope boundary, Rule 22 phase prompts | [`01_product_requirements_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/01_product_requirements_dept.md) |
-| **Dept 02** | **Solution Architecture** | HLD/LLD, system boundaries, ADRs, modular architecture | [`02_solution_architecture_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/02_solution_architecture_dept.md) |
-| **Dept 03** | **Data Architecture & DBA** | Schema design, indexing, migrations, SQL/NoSQL, N+1 prevention | [`03_data_architecture_dba_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/03_data_architecture_dba_dept.md) |
-| **Dept 04** | **UI/UX Design System** | DESIGN.md, design tokens, typography, WCAG A11y, responsive | [`04_ui_ux_design_system_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/04_ui_ux_design_system_dept.md) |
-| **Dept 05** | **Frontend Engineering** | React/Vue/Vite, state management, V-DOM performance, SSR boundaries | [`05_frontend_engineering_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/05_frontend_engineering_dept.md) |
-| **Dept 06** | **Backend & API Engineering** | REST/GraphQL APIs, middleware, input validation, authentication | [`06_backend_api_engineering_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/06_backend_api_engineering_dept.md) |
-| **Dept 07** | **Technical Documentation** | OpenAPI/Swagger, ADRs, runbooks, developer guides, API docs | [`07_technical_documentation_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/07_technical_documentation_dept.md) |
-| **Dept 08** | **Quality Assurance & Testing** | Unit, integration, E2E (Playwright), TDD, independent QA signoff | [`08_quality_assurance_testing_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/08_quality_assurance_testing_dept.md) |
-| **Dept 09** | **Performance & Web Vitals** | LCP/INP/CLS, heap snapshots, memory leak prevention, bundle budgets | [`09_performance_web_vitals_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/09_performance_web_vitals_dept.md) |
-| **Dept 10** | **AppSec & InfoSec** | OWASP Top 10, secret scanning, token safety, sanitization | [`10_application_security_infosec_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/10_application_security_infosec_dept.md) |
-| **Dept 11** | **Legal & License Compliance** | Open-source licenses (MIT/GPL), SPDX, data privacy (GDPR/CCPA) | [`11_legal_license_compliance_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/11_legal_license_compliance_dept.md) |
-| **Dept 12** | **DevOps, Build & Release** | CI/CD pipelines, build gate verification, Git Flow, Rule 6 changes log | [`12_devops_build_release_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/12_devops_build_release_dept.md) |
-| **Dept 13** | **SRE & Backup Ops** | Rule 5 backup system, 10-day FIFO, Rule 23 memory sync | [`13_sre_backup_disaster_recovery_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/13_sre_backup_disaster_recovery_dept.md) |
-| **Dept 14** | **Telemetry & Flags** | OpenTelemetry tracing, structured logging, feature flags, alerts | [`14_telemetry_observability_feature_flags_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/14_telemetry_observability_feature_flags_dept.md) |
+| Department | Name | Core Scope | Recommended AI Model | Dedicated Rule Document |
+| :--- | :--- | :--- | :--- | :--- |
+| **Foundation** | **Foundation & Core Rules** | CEO model, Zero-Scan, developer profile, ecosystem subagents | `pro` | [`foundation_and_special_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/foundation_and_special_rules.md) |
+| **Dept 01** | **Product Requirements** | PRD, user stories, scope boundary, Rule 22 phase prompts | `flash` | [`01_product_requirements_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/01_product_requirements_dept.md) |
+| **Dept 02** | **Solution Architecture** | HLD/LLD, system boundaries, ADRs, modular architecture | `pro` | [`02_solution_architecture_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/02_solution_architecture_dept.md) |
+| **Dept 03** | **Data Architecture & DBA** | Schema design, indexing, migrations, SQL/NoSQL, N+1 prevention | `pro` | [`03_data_architecture_dba_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/03_data_architecture_dba_dept.md) |
+| **Dept 04** | **UI/UX Design System** | DESIGN.md, design tokens, typography, WCAG A11y, responsive | `flash` | [`04_ui_ux_design_system_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/04_ui_ux_design_system_dept.md) |
+| **Dept 05** | **Frontend Engineering** | React/Vue/Vite, state management, V-DOM performance, SSR boundaries | `flash` | [`05_frontend_engineering_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/05_frontend_engineering_dept.md) |
+| **Dept 06** | **Backend & API Engineering** | REST/GraphQL APIs, middleware, input validation, authentication | `flash` / `pro` | [`06_backend_api_engineering_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/06_backend_api_engineering_dept.md) |
+| **Dept 07** | **Technical Documentation** | OpenAPI/Swagger, ADRs, runbooks, developer guides, API docs | `flash_lite` | [`07_technical_documentation_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/07_technical_documentation_dept.md) |
+| **Dept 08** | **Quality Assurance & Testing** | Unit, integration, E2E (Playwright), TDD, independent QA signoff | `flash` | [`08_quality_assurance_testing_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/08_quality_assurance_testing_dept.md) |
+| **Dept 09** | **Performance & Web Vitals** | LCP/INP/CLS, heap snapshots, memory leak prevention, bundle budgets | `pro` | [`09_performance_web_vitals_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/09_performance_web_vitals_dept.md) |
+| **Dept 10** | **AppSec & InfoSec** | OWASP Top 10, secret scanning, token safety, sanitization | `pro` | [`10_application_security_infosec_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/10_application_security_infosec_dept.md) |
+| **Dept 11** | **Legal & License Compliance** | Open-source licenses (MIT/GPL), SPDX, data privacy (GDPR/CCPA) | `flash_lite` | [`11_legal_license_compliance_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/11_legal_license_compliance_dept.md) |
+| **Dept 12** | **DevOps, Build & Release** | CI/CD pipelines, build gate verification, Git Flow, Rule 6 changes log | `flash_lite` | [`12_devops_build_release_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/12_devops_build_release_dept.md) |
+| **Dept 13** | **SRE & Backup Ops** | Rule 5 backup system, 10-day FIFO, Rule 23 memory sync | `flash_lite` | [`13_sre_backup_disaster_recovery_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/13_sre_backup_disaster_recovery_dept.md) |
+| **Dept 14** | **Telemetry & Flags** | OpenTelemetry tracing, structured logging, feature flags, alerts | `flash` | [`14_telemetry_observability_feature_flags_dept.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/14_telemetry_observability_feature_flags_dept.md) |
 
 ---
 
@@ -135,3 +138,4 @@ Every subagent must verify and certify the following 6 requirements before compl
 - [ ] **Quality Gate Certification:** Build (`npm run build`) and test suites (`npm test`) passed with zero errors (Rule 12/08).
 - [ ] **Security Audit:** Certified zero hardcoded credentials, API keys, or unescaped injection vulnerabilities (Rule 10).
 - [ ] **Changes Log Audit Entry:** Standardized audit record logged in project `changes_log/` across all 5 tiers (Rule 6).
+- [ ] **Rules Health & Integrity Sentinel:** Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion (Rule 27).

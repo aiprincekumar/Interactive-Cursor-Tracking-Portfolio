@@ -16,6 +16,7 @@
 - **Mandatory Subagent Delegation (`invoke_subagent` / `define_subagent`):**
   - Every task requested by the user is decomposed and dispatched to specialized subagents.
   - Subagent fleet size scales dynamically to the problem scope (from 1 to 100+ subagents deployed sequentially or in parallel batches).
+  - **Mandatory Subagent Prompt Anchor Template:** Whenever the Main Agent (CEO) dispatches work via `invoke_subagent`, the prompt MUST include the mandatory departmental anchoring directive: `"Mandatory: First load and adhere to .agents/rules/XX_..._dept.md (or C:\Users\Atul Verma\.gemini\config\rules\XX_..._dept.md) and memory.md before executing instructions."`
 - **Mandatory Independent Verification Subagent (QA Gate):**
   - Following task execution by engineering subagents, an independent QA/Verification subagent must verify code quality, test suites, and security posture.
   - The Main Agent (CEO) synthesizes and presents the final evaluation to the user only after receiving Grade A+ certification from the QA subagent.
@@ -33,6 +34,9 @@ Universal Rules represent the supreme constitution of the entire Antigravity eco
 3. **Developer Identity & Remote Git Gatekeeper (Rule 15 & 16):** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com`). Absolute prohibition on `git commit` or `git push` without prior explicit user consent.
 4. **Application Security & Credential Governance (Rule 10 & 20):** Zero hardcoded secrets, mandatory SAST scanning, and independent security gates.
 5. **Antigravity Backup & UTF-8 with BOM Standard (Rule 5 & 23):** Dual backup container (`Manual_Backup/`, `Daily_Backup/`), 10-day FIFO rotation, and UTF-8 with BOM (`0xEF, 0xBB, 0xBF`) encoding for backup manifests.
+6. **Rules Health & Integrity Sentinel Verification (Rule 27):** Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion.
+7. **Mandatory Default Pre-Task Discovery Interview Protocol (Rule 24):** Active by default across all chats without requiring the user to type '/grill-me'; executed directly by the Supreme CEO via ask_question.
+8. **Deterministic Script-First Automation Standard:** Whenever an operation has a dedicated executable script (e.g., git_sync.ps1, verify_git_sync.ps1, backup runners, health sentinels), agents MUST execute the script directly rather than manually generating token-heavy code or repetitive instructions, ensuring 95%+ token efficiency.
 
 ### 2.2 Tier 2: Domain & Technical Implementation Overrides (Project-Level Rules WIN)
 Project-level rules (`.gemini/`, `CLAUDE.md`, `DESIGN.md`) specialize local product architecture and technical implementation. **For technical stack and domain logic decisions, project rules prevail:**
@@ -101,6 +105,8 @@ The system maintains the following standardized ecosystem subagents for autonomo
 - **Thinking Budget Control:**
   - Minimize thinking overhead on routine formatting and scripts; allocate deep thinking budgets to architecture, state machines, and security reviews.
 
+### 6.1 Token Budget & Context Window Defense Invariants: Enforce scoped line-range reading on files exceeding 300 lines to prevent context bloat; recommend /compact proactively during extended multi-stage conversations; maintain minimal prompt payloads.
+
 ---
 
 ## 🧹 7. Subagent Background Task Hygiene & Zero-Hang Standard (Rule 26)
@@ -108,3 +114,16 @@ The system maintains the following standardized ecosystem subagents for autonomo
 - **Strict Task Lifecycle Management:**
   - Every background process initiated by a subagent (e.g., development servers, test runners, port listeners) must be cleanly terminated upon task completion or failure.
   - No orphan processes may remain hanging in the background, preventing port exhaustion and memory leaks.
+
+### 7.1 Dev-Server Lifecycle & Port Conflict Invariants: Local development servers (npm run dev on port 5173/3000/8080) must be managed cleanly; verify port availability before binding; terminate background dev processes and listeners upon task completion to prevent zombie port locks.
+
+---
+
+## 🛡️ 8. Rules Health & Integrity Sentinel Standard (Rule 27)
+
+- **Mandatory Pre-Handoff Verification Gate:**
+  - Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion.
+- **Strict Size Invariant (< 20 KB target, < 24 KB hard ceiling):**
+  - No departmental or foundation rule document may exceed the 20 KB recommended limit or 24 KB hard ceiling, guaranteeing 100% immunity to context truncation.
+- **Dual-Directory Binary Synchronization:**
+  - Global rules (`C:\Users\Atul Verma\.gemini\config\rules\`) and project rules (`.agents/rules/`) must remain bit-for-bit MD5 synchronized at all times.

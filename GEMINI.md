@@ -32,6 +32,7 @@ Upon starting any session or task, incoming AI agents MUST immediately anchor to
 ### 2.1 CEO / Manager Delegation Model (Universal Rule 1)
 - The Main Agent operates strictly as **CEO / Orchestrator** and never writes application code, edits files, or executes shell commands directly.
 - Tasks are decomposed and dispatched to specialized subagents (`invoke_subagent` / `define_subagent`). Independent QA verification subagent signoff is required before final reporting.
+- **Mandatory Subagent Prompt Anchor Directive:** Whenever dispatching subagents via `invoke_subagent`, the CEO must prefix or include the mandatory departmental anchoring directive in the prompt: `"Mandatory: First load and adhere to .agents/rules/XX_..._dept.md (or C:\Users\Atul Verma\.gemini\config\rules\XX_..._dept.md) and memory.md before executing instructions."`
 
 ### 2.2 Autonomous Forward Momentum (Rule 7) & Git Gatekeeper (Rule 15)
 - **Local Autonomy:** Local file creation, refactoring, automated testing, and changes logging proceed autonomously without interrupting the user.
@@ -67,12 +68,16 @@ Customizations to the 3D tab or portfolio settings apply strictly and exclusivel
 ### 2.11 Mandatory Subagent Task Hygiene & Zero-Hang Termination (Universal Rule 26)
 Before concluding any task or reporting to the CEO, subagents MUST call `manage_task(Action='list')` and terminate any stray/hung processes via `manage_task(Action='kill')`. Ensures UI immediately transitions to idle.
 
+### 2.12 Mandatory Rules Health & Integrity Sentinel Verification (Universal Rule 27)
+Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion.
+
 ---
 
 ## 🛠️ 3. Standard Developer & Verification Commands
 
 ```bash
 npm run dev                  # Start local development server
+npm run rules:check          # Audit enterprise rules integrity, file sizes (< 20 KB), links, & binary sync
 npm test                     # Run comprehensive 42+ verification test suites (58 test harnesses)
 npm run test:on-device-ai    # Run targeted on-device AI test suite
 npm run test:chat-phase8     # Run master Phase 8 AI chat capstone integration suite

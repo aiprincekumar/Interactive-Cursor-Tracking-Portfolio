@@ -25,7 +25,10 @@ This department ensures every artifact advancing toward production is 100% build
   3. **Linter Gate:** `npm run lint`
   4. **Compiler & Bundler Gate:** `npm run build`
   5. **Automated Test Suite:** `npm test`
+  6. **Rules Health & Integrity Gate (Rule 27):** `npm run rules:check` (Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion.)
 - If any single verification gate fails, the release sequence is immediately **BLOCKED**.
+
+### 2.2 Deterministic Script-First Execution Standard: Mandate 1-click script execution for builds, syncs, and verification tasks; eliminate manual file editing when deterministic scripts exist.
 
 ---
 
@@ -131,4 +134,5 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
 
 1. **Gate 12-A (Build & Test Pass):** Production build generated with zero warnings or errors.
 2. **Gate 12-B (Changes Log Audit):** Verified audit record registered in `changes_log/`.
-3. **Downstream Handoff:** Upon release packaging, ownership advances to **Dept 13: SRE & Backup** and **Dept 14: Telemetry**.
+3. **Gate 12-C (Rules Health & Integrity Sentinel):** `npm run rules:check` certified with 100% PASS for all rules, documentation, and configuration updates (Rule 27).
+4. **Downstream Handoff:** Upon release packaging, ownership advances to **Dept 13: SRE & Backup** and **Dept 14: Telemetry**.
