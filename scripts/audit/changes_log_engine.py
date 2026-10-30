@@ -2,6 +2,7 @@
 """
 changes_log_engine.py - Dynamic 5-Tier Changes Log Engine & Auditor
 Compliant with Universal Rule 6, Rule 12, Rule 15, and Rule 23.
+Supports Approach 2: Granular Atomic Micro-Entries Protocol (--files / -f).
 
 Tiers Managed:
 1. changes_log/summary/changes_summary.md (Master summary table)
@@ -53,9 +54,38 @@ def get_repo_root(custom_root=None) -> Path:
         return Path.cwd().resolve()
 
 
-def inspect_git_status(repo_root: Path):
+def normalize_target_file(p_str: str, repo_root: Path) -> str:
+    """Normalizes relative or absolute file paths to POSIX paths relative to repo root."""
+    p_str = p_str.strip().strip("'\"")
+    if not p_str:
+        return ""
+    p = Path(p_str)
+    repo_root_res = repo_root.resolve()
+    if p.is_absolute():
+        try:
+            return p.resolve().relative_to(repo_root_res).as_posix()
+        except ValueError:
+            return p.as_posix()
+
+    try:
+        from_cwd = (Path.cwd() / p).resolve()
+        return from_cwd.relative_to(repo_root_res).as_posix()
+    except ValueError:
+        pass
+
+    try:
+        from_root = (repo_root_res / p).resolve()
+        return from_root.relative_to(repo_root_res).as_posix()
+    except ValueError:
+        pass
+
+    return p.as_posix().lstrip("./")
+
+
+def inspect_git_status(repo_root: Path, specified_files=None):
     """
-    Inspects git status --porcelain, git diff --cached, git diff, or git diff HEAD~1
+    Inspects git status --porcelain, git diff --cached, git diff, or git diff HEAD~1.
+    If specified_files is provided, scopes the file list and diff statistics to only those files.
     Returns:
         files: list of dicts with {'status': 'M'|'A'|'D'|'R'|'??', 'path': str}
         diff_stat: string summary of diff stat
@@ -64,6 +94,13 @@ def inspect_git_status(repo_root: Path):
     files = []
     diff_stat = ""
     is_clean = False
+
+    normalized_specified = []
+    if specified_files:
+        for f_item in specified_files:
+            norm = normalize_target_file(f_item, repo_root)
+            if norm and norm not in normalized_specified:
+                normalized_specified.append(norm)
 
     try:
         # Check porcelain status
@@ -76,7 +113,77 @@ def inspect_git_status(repo_root: Path):
         )
         status_lines = [line for line in res.stdout.splitlines() if line.strip()]
 
-        if status_lines:
+        # Approach 2: If specified_files is provided, filter and scope specifically
+        if normalized_specified:
+            status_map = {}
+            for line in status_lines:
+                code = line[:2].strip() or "M"
+                fpath = line[3:].strip()
+                if " -> " in fpath:
+                    fpath = fpath.split(" -> ")[-1].strip()
+                status_map[fpath.replace("\\", "/")] = code
+
+            head_map = {}
+            try:
+                res_head = subprocess.run(
+                    ["git", "diff", "HEAD~1", "--name-status"],
+                    cwd=str(repo_root),
+                    capture_output=True,
+                    text=True,
+                    check=False
+                )
+                for line in res_head.stdout.splitlines():
+                    if not line.strip():
+                        continue
+                    parts = line.split("\t")
+                    code = parts[0].strip()
+                    fpath = parts[-1].strip()
+                    head_map[fpath.replace("\\", "/")] = code
+            except Exception:
+                pass
+
+            for target in normalized_specified:
+                if target in status_map:
+                    code = status_map[target]
+                elif target in head_map:
+                    code = head_map[target]
+                else:
+                    disk_path = repo_root / target
+                    code = "M" if disk_path.exists() else "M"
+                files.append({"status": code, "path": target})
+
+            # Compute scoped diff statistics for only the specified files
+            file_args = [f["path"] for f in files]
+            stat_res = subprocess.run(
+                ["git", "diff", "--cached", "--stat", "--"] + file_args,
+                cwd=str(repo_root),
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            diff_stat = stat_res.stdout.strip()
+            if not diff_stat:
+                stat_res = subprocess.run(
+                    ["git", "diff", "--stat", "--"] + file_args,
+                    cwd=str(repo_root),
+                    capture_output=True,
+                    text=True,
+                    check=False
+                )
+                diff_stat = stat_res.stdout.strip()
+            if not diff_stat:
+                stat_res = subprocess.run(
+                    ["git", "diff", "HEAD~1", "--stat", "--"] + file_args,
+                    cwd=str(repo_root),
+                    capture_output=True,
+                    text=True,
+                    check=False
+                )
+                diff_stat = stat_res.stdout.strip()
+
+            is_clean = len(status_lines) == 0
+
+        elif status_lines:
             for line in status_lines:
                 code = line[:2].strip()
                 fpath = line[3:].strip()
@@ -598,6 +705,12 @@ def main():
         help="Simulate full operation without modifying disk files"
     )
     parser.add_argument(
+        "-f", "--files",
+        dest="files",
+        default="",
+        help="Comma-separated list of relative or absolute file paths to scope this change to (Approach 2: Granular Atomic Micro-Entries)"
+    )
+    parser.add_argument(
         "--repo-root",
         dest="repo_root",
         default="",
@@ -612,8 +725,11 @@ def main():
     time_str = now.strftime("%H:%M:%S")
     timestamp = f"{date_str} {time_str}"
 
+    # Parse specified scoped files if provided (Approach 2: Granular Atomic Micro-Entries)
+    specified_files = [f.strip() for f in args.files.split(",") if f.strip()] if args.files else None
+
     # 1. Git inspection
-    files_list, diff_stat, is_clean = inspect_git_status(repo_root)
+    files_list, diff_stat, is_clean = inspect_git_status(repo_root, specified_files=specified_files)
 
     # 2. Conventional Commit Prefix Auto-Parsing & Type Detection
     raw_message = (args.message or "").strip()
@@ -644,18 +760,22 @@ def main():
         change_type = "chore"
 
     # Derive scope if not provided
-    if not args.scope:
-        if extracted_scope:
-            scope_str = extracted_scope
-        elif files_list:
-            top_paths = [f["path"] for f in files_list[:4]]
-            if len(files_list) > 4:
-                top_paths.append(f"+{len(files_list)-4} more")
-            scope_str = ", ".join(top_paths)
-        else:
-            scope_str = "Interactive Cursor-Tracking Portfolio Workspace"
-    else:
+    if args.scope:
         scope_str = args.scope
+    elif specified_files:
+        top_paths = [f["path"] for f in files_list[:4]]
+        if len(files_list) > 4:
+            top_paths.append(f"+{len(files_list)-4} more")
+        scope_str = ", ".join(top_paths)
+    elif extracted_scope:
+        scope_str = extracted_scope
+    elif files_list:
+        top_paths = [f["path"] for f in files_list[:4]]
+        if len(files_list) > 4:
+            top_paths.append(f"+{len(files_list)-4} more")
+        scope_str = ", ".join(top_paths)
+    else:
+        scope_str = "Interactive Cursor-Tracking Portfolio Workspace"
 
     # Derive message if not provided
     if not cleaned_message:

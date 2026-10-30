@@ -109,7 +109,7 @@ Every subagent must verify and certify the following 7 requirements before compl
 | **Rule 3** | Skill Requirement Discovery & Sourcing | Capability Sourcing | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
 | **Rule 4** | Mandatory Skill Duplication Verification | Tooling Hygiene | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
 | **Rule 5** | Antigravity Backup, 10-Day FIFO & Rule In Hindi | SRE & DR Continuity | [`13_sre_backup_disaster_recovery_dept.md`](13_sre_backup_disaster_recovery_dept.md) |
-| **Rule 6** | 5-Tier Changes Log & Token-Free git-cliff | Forensic Audit Trail | [`12_devops_build_release_dept.md`](12_devops_build_release_dept.md) |
+| **Rule 6** | Mandatory Project Changes Log (5-Tier Architecture with Granular Atomic Micro-Entries Protocol) | Forensic Audit Trail | [`12_devops_build_release_dept.md`](12_devops_build_release_dept.md) |
 | **Rule 7** | Autonomous Local Execution vs. Git Push Lock | Execution Autonomy | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
 | **Rule 8** | Timestamp Standardization & UTF-8 with BOM | Data & Text Hygiene | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
 | **Rule 9** | Code Quality & Clean Architecture (SOLID/DRY) | Code Craftsmanship | [`02_solution_architecture_dept.md`](02_solution_architecture_dept.md) |
@@ -118,7 +118,7 @@ Every subagent must verify and certify the following 7 requirements before compl
 | **Rule 12** | Security Best Practices, OWASP & Pre-Commit SAST | InfoSec Fortification | [`10_application_security_infosec_dept.md`](10_application_security_infosec_dept.md) |
 | **Rule 13** | Test Verification Gates & Automated Quality | QA & Verification Gates | [`08_quality_assurance_testing_dept.md`](08_quality_assurance_testing_dept.md) |
 | **Rule 14** | Technical Documentation & Transparent Reporting | Architecture & Docs | [`07_technical_documentation_dept.md`](07_technical_documentation_dept.md) |
-| **Rule 15** | Dedicated Git Operations, Micro-Commits & Push Gate | Remote VCS Governance | [`12_devops_build_release_dept.md`](12_devops_build_release_dept.md) |
+| **Rule 15** | Dedicated Git Operations, Autonomous Local Commits & Push Gate | Remote VCS Governance | [`12_devops_build_release_dept.md`](12_devops_build_release_dept.md) |
 | **Rule 16** | Developer Identity: Atul Verma (aiprincekumar) | Author Identity | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
 | **Rule 17** | Dedicated Subagent per Programming Language | Language Purity | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
 | **Rule 18** | Mandatory Project Rules Replication & Active Sync | Rules Governance | [`master_rules_navigator.md`](master_rules_navigator.md) |

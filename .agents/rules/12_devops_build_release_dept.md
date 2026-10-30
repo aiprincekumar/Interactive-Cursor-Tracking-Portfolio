@@ -58,16 +58,15 @@ This department ensures every artifact advancing toward production is 100% build
 ### 3.4 GitHub Operations, Micro-Commit Checkpoints & Remote Push Gatekeeper (Rule 15 Compliance)
 - **Specialist Delegation:** All Git and GitHub operations are delegated strictly to `github_operations_specialist` (or executed via standardized deterministic scripts `git_sync.ps1`). The Supreme CEO never executes direct Git transactions.
 - **Autonomous Local Micro-Commit Cadence:**
-  - After every 2 or 3 logical/micro changes during execution, autonomously perform a local `git commit` without asking or interrupting the user.
+  - On EVERY SINGLE change or logical modification, autonomously perform a local `git commit` immediately without asking or interrupting the user. Never prompt the user for local commits.
   - Immediately after creating the local commit, notify and inform the user with a concise status update: `"Local commit created: [commit-hash] [commit-message]"` (e.g. Hindi status notification: `"Haan, local me commit ho chuka hai [hash/message]"`).
 - **Strict Remote Git Gatekeeper (Hard Lock):**
   - Absolute prohibition on autonomous remote `git push`. Changes remain strictly local until explicit user permission is granted.
   - Mandatory `gitleaks detect --redact` secret scan must execute with zero detected leaks prior to presenting user confirmation options.
 - **Task-Completion Interactive Gate (`ask_question`):**
-  - At the completion of the entire task/workflow (all modifications complete, build verified, test suites passing), present an interactive 3-option choice via `ask_question`:
-    1. `(Recommended) Commit on GitHub Online` (Push and sync to GitHub remote online with pre-push gitleaks check and 3-point terminal proof).
-    2. `Local Commit` (Keep and finalize local commits only; do not push to remote repository).
-    3. `No Commit & Test` (Do not commit / keep uncommitted or revert for user testing and manual inspection).
+  - At the completion of the entire task/workflow (all modifications complete, build verified, test suites passing), present an interactive 2-option choice via `ask_question` (exactly two options):
+    1. `(Recommended) Push committed changes to GitHub online` (Push committed changes online to GitHub with pre-push gitleaks check and 3-point terminal proof; Hindi equivalent: `(Recommended) GitHub par commit changes push karna`).
+    2. `Do not push yet because testing is pending` (Do not push to remote, keep changes local because testing and manual inspection are pending; Hindi equivalent: `Nahi, abhi rahne do kyonki testing pending hai`).
 - **3-Point Terminal Proof Mandate:**
   - Remote operations mandate raw terminal verification output before declaring completion:
     1. `git log -1` raw commit hash and message.
@@ -101,6 +100,11 @@ changes_log/
 - **CLI Commands:**
   - `python scripts/audit/changes_log_engine.py new --title "<Title>" --file "<File>" --summary "<Summary>"`
   - `python scripts/audit/changes_log_engine.py audit` (Verifies integrity across all 5 tiers)
+
+### 4.3 Granular Atomic Micro-Entries Protocol (Approach 2 Compliance)
+Whenever a task encompasses multiple distinct intents (e.g., UI styling, feature addition, and bug fixing), agents MUST decompose the changes into sequential atomic micro-entries rather than conflating them into a single monolithic log.
+Each facet must be recorded with its own scoped Change ID using `python scripts/audit/changes_log_engine.py --files "<target_files>" -m "<type(scope): message>"` with optional Rule 20 diagnostic flags for fixes.
+This ensures isolated rollback boundaries, pristine git blame clarity, and zero cognitive bloat.
 
 ---
 

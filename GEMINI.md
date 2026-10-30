@@ -35,12 +35,11 @@ Upon starting any session or task, incoming AI agents MUST immediately anchor to
 - **Mandatory Subagent Prompt Anchor Directive:** Whenever dispatching subagents via `invoke_subagent`, the CEO must prefix or include the mandatory departmental anchoring directive in the prompt: `"Mandatory: First load and adhere to .agents/rules/XX_..._dept.md (or C:\Users\Atul Verma\.gemini\config\rules\XX_..._dept.md) and memory.md before executing instructions."`
 
 ### 2.2 Autonomous Forward Momentum (Rule 7) & GitHub Operations / Push Gatekeeper (Rule 15)
-- **Autonomous Local Micro-Commit Cadence:** Autonomously stage and commit locally (`git commit`) after every 2-3 logical/micro changes during execution without asking the user. Notify the user immediately after committing locally: "हाँ, लोकल में कमिट हो चुका है [hash/message]".
+- **Autonomous Local Micro-Commit Cadence:** On EVERY SINGLE change / logical modification (हर सिंगल चेंज/कमिट), autonomously perform a local `git commit` immediately without asking the user. Never prompt the user for local commits. Notify the user immediately after committing locally: "हाँ, लोकल में कमिट हो चुका है [hash/message]".
 - **Strict Remote Git Push Gatekeeper (Hard Lock):** Absolute ban on remote `git push` without prior explicit user consent. Mandatory `gitleaks detect --redact` secret audit must execute with zero findings before presenting user options.
-- **Task-Completion Interactive Gate (`ask_question`):** Upon completing and verifying the entire task, present an interactive 3-option choice via `ask_question`:
-  - Option 1: `(Recommended) कमिट ऑन GitHub ऑनलाइन` (Push/sync to GitHub remote online with pre-push gitleaks check and 3-point terminal proof)
-  - Option 2: `लोकल कमिट` (Keep / finalize local commit only, do not push to remote)
-  - Option 3: `नो कमिट एंड टेस्ट` (No commit / revert or keep uncommitted for user testing and manual inspection)
+- **Task-Completion Interactive Gate (`ask_question`):** Upon completing and verifying the entire task, present an interactive 2-option choice via `ask_question` (exactly two options):
+  - Option 1: `(Recommended) GitHub पर कमिट चेंजेस पुश करना` (Push committed changes online to GitHub with pre-push gitleaks check and 3-point terminal proof)
+  - Option 2: `नहीं, अभी रहने दो क्योंकि टेस्टिंग पेंडिंग है` (Do not push to remote, keep changes local because testing/inspection is pending)
 - **3-Point Terminal Proof:** Remote operations mandate raw terminal verification: 1) `git log -1` commit hash, 2) `git push` remote response, 3) `git status` clean tree confirmation.
 
 ### 2.3 Changes Log Management (Universal Rule 6)
