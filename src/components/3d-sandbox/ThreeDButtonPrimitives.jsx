@@ -98,9 +98,9 @@ export function ThreeDPresetCard({
             : 'bg-gradient-to-b from-white to-stone-50/90 dark:from-[#211833] dark:to-[#171124] border border-[#E7E2D8] dark:border-[#2D2340] text-stone-700 dark:text-stone-300 shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] hover:border-[#FF4D6D]/50 hover:bg-white dark:hover:bg-[#281F38]'
       } ${
         isPressed
-          ? 'translate-y-1.5'
-          : 'active:translate-y-1.5'
-      } focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 ${className}`}
+          ? 'translate-y-[1.5px]'
+          : 'active:translate-y-[1.5px]'
+      } focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#181226] ${className}`}
     >
       {/* 2D Mode: High-Craft Tactile Button with Centered Icon Box, Bold Title, Badge & Active Check */}
       {!isVisualOnly && (
@@ -163,6 +163,15 @@ export function ThreeDPresetCard({
         ) : null
       )}
 
+      {/* Accessible Tooltip Indicator Pill for Visual Mode (visible on hover / focus) */}
+      {isVisualOnly && (
+        <div className="absolute bottom-2 inset-x-2 flex justify-center opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-150 pointer-events-none z-20">
+          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#181226]/90 text-white backdrop-blur-md border border-white/20 shadow-md truncate max-w-[90%]">
+            {title}
+          </span>
+        </div>
+      )}
+
       {/* Supplementary children slot */}
       {children}
 
@@ -212,15 +221,15 @@ export function ThreeDActionKeycap({
       aria-label={ariaLabel || label}
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center gap-1.5 h-8 sm:h-8.5 ${
+      className={`inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 h-11 sm:h-8.5 ${
         isVisualOnly
-          ? 'w-8 sm:w-8.5 p-0 rounded-xl'
-          : 'px-3 py-1.5 rounded-xl text-xs font-semibold'
-      } border transition-all duration-100 cursor-pointer select-none active:translate-y-[1.5px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] ${
+          ? 'w-11 sm:w-8.5 p-0 rounded-xl'
+          : 'px-3.5 sm:px-3 py-2 sm:py-1.5 rounded-xl text-xs font-semibold'
+      } border transition-all duration-100 cursor-pointer select-none active:translate-y-[1.5px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#181226] ${
         disabled ? 'opacity-50 cursor-not-allowed' : ''
       } ${variantStyles[variant] || variantStyles.default} ${className}`}
     >
-      {Icon && <Icon className={isVisualOnly ? 'w-4.5 h-4.5 shrink-0' : 'w-3.5 h-3.5 shrink-0'} />}
+      {Icon && <Icon className={isVisualOnly ? 'w-5 h-5 sm:w-4.5 sm:h-4.5 shrink-0' : 'w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0'} />}
       {!isVisualOnly && label && <span>{label}</span>}
     </button>
   );
@@ -260,7 +269,7 @@ export function ThreeDToggleKey({
         checked
           ? 'bg-white dark:bg-[#201833] border-2 border-[#FF4D6D] shadow-[0_2.5px_0_0_#D93856,0_0_16px_rgba(255,77,109,0.2)] text-stone-900 dark:text-white'
           : 'bg-white hover:bg-stone-50/90 dark:bg-[#1E1730] dark:hover:bg-[#261E3B] border border-stone-200/90 dark:border-stone-700/80 shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-700 dark:text-stone-300'
-      } active:translate-y-[1.5px] focus-visible:ring-2 focus-visible:ring-[#FF4D6D] ${className}`}
+      } active:translate-y-[1.5px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#181226] ${className}`}
     >
       <div className="flex items-center gap-2.5 min-w-0">
         {Icon && (

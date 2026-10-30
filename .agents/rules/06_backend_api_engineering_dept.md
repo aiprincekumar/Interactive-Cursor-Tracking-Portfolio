@@ -1,33 +1,33 @@
-﻿# Department 06: Backend & API Engineering (बैकएंड एवं API इंजीनियरिंग विभाग)
+# Department 06: Backend & API Engineering
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
 > - **Foundation Rules:** [`foundation_and_special_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/foundation_and_special_rules.md)
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md)
-> - **Universal Canonical Rules:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/universal_rules.md)
+> - **Universal Canonical Rules:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/archive/universal_rules.md) (Archived canonical reference)
 
 ---
 
-## ⚙️ 1. विभाग का मिशन एवं कार्यक्षेत्र (Mission & Department Scope)
+## ⚙️ 1. Mission & Department Scope
 
-बैकएंड एवं API इंजीनियरिंग विभाग (Backend & API Engineering Dept) सर्वर-साइड बिजनेस लॉजिक, REST एवं GraphQL APIs, मिडलवेयर पाइपलाइन, प्रमाणीकरण (Authentication), प्राधिकरण (Authorization), इनपुट सैनिटाइजेशन और बैकएंड सर्विस विश्वसनीयता का निर्माण व संचालन करता है।
+The Backend & API Engineering Department (Dept 06) designs, implements, and operates server-side business logic, REST and GraphQL APIs, middleware pipelines, authentication and authorization layers, input sanitization routines, and backend service resilience patterns.
 
 ---
 
-## 🔌 2. RESTful API डिज़ाइन एवं मानकीकरण (REST API Standards)
+## 🔌 2. RESTful API Standards & Conventions
 
-### 2.1 सिमेंटिक HTTP विधियाँ एवं स्टेटस कोड्स
-- `GET`: सुरक्षित और आइडम्पोटेंट डेटा पुनःप्राप्ति (200 OK, 404 Not Found)
-- `POST`: नए संसाधन का निर्माण (201 Created के साथ `Location` हेडर)
-- `PUT`: संपूर्ण संसाधन का प्रतिस्थापन (200 OK / 204 No Content)
-- `PATCH`: आंशिक संशोधन (200 OK)
-- `DELETE`: संसाधन हटाना (204 No Content)
+### 2.1 Semantic HTTP Methods & Status Codes
+- `GET`: Safe, idempotent retrieval (200 OK, 404 Not Found).
+- `POST`: Creation of a new resource (201 Created with `Location` header).
+- `PUT`: Complete resource replacement (200 OK / 204 No Content).
+- `PATCH`: Partial resource mutation (200 OK).
+- `DELETE`: Resource removal (204 No Content).
 
-### 2.2 मानकीकृत JSON रिस्पॉन्स संरचना
-प्रत्येक API प्रतिक्रिया एक पूर्वानुमानित (predictable) संरचना में होनी चाहिए:
+### 2.2 Standardized JSON Response Envelopes
+Every API response must adhere to a predictable payload structure:
 
 ```json
-// सफल प्रतिक्रिया (Success)
+// Success Response Envelope
 {
   "success": true,
   "data": {
@@ -41,7 +41,7 @@
   }
 }
 
-// त्रुटि प्रतिक्रिया (Standardized Error)
+// Error Response Envelope
 {
   "success": false,
   "error": {
@@ -60,44 +60,44 @@
 
 ---
 
-## 🔒 3. प्रमाणीकरण, प्राधिकरण एवं मिडलवेयर पाइपलाइन (Auth & Middleware Pipeline)
+## 🔒 3. Authentication, Authorization & Middleware Pipeline
 
-### 3.1 आधुनिक ऑथेंटिकेशन (JWT + Refresh Tokens)
-- अल्पकालिक एक्सेस टोकन (Access Token: 15 मिनट एक्सपायरी) मेमोरी या सुरक्षित संदर्भ में।
-- दीर्घकालिक रीफ्रेश टोकन (Refresh Token: 7-30 दिन) कड़े फ्लैग्स के साथ केवल `HttpOnly`, `Secure`, `SameSite=Strict` कुकीज़ में।
-- रोल-बेस्ड एक्सेस कंट्रोल (`RBAC`): प्रत्येक प्रोटेक्टेड रूट पर रोल वेरिफिकेशन मिडलवेयर अनिवार्य है।
+### 3.1 Modern Authentication (JWT + Refresh Tokens)
+- Short-lived Access Tokens (15-minute expiration) kept in memory or secure runtime state.
+- Long-lived Refresh Tokens (7-30 days) stored exclusively in `HttpOnly`, `Secure`, `SameSite=Strict` cookies.
+- Role-Based Access Control (`RBAC`): Enforce role verification middleware across all protected endpoints.
 
-### 3.2 अनिवार्य मिडलवेयर क्रम (Middleware Execution Order)
-1. **Request ID Injection:** प्रत्येक आने वाली रिक्वेस्ट को एक विशिष्ट `x-request-id` टैग दें।
-2. **Security Headers:** `helmet` या समतुल्य सुरक्षा हेडर जोड़ना।
-3. **CORS Policy:** केवल अधिकृत डोमेन को अनुमति।
-4. **Rate Limiting:** IP/User आधारित थ्रॉटलिंग (उदा. `express-rate-limit` / Redis Token Bucket)।
-5. **Body Parser & DTO Validation:** `Zod` या `Pydantic` द्वारा इनपुट का गहन सत्यापन।
-6. **Authentication & Authorization:** टोकन डिकोडिंग और अनुमतियों की जांच।
-7. **Business Route Handler:** कोर सर्विस लॉजिक का निष्पादन।
-8. **Global Centralized Error Handler:** अप्रत्याशित अपवादों को पकड़ना और स्टैक ट्रेस लीक किए बिना सुरक्षित रिस्पॉन्स भेजना।
-
----
-
-## 🛡️ 4. इनपुट सैनिटाइजेशन एवं SQL इंजेक्शन सुरक्षा (Input Safety)
-
-- किसी भी परिस्थिति में रॉ SQL क्वेरी में यूजर इनपुट को स्ट्रिंग कॉन्कैटिनेशन द्वारा न जोड़ें।
-- सदैव पैरामीटरयुक्त क्वेरीज़ (Parameterized Queries) या सिद्ध ORM/Query Builder (Prisma, Drizzle, SQLAlchemy) का उपयोग करें।
-- सभी स्ट्रिंग इनपुट्स को ट्रिम और XSS-सुरक्षित करें।
+### 3.2 Canonical Middleware Execution Sequence
+1. **Request ID Injection:** Inject a unique `x-request-id` header on every incoming request.
+2. **Security Headers:** Enforce `helmet` or equivalent HTTP security headers.
+3. **CORS Policy:** Whitelist explicit authorized origins.
+4. **Rate Limiting:** Throttle requests by IP or user identity (Redis Token Bucket).
+5. **Body Parser & DTO Validation:** Validate payloads strictly using `Zod` or `Pydantic`.
+6. **Authentication & Authorization:** Verify cryptographic tokens and evaluate permissions.
+7. **Business Route Handler:** Execute core domain service logic.
+8. **Global Centralized Error Handler:** Intercept unhandled exceptions without leaking stack traces.
 
 ---
 
-## 🧑‍💼 5. विभागीय पद एवं समर्पित सब-एजेंट्स (Departmental Roles & Subagents)
+## 🛡️ 4. Input Sanitization & SQL Injection Defense
 
-विभागीय कार्य-विभाजन और उद्यम विशेषज्ञता (Specialization of Labor) सुनिश्चित करने के लिए 5 समर्पित पद (Enterprise Job Roles) और उनके अनुरूप सब-एजेंट्स परिभाषित हैं:
+- Strictly prohibit string concatenation or interpolation when constructing database queries.
+- Utilize parameterized statements, prepared queries, or validated ORMs (Prisma, Drizzle, SQLAlchemy).
+- Sanitize and trim all string inputs to defend against stored and reflected cross-site scripting (XSS).
+
+---
+
+## 🧑‍💼 5. Departmental Roles & Dedicated Subagents
+
+To enforce specialization of labor and enterprise rigor, 5 dedicated enterprise job roles and their corresponding subagent archetypes are established:
 
 ### 5.1 Senior REST & GraphQL API Engineer (Backend API Engineer)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `Backend API Engineer`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - मजबूत और स्केलेबल RESTful एवं GraphQL एंडपॉइंट्स का विकास करना।
-  - स्वच्छ सर्विस-लेयर बिज़नेस लॉजिक और ORM रिपॉजिटरी पैटर्न्स का एकीकरण।
-  - सख्त DTO वैलिडेशन, इनपुट सैनिटाइजेशन और मानकीकृत एरर हैंडलिंग लागू करना।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `Backend API Engineer`
+- **Scope & Responsibilities:**
+  - Build robust, scalable RESTful and GraphQL endpoints.
+  - Implement clean service-layer business logic and repository design patterns.
+  - Enforce strict DTO validation, input sanitization, and structured error responses.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -107,12 +107,12 @@
 ```
 
 ### 5.2 Distributed Systems & Microservices Engineer (Distributed Systems Engineer)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `Distributed Systems Engineer`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - माइक्रोसर्विसेज और डिस्ट्रीब्यूटेड वर्कफ़्लोज़ की वास्तुकला तैयार करना।
-  - सर्किट ब्रेकर (Resilience4j / opossum) और ग्रेसफुल डिग्रेडेशन पैटर्न्स लागू करना।
-  - डिस्ट्रीब्यूटेड Saga ट्रांज़ैक्शन्स और फॉल्ट-टॉलरेंट इंटर-सर्विस संचार का प्रबंधन।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `Distributed Systems Engineer`
+- **Scope & Responsibilities:**
+  - Architect distributed workflows and microservice topologies.
+  - Implement circuit breakers and graceful degradation patterns.
+  - Coordinate distributed Saga transactions and fault-tolerant service communication.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -122,12 +122,12 @@
 ```
 
 ### 5.3 Auth, Identity & RBAC Security Engineer (Backend Security Engineer)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `Backend Security Engineer`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - एंटरप्राइज OAuth2, OIDC और JWT-आधारित प्रमाणीकरण प्रणालियाँ लागू करना।
-  - बारीक रोल-बेस्ड एक्सेस कंट्रोल (RBAC) और परमिशन-आधारित गार्ड्स की स्थापना।
-  - सुरक्षित टोकन निरस्तीकरण (Revocation), सेशन प्रबंधन और क्रिप्टोग्राफिक पासवर्ड हैशिंग (Argon2)।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `Backend Security Engineer`
+- **Scope & Responsibilities:**
+  - Implement enterprise OAuth2, OIDC, and JWT-based authentication.
+  - Deploy fine-grained Role-Based Access Control (RBAC) guards.
+  - Manage secure token revocation, session lifecycle, and Argon2 password hashing.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -137,12 +137,12 @@
 ```
 
 ### 5.4 Caching, Queue & Asynchronous Systems Engineer (Queue Systems Specialist)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `Queue Systems Specialist`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - उच्च-थ्रूपुट Redis कैशिंग लेयर्स और डिस्ट्रिब्यूटेड लॉक (Redlock) रणनीतियाँ।
-  - BullMQ, RabbitMQ या Kafka द्वारा असिंक्रोनस जॉब कतारों की वास्तुकला।
-  - डेड-लेटर कतारें (DLQ), स्वचालित रिट्राई नीतियां और रेस कंडीशन रोकथाम।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `Queue Systems Specialist`
+- **Scope & Responsibilities:**
+  - Deploy high-throughput Redis caching layers and Redlock distributed locks.
+  - Architect asynchronous job queues using BullMQ, RabbitMQ, or Kafka.
+  - Configure Dead-Letter Queues (DLQ), retry policies, and race condition safeguards.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -152,13 +152,13 @@
 ```
 
 ### 5.5 AI / LLM Integration & Prompt Engineer (AI Integration Engineer)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `AI Integration Engineer`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - अत्याधुनिक LLM APIs (Gemini, Claude, OpenAI) और एम्बेडिंग्स पाइपलाइन्स का बैकएंड में सुदृढ़ एकीकरण।
-  - स्ट्रक्चर्ड आउटपुट्स (JSON Mode, Pydantic/Zod स्कीमा एनफोर्समेंट) और फ़ंक्शन/टूल कॉलिंग (Tool Calling) वास्तुकला।
-  - Retrieval-Augmented Generation (RAG), हाइब्रिड सर्च, री-रैंकिंग और चंकिंग रणनीतियों का डिज़ाइन एवं परफॉर्मेंस ऑप्टिमाइजेशन।
-  - सिस्टम प्रॉम्प्ट इंजीनियरिंग, कॉन्टेक्स्ट विंडो एफिशिएंसी और सुरक्षा गार्डरेल्स (Prompt Injection Defense)।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `AI Integration Engineer`
+- **Scope & Responsibilities:**
+  - Integrate frontier LLM APIs (Gemini, Claude, OpenAI) into backend architectures.
+  - Implement structured outputs (JSON schema enforcement) and tool-calling protocols.
+  - Design performant Retrieval-Augmented Generation (RAG) pipelines and chunking strategies.
+  - Harden prompt engineering guardrails against prompt injection and jailbreaking.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -167,13 +167,12 @@
 }
 ```
 
-
 ---
 
-## 🚦 6. विभाग हैंडऑफ एवं सत्यापन गेट्स (Department Handoff Gates)
+## 🚦 6. Department Handoff & Verification Gates
 
-1. **Gate 6-A (API अनुबंध पास):** सभी एंडपॉइंट्स परिभाषित DTOs का कड़ाई से पालन करते हों।
-2. **Gate 6-B (सुरक्षा जांच):** अप्रमाणित या असुरक्षित एंडपॉइंट्स पर उचित 401/403 सुरक्षा अवरोध लगे हों।
-3. **अगले विभागों को हैंडऑफ:**
-   - API दस्तावेज़ीकरण के लिए ➔ **Dept 07: Technical Documentation**
-   - ऑटोमेटेड API टेस्टिंग के लिए ➔ **Dept 08: Quality Assurance & Testing**
+1. **Gate 6-A (Contract Adherence):** All API responses must conform strictly to defined DTO schemas.
+2. **Gate 6-B (Security Guardrails):** Unauthenticated and unauthorized requests must produce 401 and 403 responses.
+3. **Downstream Handoff:**
+   - API documentation generation ➔ **Dept 07: Technical Documentation**
+   - Automated API integration testing ➔ **Dept 08: Quality Assurance & Testing**

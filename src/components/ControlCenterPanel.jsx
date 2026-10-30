@@ -77,7 +77,8 @@ import {
   Orbit,
   Play,
   Pause,
-  Film
+  Film,
+  Share2
 } from 'lucide-react';
 import UniversalMiniPortfolio from './3d-sandbox/UniversalMiniPortfolio';
 import { CAMERA_PRESET_ANGLES } from './3d-sandbox/UniversalMiniPortfolio';
@@ -621,6 +622,11 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
     set3DClusterFilter,
     set3DExploded,
     set3DSoloStrata,
+    toggle3DExplodedStrataSolo,
+    calibrateDepthByDeviceProfile,
+    export3DPresetPackage,
+    generate3DSceneShareLink,
+    parse3DSceneShareLink,
     set3DEnvironment,
     set3DSpatialAudio,
     set3DPerformance,
@@ -641,10 +647,64 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
   const [expandedAccordion, setExpandedAccordion] = useState(null);
   const [expandedPresetSection, setExpandedPresetSection] = useState(null); // null by default (all collapsed) | 'engine' | 'sandbox' | 'lighting' | 'geometry' | 'toolkit'
   const togglePresetSection = useCallback((secKey) => {
-    setExpandedPresetSection((prev) => (prev === secKey ? null : secKey));
-    if (soundEnabled) soundFX.playHapticClick();
+    setExpandedPresetSection((prev) => {
+      const next = prev === secKey ? null : secKey;
+      if (next) {
+        if (soundEnabled && typeof soundFX.playLaserFocus === 'function') {
+          soundFX.playLaserFocus();
+        } else if (soundEnabled && typeof soundFX.playHapticClick === 'function') {
+          soundFX.playHapticClick();
+        }
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+          setTimeout(() => {
+            const el = document.getElementById(`accordion-trigger-preset-${secKey}`) || document.getElementById(`accordion-trigger-${secKey}`);
+            el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 120);
+        }
+      } else {
+        if (soundEnabled && typeof soundFX.playHapticClick === 'function') {
+          soundFX.playHapticClick();
+        }
+      }
+      return next;
+    });
   }, [soundEnabled]);
   const [active3DSubTab, setActive3DSubTab] = useState('themes'); // 'themes' | 'all' | 'design' | 'physics' | 'system' | 'preset'
+
+  const SUBTABS_3D = useMemo(() => ['themes', 'all', 'design', 'physics', 'system', 'preset'], []);
+
+  const handleSubTabKeyDown = useCallback((e, currentSubTabId) => {
+    const currentIndex = SUBTABS_3D.indexOf(currentSubTabId);
+    if (currentIndex === -1) return;
+
+    let targetIndex = -1;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      targetIndex = (currentIndex + 1) % SUBTABS_3D.length;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      targetIndex = (currentIndex - 1 + SUBTABS_3D.length) % SUBTABS_3D.length;
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      targetIndex = 0;
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      targetIndex = SUBTABS_3D.length - 1;
+    }
+
+    if (targetIndex !== -1) {
+      const targetSubTab = SUBTABS_3D[targetIndex];
+      setActive3DSubTab(targetSubTab);
+      if (targetSubTab !== 'themes' && targetSubTab !== 'preset') {
+        set3DClusterFilter(targetSubTab);
+      }
+      if (soundEnabled && typeof soundFX.playLaserFocus === 'function') {
+        soundFX.playLaserFocus();
+      }
+      const targetEl = document.getElementById(`threed-subtab-${targetSubTab}`);
+      targetEl?.focus();
+    }
+  }, [SUBTABS_3D, set3DClusterFilter, soundEnabled]);
   const {
     activePreviewTab,
     setActivePreviewTab: setPreviewTabDirect,
@@ -680,10 +740,24 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
       const next = prev === secKey ? null : secKey;
       if (next) {
         notifyAccordionChange(next);
+        if (soundEnabled && typeof soundFX.playLaserFocus === 'function') {
+          soundFX.playLaserFocus();
+        } else if (soundEnabled && typeof soundFX.playHapticClick === 'function') {
+          soundFX.playHapticClick();
+        }
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+          setTimeout(() => {
+            const el = document.getElementById(`accordion-trigger-${secKey}`);
+            el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 120);
+        }
+      } else {
+        if (soundEnabled && typeof soundFX.playHapticClick === 'function') {
+          soundFX.playHapticClick();
+        }
       }
       return next;
     });
-    if (soundEnabled) soundFX.playHapticClick();
   }, [soundEnabled, notifyAccordionChange]);
 
   const [sandboxTilt, setSandboxTilt] = useState({ rotX: 0, rotY: 0 });
@@ -806,16 +880,16 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
     }
 
     if (activePreviewTab === 'lighting' && typeof set3DLighting === 'function') {
-      set3DLighting({ preset: 'studio-soft', angle: 45, intensity: 1.0, ambientStrength: 0.5, shadowBlur: 6 });
+      set3DLighting({ preset: 'studio-soft', angle: 45, cursorLight: true, shadowSoftness: 0.7, showSunGizmo: true });
     } else if (activePreviewTab === 'materials' && typeof set3DMaterials === 'function') {
-      set3DMaterials({ preset: 'glass-acrylic', specularGlow: 0.6, bevelExtrusion: 3, roughness: 0.2 });
+      set3DMaterials({ preset: 'glass-acrylic', specularGlow: 0.6, bevelExtrusion: 3, roughness: 0.25, metalness: 0.20, ior: 1.50, clearcoat: 0.40 });
     } else if (activePreviewTab === 'camera' && typeof set3DCamera === 'function') {
-      set3DCamera({ anglePreset: 'isometric', perspectiveFOV: 1000, tiltSensitivity: 15, autoOrbit: false, orbitSpeed: 30 });
+      set3DCamera({ anglePreset: 'isometric', perspectiveFOV: 1000, tiltSensitivity: 15, autoOrbit: false, orbitSpeed: 1.0 });
       setSandboxTilt(CAMERA_PRESET_ANGLES['isometric'] || { rotX: 0, rotY: 0 });
     } else if (activePreviewTab === 'physics' && typeof set3DPhysics === 'function') {
-      set3DPhysics({ elasticity: 'snappy', hoverPop: 12, clickDepression: 6, magneticPull: 0.5 });
+      set3DPhysics({ elasticity: 'snappy', hoverPop: 12, clickDepression: true, magneticPull: false, gravityDrop: false });
     } else if (activePreviewTab === 'exploded' && typeof set3DExploded === 'function') {
-      set3DExploded({ enabled: false, separationDistance: 40, blueprintMode: false });
+      set3DExploded({ enabled: false, separationDistance: 45, blueprintMode: false, layerStagger: 15, ghostOpacity: 0.4, soloStrata: null });
     }
 
     if (typeof set3DCamera === 'function') {
@@ -1149,9 +1223,13 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
     }
   }, [copy3DCSSVariables, soundEnabled]);
 
+  const [copiedShareLink, setCopiedShareLink] = useState(false);
+
   const handleExportJson = useCallback(() => {
     try {
-      const jsonStr = export3DConfig ? export3DConfig() : JSON.stringify(threeDConfig, null, 2);
+      const jsonStr = export3DPresetPackage
+        ? export3DPresetPackage(threeDConfig)
+        : (export3DConfig ? export3DConfig() : JSON.stringify(threeDConfig, null, 2));
       const blob = new Blob([jsonStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -1168,7 +1246,54 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
       setToolkitStatus({ type: 'error', message: 'Failed to export: ' + err.message });
       setTimeout(() => setToolkitStatus(null), 3500);
     }
-  }, [export3DConfig, soundEnabled, threeDConfig]);
+  }, [export3DPresetPackage, export3DConfig, soundEnabled, threeDConfig]);
+
+  const handleShare3DSceneLink = useCallback(async () => {
+    try {
+      const shareUrl = generate3DSceneShareLink ? generate3DSceneShareLink(threeDConfig) : (typeof window !== 'undefined' ? window.location.href : '');
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else if (typeof document !== 'undefined') {
+        const textarea = document.createElement('textarea');
+        textarea.value = shareUrl;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setCopiedShareLink(true);
+      setToolkitStatus({ type: 'success', message: 'Share link copied to clipboard!' });
+      if (soundEnabled && soundFX?.playLaserFocus) {
+        soundFX.playLaserFocus();
+      }
+      setTimeout(() => setCopiedShareLink(false), 2500);
+      setTimeout(() => setToolkitStatus(null), 3500);
+    } catch (err) {
+      setToolkitStatus({ type: 'error', message: 'Failed to copy share link: ' + err.message });
+      setTimeout(() => setToolkitStatus(null), 3500);
+    }
+  }, [generate3DSceneShareLink, soundEnabled, threeDConfig]);
+
+  const handleAutoCalibrateDevice = useCallback(() => {
+    try {
+      const profile = calibrateDepthByDeviceProfile
+        ? calibrateDepthByDeviceProfile()
+        : { depthIntensity: 1.0, tiltSensitivity: 15, isMobile: false, dpr: 1 };
+      set3DDepthIntensity(profile.depthIntensity);
+      set3DTiltSensitivity(profile.tiltSensitivity);
+      setToolkitStatus({
+        type: 'success',
+        message: `Calibrated for ${profile.isMobile ? 'Mobile' : 'Desktop'} (Depth: ${profile.depthIntensity}x, Tilt: ${profile.tiltSensitivity}°)`
+      });
+      if (soundEnabled && soundFX?.playCrystalChime) {
+        soundFX.playCrystalChime();
+      }
+      setTimeout(() => setToolkitStatus(null), 4000);
+    } catch (err) {
+      setToolkitStatus({ type: 'error', message: 'Calibration error: ' + err.message });
+      setTimeout(() => setToolkitStatus(null), 3500);
+    }
+  }, [calibrateDepthByDeviceProfile, set3DDepthIntensity, set3DTiltSensitivity, soundEnabled]);
 
   const handleImportJsonClick = useCallback(() => {
     jsonFileInputRef.current?.click();
@@ -1200,6 +1325,17 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
   }, [import3DConfig, soundEnabled]);
 
   const meshFileInputRef = useRef(null);
+  const activeMeshUrlRef = useRef(null);
+
+  // Clean up any active object URL on unmount to prevent browser memory leaks
+  useEffect(() => {
+    return () => {
+      if (activeMeshUrlRef.current) {
+        URL.revokeObjectURL(activeMeshUrlRef.current);
+        activeMeshUrlRef.current = null;
+      }
+    };
+  }, []);
 
   const handleMeshUploadClick = useCallback(() => {
     meshFileInputRef.current?.click();
@@ -1208,7 +1344,16 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
   const handleMeshFileChange = useCallback((e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Revoke prior object URL before allocating a new one
+    if (activeMeshUrlRef.current) {
+      URL.revokeObjectURL(activeMeshUrlRef.current);
+      activeMeshUrlRef.current = null;
+    }
+
     const fileUrl = URL.createObjectURL(file);
+    activeMeshUrlRef.current = fileUrl;
+
     if (set3DCustomMesh) {
       set3DCustomMesh({
         type: 'custom',
@@ -2539,10 +2684,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
           aria-labelledby="tab-threed"
           tabIndex={0}
           style={{
+            '--3d-light-angle': `${lighting?.angle ?? 45}deg`,
             '--3d-lighting-angle': `${lighting?.angle ?? 45}deg`,
             '--3d-depth-intensity': `${depthIntensity ?? 1.0}`,
+            '--3d-bevel-extrusion': `${materials?.bevelExtrusion ?? 3}px`,
             '--3d-materials-bevel': `${materials?.bevelExtrusion ?? 3}px`,
-            '--3d-specular-glow': `${materials?.specularGlow ?? 0.6}`
+            '--3d-specular-glow': `${materials?.specularGlow ?? 0.6}`,
+            '--3d-roughness': `${materials?.roughness ?? 0.25}`,
+            '--3d-metalness': `${materials?.metalness ?? 0.20}`
           }}
           className="flex flex-col gap-6 focus:outline-none animate-fadeIn"
         >
@@ -2571,8 +2720,49 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
               </span>
             </div>
 
-            {/* Right: Active Counter Badge + Apply to Live Portfolio + Reset Sandbox */}
+            {/* Right: Display Density Switcher + Active Counter Badge + Apply to Live Portfolio + Reset Sandbox */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+              {/* Display Density Switcher: Tactile Visual Mode vs Detailed Developer Mode */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={Boolean(isTab3DActive)}
+                aria-label={`Switch display density: currently in ${isTab3DActive ? 'Tactile Visual Mode' : 'Detailed Developer Mode'}`}
+                title={`Toggle Display Density: ${isTab3DActive ? 'Tactile Visual Mode (Click for Detailed Developer Mode)' : 'Detailed Developer Mode (Click for Tactile Visual Mode)'}`}
+                onClick={() => {
+                  const nextVal = !isTab3DActive;
+                  if (typeof setTabUI3DMode === 'function') {
+                    setTabUI3DMode(nextVal);
+                  } else if (typeof toggleTabUI3DMode === 'function') {
+                    toggleTabUI3DMode();
+                  } else if (typeof set3DVisualMode === 'function') {
+                    set3DVisualMode(nextVal);
+                  }
+                  if (soundEnabled) {
+                    if (nextVal && typeof soundFX.playLaserFocus === 'function') {
+                      soundFX.playLaserFocus();
+                    } else if (typeof soundFX.playHapticClick === 'function') {
+                      soundFX.playHapticClick();
+                    }
+                  }
+                }}
+                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer select-none active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] ${
+                  isTab3DActive
+                    ? 'bg-gradient-to-r from-cyan-500/15 via-[#FF4D6D]/15 to-purple-500/15 text-[#FF4D6D] dark:text-[#FF758F] border-[#FF4D6D]/30 shadow-xs'
+                    : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-700'
+                }`}
+              >
+                <Sliders className={`w-3.5 h-3.5 ${isTab3DActive ? 'text-[#FF4D6D]' : 'text-stone-500'}`} />
+                <span className="whitespace-nowrap">
+                  {isTab3DActive ? 'Tactile Visual Mode' : 'Detailed Developer Mode'}
+                </span>
+                <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full ${
+                  isTab3DActive ? 'bg-[#FF4D6D]/20 text-[#FF4D6D]' : 'bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300'
+                }`}>
+                  {isTab3DActive ? 'Visual' : 'Detailed'}
+                </span>
+              </button>
+
               {/* Active Elements Counter Badge */}
               <div
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all select-none ${
@@ -2734,17 +2924,25 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
           </div>
 
           {/* Top Cluster Filter Bar & 3D Sub-Navigation */}
-          <div className="w-full py-1.5 sm:py-2 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl bg-white/85 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-row flex-nowrap items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
+          <div
+            role="tablist"
+            aria-label="3D Studio Navigation Subtabs"
+            aria-orientation="horizontal"
+            className="w-full py-1.5 sm:py-2 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl bg-white/85 dark:bg-[#181226]/90 border border-[#E7E2D8] dark:border-[#2D2340] shadow-xs flex flex-row flex-nowrap items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none"
+          >
             {/* Tab 1: Themes */}
             <button
+              id="threed-subtab-themes"
               type="button"
               role="tab"
+              tabIndex={active3DSubTab === 'themes' ? 0 : -1}
               aria-selected={active3DSubTab === 'themes'}
+              onKeyDown={(e) => handleSubTabKeyDown(e, 'themes')}
               onClick={() => {
                 setActive3DSubTab('themes');
-                if (soundEnabled) soundFX.playLaserFocus();
+                if (soundEnabled && typeof soundFX.playLaserFocus === 'function') soundFX.playLaserFocus();
               }}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-xs font-bold transition-all cursor-pointer select-none whitespace-nowrap shrink-0 ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-xs font-bold transition-all cursor-pointer select-none whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D] ${
                 isTab3DActive
                   ? active3DSubTab === 'themes'
                     ? 'bg-gradient-to-b from-[#FF4D6D] to-[#E63956] text-white border border-[#FF4D6D] shadow-[0_2px_0_0_#9E1C38] active:translate-y-[1px]'
@@ -2773,16 +2971,19 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
               const Icon = cluster.icon || Sliders;
               return (
                 <button
+                  id={`threed-subtab-${cluster.id}`}
                   key={cluster.id}
                   type="button"
                   role="tab"
+                  tabIndex={isActive ? 0 : -1}
                   aria-selected={isActive}
+                  onKeyDown={(e) => handleSubTabKeyDown(e, cluster.id)}
                   onClick={() => {
                     setActive3DSubTab(cluster.id);
                     set3DClusterFilter(cluster.id);
-                    if (soundEnabled) soundFX.playHapticClick();
+                    if (soundEnabled && typeof soundFX.playHapticClick === 'function') soundFX.playHapticClick();
                   }}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-xs font-bold transition-all cursor-pointer select-none whitespace-nowrap shrink-0 ${
+                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-xs font-bold transition-all cursor-pointer select-none whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
                     isTab3DActive
                       ? isActive
                         ? 'bg-gradient-to-b from-cyan-500 to-cyan-600 text-white border border-cyan-500 shadow-[0_2px_0_0_#0E7490] active:translate-y-[1px]'
@@ -2809,14 +3010,17 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
 
             {/* Tab: Preset & Developer Toolkit */}
             <button
+              id="threed-subtab-preset"
               type="button"
               role="tab"
+              tabIndex={active3DSubTab === 'preset' ? 0 : -1}
               aria-selected={active3DSubTab === 'preset'}
+              onKeyDown={(e) => handleSubTabKeyDown(e, 'preset')}
               onClick={() => {
                 setActive3DSubTab('preset');
-                if (soundEnabled) soundFX.playHapticClick();
+                if (soundEnabled && typeof soundFX.playHapticClick === 'function') soundFX.playHapticClick();
               }}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-xs font-bold transition-all cursor-pointer select-none whitespace-nowrap shrink-0 ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-xs font-bold transition-all cursor-pointer select-none whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                 isTab3DActive
                   ? active3DSubTab === 'preset'
                     ? 'bg-gradient-to-b from-indigo-500 to-indigo-600 text-white border border-indigo-500 shadow-[0_2px_0_0_#3730A3] active:translate-y-[1px]'
@@ -2891,7 +3095,13 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                           bevelExtrusion={materials?.bevelExtrusion ?? 3}
                           onClick={() => {
                             set3DTheme(th.id);
-                            if (soundEnabled) soundFX.playLaserFocus();
+                            if (soundEnabled) {
+                              if (typeof soundFX.playCrystalChime === 'function') {
+                                soundFX.playCrystalChime();
+                              } else if (typeof soundFX.playLaserFocus === 'function') {
+                                soundFX.playLaserFocus();
+                              }
+                            }
                           }}
                           title={th.name}
                           desc={th.desc}
@@ -2916,10 +3126,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                   {/* ========================================================================= */}
                   <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                     <button
+                      id="accordion-trigger-preset-engine"
+                      role="button"
+                      tabIndex={0}
                       type="button"
                       onClick={() => togglePresetSection('engine')}
                       aria-expanded={expandedPresetSection === 'engine'}
-                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer"
+                      aria-controls="accordion-region-preset-engine"
+                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
                     >
                       <div className="flex items-center gap-3.5 min-w-0">
                         <div className="w-9 h-9 rounded-xl bg-[#FF4D6D]/15 text-[#FF4D6D] flex items-center justify-center font-bold text-sm shrink-0">
@@ -2948,7 +3162,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                     </button>
 
                     {expandedPresetSection === 'engine' && (
-                      <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-4 animate-fadeIn">
+                      <div
+                        id="accordion-region-preset-engine"
+                        role="region"
+                        aria-labelledby="accordion-trigger-preset-engine"
+                        className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-4 animate-fadeIn"
+                      >
                         {/* 3-in-1 Tactile Buttons Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           {/* Button 1: Master 3D Mode */}
@@ -3125,10 +3344,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                   {/* ========================================================================= */}
                   <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                     <button
+                      id="accordion-trigger-preset-sandbox"
+                      role="button"
+                      tabIndex={0}
                       type="button"
                       onClick={() => togglePresetSection('sandbox')}
                       aria-expanded={expandedPresetSection === 'sandbox'}
-                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer"
+                      aria-controls="accordion-region-preset-sandbox"
+                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
                     >
                       <div className="flex items-center gap-3.5 min-w-0">
                         <div className="w-9 h-9 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0">
@@ -3157,7 +3380,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                     </button>
 
                     {expandedPresetSection === 'sandbox' && (
-                      <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-4 animate-fadeIn">
+                      <div
+                        id="accordion-region-preset-sandbox"
+                        role="region"
+                        aria-labelledby="accordion-trigger-preset-sandbox"
+                        className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-4 animate-fadeIn"
+                      >
                         {/* Part A: 6 Symmetrical Viewport & Calibration Controls */}
                         {isTab3DActive ? (
                           /* ========================================================================= */
@@ -3532,10 +3760,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                   {/* ========================================================================= */}
                   <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                     <button
+                      id="accordion-trigger-preset-lighting"
+                      role="button"
+                      tabIndex={0}
                       type="button"
                       onClick={() => togglePresetSection('lighting')}
                       aria-expanded={expandedPresetSection === 'lighting'}
-                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer"
+                      aria-controls="accordion-region-preset-lighting"
+                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                     >
                       <div className="flex items-center gap-3.5 min-w-0">
                         <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
@@ -3564,7 +3796,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                     </button>
 
                     {expandedPresetSection === 'lighting' && (
-                      <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-4 animate-fadeIn">
+                      <div
+                        id="accordion-region-preset-lighting"
+                        role="region"
+                        aria-labelledby="accordion-trigger-preset-lighting"
+                        className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-4 animate-fadeIn"
+                      >
                         {/* 4 Mode-Adaptive Stage Lighting Controls */}
                         {isTab3DActive ? (
                           <div className="grid grid-cols-4 gap-2.5 sm:gap-3.5 max-w-lg mx-auto w-full">
@@ -3855,14 +4092,18 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                     )}
                   </div>
 
-                  {/* PRESET ACCORDION 3: 3D PROFILE, EXPORT & DEVELOPER TOOLKIT                */}
+                  {/* PRESET ACCORDION 4: 3D PROFILE, EXPORT & DEVELOPER TOOLKIT                */}
                   {/* ========================================================================= */}
                   <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                     <button
+                      id="accordion-trigger-preset-toolkit"
+                      role="button"
+                      tabIndex={0}
                       type="button"
                       onClick={() => togglePresetSection('toolkit')}
                       aria-expanded={expandedPresetSection === 'toolkit'}
-                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer"
+                      aria-controls="accordion-region-preset-toolkit"
+                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
                     >
                       <div className="flex items-center gap-3.5 min-w-0">
                         <div className="w-9 h-9 rounded-xl bg-[#FF4D6D]/15 text-[#FF4D6D] flex items-center justify-center font-bold text-sm shrink-0">
@@ -3897,7 +4138,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                     </button>
 
                     {expandedPresetSection === 'toolkit' && (
-                      <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-4 animate-fadeIn">
+                      <div
+                        id="accordion-region-preset-toolkit"
+                        role="region"
+                        aria-labelledby="accordion-trigger-preset-toolkit"
+                        className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-4 animate-fadeIn"
+                      >
                         {/* Hidden file input for import */}
                         <input
                           ref={jsonFileInputRef}
@@ -3986,6 +4232,55 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                           </button>
                         </div>
 
+                        {/* 1-Click Sharing & Hardware Device Auto-Calibration */}
+                        <div className="pt-2 border-t border-stone-200/60 dark:border-stone-800/80 flex flex-col gap-2">
+                          <span className="text-[11px] font-mono font-bold text-stone-500 dark:text-stone-400">
+                            Spatial Sharing &amp; Auto-Tuning:
+                          </span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <button
+                              type="button"
+                              onClick={handleShare3DSceneLink}
+                              className={`flex items-center justify-center gap-2 h-10 px-3 rounded-xl transition-all cursor-pointer select-none ${
+                                copiedShareLink
+                                  ? 'bg-emerald-500 text-white border border-emerald-600 shadow-xs'
+                                  : isTab3DActive
+                                    ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-800 dark:text-stone-200 active:translate-y-[1.5px]'
+                                    : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 shadow-xs text-stone-800 dark:text-stone-200 active:scale-95'
+                              }`}
+                              title="Share 3D Scene Link — Copy URL with encoded 3D parameters"
+                              aria-label="Share 3D Scene Link"
+                            >
+                              {copiedShareLink ? (
+                                <>
+                                  <Check className="w-4 h-4 text-white shrink-0" />
+                                  <span className="text-xs font-mono font-bold truncate">Link Copied!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Share2 className="w-4 h-4 text-cyan-500 shrink-0" />
+                                  <span className="text-xs font-mono font-bold truncate">Share 3D Scene Link</span>
+                                </>
+                              )}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={handleAutoCalibrateDevice}
+                              className={`flex items-center justify-center gap-2 h-10 px-3 rounded-xl transition-all cursor-pointer select-none ${
+                                isTab3DActive
+                                  ? 'border border-stone-200/90 dark:border-stone-700/80 bg-white hover:bg-stone-50 dark:bg-[#1E1730] dark:hover:bg-[#251D3D] shadow-[0_2.5px_0_0_#D1CBC1] dark:shadow-[0_2.5px_0_0_#140D20] text-stone-800 dark:text-stone-200 active:translate-y-[1.5px]'
+                                  : 'border border-stone-200/60 dark:border-stone-700/50 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 shadow-xs text-stone-800 dark:text-stone-200 active:scale-95'
+                              }`}
+                              title="Auto-Calibrate for Device — Automatically optimize depth and tilt for device profile"
+                              aria-label="Auto-Calibrate for Device"
+                            >
+                              <Sliders className="w-4 h-4 text-amber-500 shrink-0" />
+                              <span className="text-xs font-mono font-bold truncate">Auto-Calibrate for Device</span>
+                            </button>
+                          </div>
+                        </div>
+
                         {/* Feature 4: Cinematic Exporter Actions (Snapshot & 360° Turntable Video) */}
                         <div className="pt-2 border-t border-stone-200/60 dark:border-stone-800/80 flex flex-col gap-2">
                           <span className="text-[11px] font-mono font-bold text-stone-500 dark:text-stone-400">
@@ -4024,14 +4319,18 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                   </div>
 
                   {/* ========================================================================= */}
-                  {/* PRESET ACCORDION 4: 3D AVATAR & MODEL GEOMETRY ENGINE                     */}
+                  {/* PRESET ACCORDION 5: 3D AVATAR & MODEL GEOMETRY ENGINE                     */}
                   {/* ========================================================================= */}
                   <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                     <button
+                      id="accordion-trigger-preset-geometry"
+                      role="button"
+                      tabIndex={0}
                       type="button"
                       onClick={() => togglePresetSection('geometry')}
                       aria-expanded={expandedPresetSection === 'geometry'}
-                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer"
+                      aria-controls="accordion-region-preset-geometry"
+                      className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                     >
                       <div className="flex items-center gap-3.5 min-w-0">
                         <div className="w-9 h-9 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-sm shrink-0">
@@ -4060,7 +4359,12 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                     </button>
 
                     {expandedPresetSection === 'geometry' && (
-                      <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-4 animate-fadeIn">
+                      <div
+                        id="accordion-region-preset-geometry"
+                        role="region"
+                        aria-labelledby="accordion-trigger-preset-geometry"
+                        className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-4 animate-fadeIn"
+                      >
                         {/* Hidden file input for custom mesh upload */}
                         <input
                           ref={meshFileInputRef}
@@ -4238,10 +4542,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             {isSectionVisible('elements') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                 <button
+                  id="accordion-trigger-elements"
+                  role="button"
+                  tabIndex={0}
                   type="button"
                   onClick={() => toggleAccordionSection('elements')}
                   aria-expanded={expandedAccordion === 'elements'}
-                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer"
+                  aria-controls="accordion-region-elements"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50/50 dark:hover:bg-[#251B3D]/50 transition-colors text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D6D]"
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
                     <div className="w-9 h-9 rounded-xl bg-[#FF4D6D]/15 text-[#FF4D6D] flex items-center justify-center font-bold text-sm shrink-0">
@@ -4267,7 +4575,11 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 </button>
 
                 {expandedAccordion === 'elements' && (
-                  <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
+                  <div
+                    id="accordion-region-elements"
+                    role="region"
+                    aria-labelledby="accordion-trigger-elements"
+                    className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
                     {THREED_CATEGORIES.map((cat) => {
                       const activeCount = cat.items.filter((it) => current3DElements[it.key]).length;
                       const isCatOpen = Boolean(expandedCategories[cat.id]);
@@ -4410,10 +4722,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             {isSectionVisible('lighting') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                 <button
+                  id="accordion-trigger-lighting"
+                  role="button"
+                  tabIndex={0}
                   type="button"
                   onClick={() => toggleAccordionSection('lighting')}
                   aria-expanded={expandedAccordion === 'lighting'}
-                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left"
+                  aria-controls="accordion-region-lighting"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                 >
                   <div className="flex items-center gap-3.5">
                     <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center font-bold text-sm">
@@ -4442,7 +4758,11 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 </button>
 
                 {expandedAccordion === 'lighting' && (
-                  <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
+                  <div
+                    id="accordion-region-lighting"
+                    role="region"
+                    aria-labelledby="accordion-trigger-lighting"
+                    className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
                     {/* Lighting Presets */}
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center justify-between">
@@ -4645,10 +4965,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             {isSectionVisible('camera') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                 <button
+                  id="accordion-trigger-camera"
+                  role="button"
+                  tabIndex={0}
                   type="button"
                   onClick={() => toggleAccordionSection('camera')}
                   aria-expanded={expandedAccordion === 'camera'}
-                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left"
+                  aria-controls="accordion-region-camera"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
                 >
                   <div className="flex items-center gap-3.5">
                     <div className="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-500 flex items-center justify-center font-bold text-sm">
@@ -4677,7 +5001,11 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 </button>
 
                 {expandedAccordion === 'camera' && (
-                  <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
+                  <div
+                    id="accordion-region-camera"
+                    role="region"
+                    aria-labelledby="accordion-trigger-camera"
+                    className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
                     {/* Camera Angle Presets */}
                     <div className="flex flex-col gap-3">
                       <span className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
@@ -5015,10 +5343,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             {isSectionVisible('materials') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                 <button
+                  id="accordion-trigger-materials"
+                  role="button"
+                  tabIndex={0}
                   type="button"
                   onClick={() => toggleAccordionSection('materials')}
                   aria-expanded={expandedAccordion === 'materials'}
-                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left"
+                  aria-controls="accordion-region-materials"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   <div className="flex items-center gap-3.5">
                     <div className="w-9 h-9 rounded-xl bg-purple-500/15 text-purple-500 flex items-center justify-center font-bold text-sm">
@@ -5047,7 +5379,11 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 </button>
 
                 {expandedAccordion === 'materials' && (
-                  <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
+                  <div
+                    id="accordion-region-materials"
+                    role="region"
+                    aria-labelledby="accordion-trigger-materials"
+                    className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
                         <Cuboid className="w-4 h-4 text-purple-500" />
@@ -5101,10 +5437,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             {isSectionVisible('shading') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                 <button
+                  id="accordion-trigger-shading"
+                  role="button"
+                  tabIndex={0}
                   type="button"
                   onClick={() => toggleAccordionSection('shading')}
                   aria-expanded={expandedAccordion === 'shading'}
-                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left"
+                  aria-controls="accordion-region-shading"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   <div className="flex items-center gap-3.5">
                     <div className="w-9 h-9 rounded-xl bg-purple-500/15 text-purple-500 flex items-center justify-center font-bold text-sm">
@@ -5133,7 +5473,11 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 </button>
 
                 {expandedAccordion === 'shading' && (
-                  <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
+                  <div
+                    id="accordion-region-shading"
+                    role="region"
+                    aria-labelledby="accordion-trigger-shading"
+                    className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
                     <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-stone-800/80 pb-3">
                       <div>
                         <h6 className="text-xs font-bold text-[#18181B] dark:text-white">
@@ -5324,10 +5668,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             {isSectionVisible('physics') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                 <button
+                  id="accordion-trigger-physics"
+                  role="button"
+                  tabIndex={0}
                   type="button"
                   onClick={() => toggleAccordionSection('physics')}
                   aria-expanded={expandedAccordion === 'physics'}
-                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left"
+                  aria-controls="accordion-region-physics"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                 >
                   <div className="flex items-center gap-3.5">
                     <div className="w-9 h-9 rounded-xl bg-rose-500/15 text-rose-500 flex items-center justify-center font-bold text-sm">
@@ -5356,7 +5704,11 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 </button>
 
                 {expandedAccordion === 'physics' && (
-                  <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
+                  <div
+                    id="accordion-region-physics"
+                    role="region"
+                    aria-labelledby="accordion-trigger-physics"
+                    className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
                     {/* Hover Pop Extrusion Slider */}
                     <div className="flex flex-col gap-2.5">
                       <div className="flex items-center justify-between">
@@ -5574,10 +5926,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             {isSectionVisible('exploded') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                 <button
+                  id="accordion-trigger-exploded"
+                  role="button"
+                  tabIndex={0}
                   type="button"
                   onClick={() => toggleAccordionSection('exploded')}
                   aria-expanded={expandedAccordion === 'exploded'}
-                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left"
+                  aria-controls="accordion-region-exploded"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
                 >
                   <div className="flex items-center gap-3.5">
                     <div className="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-500 flex items-center justify-center font-bold text-sm">
@@ -5606,7 +5962,11 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 </button>
 
                 {expandedAccordion === 'exploded' && (
-                  <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
+                  <div
+                    id="accordion-region-exploded"
+                    role="region"
+                    aria-labelledby="accordion-trigger-exploded"
+                    className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
                     {/* Visual 3D Strata Stack Preview */}
                     <div className="p-3.5 rounded-xl border border-cyan-500/30 bg-cyan-500/5 flex flex-col sm:flex-row items-center justify-between gap-3 threed-preserve">
                       <div className="flex items-center gap-3">
@@ -5821,10 +6181,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             {isSectionVisible('environment') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                 <button
+                  id="accordion-trigger-environment"
+                  role="button"
+                  tabIndex={0}
                   type="button"
                   onClick={() => toggleAccordionSection('environment')}
                   aria-expanded={expandedAccordion === 'environment'}
-                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left"
+                  aria-controls="accordion-region-environment"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 >
                   <div className="flex items-center gap-3.5">
                     <div className="w-9 h-9 rounded-xl bg-indigo-500/15 text-indigo-500 flex items-center justify-center font-bold text-sm">
@@ -5853,7 +6217,11 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 </button>
 
                 {expandedAccordion === 'environment' && (
-                  <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
+                  <div
+                    id="accordion-region-environment"
+                    role="region"
+                    aria-labelledby="accordion-trigger-environment"
+                    className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
                     {/* Skybox Selection */}
                     <div className="flex flex-col gap-3">
                       <span className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">
@@ -5987,10 +6355,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             {isSectionVisible('spatialAudio') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                 <button
+                  id="accordion-trigger-spatialAudio"
+                  role="button"
+                  tabIndex={0}
                   type="button"
                   onClick={() => toggleAccordionSection('spatialAudio')}
                   aria-expanded={expandedAccordion === 'spatialAudio'}
-                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left"
+                  aria-controls="accordion-region-spatialAudio"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
                   <div className="flex items-center gap-3.5">
                     <div className="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center font-bold text-sm">
@@ -6019,7 +6391,11 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 </button>
 
                 {expandedAccordion === 'spatialAudio' && (
-                  <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
+                  <div
+                    id="accordion-region-spatialAudio"
+                    role="region"
+                    aria-labelledby="accordion-trigger-spatialAudio"
+                    className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
                     {/* Binaural Panning Toggle */}
                     <div className="p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 flex items-center justify-between gap-3">
                       <div>
@@ -6126,10 +6502,14 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
             {isSectionVisible('performance') && (
               <div className="rounded-2xl border border-[#ECE7DF] dark:border-[#2D2340] bg-white/70 dark:bg-[#181226]/70 backdrop-blur-md overflow-hidden shadow-xs transition-all">
                 <button
+                  id="accordion-trigger-performance"
+                  role="button"
+                  tabIndex={0}
                   type="button"
                   onClick={() => toggleAccordionSection('performance')}
                   aria-expanded={expandedAccordion === 'performance'}
-                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left"
+                  aria-controls="accordion-region-performance"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white/85 dark:bg-[#1D162E]/85 hover:bg-stone-50 dark:hover:bg-[#251B3D] transition-colors cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
                 >
                   <div className="flex items-center gap-3.5">
                     <div className="w-9 h-9 rounded-xl bg-orange-500/15 text-orange-500 flex items-center justify-center font-bold text-sm">
@@ -6158,7 +6538,11 @@ export default function ControlCenterPanel({ variant = 'workbench', isStandalone
                 </button>
 
                 {expandedAccordion === 'performance' && (
-                  <div className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
+                  <div
+                    id="accordion-region-performance"
+                    role="region"
+                    aria-labelledby="accordion-trigger-performance"
+                    className="p-4 sm:p-5 border-t border-[#ECE7DF] dark:border-[#2D2340] flex flex-col gap-6 animate-fadeIn">
                     {/* Target FPS Presets */}
                     <div className="flex flex-col gap-3">
                       <span className="text-xs font-bold text-[#18181B] dark:text-white flex items-center gap-1.5">

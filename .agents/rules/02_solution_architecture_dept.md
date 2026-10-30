@@ -1,62 +1,62 @@
-﻿﻿# Department 02: Solution Architecture & Systems Engineering (समाधान वास्तुकला एवं सिस्टम इंजीनियरिंग विभाग)
+# Department 02: Solution Architecture & Systems Engineering
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
 > - **Foundation Rules:** [`foundation_and_special_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/foundation_and_special_rules.md)
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md)
-> - **Universal Canonical Rules:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/universal_rules.md)
+> - **Universal Canonical Rules:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/archive/universal_rules.md) (Archived canonical reference)
 
 ---
 
-## 🏛️ 1. विभाग का मिशन एवं कार्यक्षेत्र (Mission & Department Scope)
+## 🏛️ 1. Mission & Department Scope
 
-समाधान वास्तुकला एवं सिस्टम इंजीनियरिंग विभाग (Solution Architecture Dept) PRD की व्यावसायिक आवश्यकताओं को एक सुदृढ़, मापनीय (scalable), सुरक्षित, और बनाए रखने योग्य (maintainable) तकनीकी वास्तुकला में ढालने के लिए उत्तरदायी है। यह विभाग हाई-लेवल डिज़ाइन (HLD), लो-लेवल डिज़ाइन (LLD), तकनीकी स्टैक चयन, कंपोनेंट बाउंड्रीज और आर्किटेक्चरल डिसीजन रिकॉर्ड्स (ADRs) का निर्माण करता है।
+The Solution Architecture & Systems Engineering Department (Dept 02) is responsible for translating the PRD business requirements into a robust, scalable, secure, and maintainable technical architecture. This department authors High-Level Designs (HLD), Low-Level Designs (LLD), oversees technology stack selection, defines component boundaries, and establishes Architecture Decision Records (ADRs).
 
 ---
 
-## 📐 2. मुख्य नियम एवं वास्तुकला सिद्धांत (Core Architectural Principles)
+## 📐 2. Core Architectural Principles
 
-### 2.1 मॉड्यूलरिटी एवं पृथक्करण (Separation of Concerns & Modularity)
-- एकल ज़िम्मेदारी सिद्धांत (Single Responsibility Principle) और डोमेन-ड्रिवेन डिज़ाइन (DDD) सिद्धांतों का कड़ाई से पालन।
-- लेयर्ड आर्किटेक्चर:
-  - **प्रस्तुति परत (Presentation Layer):** UI कंपोनेंट्स, पेज रूट्स।
-  - **व्यावसायिक तर्क परत (Business Logic Layer):** सर्विसेज़, यूज-केस हैंडलर्स।
-  - **डेटा एक्सेस परत (Data Access Layer):** रिपॉजिटरीज़, ORM/DB क्लाइंट्स।
-  - **इन्फ्रास्ट्रक्चर परत (Infrastructure Layer):** एक्सटर्नल APIs, मैसेज ब्रोकर, कैश।
+### 2.1 Separation of Concerns & Modularity
+- Strict adherence to the Single Responsibility Principle and Domain-Driven Design (DDD) principles.
+- Layered Architecture discipline:
+  - **Presentation Layer:** UI components, page routes, client views.
+  - **Business Logic Layer:** Domain services, use-case handlers, transaction workflows.
+  - **Data Access Layer:** Repositories, ORM/DB clients, caching adapters.
+  - **Infrastructure Layer:** External APIs, message brokers, cloud infrastructure.
 
-### 2.2 मोनोलिथ बनाम माइक्रोसर्विसेज निर्णय रूब्रिक (Architecture Selection Rubric)
-- डिफ़ॉल्ट रूप से **मॉड्यूलर मोनोलिथ (Modular Monolith)** को प्राथमिकता दी जाएगी जब तक कि अत्यधिक स्वतंत्र स्केलिंग, विविध तकनीक स्टैक, या बड़ी स्वतंत्र टीमों की आवश्यकता स्पष्ट रूप से सिद्ध न हो।
-- माइक्रोसर्विसेज का चयन केवल तभी होगा जब नेटवर्क लेटेंसी, डिस्ट्रीब्यूटेड ट्रांजेक्शन्स और ऑपरेशनल जटिलता का पर्याप्त औचित्य हो।
+### 2.2 Monolith vs. Microservices Decision Rubric
+- **Modular Monolith by Default:** Prefer a modular monolith until independent scaling dimensions, heterogeneous technology stacks, or autonomous cross-functional teams explicitly necessitate distributed services.
+- Microservices adoption requires rigorous justification balancing network latency, distributed transaction overhead, and operational complexity.
 
-### 2.3 आर्किटेक्चरल डिसीजन रिकॉर्ड्स मानक (Mandatory ADR Standard)
-- किसी भी महत्वपूर्ण तकनीकी निर्णय (उदा. फ्रेमवर्क चयन, स्टेट मैनेजमेंट, डेटाबेस माइग्रेशन) के लिए प्रोजेक्ट के `docs/adr/` फ़ोल्डर में मानकीकृत ADR लिखा जाएगा:
+### 2.3 Architecture Decision Records (ADR) Standard
+- For every architectural decision (e.g., framework selection, state management paradigm, database technology), author an ADR in `docs/adr/` following this standardized format:
 
 ```markdown
-# ADR-001: [निर्णय का संक्षिप्त शीर्षक]
+# ADR-001: [Concise Decision Title]
 
-## स्थिति (Status)
-प्रस्तावित (Proposed) | स्वीकृत (Accepted) | अस्वीकृत (Rejected) | निरस्त (Superseded)
+## Status
+Proposed | Accepted | Rejected | Superseded
 
-## संदर्भ एवं समस्या विवरण (Context)
-इस निर्णय की आवश्यकता क्यों पड़ी? वर्तमान बाधाएं क्या हैं?
+## Context & Problem Statement
+Why was this decision required? What are the current architectural bottlenecks and constraints?
 
-## विचार किए गए विकल्प (Options Considered)
-1. विकल्प A (उदा. PostgreSQL + Prisma) - गुण व दोष
-2. विकल्प B (उदा. MongoDB + Mongoose) - गुण व दोष
+## Options Considered
+1. Option A (e.g., PostgreSQL + Prisma) - Tradeoffs and analysis
+2. Option B (e.g., MongoDB + Mongoose) - Tradeoffs and analysis
 
-## लिया गया निर्णय (Decision Outcome)
-हमने विकल्प A का चयन किया क्योंकि...
+## Decision Outcome
+We decided to adopt Option A because...
 
-## परिणाम एवं प्रभाव (Consequences)
-- सकारात्मक प्रभाव (Positive): मजबूत टाइप सुरक्षा, स्पष्ट रिलेशनल इंटीग्रिटी।
-- नकारात्मक प्रभाव (Negative): स्कीमा माइग्रेशन में अतिरिक्त समय।
+## Consequences
+- Positive Impact: Strong type safety, guaranteed relational integrity.
+- Negative Impact: Additional discipline required for schema migrations.
 ```
 
 ---
 
-## 📊 3. विज़ुअल आर्किटेक्चर एवं मरमेड आरेख मानक (Visual Architecture Standards)
+## 📊 3. Visual Architecture & Mermaid Diagram Standards
 
-सिस्टम घटकों के अंतर्संबंधों को स्पष्ट करने के लिए मानकीकृत Mermaid आरेखों का अनिवार्य उपयोग:
+Mandatory usage of standardized Mermaid diagrams to articulate component topologies and data flows:
 
 ```mermaid
 flowchart TD
@@ -71,27 +71,25 @@ flowchart TD
 
 ---
 
----
+## 🌐 4. Non-Functional Requirements & Scalability Architecture
 
-## 🌐 4. गैर-कार्यात्मक सिस्टम विशेषताएँ एवं स्केलेबिलिटी मानक (NFRs & Scalability Architecture)
-
-- **स्केलेबिलिटी एवं थ्रूपुट:** सिस्टम को बिना आर्किटेक्चरल ओवरहाल के 10x ट्रैफिक वृद्धि संभालने में सक्षम होना चाहिए।
-- **असंबद्धता (Decoupling):** सिंक्रोनस ब्लॉकिंग कॉल्स को न्यूनतम करें; समय-खपत प्रक्रियाओं के लिए मैसेज ब्रोकर्स (RabbitMQ/Kafka) या बैकग्राउंड वर्कर्स का उपयोग करें।
-- **रेसिलिएंस एवं फॉल्ट टॉलरेंस:** सर्किट ब्रेकर (Circuit Breaker) और रिट्री-विद-एक्सपोनेंशियल-बैकऑफ रणनीतियां लागू करें।
+- **Scalability & Throughput:** Systems must handle a 10x traffic increase without requiring fundamental architectural rework.
+- **Decoupling:** Minimize synchronous blocking calls; offload compute-heavy or time-consuming workflows to message brokers (RabbitMQ/Kafka) or background workers.
+- **Resilience & Fault Tolerance:** Implement Circuit Breaker patterns and exponential backoff retry strategies on all distributed integrations.
 
 ---
 
-## 🧑‍💼 5. विभागीय पद एवं समर्पित सब-एजेंट्स (Departmental Roles & Subagents)
+## 🧑‍💼 5. Departmental Roles & Dedicated Subagents
 
-विभागीय कार्य-विभाजन और उद्यम विशेषज्ञता (Specialization of Labor) सुनिश्चित करने के लिए 4 समर्पित पद (Enterprise Job Roles) और उनके अनुरूप सब-एजेंट्स परिभाषित हैं:
+To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise job roles and their corresponding subagent archetypes are established:
 
 ### 5.1 Principal System Architect (System Architect)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `System Architect`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - एंड-टू-एंड हाई-लेवल (HLD) और लो-लेवल (LLD) वास्तुकला तैयार करना।
-  - मानकीकृत ADRs (`docs/adr/`) संलेखन और वास्तुकला निर्णयों का स्थायी रिकॉर्ड बनाए रखना।
-  - जटिल आर्किटेक्चरल घटकों के लिए स्पष्ट और मान्य Mermaid आरेख तैयार करना।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `System Architect`
+- **Scope & Responsibilities:**
+  - Architect end-to-end High-Level (HLD) and Low-Level (LLD) system topologies.
+  - Author standardized ADRs (`docs/adr/`) and maintain architectural records.
+  - Generate valid, syntax-clean Mermaid diagrams for architectural clarity.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -101,12 +99,12 @@ flowchart TD
 ```
 
 ### 5.2 Integration & Event Architect (Integration Architect)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `Integration Architect`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - सिस्टम घटकों और तृतीय-पक्ष सेवाओं के बीच असिंक्रोनस इवेंट स्कीमा और पब/सब मेसेजिंग टोपोलॉजी तैयार करना।
-  - कॉन्ट्रैक्ट-फर्स्ट API सीमाएं, DTOs और डेटा ट्रांसफर प्रोटोकॉल परिभाषित करना।
-  - त्रुटि-सहिष्णु (Fault-Tolerant) वेबहुक एकीकरण और रिट्राई रणनीतियों की रूपरेखा बनाना।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `Integration Architect`
+- **Scope & Responsibilities:**
+  - Design asynchronous event schemas and pub/sub messaging topologies between system components.
+  - Define contract-first API boundaries, DTOs, and serialization formats.
+  - Specify fault-tolerant webhook integration protocols and retry policies.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -116,12 +114,12 @@ flowchart TD
 ```
 
 ### 5.3 Domain-Driven Design & Microservices Architect (Domain Architecture Specialist)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `Domain Architecture Specialist`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - डोमेन-ड्रिवन डिज़ाइन (DDD) सिद्धांतों को लागू कर स्पष्ट बाउंडेड कॉन्टेक्स्ट्स (Bounded Contexts) स्थापित करना।
-  - एग्रीगेट्स, एंटिटीज़ और वैल्यू ऑब्जेक्ट्स के संबंधों और सीमाओं का निरूपण करना।
-  - माइक्रोसर्विसेज के मध्य लूज़ कपलिंग सुनिश्चित करने हेतु एंटी-करप्शन लेयर्स (ACL) डिज़ाइन करना।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `Domain Architecture Specialist`
+- **Scope & Responsibilities:**
+  - Apply Domain-Driven Design (DDD) principles to define clear bounded contexts.
+  - Map relationships and invariants across aggregates, entities, and value objects.
+  - Design Anti-Corruption Layers (ACL) to preserve loose coupling between disparate domains.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -131,12 +129,12 @@ flowchart TD
 ```
 
 ### 5.4 Technical Standards & Code Health Enforcer (Code Standards Architect)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `Code Standards Architect`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - कोडबेस में SOLID, DRY और Clean Architecture सिद्धांतों के कड़े अनुपालन का ऑडिट करना।
-  - कोडहेल्थ मेट्रिक्स, साइक्लोमैटिक जटिलता सीमाएं और मॉड्यूलरिटी नियम निर्धारित करना।
-  - आर्किटेक्चरल इरोजन (Architectural Erosion) और तकनीकी ऋण (Technical Debt) की रोकथाम करना।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `Code Standards Architect`
+- **Scope & Responsibilities:**
+  - Audit codebase for strict compliance with SOLID, DRY, and Clean Architecture patterns.
+  - Enforce cyclomatic complexity thresholds, code health metrics, and modular boundaries.
+  - Proactively prevent architectural erosion and technical debt accumulation.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -145,13 +143,12 @@ flowchart TD
 }
 ```
 
-
 ---
 
-## 🚦 6. विभाग हैंडऑफ एवं सत्यापन गेट्स (Department Handoff Gates)
+## 🚦 6. Department Handoff & Verification Gates
 
-1. **Gate 2-A (इंटरफ़ेस अनुबंध स्पष्टता):** सभी घटकों के बीच डेटा अनुबंध (Data Contracts / DTOs) पूरी तरह परिभाषित होने चाहिए।
-2. **Gate 2-B (ADR अनुमोदन):** सभी प्रमुख तकनीकी विकल्पों के लिए स्वीकृत ADR मौजूद होना चाहिए।
-3. **अगले विभागों को हैंडऑफ:**
-   - डेटा स्कीमा और स्टोरेज के लिए ➔ **Dept 03: Data Architecture & DBA**
-   - यूजर इंटरफेस और डिज़ाइन सिस्टम के लिए ➔ **Dept 04: UI/UX Design System**
+1. **Gate 2-A (Contract Clarity):** All inter-component data contracts (DTOs, schemas) must be explicitly documented.
+2. **Gate 2-B (ADR Signoff):** Every major technical decision must possess an accepted ADR in `docs/adr/`.
+3. **Downstream Handoff:**
+   - Data schema and storage models ➔ **Dept 03: Data Architecture & DBA**
+   - User interface and design system specifications ➔ **Dept 04: UI/UX Design System**

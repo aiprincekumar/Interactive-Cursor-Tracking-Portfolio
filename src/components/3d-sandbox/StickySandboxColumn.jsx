@@ -387,7 +387,7 @@ export function StickySandboxColumn({
             )}
           </button>
 
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 backdrop-blur-md shadow-xs whitespace-nowrap select-none">
             <span className={`w-1.5 h-1.5 rounded-full ${isMaster3DOn ? 'bg-cyan-500 animate-ping' : 'bg-stone-400'}`} />
             <span>{isMaster3DOn ? 'Live 3D' : 'Flat 2D'}</span>
           </span>
@@ -409,10 +409,10 @@ export function StickySandboxColumn({
             type="button"
             aria-label="Scroll previews left"
             onClick={() => scrollCarousel('left')}
-            className="w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white bg-white/70 dark:bg-stone-800/70 hover:bg-white dark:hover:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 shadow-2xs transition-all active:scale-95 cursor-pointer"
+            className="w-11 h-11 sm:w-7 sm:h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 shrink-0 rounded-lg flex items-center justify-center text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white bg-white/70 dark:bg-stone-800/70 hover:bg-white dark:hover:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 shadow-2xs transition-all active:scale-95 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-1"
             title="Scroll left"
           >
-            <ChevronLeft className="w-3.5 h-3.5" />
+            <ChevronLeft className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
           </button>
 
           {/* Horizontal Carousel Track */}
@@ -455,10 +455,10 @@ export function StickySandboxColumn({
             type="button"
             aria-label="Scroll previews right"
             onClick={() => scrollCarousel('right')}
-            className="w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white bg-white/70 dark:bg-stone-800/70 hover:bg-white dark:hover:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 shadow-2xs transition-all active:scale-95 cursor-pointer"
+            className="w-11 h-11 sm:w-7 sm:h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 shrink-0 rounded-lg flex items-center justify-center text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white bg-white/70 dark:bg-stone-800/70 hover:bg-white dark:hover:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 shadow-2xs transition-all active:scale-95 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-1"
             title="Scroll right"
           >
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ChevronRight className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
           </button>
         </div>
       </div>
@@ -668,7 +668,7 @@ export function StickySandboxColumn({
                 <span className="text-stone-400">|</span>
                 <span>Pop: {threeD.physics?.hoverPop ?? 12}px</span>
                 <span className="text-stone-400">|</span>
-                <span>Depress: {threeD.physics?.clickDepression ?? 6}px</span>
+                <span>Depress: {threeD.physics?.clickDepression ? 'Active (6px)' : 'Off'}</span>
               </div>
             </div>
           )}
@@ -699,12 +699,12 @@ export function StickySandboxColumn({
       </div>
 
       {/* 4. Live Telemetry & Fine-Grained Control Bar */}
-      <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-stone-100/70 dark:bg-[#150F21]/80 border border-stone-200/70 dark:border-stone-800 font-mono text-xs">
+      <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-stone-100/80 dark:bg-[#150F21]/80 border border-stone-200/80 dark:border-stone-800/80 backdrop-blur-md font-mono text-xs shadow-xs select-none">
         <div className="flex flex-col leading-tight">
-          <span className="text-[10px] sm:text-[11px] text-stone-600 dark:text-stone-300 font-semibold">
+          <span className="text-[10px] sm:text-[11px] text-stone-700 dark:text-stone-200 font-semibold truncate whitespace-nowrap">
             Rot: {currentTilt.rotX}°, {currentTilt.rotY}°
           </span>
-          <span className="text-[9px] sm:text-[10px] text-stone-400">
+          <span className="text-[9px] sm:text-[10px] text-stone-400 truncate whitespace-nowrap">
             FOV: {camera.perspectiveFOV ?? 1000}px | Tilt: {camera.tiltSensitivity ?? 15}°
           </span>
         </div>

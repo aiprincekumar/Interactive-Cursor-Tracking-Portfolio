@@ -622,4 +622,17 @@ a svg * {
     0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+/* ==========================================================================
+   WebGL Fallback Engine: 2.5D CSS Isometric Graceful Degradation
+   Universal Rule 22 Phase 4 Hardening Standard
+   ========================================================================== */
+[data-webgl-support="false"] .canvas-3d-stage,
+[data-webgl-support="false"] .three-d-viewport,
+[data-webgl-support="false"] .threed-stage-container {
+  transform: rotateX(25deg) rotateY(-20deg) scale(0.95);
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 20px 25px rgba(0, 0, 0, 0.45));
+}
+
+
 

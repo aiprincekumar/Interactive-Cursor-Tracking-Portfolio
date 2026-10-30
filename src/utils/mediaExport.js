@@ -16,7 +16,7 @@ export function triggerFileDownload(urlOrBlob, filename) {
   link.click();
   document.body.removeChild(link);
   if (isBlob) {
-    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
   }
 }
 
@@ -118,7 +118,7 @@ export async function renderElementToCanvas(element, options = {}) {
     ctx.scale(scale, scale);
   }
 
-  const isDark = document.documentElement.classList.contains('dark') || true;
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
   const rotX = typeof options.rotX === 'number' ? options.rotX : 18;
   const rotY = typeof options.rotY === 'number' ? options.rotY : 0;
 
@@ -318,7 +318,14 @@ export async function renderElementToCanvas(element, options = {}) {
  */
 export async function capture3DStageSnapshot(stageElement, filenamePrefix = 'portfolio-3d-snapshot') {
   if (!stageElement && typeof document !== 'undefined') {
-    stageElement = document.querySelector('.universal-mini-portfolio') || document.querySelector('[data-testid="3d-sandbox-viewport"]');
+    stageElement = document.querySelector('.universal-mini-portfolio')
+      || document.querySelector('[data-testid="3d-sandbox-viewport"]')
+      || document.querySelector('.sticky-sandbox-viewport')
+      || document.querySelector('[data-testid="materials-stage-preview"]')
+      || document.querySelector('[data-testid="lighting-studio-preview"]')
+      || document.querySelector('[data-testid="camera-viewport-preview"]')
+      || document.querySelector('[data-testid="physics-spring-preview"]')
+      || document.querySelector('[data-testid="exploded-cad-preview"]');
   }
   if (!stageElement) {
     throw new Error('Target 3D stage element not found for snapshot capture.');
@@ -358,7 +365,14 @@ export async function capture3DStageSnapshot(stageElement, filenamePrefix = 'por
  */
 export async function record360TurntableVideo(stageElement, options = {}) {
   if (!stageElement && typeof document !== 'undefined') {
-    stageElement = document.querySelector('.universal-mini-portfolio') || document.querySelector('[data-testid="3d-sandbox-viewport"]');
+    stageElement = document.querySelector('.universal-mini-portfolio')
+      || document.querySelector('[data-testid="3d-sandbox-viewport"]')
+      || document.querySelector('.sticky-sandbox-viewport')
+      || document.querySelector('[data-testid="materials-stage-preview"]')
+      || document.querySelector('[data-testid="lighting-studio-preview"]')
+      || document.querySelector('[data-testid="camera-viewport-preview"]')
+      || document.querySelector('[data-testid="physics-spring-preview"]')
+      || document.querySelector('[data-testid="exploded-cad-preview"]');
   }
   if (!stageElement) {
     throw new Error('Target 3D stage element not found for turntable recording.');
@@ -462,4 +476,164 @@ export async function record360TurntableVideo(stageElement, options = {}) {
 
     requestAnimationFrame(renderLoop);
   });
+}
+
+/**
+ * Automatically tunes 3D depth intensity and tilt sensitivity according to the client device's physical capabilities.
+ * @returns {{ depthIntensity: number, tiltSensitivity: number, isMobile: boolean, dpr: number }}
+ */
+export function calibrateDepthByDeviceProfile() {
+  if (typeof window === 'undefined') {
+    return { depthIntensity: 1.0, tiltSensitivity: 15, isMobile: false, dpr: 1 };
+  }
+
+  const isMobile = window.innerWidth < 768 || /Mobi|Android|iPhone/i.test(navigator?.userAgent || '');
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+
+  // Balanced depth for smaller mobile screens to avoid clipping
+  const recommendedDepth = isMobile ? 0.75 : 1.15;
+  const recommendedTilt = isMobile ? 12 : 18;
+
+  return {
+    depthIntensity: recommendedDepth,
+    tiltSensitivity: recommendedTilt,
+    isMobile,
+    dpr
+  };
+}
+
+/**
+ * Exports full 3D spatial settings, theme, and material calibration as a validated JSON bundle with metadata.
+ * Strips temporary blob object URLs to prevent broken links on reload or distribution.
+ *
+ * @param {object} threeD - Active 3D state configuration
+ * @returns {string} Serialized JSON package string
+ */
+export function export3DPresetPackage(threeD) {
+  const config = threeD && typeof threeD === 'object' ? { ...threeD } : {};
+  if (config.customMesh) {
+    config.customMesh = { ...config.customMesh };
+    delete config.customMesh.fileUrl;
+  }
+  const payload = {
+    manifestVersion: '1.0.0',
+    exportedAt: new Date().toISOString(),
+    generator: 'Antigravity 3D Spatial Engine',
+    author: 'Atul Verma (aiprincekumar)',
+    config
+  };
+  return JSON.stringify(payload, null, 2);
+}
+
+/**
+ * Generates a compact shareable URL containing base64 URL-safe encoded 3D parameters.
+ *
+ * @param {object} threeD - Active 3D state configuration
+ * @param {string} [baseUrl] - Optional base URL (defaults to window.location.href)
+ * @returns {string} Complete shareable URL with threed_config query parameter
+ */
+export function generate3DSceneShareLink(threeD, baseUrl) {
+  try {
+    const minified = {
+      m: threeD?.master3D ? 1 : 0,
+      t: threeD?.masterTheme,
+      d: threeD?.depthIntensity,
+      p: threeD?.stylePreset,
+      l: [threeD?.lighting?.angle, threeD?.lighting?.preset],
+      c: [threeD?.camera?.anglePreset, threeD?.camera?.perspectiveFOV],
+      mat: [threeD?.materials?.preset, threeD?.materials?.roughness, threeD?.materials?.metalness],
+      exp: threeD?.exploded?.enabled ? [threeD?.exploded?.separationDistance, threeD?.exploded?.blueprintMode ? 1 : 0] : [0, 0]
+    };
+    const jsonStr = JSON.stringify(minified);
+    const encoded = typeof btoa === 'function'
+      ? btoa(encodeURIComponent(jsonStr))
+      : Buffer.from(encodeURIComponent(jsonStr)).toString('base64');
+
+    let base = baseUrl;
+    if (!base && typeof window !== 'undefined' && window.location) {
+      base = window.location.href;
+    }
+    if (!base) {
+      base = 'http://localhost/';
+    }
+    const url = new URL(base);
+    url.searchParams.set('threed_config', encoded);
+    return url.toString();
+  } catch (err) {
+    console.warn('[mediaExport] generate3DSceneShareLink error:', err);
+    return (typeof window !== 'undefined' && window.location) ? window.location.href : 'http://localhost/?threed_config=';
+  }
+}
+
+/**
+ * Decodes and unpacks 3D configuration parameters from URL string or query parameters upon page load.
+ *
+ * @param {string|URLSearchParams} urlStringOrParams - URL string, search query, or URLSearchParams instance
+ * @returns {object|null} Inflated 3D configuration object, or null if invalid
+ */
+export function parse3DSceneShareLink(urlStringOrParams) {
+  if (!urlStringOrParams) return null;
+  try {
+    let rawEncoded = null;
+    if (typeof urlStringOrParams === 'string') {
+      if (urlStringOrParams.includes('threed_config=')) {
+        const queryIndex = urlStringOrParams.indexOf('?');
+        const qs = queryIndex >= 0 ? urlStringOrParams.slice(queryIndex) : (urlStringOrParams.startsWith('threed_config=') ? `?${urlStringOrParams}` : urlStringOrParams);
+        const params = new URLSearchParams(qs);
+        rawEncoded = params.get('threed_config');
+      } else if (!urlStringOrParams.includes('://') && !urlStringOrParams.includes('?') && !urlStringOrParams.includes('=')) {
+        rawEncoded = urlStringOrParams.trim();
+      } else {
+        const parsedUrl = new URL(urlStringOrParams, 'http://localhost');
+        rawEncoded = parsedUrl.searchParams.get('threed_config');
+      }
+    } else if (urlStringOrParams instanceof URLSearchParams) {
+      rawEncoded = urlStringOrParams.get('threed_config');
+    } else if (typeof urlStringOrParams === 'object' && urlStringOrParams.searchParams) {
+      rawEncoded = urlStringOrParams.searchParams.get('threed_config');
+    }
+
+    if (!rawEncoded) return null;
+
+    const decodedStr = typeof atob === 'function'
+      ? atob(rawEncoded)
+      : Buffer.from(rawEncoded, 'base64').toString('binary');
+    const jsonStr = decodeURIComponent(decodedStr);
+    const min = JSON.parse(jsonStr);
+
+    if (!min || typeof min !== 'object') return null;
+
+    const inflated = {};
+    if (min.m !== undefined) inflated.master3D = Boolean(min.m);
+    if (min.t !== undefined) inflated.masterTheme = min.t;
+    if (min.d !== undefined) inflated.depthIntensity = Number(min.d);
+    if (min.p !== undefined) inflated.stylePreset = min.p;
+    if (Array.isArray(min.l)) {
+      inflated.lighting = {};
+      if (min.l[0] !== undefined) inflated.lighting.angle = Number(min.l[0]);
+      if (min.l[1] !== undefined) inflated.lighting.preset = min.l[1];
+    }
+    if (Array.isArray(min.c)) {
+      inflated.camera = {};
+      if (min.c[0] !== undefined) inflated.camera.anglePreset = min.c[0];
+      if (min.c[1] !== undefined) inflated.camera.perspectiveFOV = Number(min.c[1]);
+    }
+    if (Array.isArray(min.mat)) {
+      inflated.materials = {};
+      if (min.mat[0] !== undefined) inflated.materials.preset = min.mat[0];
+      if (min.mat[1] !== undefined) inflated.materials.roughness = Number(min.mat[1]);
+      if (min.mat[2] !== undefined) inflated.materials.metalness = Number(min.mat[2]);
+    }
+    if (Array.isArray(min.exp)) {
+      inflated.exploded = {
+        enabled: Boolean(min.exp[0] > 0 || min.exp[1]),
+        separationDistance: Number(min.exp[0] || 0),
+        blueprintMode: Boolean(min.exp[1])
+      };
+    }
+    return inflated;
+  } catch (err) {
+    console.warn('[mediaExport] parse3DSceneShareLink failed:', err);
+    return null;
+  }
 }

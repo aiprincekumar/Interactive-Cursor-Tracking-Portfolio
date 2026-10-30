@@ -1,68 +1,68 @@
-﻿﻿# Department 11: Legal, Licensing & Compliance (कानूनी, लाइसेंस एवं अनुपालन विभाग)
+# Department 11: Legal, Licensing & Compliance
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
 > - **Foundation Rules:** [`foundation_and_special_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/foundation_and_special_rules.md)
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md)
-> - **Universal Canonical Rules:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/universal_rules.md)
+> - **Universal Canonical Rules:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/archive/universal_rules.md) (Archived canonical reference)
 
 ---
 
-## ⚖️ 1. विभाग का मिशन एवं कार्यक्षेत्र (Mission & Department Scope)
+## ⚖️ 1. Mission & Department Scope
 
-कानूनी, सॉफ्टवेयर लाइसेंस एवं विनियामक अनुपालन विभाग (Legal & Compliance Dept) ओपन-सोर्स लाइसेंसिंग अनुपालन, बौद्धिक संपदा सुरक्षा, SPDX पहचानकर्ताओं, थर्ड-पार्टी एट्रिब्यूशन और वैश्विक डेटा गोपनीयता नियमों (GDPR, CCPA, HIPAA) के पालन का सर्वोच्च संरक्षक है।
+The Legal, Licensing & Compliance Department (Dept 11) is the supreme authority governing open-source software license compliance, intellectual property protection, SPDX identifier standardization, third-party attribution manifests, and global data privacy regulations (GDPR, CCPA, HIPAA).
 
-यह विभाग सुनिश्चित करता है कि सॉफ्टवेयर में उपयोग की जाने वाली प्रत्येक लाइब्रेरी कानूनी रूप से सुरक्षित, संगत और अनुपालन-मुक्त हो।
-
----
-
-## 📜 2. ओपन-सोर्स लाइसेंसिंग नीति एवं वर्गीकरण (Open-Source License Governance)
-
-### 2.1 स्वीकृत अनुमेय लाइसेंस (Permissive Licenses - Approved for All)
-- **MIT License:** अत्यधिक अनुमेय, न्यूनतम प्रतिबंध।
-- **Apache 2.0:** पेटेंट अनुदान और स्पष्ट ट्रेडमार्क सुरक्षा सहित उत्कृष्ट लाइसेंस।
-- **BSD 2-Clause / 3-Clause:** अनुमेय एवं सुरक्षित।
-- **ISC License:** सरल एवं स्वीकृत।
-
-### 2.2 कड़ाई से प्रतिबंधित कॉपीलेफ्ट लाइसेंस (Copyleft Licenses - Restricted)
-- **GPL v2 / GPL v3 एवं AGPL:** जब तक प्रोजेक्ट पूर्णतः ओपन-सोर्स GPL होने का स्पष्ट निर्णय न लिया गया हो, तब तक व्यावसायिक या प्रोप्राइटरी कोडबेस में GPL/AGPL लाइब्रेरीज़ को शामिल करना सख्त वर्जित है (क्योंकि वे संपूर्ण कोडबेस को ओपन-सोर्स करने के लिए बाध्य करते हैं)।
-- **LGPL:** केवल तभी अनुमत जब डायनामिक लिंकिंग के रूप में उपयोग किया जाए।
+This department ensures that every third-party dependency utilized within the ecosystem is legally compliant and free of copyleft contamination risks.
 
 ---
 
-## 🏷️ 3. SPDX हेडर एवं एट्रिब्यूशन मैनिफेस्ट (SPDX & Attribution Manifest)
+## 📜 2. Open-Source License Governance & Taxonomy
 
-### 3.1 अनिवार्य SPDX हेडर मानक
-प्रत्येक मूल स्रोत कोड फ़ाइल के शीर्ष पर मानक SPDX पहचानकर्ता दर्ज होना चाहिए:
+### 2.1 Permissive Licenses (Approved for Unrestricted Use)
+- **MIT License:** Highly permissive, minimal constraints.
+- **Apache 2.0:** Permissive license including explicit patent grants and trademark protections.
+- **BSD 2-Clause / 3-Clause:** Permissive and approved.
+- **ISC License:** Simplified permissive license approved across all modules.
+
+### 2.2 Restricted Copyleft Licenses (Strict Prohibition)
+- **GPL v2 / GPL v3 and AGPL:** Strictly prohibited in proprietary or commercial codebases unless an explicit directive mandates releasing the repository under GPL (as copyleft terms mandate open-sourcing derivative works).
+- **LGPL:** Permitted only when consumed via dynamic linking without static compilation into application artifacts.
+
+---
+
+## 🏷️ 3. SPDX Headers & Attribution Manifests
+
+### 3.1 Standardized SPDX Header Format
+Every proprietary source code file must declare an SPDX identifier and copyright notice in its header:
 ```typescript
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Atul Verma (aiprincekumar). All rights reserved.
 ```
 
-### 3.2 थर्ड-पार्टी एट्रिब्यूशन (`CREDITS.md` / `NOTICE`)
-- प्रोजेक्ट रूट में एक `CREDITS.md` या `NOTICE` फ़ाइल रखी जाएगी जो उपयोग में आने वाली सभी प्रमुख थर्ड-पार्टी लाइब्रेरीज़, उनके लाइसेंस प्रकार और उनके कॉपीराइट धारकों को विधिवत सूचीबद्ध करती है।
+### 3.2 Third-Party Attribution (`CREDITS.md` / `NOTICE`)
+- Every project root must maintain a `CREDITS.md` or `NOTICE` file enumerating all production third-party libraries, their licenses, and upstream copyright holders.
 
 ---
 
-## 🔒 4. डेटा गोपनीयता एवं नियामक अनुपालन मानक (Data Privacy - GDPR / CCPA)
+## 🔒 4. Data Privacy & Regulatory Compliance (GDPR / CCPA)
 
-- **गोपनीयता डिज़ाइन सिद्धांत (Privacy by Design):** उपयोगकर्ताओं का केवल वही व्यक्तिगत डेटा (PII) संग्रहीत करें जो व्यावसायिक कार्यप्रणाली के लिए अपरिहार्य हो।
-- **डेटा न्यूनीकरण (Data Minimization):** कभी भी संवेदनशील पहचान (उदा. SSN, आधार, कच्चा क्रेडिट कार्ड डेटा) को बिना कड़े विनियामक अनुपालन के स्टोर न करें।
-- **विस्मृति का अधिकार (Right to Be Forgotten):** उपयोगकर्ता के अनुरोध पर उसका संपूर्ण व्यक्तिगत डेटा हटाने या एनॉनिमाइज़ करने की सुगम व्यवस्था हो।
+- **Privacy by Design:** Collect and persist strictly the minimal Personally Identifiable Information (PII) required for core business transactions.
+- **Data Minimization:** Never store sensitive identifiers (e.g., SSN, national ID numbers, raw payment card data) without strict regulatory architecture.
+- **Right to Be Forgotten:** Implement programmatic mechanisms to export, anonymize, or permanently delete user personal records upon request.
 
 ---
 
-## 🧑‍💼 5. विभागीय पद एवं समर्पित सब-एजेंट्स (Departmental Roles & Subagents)
+## 🧑‍💼 5. Departmental Roles & Dedicated Subagents
 
-विभागीय कार्य-विभाजन और उद्यम विशेषज्ञता (Specialization of Labor) सुनिश्चित करने के लिए 4 समर्पित पद (Enterprise Job Roles) और उनके अनुरूप सब-एजेंट्स परिभाषित हैं:
+To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise job roles and their corresponding subagent archetypes are established:
 
 ### 5.1 Open Source License Compliance Auditor (Open Source License Auditor)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `Open Source License Auditor`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - ओपन-सोर्स डिपेंडेंसीज का लाइसेंस संगतता ऑडिट (MIT/Apache बनाम GPL/AGPL)।
-  - SPDX लाइसेंस हेडर मैनिफेस्ट और व्यापक `THIRD_PARTY_LICENSES.md` का संकलन।
-  - कॉपीलेफ्ट (GPL/AGPL) वायरल संक्रमण और कानूनी मुकदमों की पूर्ण रोकथाम।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `Open Source License Auditor`
+- **Scope & Responsibilities:**
+  - Audit open-source dependencies for license compatibility (MIT/Apache vs. GPL/AGPL).
+  - Generate SPDX license header manifests and maintain `THIRD_PARTY_LICENSES.md`.
+  - Prevent viral copyleft contamination and legal copyright infringement.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -72,12 +72,12 @@
 ```
 
 ### 5.2 Data Privacy & Regulatory Compliance Officer (Data Privacy Officer)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `Data Privacy Officer`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - GDPR, CCPA और HIPAA के तहत डेटा प्रवाह और गोपनीयता का कानूनी ऑडिट।
-  - व्यक्तिगत पहचान योग्य जानकारी (PII) का छद्मनामीकरण (Pseudonymization) और रेस्ट/ट्रांजिट एन्क्रिप्शन।
-  - डेटा अवधारण समय-सारिणी (Data Retention) और उपयोगकर्ता सहमति वास्तुकला का प्रबंधन।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `Data Privacy Officer`
+- **Scope & Responsibilities:**
+  - Audit data processing workflows for GDPR, CCPA, and privacy regulation compliance.
+  - Enforce PII pseudonymization and encryption-at-rest/in-transit standards.
+  - Define data retention schedules and oversee consent lifecycle architectures.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -87,12 +87,12 @@
 ```
 
 ### 5.3 Intellectual Property & Copyright Auditor (IP Compliance Specialist)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `IP Compliance Specialist`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - सोर्स कोड प्रोवेनेंस और बौद्धिक संपदा (IP) स्वामित्व का कठोर सत्यापन।
-  - सभी सोर्स फ़ाइल हेडर्स में आधिकारिक कॉपीराइट नोटिस और एट्रिब्यूशन की पुष्टि।
-  - पेटेंट उल्लंघन जोखिम मूल्यांकन और प्रोप्राइटरी सॉफ्टवेयर कोड का संरक्षण।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `IP Compliance Specialist`
+- **Scope & Responsibilities:**
+  - Verify source code provenance and intellectual property ownership.
+  - Audit copyright headers and attribution notices across all repository files.
+  - Assess patent risks and protect proprietary trade secret codebases.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -102,12 +102,12 @@
 ```
 
 ### 5.4 Export Control & Regulatory Compliance Specialist (Regulatory Compliance Specialist)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `Regulatory Compliance Specialist`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - अंतर्राष्ट्रीय सॉफ्टवेयर निर्यात नियंत्रण (EAR / ECCN) और क्रिप्टोग्राफिक वर्गीकरण का ऑडिट।
-  - क्षेत्रीय डेटा संप्रभुता (Data Sovereignty) और अंतर्राष्ट्रीय सॉफ्टवेयर वितरण अनुपालन।
-  - वैश्विक व्यापार प्रतिबंधों और सैंक्शन्स स्क्रीनिंग नियमों का कड़ा प्रवर्तन।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `Regulatory Compliance Specialist`
+- **Scope & Responsibilities:**
+  - Audit cryptographic implementations against international export controls (EAR / ECCN).
+  - Enforce jurisdictional compliance and data sovereignty rules.
+  - Verify adherence to global trade sanctions and restricted-party screening protocols.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -116,11 +116,10 @@
 }
 ```
 
-
 ---
 
-## 🚦 6. विभाग हैंडऑफ एवं सत्यापन गेट्स (Department Handoff Gates)
+## 🚦 6. Department Handoff & Verification Gates
 
-1. **Gate 11-A (लाइसेंस स्कैन):** `npx license-checker --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC"` बिना उल्लंघन के पास हो।
-2. **Gate 11-B (PII ऑडिट):** कोडबेस में किसी भी अनधिकृत PII भंडारण की पुष्टि न हो।
-3. **अगले विभाग को हैंडऑफ:** कानूनी अनुमोदन के बाद ➔ **Dept 12: DevOps, Build & Release**।
+1. **Gate 11-A (License Checker Gate):** `npx license-checker --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC"` must pass without policy violations.
+2. **Gate 11-B (PII Hygiene):** Zero unencrypted or non-compliant PII persistence verified across data schemas.
+3. **Downstream Handoff:** Upon legal and compliance signoff, deliverables advance to **Dept 12: DevOps, Build & Release**.

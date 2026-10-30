@@ -1,6 +1,17 @@
 /* oxlint-disable react/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { soundFX } from '../utils/audio';
+import {
+  export3DPresetPackage,
+  generate3DSceneShareLink,
+  parse3DSceneShareLink
+} from '../utils/mediaExport';
+
+export {
+  export3DPresetPackage,
+  generate3DSceneShareLink,
+  parse3DSceneShareLink
+};
 
 export const CONTROL_CENTER_STORAGE_KEY = 'portfolio_control_center';
 export const LAB_STORAGE_KEY = 'portfolio_lab_config'; // Legacy mirror key
@@ -43,6 +54,33 @@ export const DEFAULT_AI_CHAT_SETTINGS = Object.freeze({
 // Phase 1: 0ms Dual Real-Time Cross-Tab 3D IPC Channel & Storage Keys
 export const PORTFOLIO_3D_CHANNEL_NAME = 'portfolio_3d_channel';
 export const PORTFOLIO_3D_INSTANT_SYNC_KEY = 'portfolio_3d_instant_sync';
+
+// Phase 4: Anti-Echo Persistent Tab Instance ID
+export const TAB_INSTANCE_ID = typeof crypto !== 'undefined' && crypto.randomUUID
+  ? crypto.randomUUID()
+  : ('tab_' + Math.random().toString(36).substring(2, 9));
+
+/**
+ * Detect WebGL/WebGPU context creation capabilities with graceful fallback
+ * @returns {boolean} true if WebGL context can be initialized
+ */
+export function checkWebGLSupport() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return false;
+  }
+  try {
+    if (!window.WebGLRenderingContext) {
+      return false;
+    }
+    const canvas = document.createElement('canvas');
+    return Boolean(
+      canvas.getContext('webgl') ||
+      canvas.getContext('experimental-webgl')
+    );
+  } catch {
+    return false;
+  }
+}
 
 export const FACTORY_DEFAULTS = {
   version: 2,
@@ -426,6 +464,30 @@ export function clampDepthIntensity(val) {
   const num = typeof val === 'number' ? val : parseFloat(val);
   if (isNaN(num)) return 1.0;
   return parseFloat(clamp(num, 0.2, 2.5, 1.0).toFixed(2));
+}
+
+/**
+ * Automatically tunes 3D depth intensity and tilt sensitivity according to the client device's physical capabilities.
+ * @returns {{ depthIntensity: number, tiltSensitivity: number, isMobile: boolean, dpr: number }}
+ */
+export function calibrateDepthByDeviceProfile() {
+  if (typeof window === 'undefined') {
+    return { depthIntensity: 1.0, tiltSensitivity: 15, isMobile: false, dpr: 1 };
+  }
+
+  const isMobile = window.innerWidth < 768 || /Mobi|Android|iPhone/i.test(navigator?.userAgent || '');
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+
+  // Balanced depth for smaller mobile screens to avoid clipping
+  const recommendedDepth = isMobile ? 0.75 : 1.15;
+  const recommendedTilt = isMobile ? 12 : 18;
+
+  return {
+    depthIntensity: recommendedDepth,
+    tiltSensitivity: recommendedTilt,
+    isMobile,
+    dpr
+  };
 }
 
 export function sanitizeChatSettings(raw) {
@@ -906,16 +968,91 @@ export function computeScopedSandboxStyles(threeD = FACTORY_DEFAULTS.threeD, ove
   };
 }
 
+/**
+ * Safely loads 3D configuration with corruption self-healing and quarantine
+ * @returns {object} Normalized 3D config
+ */
+export function loadSaved3DConfig() {
+  if (typeof window === 'undefined') {
+    return JSON.parse(JSON.stringify(FACTORY_DEFAULTS.threeD));
+  }
+  try {
+    const rawSync = localStorage.getItem(PORTFOLIO_3D_INSTANT_SYNC_KEY);
+    if (rawSync) {
+      try {
+        const parsedSync = JSON.parse(rawSync);
+        if (parsedSync && typeof parsedSync === 'object' && parsedSync.threeD) {
+          return normalizeThreeD(parsedSync.threeD);
+        }
+        if (parsedSync && typeof parsedSync !== 'object') {
+          throw new Error('Malformed 3D sync payload');
+        }
+      } catch {
+        try {
+          localStorage.setItem('portfolio_control_center_corrupt_backup', rawSync);
+        } catch {}
+      }
+    }
+    const rawCC = localStorage.getItem(CONTROL_CENTER_STORAGE_KEY);
+    if (rawCC) {
+      try {
+        const parsedCC = JSON.parse(rawCC);
+        if (parsedCC && typeof parsedCC === 'object' && parsedCC.threeD) {
+          return normalizeThreeD(parsedCC.threeD);
+        }
+        if (parsedCC && typeof parsedCC !== 'object') {
+          throw new Error('Malformed control center payload');
+        }
+      } catch {
+        try {
+          localStorage.setItem('portfolio_control_center_corrupt_backup', rawCC);
+        } catch {}
+      }
+    }
+  } catch {}
+  return JSON.parse(JSON.stringify(FACTORY_DEFAULTS.threeD));
+}
+
 export function loadSavedControlCenterConfig() {
   if (typeof window === 'undefined') {
     return JSON.parse(JSON.stringify(FACTORY_DEFAULTS));
   }
 
+  // Tier 0: Guard and quarantine corrupted instant sync key if present
+  try {
+    const rawSync = localStorage.getItem(PORTFOLIO_3D_INSTANT_SYNC_KEY);
+    if (rawSync) {
+      try {
+        const parsedSync = JSON.parse(rawSync);
+        if (!parsedSync || typeof parsedSync !== 'object') {
+          throw new Error('Malformed 3D instant sync payload');
+        }
+      } catch {
+        try {
+          localStorage.setItem('portfolio_control_center_corrupt_backup', rawSync);
+        } catch {}
+      }
+    }
+  } catch {}
+
   // Tier 1: Look for current portfolio_control_center key
   try {
     const raw = localStorage.getItem(CONTROL_CENTER_STORAGE_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw);
+      let parsed = null;
+      try {
+        parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') {
+          throw new Error('Malformed control center JSON structure');
+        }
+      } catch {
+        // Quarantine corrupted or malformed JSON
+        try {
+          localStorage.setItem('portfolio_control_center_corrupt_backup', raw);
+        } catch {}
+        return JSON.parse(JSON.stringify(FACTORY_DEFAULTS));
+      }
+
       if (parsed && typeof parsed === 'object') {
         const audio = parsed.audio || {};
         const cursor = parsed.cursor || {};
@@ -1438,13 +1575,39 @@ export function LabProvider({ children, initialSoundEnabled }) {
 
   // Tab 6: 3D State
   const [threeD, setThreeDState] = useState(() => {
-    const base = initialConfig.threeD
+    let base = initialConfig.threeD
       ? normalizeThreeD(initialConfig.threeD)
       : JSON.parse(JSON.stringify(FACTORY_DEFAULTS.threeD));
+    // Check if URL has share link configuration on initial mount
+    if (typeof window !== 'undefined' && window.location?.search && window.location.search.includes('threed_config')) {
+      try {
+        const shared = parse3DSceneShareLink(window.location.search);
+        if (shared) {
+          base = normalizeThreeD({ ...base, ...shared });
+        }
+      } catch {
+        // Fallback safely
+      }
+    }
     // Always start collapsed/hidden on initial mount / fresh session per user requirement
     base.showSandboxPreview = false;
     return base;
   });
+
+  // Phase 2: Check URL for 3D shared configuration upon mount
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.location) return;
+    try {
+      if (window.location.search && window.location.search.includes('threed_config')) {
+        const shared = parse3DSceneShareLink(window.location.search);
+        if (shared) {
+          setThreeDState((prev) => normalizeThreeD({ ...prev, ...shared }));
+        }
+      }
+    } catch (err) {
+      console.warn('[LabContext] Auto-detection of threed_config failed:', err);
+    }
+  }, []);
 
   // Phase 1: State Isolation & Scoped CSS 3D Architecture
   // Controls whether 3D CSS variables and datasets bleed into live document root
@@ -1488,14 +1651,25 @@ export function LabProvider({ children, initialSoundEnabled }) {
   const threeDRef = useRef(threeD);
   threeDRef.current = threeD;
 
-  // Phase 1: 0ms Cross-tab IPC instance identifier & BroadcastChannel ref
+  // Phase 1 & 4: 0ms Cross-tab IPC instance identifier & BroadcastChannel ref
   const windowInstanceIdRef = useRef(
     typeof window !== 'undefined'
-      ? `tab_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+      ? TAB_INSTANCE_ID
       : 'tab_server'
   );
   const broadcastChannelRef = useRef(null);
   const prevPersistedThreeDRef = useRef(JSON.stringify(threeD));
+
+  // Phase 4: WebGL Context Detection & Graceful Fallback
+  const [isWebGLSupported, setIsWebGLSupported] = useState(() => checkWebGLSupport());
+
+  useEffect(() => {
+    const supported = checkWebGLSupport();
+    setIsWebGLSupported(supported);
+    if (typeof document !== 'undefined' && document.documentElement) {
+      document.documentElement.dataset.webglSupport = supported ? 'true' : 'false';
+    }
+  }, []);
 
   const stateRef = useRef(null);
   stateRef.current = {
@@ -1597,6 +1771,10 @@ export function LabProvider({ children, initialSoundEnabled }) {
       root.style.setProperty('--3d-material-preset', 'glass-acrylic');
       root.style.setProperty('--3d-specular-glow', '0');
       root.style.setProperty('--3d-bevel-extrusion', '0px');
+      root.style.setProperty('--3d-roughness', '0');
+      root.style.setProperty('--3d-metalness', '0');
+      root.style.setProperty('--3d-ior', '1');
+      root.style.setProperty('--3d-clearcoat', '0');
       root.style.setProperty('--3d-hover-pop', '0px');
       root.style.setProperty('--3d-elasticity', 'snappy');
       root.style.setProperty('--3d-explode-z', '0px');
@@ -1845,6 +2023,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
             broadcastChannelRef.current.postMessage({
               type: 'SYNC_3D_STATE',
               payload: threeD,
+              originTabId: TAB_INSTANCE_ID,
               sender: windowInstanceIdRef.current,
               timestamp: Date.now()
             });
@@ -1855,13 +2034,23 @@ export function LabProvider({ children, initialSoundEnabled }) {
         try {
           localStorage.setItem(
             PORTFOLIO_3D_INSTANT_SYNC_KEY,
-            JSON.stringify({ threeD, sender: windowInstanceIdRef.current, timestamp: Date.now() })
+            JSON.stringify({
+              threeD,
+              originTabId: TAB_INSTANCE_ID,
+              sender: windowInstanceIdRef.current,
+              timestamp: Date.now()
+            })
           );
         } catch {
           // Storage quota
         }
         try {
-          window.dispatchEvent(new CustomEvent('portfolio:3d-change', { detail: threeD }));
+          window.dispatchEvent(new CustomEvent('portfolio:3d-change', {
+            detail: {
+              ...threeD,
+              originTabId: TAB_INSTANCE_ID
+            }
+          }));
         } catch {
           // Ignore
         }
@@ -2503,6 +2692,21 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DExploded({ soloStrata: strataKey ?? null });
   }, [set3DExploded]);
 
+  const toggle3DExplodedStrataSolo = useCallback((strataKey) => {
+    setThreeDState((prev) => {
+      const current = prev.exploded?.soloStrata;
+      const target = (strataKey === 'none' || strataKey === '' || strataKey === null) ? null : strataKey;
+      const nextStrata = current === target ? null : target;
+      return {
+        ...prev,
+        exploded: {
+          ...prev.exploded,
+          soloStrata: nextStrata
+        }
+      };
+    });
+  }, []);
+
   const set3DEnvironment = useCallback((patch) => {
     setThreeDState((prev) => ({
       ...prev,
@@ -2918,8 +3122,19 @@ export function LabProvider({ children, initialSoundEnabled }) {
       }
       if (e.key === PORTFOLIO_3D_INSTANT_SYNC_KEY && e.newValue) {
         try {
-          const inc = JSON.parse(e.newValue);
-          if (inc && inc.sender !== windowInstanceIdRef.current && inc.threeD) {
+          let inc = null;
+          try {
+            inc = JSON.parse(e.newValue);
+            if (!inc || typeof inc !== 'object') {
+              throw new Error('Malformed instant sync payload');
+            }
+          } catch {
+            try {
+              localStorage.setItem('portfolio_control_center_corrupt_backup', e.newValue);
+            } catch {}
+            inc = null;
+          }
+          if (inc && inc.originTabId !== TAB_INSTANCE_ID && inc.sender !== windowInstanceIdRef.current && inc.threeD) {
             const normalizedThreeD = normalizeThreeD(inc.threeD);
             if (JSON.stringify(normalizedThreeD) !== JSON.stringify(threeDRef.current)) {
               isIncomingSyncRef.current = true;
@@ -2952,7 +3167,8 @@ export function LabProvider({ children, initialSoundEnabled }) {
         bc = new BroadcastChannel(PORTFOLIO_3D_CHANNEL_NAME);
         broadcastChannelRef.current = bc;
         bc.onmessage = (event) => {
-          if (!event?.data || event.data.sender === windowInstanceIdRef.current) return;
+          if (!event?.data) return;
+          if (event.data.originTabId === TAB_INSTANCE_ID || event.data.sender === windowInstanceIdRef.current) return;
           if (event.data.type === 'SYNC_3D_STATE' && event.data.payload) {
             const incoming = normalizeThreeD(event.data.payload);
             if (JSON.stringify(incoming) !== JSON.stringify(threeDRef.current)) {
@@ -3138,6 +3354,11 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DClusterFilter,
     set3DExploded,
     set3DSoloStrata,
+    toggle3DExplodedStrataSolo,
+    calibrateDepthByDeviceProfile,
+    export3DPresetPackage,
+    generate3DSceneShareLink,
+    parse3DSceneShareLink,
     set3DEnvironment,
     set3DSpatialAudio,
     set3DPerformance,
@@ -3149,6 +3370,9 @@ export function LabProvider({ children, initialSoundEnabled }) {
     applyToLivePortfolio,
     revertLivePortfolio,
     getScopedSandboxStyles,
+    isWebGLSupported,
+    checkWebGLSupport,
+    TAB_INSTANCE_ID,
 
     // Runtime UI State & Actions
     activeTab,
@@ -3307,6 +3531,11 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DClusterFilter,
     set3DExploded,
     set3DSoloStrata,
+    toggle3DExplodedStrataSolo,
+    calibrateDepthByDeviceProfile,
+    export3DPresetPackage,
+    generate3DSceneShareLink,
+    parse3DSceneShareLink,
     set3DEnvironment,
     set3DSpatialAudio,
     set3DPerformance,
@@ -3318,6 +3547,7 @@ export function LabProvider({ children, initialSoundEnabled }) {
     applyToLivePortfolio,
     revertLivePortfolio,
     getScopedSandboxStyles,
+    isWebGLSupported,
     activeTab,
     setActiveTab,
     isDrawerOpen,
@@ -3456,6 +3686,9 @@ export function LabProvider({ children, initialSoundEnabled }) {
     applyToLivePortfolio,
     revertLivePortfolio,
     getScopedSandboxStyles,
+    isWebGLSupported,
+    checkWebGLSupport,
+    TAB_INSTANCE_ID,
     master3D: threeD.master3D,
     depthIntensity: threeD.depthIntensity,
     stylePreset: threeD.stylePreset,
@@ -3520,6 +3753,11 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DClusterFilter,
     set3DExploded,
     set3DSoloStrata,
+    toggle3DExplodedStrataSolo,
+    calibrateDepthByDeviceProfile,
+    export3DPresetPackage,
+    generate3DSceneShareLink,
+    parse3DSceneShareLink,
     set3DEnvironment,
     set3DSpatialAudio,
     set3DPerformance,
@@ -3568,6 +3806,11 @@ export function LabProvider({ children, initialSoundEnabled }) {
     set3DClusterFilter,
     set3DExploded,
     set3DSoloStrata,
+    toggle3DExplodedStrataSolo,
+    calibrateDepthByDeviceProfile,
+    export3DPresetPackage,
+    generate3DSceneShareLink,
+    parse3DSceneShareLink,
     set3DEnvironment,
     set3DSpatialAudio,
     set3DPerformance,
@@ -3578,7 +3821,8 @@ export function LabProvider({ children, initialSoundEnabled }) {
     setIsLive3DApplied,
     applyToLivePortfolio,
     revertLivePortfolio,
-    getScopedSandboxStyles
+    getScopedSandboxStyles,
+    isWebGLSupported
   ]);
 
   const visualsValue = useMemo(() => ({

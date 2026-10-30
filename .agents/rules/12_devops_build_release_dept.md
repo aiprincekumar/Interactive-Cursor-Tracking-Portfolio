@@ -1,45 +1,45 @@
-﻿﻿# Department 12: DevOps, Build & Release Management (डेवऑप्स एवं रिलीज विभाग)
+# Department 12: DevOps, Build & Release Management
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
 > - **Foundation Rules:** [`foundation_and_special_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/foundation_and_special_rules.md)
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md)
-> - **Universal Canonical Rules:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/universal_rules.md)
+> - **Universal Canonical Rules:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/archive/universal_rules.md) (Archived canonical reference)
 
 ---
 
-## 🚀 1. विभाग का मिशन एवं कार्यक्षेत्र (Mission & Department Scope)
+## 🚀 1. Mission & Department Scope
 
-डेवऑप्स, बिल्ड इंजीनियरिंग एवं रिलीज प्रबंधन विभाग (DevOps, Build & Release Dept) सतत एकीकरण (CI), सतत वितरण (CD), डिटरमिनिस्टिक बिल्ड्स, रिलीज गेट्स, Git Flow ब्रांचिंग और प्रोजेक्ट-स्तरीय Changes Log के कड़े अनुपालन का प्रभारी है।
+The DevOps, Build & Release Management Department (Dept 12) governs Continuous Integration (CI), Continuous Delivery (CD), deterministic builds, release quality gates, Git Flow branching strategies, and strict compliance with the project-level Changes Log standard.
 
-यह विभाग सुनिश्चित करता है कि उत्पादन में जाने वाला प्रत्येक आर्टिफैक्ट 100% संकलनीय (buildable), सत्यापित और ऑडिट योग्य हो।
-
----
-
-## 🛑 2. अनिवार्य बिल्ड सत्यापन गेट्स (Mandatory Build Verification Gates)
-
-### 2.1 शून्य-त्रुटि बिल्ड नियम (Strict Zero-Error Build Mandate)
-- किसी भी कोड परिवर्तन को कमिट करने, मर्ज करने या रिलीज घोषित करने से पहले निम्नलिखित कमांड्स का स्थानीय स्तर पर 100% सफल होना अनिवार्य है:
-  1. **डिपेंडेंसी संगति:** `npm ci` (लॉकफाइल अखंडता)
-  2. **टाइपचेक:** `npm run typecheck` या `tsc --noEmit`
-  3. **लिंटर पास:** `npm run lint`
-  4. **कंपाइलर एवं बंडल बिल्ड:** `npm run build`
-  5. **टेस्ट सूट रन:** `npm test`
-- यदि इनमें से एक भी गेट असफल होता है, तो रिलीज प्रक्रिया तुरंत **BLOCK** कर दी जाएगी।
+This department ensures every artifact advancing toward production is 100% buildable, verified, and audited.
 
 ---
 
-## 🐙 3. गिट फ्लो एवं सेमेंटिक वर्जनिंग मानक (Git Flow & SemVer Standards)
+## 🛑 2. Mandatory Build Verification Gates
 
-### 3.1 वैश्विक डेवलपर गिट प्रोफाइल (Rule 16 Compliance)
-- रिपॉजिटरी में प्रत्येक कमिट Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com`) के रूप में ही ऑथर्ड होना चाहिए।
+### 2.1 Strict Zero-Error Build Mandate
+- Prior to committing, merging, or releasing any codebase modifications, the following checks must succeed locally with zero errors:
+  1. **Lockfile Integrity:** `npm ci`
+  2. **Typecheck Gate:** `npm run typecheck` or `tsc --noEmit`
+  3. **Linter Gate:** `npm run lint`
+  4. **Compiler & Bundler Gate:** `npm run build`
+  5. **Automated Test Suite:** `npm test`
+- If any single verification gate fails, the release sequence is immediately **BLOCKED**.
 
-### 3.2 सेमेंटिक वर्जनिंग (SemVer 2.0.0)
-- **MAJOR (X.0.0):** बैकवर्ड-इनकम्पैटिबल ब्रेकिंग बदलाव।
-- **MINOR (0.X.0):** बैकवर्ड-कम्पैटिबल नए फीचर्स।
-- **PATCH (0.0.X):** बैकवर्ड-कम्पैटिबल बग फिक्सेस।
+---
 
-### 3.3 कन्वेंशनल कमिट्स मानक (Conventional Commits)
+## 🐙 3. Git Flow & Semantic Versioning Standards
+
+### 3.1 Developer Git Identity (Rule 16 Compliance)
+- Every repository commit must be strictly authored as Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com`).
+
+### 3.2 Semantic Versioning (SemVer 2.0.0)
+- **MAJOR (X.0.0):** Backward-incompatible breaking changes.
+- **MINOR (0.X.0):** Backward-compatible functional enhancements.
+- **PATCH (0.0.X):** Backward-compatible bug fixes and patches.
+
+### 3.3 Conventional Commits Standard
 - `feat(auth): add OAuth2 Google login flow`
 - `fix(cart): resolve race condition in quantity update`
 - `docs(api): update OpenAPI spec for orders endpoint`
@@ -47,31 +47,31 @@
 
 ---
 
-## 📜 4. प्रोजेक्ट स्तर पर अनिवार्य Changes Log प्रबंधन (Rule 6 Compliance)
+## 📜 4. Project-Level Changes Log Management (Rule 6 Compliance)
 
-किसी भी प्रोजेक्ट में किए गए सभी बदलावों को प्रोजेक्ट रूट के `changes_log/` फोल्डर में व्यवस्थित रूप से दर्ज किया जाएगा:
+Every codebase modification must be recorded across the 5 tiers of the project's `changes_log/` directory structure:
 ```
 changes_log/
-  └── YYYY-MM-DD/
-        └── HH-mm-ss_session_id/
-              ├── changes_manifest.json     (परिवर्तन मेटाडेटा, ऑथर, फाइल्स सूची)
-              ├── git_diff_summary.md       (विस्तृत गिट डिफ और संपादन का विवरण)
-              └── verification_report.md    (बिल्ड, लिंट, टेस्ट सफलता प्रमाण)
+  ├── summary/changes_summary.md
+  ├── master/master_changes_log.md
+  ├── daily/YYYY-MM-DD/
+  ├── entries/YYYY-MM-DD/change_<ID>_<Timestamp>.md
+  └── recent_10/
 ```
 
 ---
 
-## 🧑‍💼 5. विभागीय पद एवं समर्पित सब-एजेंट्स (Departmental Roles & Subagents)
+## 🧑‍💼 5. Departmental Roles & Dedicated Subagents
 
-विभागीय कार्य-विभाजन और उद्यम विशेषज्ञता (Specialization of Labor) सुनिश्चित करने के लिए 4 समर्पित पद (Enterprise Job Roles) और उनके अनुरूप सब-एजेंट्स परिभाषित हैं:
+To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise job roles and their corresponding subagent archetypes are established:
 
 ### 5.1 CI/CD Automation Pipeline Engineer (CI/CD Pipeline Engineer)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `CI/CD Pipeline Engineer`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - मजबूत और स्केलेबल GitHub Actions CI/CD वर्कफ़्लोज़ की वास्तुकला।
-  - बिल्ड आर्टिफैक्ट कैशिंग और समानांतर टेस्ट मैट्रिसेस का विन्यास।
-  - सुरक्षित और स्वचालित ज़ीरो-डाउनटाइम डिप्लॉयमेंट पाइपलाइन्स का निर्माण।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `CI/CD Pipeline Engineer`
+- **Scope & Responsibilities:**
+  - Architect robust GitHub Actions CI/CD workflows and deployment automations.
+  - Configure build artifact caching and parallelize automated test matrices.
+  - Engineer secure, automated zero-downtime deployment pipelines.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -81,12 +81,12 @@ changes_log/
 ```
 
 ### 5.2 Build System & Compiler Engineer (Build Systems Engineer)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `Build Systems Engineer`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - बिल्ड टूलचेन (Vite/Turborepo/esbuild) का अनुकूलन और कंपाइलेशन गति सुधार।
-  - नॉन-निगोशिएबल ज़ीरो-एरर बिल्ड गेट्स (`npm run build`) का कड़ा प्रवर्तन।
-  - इंक्रीमेंटल बिल्ड कैशिंग और बिल्ड-टाइम परफॉर्मेंस डिग्रेडेशन का निवारण।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `Build Systems Engineer`
+- **Scope & Responsibilities:**
+  - Optimize build toolchain configurations (Vite, Turborepo, esbuild).
+  - Enforce non-negotiable zero-error compilation gates (`npm run build`).
+  - Implement incremental build caching and eliminate build-time degradation.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -96,12 +96,12 @@ changes_log/
 ```
 
 ### 5.3 Release Manager & Changes Log Gatekeeper (Release Manager)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `Release Manager`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - सेमेंटिक वर्जनिंग (SemVer) और Git Flow रिलीज़ शाखाओं का समन्वय।
-  - Rule 6 के तहत प्रोजेक्ट स्तर पर अनिवार्य `changes_log/` प्रविष्टियों का सत्यापन।
-  - सत्यापन सूट्स उत्तीर्ण होने के पश्चात ही प्रोडक्शन रिलीज़ को अधिकृत करना।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `Release Manager`
+- **Scope & Responsibilities:**
+  - Coordinate Semantic Versioning (SemVer) and Git Flow release branching.
+  - Verify compliance with Universal Rule 6 `changes_log/` audit entries.
+  - Authorize production releases strictly upon passing all verification suites.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -111,12 +111,12 @@ changes_log/
 ```
 
 ### 5.4 Containerization & Artifact Registry Specialist (Containerization Specialist)
-- **समर्पित सब-एजेंट रोल (Subagent Role):** `Containerization Specialist`
-- **उद्देश्य एवं कार्यक्षेत्र (Scope & Responsibilities):**
-  - सुरक्षित और न्यून पदचिह्न (Minimal Footprint) मल्टी-स्टेज Dockerfiles तैयार करना।
-  - नॉन-रूट सुरक्षा संदर्भ और कंटेनर CVEs का पूर्ण उन्मूलन।
-  - कंटेनर इमेजेस का आर्टिफैक्ट रजिस्ट्री में सुरक्षित पब्लिशिंग और टैगिंग।
-- **मानकीकृत सब-एजेंट आमंत्रण (Invocation Directive):**
+- **Dedicated Subagent Role:** `Containerization Specialist`
+- **Scope & Responsibilities:**
+  - Author hardened, minimal-footprint multi-stage Dockerfiles.
+  - Enforce non-root security contexts and eliminate container base-image CVEs.
+  - Configure secure container image artifact registry tagging and publication.
+- **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
@@ -125,11 +125,10 @@ changes_log/
 }
 ```
 
-
 ---
 
-## 🚦 6. विभाग हैंडऑफ एवं सत्यापन गेट्स (Department Handoff Gates)
+## 🚦 6. Department Handoff & Verification Gates
 
-1. **Gate 12-A (बिल्ड एवं टेस्ट पास):** उत्पादन बिल्ड शून्य चेतावनी/त्रुटि के साथ उत्पन्न हो।
-2. **Gate 12-B (Changes Log प्रविष्टि):** `changes_log/` में सुव्यवस्थित प्रविष्टि दर्ज हो।
-3. **अगले विभागों को हैंडऑफ:** रिलीज पैकेज तैयार होने पर ➔ **Dept 13: SRE & Backup** और **Dept 14: Telemetry**।
+1. **Gate 12-A (Build & Test Pass):** Production build generated with zero warnings or errors.
+2. **Gate 12-B (Changes Log Audit):** Verified audit record registered in `changes_log/`.
+3. **Downstream Handoff:** Upon release packaging, ownership advances to **Dept 13: SRE & Backup** and **Dept 14: Telemetry**.

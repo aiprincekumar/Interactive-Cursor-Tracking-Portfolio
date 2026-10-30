@@ -31,6 +31,11 @@
     "test:3d-phase4": "node scripts/verify_phase4_multi_preview_autoswitch.mjs",
     "test:3d-phase5": "node scripts/verify_phase5_polish_visual_linking.mjs",
     "test:3d-runtime": "node scripts/verify_threed_tab_runtime_render.mjs",
+    "test:3d-enhancement-phase1": "node scripts/verify_3d_enhancement_phase1.mjs",
+    "test:3d-enhancement-phase2": "node scripts/verify_3d_enhancement_phase2.mjs",
+    "test:3d-enhancement-phase3": "node scripts/verify_3d_enhancement_phase3.mjs",
+    "test:3d-enhancement-phase4": "node scripts/verify_3d_enhancement_phase4.mjs",
+    "test:3d-enhancement-all": "node scripts/verify_3d_enhancement_phase1.mjs && node scripts/verify_3d_enhancement_phase2.mjs && node scripts/verify_3d_enhancement_phase3.mjs && node scripts/verify_3d_enhancement_phase4.mjs",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
