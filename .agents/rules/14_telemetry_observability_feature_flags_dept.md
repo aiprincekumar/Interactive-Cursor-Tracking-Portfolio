@@ -1,4 +1,4 @@
-# Department 14: Telemetry, Observability & Feature Flags
+﻿# Department 14: Telemetry, Observability & Feature Flags
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
@@ -84,7 +84,7 @@ Every backend service must expose standardized health endpoints:
 
 ## 🧑‍💼 5. Departmental Roles & Dedicated Subagents
 
-To enforce specialization of labor and enterprise rigor, 3 dedicated enterprise job roles and their corresponding subagent archetypes are established:
+To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise job roles and their corresponding subagent archetypes are established:
 
 ### 5.1 Observability & Distributed Tracing Engineer (Telemetry Engineer)
 - **Dedicated Subagent Role:** `Telemetry Engineer`
@@ -128,6 +128,21 @@ To enforce specialization of labor and enterprise rigor, 3 dedicated enterprise 
   "TypeName": "self",
   "Role": "Metrics Dashboard Specialist",
   "Prompt": "Configure RED/USE metrics collection, implement structured correlation-ID JSON logging, design real-time Grafana dashboards, and establish high-fidelity alerting rules."
+}
+```
+
+### 5.4 Incident Commander & RCA Lead (Incident Commander)
+- **Dedicated Subagent Role:** `Incident Commander`
+- **Scope & Responsibilities:**
+  - Lead critical incident response lifecycles, outage triage, cross-team escalation, and operational containment.
+  - Coordinate post-mortem blameless Root Cause Analysis (RCA) and formulate preventive corrective actions (CAPA).
+  - Maintain incident status communications, SLAs, MTTA/MTTR reduction strategies, and executive incident debriefs.
+- **Standard Subagent Invocation Directive:**
+```json
+{
+  "TypeName": "self",
+  "Role": "Incident Commander",
+  "Prompt": "Mandatory: First load and adhere to .agents/rules/14_telemetry_observability_feature_flags_dept.md (or C:\\Users\\Atul Verma\\.gemini\\config\\rules\\14_telemetry_observability_feature_flags_dept.md) and memory.md before executing instructions. Triage production incidents, coordinate containment protocols, lead blameless Root Cause Analysis (RCA), and establish corrective action preventive plans."
 }
 ```
 

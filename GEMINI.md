@@ -19,7 +19,7 @@ Every agent, subagent, and automated process must strictly maintain the separati
 - **`.agents/rules/` (Enterprise Standards):** Local synchronized copy of 15 foundation and departmental rules (each < 24 KB, truncation-free).
 
 ### Precedence Hierarchy:
-1. **Tier 1 (Universal Constitutional Governance):** Global Universal Rules (`~/.gemini/GEMINI.md` & `universal_rules.md`). Strict CEO model, Zero-Scan, Git push user permission gatekeeper, Atul Verma author profile, UTF-8 with BOM.
+1. **Tier 1 (Universal Constitutional Governance):** Global Universal Rules (`~/.gemini/GEMINI.md` & `universal_rules.md`). Strict CEO model, Zero-Scan, Autonomous local micro-commits with user notification, remote Git push interactive gatekeeper, Atul Verma author profile, UTF-8 with BOM.
 2. **Tier 2 (Project Implementation & Domain Standards):** Project `GEMINI.md`, `.agents/rules/`, and `memory.md`. Tech stack (Vite + Vanilla TS/CSS), Kinematics, Audio Synth, and Canvas pipelines.
 
 ---
@@ -27,21 +27,25 @@ Every agent, subagent, and automated process must strictly maintain the separati
 ## 📋 2. Mandated Agent Workflow Protocols (HOW)
 
 ### 2.0 Mandatory Zero-Scan Bootstrap Protocol (Rule 0 / 21)
-Upon starting any session or task, incoming AI agents MUST immediately anchor to [`memory.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/memory.md) as active working memory. Blind recursive workspace scans (`dir /s`, `find`, `grep -r`, `glob`) are strictly banned. All file paths and module boundaries are pre-mapped.
+Upon starting any session or task, incoming AI agents MUST immediately anchor to [`memory.md`](file:///c:/Users/Atul%20Verma/Desktop/AI%20Document/Interactive%20Cursor-Tracking%20Portfolio/memory.md) as active working memory. Blind recursive workspace scans (`dir /s`, `find`, `grep -r`, `glob`) are strictly banned. All file paths and module boundaries are pre-mapped. Sanctioned context bundling is performed via `repomix` (saving ~70% prompt tokens).
 
 ### 2.1 CEO / Manager Delegation Model (Universal Rule 1)
 - The Main Agent operates strictly as **CEO / Orchestrator** and never writes application code, edits files, or executes shell commands directly.
 - Tasks are decomposed and dispatched to specialized subagents (`invoke_subagent` / `define_subagent`). Independent QA verification subagent signoff is required before final reporting.
 - **Mandatory Subagent Prompt Anchor Directive:** Whenever dispatching subagents via `invoke_subagent`, the CEO must prefix or include the mandatory departmental anchoring directive in the prompt: `"Mandatory: First load and adhere to .agents/rules/XX_..._dept.md (or C:\Users\Atul Verma\.gemini\config\rules\XX_..._dept.md) and memory.md before executing instructions."`
 
-### 2.2 Autonomous Forward Momentum (Rule 7) & Git Gatekeeper (Rule 15)
-- **Local Autonomy:** Local file creation, refactoring, automated testing, and changes logging proceed autonomously without interrupting the user.
-- **Strict Remote Git Push Gatekeeper (Hard Lock):** Making any `git commit` or `git push` to GitHub without prior explicit user permission is strictly prohibited. Changes remain securely on local hold until explicit confirmation via `ask_question` or clear user instruction.
+### 2.2 Autonomous Forward Momentum (Rule 7) & GitHub Operations / Push Gatekeeper (Rule 15)
+- **Autonomous Local Micro-Commit Cadence:** Autonomously stage and commit locally (`git commit`) after every 2-3 logical/micro changes during execution without asking the user. Notify the user immediately after committing locally: "हाँ, लोकल में कमिट हो चुका है [hash/message]".
+- **Strict Remote Git Push Gatekeeper (Hard Lock):** Absolute ban on remote `git push` without prior explicit user consent. Mandatory `gitleaks detect --redact` secret audit must execute with zero findings before presenting user options.
+- **Task-Completion Interactive Gate (`ask_question`):** Upon completing and verifying the entire task, present an interactive 3-option choice via `ask_question`:
+  - Option 1: `(Recommended) कमिट ऑन GitHub ऑनलाइन` (Push/sync to GitHub remote online with pre-push gitleaks check and 3-point terminal proof)
+  - Option 2: `लोकल कमिट` (Keep / finalize local commit only, do not push to remote)
+  - Option 3: `नो कमिट एंड टेस्ट` (No commit / revert or keep uncommitted for user testing and manual inspection)
 - **3-Point Terminal Proof:** Remote operations mandate raw terminal verification: 1) `git log -1` commit hash, 2) `git push` remote response, 3) `git status` clean tree confirmation.
 
 ### 2.3 Changes Log Management (Universal Rule 6)
 Every file change must be audited across 5 standardized levels:
-`changes_log/summary/changes_summary.md`, `changes_log/master/master_changes_log.md`, `changes_log/daily/YYYY-MM-DD/`, `changes_log/entries/YYYY-MM-DD/change_<ID>_<Timestamp>.md`, and `changes_log/recent_10/`. Timestamps follow `YYYY-MM-DD_HH-mm-ss`.
+`changes_log/summary/changes_summary.md`, `changes_log/master/master_changes_log.md`, `changes_log/daily/YYYY-MM-DD/`, `changes_log/entries/YYYY-MM-DD/change_<ID>_<Timestamp>.md`, and `changes_log/recent_10/`. Timestamps follow `YYYY-MM-DD_HH-mm-ss`. Automated conventional changelog generation is powered by `git-cliff` (0.02s generation, token-free).
 
 ### 2.4 Git Metadata Standard (Universal Rule 16)
 - **Author Name:** `aiprincekumar` | **Email:** `aiprincekumar010100@gmail.com` | **Repo:** `interactive-cursor-tracking-portfolio`
@@ -78,7 +82,13 @@ Whenever any rule, documentation, configuration, or structural change is made, `
 ```bash
 npm run dev                  # Start local development server
 npm run rules:check          # Audit enterprise rules integrity, file sizes (< 20 KB), links, & binary sync
+task rules:check             # Run rules health check via Taskfile
 npm test                     # Run comprehensive 42+ verification test suites (58 test harnesses)
+task test                    # Run verification test suite via Taskfile
+task audit                   # Execute gitleaks secret detection & security scan
+gitleaks detect --redact     # Run gitleaks secret scanner (Rule 12/15)
+git-cliff -o CHANGELOG.md    # Instantaneous 0.02s token-free changelog generation (Rule 6)
+repomix                      # Pack codebase into token-friendly AI context bundle (Rule 0/21)
 npm run test:on-device-ai    # Run targeted on-device AI test suite
 npm run test:chat-phase8     # Run master Phase 8 AI chat capstone integration suite
 npm run test:chat-phase9     # Run Phase 9 AI chat telemetry & streaming latency suite

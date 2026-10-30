@@ -1,4 +1,4 @@
-# Department 08: Quality Assurance, Testing & Verification
+﻿# Department 08: Quality Assurance, Testing & Verification
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
@@ -56,7 +56,8 @@ describe('calculateOrderDiscount', () => {
 - **Resilient Selectors:** Prefer accessible roles (`getByRole('button', { name: /submit/i })`) or dedicated `data-testid` attributes over brittle CSS class selectors.
 - **Zero-Flakiness Standard:** Strictly ban hardcoded timeouts (`sleep` or `waitForTimeout(5000)`); rely exclusively on web-first assertions (`await expect(locator).toBeVisible()`).
 
-### 3.3 Dev-Server Lifecycle & Test Port Isolation: Ensure Playwright and preview servers boot on clean, isolated ports; terminate listeners immediately post-test run.
+### 3.3 Dev-Server Lifecycle & Test Port Isolation
+Ensure Playwright and preview servers boot on clean, isolated ports; terminate listeners immediately post-test run.
 
 ---
 
@@ -74,7 +75,7 @@ describe('calculateOrderDiscount', () => {
 
 ## 🧑‍💼 5. Departmental Roles & Dedicated Subagents
 
-To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise job roles and their corresponding subagent archetypes are established:
+To enforce specialization of labor and enterprise rigor, 5 dedicated enterprise job roles and their corresponding subagent archetypes are established:
 
 ### 5.1 SDET Automation Test Lead (Automation Test Engineer)
 - **Dedicated Subagent Role:** `Automation Test Engineer`
@@ -133,6 +134,21 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
   "TypeName": "self",
   "Role": "Exploratory QA Specialist",
   "Prompt": "Conduct adversarial exploratory testing, inject malformed boundary payloads, probe concurrency race conditions, and document reproducible edge-case defect reports."
+}
+```
+
+### 5.5 Security & Dynamic Application Security Testing (DAST) QA Engineer (DAST Security QA Engineer)
+- **Dedicated Subagent Role:** `DAST Security QA Engineer`
+- **Scope & Responsibilities:**
+  - Execute automated Dynamic Application Security Testing (DAST) suites (OWASP ZAP, Burp Suite scanners).
+  - Probe running web applications for runtime injection vulnerabilities, CSRF flaws, CORS misconfigurations, and broken authentication.
+  - Validate cryptographic transport posture, cookie security flags (HttpOnly, Secure, SameSite), and security response headers (CSP, HSTS).
+- **Standard Subagent Invocation Directive:**
+```json
+{
+  "TypeName": "self",
+  "Role": "DAST Security QA Engineer",
+  "Prompt": "Mandatory: First load and adhere to .agents/rules/08_quality_assurance_testing_dept.md (or C:\\Users\\Atul Verma\\.gemini\\config\\rules\\08_quality_assurance_testing_dept.md) and memory.md before executing instructions. Execute DAST automated security testing, scan running endpoints for OWASP vulnerabilities, audit CORS and session cookie security, and verify CSP header enforcement."
 }
 ```
 

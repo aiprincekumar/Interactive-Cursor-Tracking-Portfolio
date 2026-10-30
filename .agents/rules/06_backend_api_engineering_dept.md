@@ -1,4 +1,4 @@
-# Department 06: Backend & API Engineering
+﻿# Department 06: Backend & API Engineering
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
@@ -89,7 +89,7 @@ Every API response must adhere to a predictable payload structure:
 
 ## 🧑‍💼 5. Departmental Roles & Dedicated Subagents
 
-To enforce specialization of labor and enterprise rigor, 5 dedicated enterprise job roles and their corresponding subagent archetypes are established:
+To enforce specialization of labor and enterprise rigor, 6 dedicated enterprise job roles and their corresponding subagent archetypes are established:
 
 ### 5.1 Senior REST & GraphQL API Engineer (Backend API Engineer)
 - **Dedicated Subagent Role:** `Backend API Engineer`
@@ -164,6 +164,21 @@ To enforce specialization of labor and enterprise rigor, 5 dedicated enterprise 
   "TypeName": "self",
   "Role": "AI Integration Engineer",
   "Prompt": "Architect backend LLM integrations, implement robust RAG pipelines, enforce structured outputs and tool calling workflows, and optimize prompt engineering guardrails."
+}
+```
+
+### 5.6 GraphQL & Real-time WebSockets Specialist (Real-time Systems Specialist)
+- **Dedicated Subagent Role:** `Real-time Systems Specialist`
+- **Scope & Responsibilities:**
+  - Design real-time bidirectional communication architectures (WebSockets, SSE - Server-Sent Events, WebRTC signaling).
+  - Implement performant GraphQL schemas, queries, mutations, subscriptions, and DataLoader batching to eliminate N+1 queries.
+  - Build resilient WebSocket connection lifecycles, heartbeat ping/pong, reconnect backoff strategies, and distributed pub/sub adapters.
+- **Standard Subagent Invocation Directive:**
+```json
+{
+  "TypeName": "self",
+  "Role": "Real-time Systems Specialist",
+  "Prompt": "Mandatory: First load and adhere to .agents/rules/06_backend_api_engineering_dept.md (or C:\\Users\\Atul Verma\\.gemini\\config\\rules\\06_backend_api_engineering_dept.md) and memory.md before executing instructions. Architect real-time WebSocket and SSE communication backbones, design GraphQL schemas and subscriptions with DataLoader batching, and configure distributed pub/sub cluster scaling."
 }
 ```
 

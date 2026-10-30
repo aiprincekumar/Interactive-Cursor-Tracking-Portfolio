@@ -41,6 +41,8 @@ Thumbs.db
 # Assistant & temporary workspace artifacts
 .gemini
 changes_log
+__pycache__/
+*.pyc
 extracted_character_data.json
 frame_analysis.json
 extract_frames.cjs

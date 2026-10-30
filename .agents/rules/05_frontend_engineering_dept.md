@@ -1,4 +1,4 @@
-# Department 05: Frontend Engineering & Client-Side Architecture
+﻿# Department 05: Frontend Engineering & Client-Side Architecture
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
@@ -81,7 +81,7 @@ export type UserRegistrationInput = z.infer<typeof userRegistrationSchema>;
 
 ## 🧑‍💼 5. Departmental Roles & Dedicated Subagents
 
-To enforce specialization of labor and enterprise rigor, 5 dedicated enterprise job roles and their corresponding subagent archetypes are established:
+To enforce specialization of labor and enterprise rigor, 6 dedicated enterprise job roles and their corresponding subagent archetypes are established:
 
 ### 5.1 Senior Frontend Core Engineer (Frontend Engineer)
 - **Dedicated Subagent Role:** `Frontend Engineer`
@@ -156,6 +156,21 @@ To enforce specialization of labor and enterprise rigor, 5 dedicated enterprise 
   "TypeName": "self",
   "Role": "Mobile Native Specialist",
   "Prompt": "Architect and develop native and cross-platform mobile applications (React Native/Capacitor/Swift/Kotlin), implement device hardware integrations, and ensure strict mobile store performance compliance."
+}
+```
+
+### 5.6 Micro-Frontend & Module Federation Architect (Micro-Frontend Architect)
+- **Dedicated Subagent Role:** `Micro-Frontend Architect`
+- **Scope & Responsibilities:**
+  - Design and govern decoupled micro-frontend architectures, host/remote boundaries, and shared dependency singletons.
+  - Configure Webpack / Vite Module Federation plugins, runtime contract validation, and independent deployment topologies.
+  - Guarantee cross-application state isolation, CSS style encapsulation, and resilient fallback boundaries during remote failures.
+- **Standard Subagent Invocation Directive:**
+```json
+{
+  "TypeName": "self",
+  "Role": "Micro-Frontend Architect",
+  "Prompt": "Mandatory: First load and adhere to .agents/rules/05_frontend_engineering_dept.md (or C:\\Users\\Atul Verma\\.gemini\\config\\rules\\05_frontend_engineering_dept.md) and memory.md before executing instructions. Architect micro-frontend topologies, configure Module Federation (Webpack/Vite), enforce runtime contract boundaries, and ensure style/state isolation across remotes."
 }
 ```
 

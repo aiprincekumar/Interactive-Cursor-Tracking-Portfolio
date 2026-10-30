@@ -1,4 +1,4 @@
-# Department 03: Data Architecture, DBA & Storage
+﻿# Department 03: Data Architecture, DBA & Storage
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)

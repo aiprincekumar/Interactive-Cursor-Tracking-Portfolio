@@ -1,4 +1,4 @@
-# Department 10: Application Security & InfoSec
+﻿# Department 10: Application Security & InfoSec
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
@@ -23,8 +23,16 @@ This department enforces zero security defects, zero leaked credentials, and zer
 - Sensitive values must be injected strictly via environment variables (`.env`), and `.env` must be explicitly listed in `.gitignore`.
 - Repositories must maintain a clean `.env.example` file populated exclusively with sanitized dummy values.
 
-### 2.2 Automated Pre-Commit Secret Scanning
-- Execute automated secret scanning (`gitleaks`, `trufflehog`, or GitHub Secret Scanning) prior to any commit, PR, or build process.
+### 2.2 Automated Pre-Commit & Pre-Push Secret Scanning (`gitleaks`)
+- **Primary Secret Audit Standard:** `gitleaks` (`gitleaks detect --redact --verbose`) is the non-negotiable pre-commit and pre-push gatekeeper.
+- **Strict Pre-Push Gate:** Before any staged commit or remote git push operation is presented to the user for confirmation, `gitleaks` must execute with zero findings. If any secret or credential pattern is detected, the operation is immediately blocked.
+- **Multi-Engine Audit Defense:** Combine `gitleaks` with secondary scanners (`trufflehog`, GitHub Secret Scanning) to ensure zero credential leaks across repository history.
+
+### 2.3 Standalone Pre-Commit Secret Scanner Engine (`secret_scanner.py`)
+- **Deterministic Static Secret Scanner:** `scripts/security/secret_scanner.py` provides high-speed, zero-token static credential and secret detection across git staged files, unstaged diffs, and tracked directories.
+- **Multi-Provider Pattern Coverage:** Scans for AWS access/secret keys, GCP API keys, GitHub tokens, Slack webhooks, OpenAI/Anthropic/Gemini API keys, private RSA/EC keys, database connection URIs, and JWT secrets with regex classification.
+- **False-Positive Suppression:** Automatically filters placeholder tokens (`YOUR_API_KEY`, `mock_*`, `dummy_*`) and redacts findings in terminal outputs.
+- **1-Click Execution:** Run via `python scripts/security/secret_scanner.py` or `task audit` before staging commits or requesting Git operations. Exit code 0 certifies a clean scan; exit code 1 blocks execution.
 
 ---
 
@@ -108,7 +116,7 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
 ### 5.3 Secrets, KMS & Credential Governance Officer (Secrets Governance Officer)
 - **Dedicated Subagent Role:** `Secrets Governance Officer`
 - **Scope & Responsibilities:**
-  - Enforce zero hardcoded secrets policies with pre-commit scanners (TruffleHog).
+  - Enforce zero hardcoded secrets policies with pre-commit and pre-push scanners (`gitleaks`, TruffleHog).
   - Architect AWS Secrets Manager, HashiCorp Vault, and KMS encryption layers.
   - Manage automated credential rotation, least-privilege service roles, and leak prevention.
 - **Standard Subagent Invocation Directive:**
@@ -116,7 +124,7 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
 {
   "TypeName": "self",
   "Role": "Secrets Governance Officer",
-  "Prompt": "Enforce zero hardcoded secrets policies, integrate pre-commit secret scanners (TruffleHog), architect KMS and Vault secret management, and orchestrate automated key rotation."
+  "Prompt": "Enforce zero hardcoded secrets policies, integrate pre-commit and pre-push secret scanners (gitleaks, TruffleHog), architect KMS and Vault secret management, and orchestrate automated key rotation."
 }
 ```
 
@@ -140,5 +148,5 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
 ## 🚦 6. Department Handoff & Verification Gates
 
 1. **Gate 10-A (Dependency Audit):** `npm audit --production` must show zero High or Critical vulnerabilities.
-2. **Gate 10-B (Secret Hygiene):** Zero plaintext credentials or active tokens detected across the codebase.
+2. **Gate 10-B (Secret Hygiene & Gitleaks Audit):** `gitleaks detect` passes with zero plaintext credentials or active tokens detected across the working tree and commit history.
 3. **Downstream Handoff:** Upon security clearance, deliverables pass to **Dept 11: Legal & Compliance** and **Dept 12: DevOps**.

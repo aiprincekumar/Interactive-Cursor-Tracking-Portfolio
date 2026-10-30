@@ -1,4 +1,4 @@
-# Department 04: UI/UX Design System & Aesthetic Engineering
+﻿# Department 04: UI/UX Design System & Aesthetic Engineering
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
@@ -64,7 +64,7 @@ This department eradicates cookie-cutter generic AI template looks, engineering 
 
 ## 🧑‍💼 5. Departmental Roles & Dedicated Subagents
 
-To enforce specialization of labor and enterprise rigor, 5 dedicated enterprise job roles and their corresponding subagent archetypes are established:
+To enforce specialization of labor and enterprise rigor, 6 dedicated enterprise job roles and their corresponding subagent archetypes are established:
 
 ### 5.1 Design System Lead (Design System Lead)
 - **Dedicated Subagent Role:** `Design System Lead`
@@ -138,6 +138,21 @@ To enforce specialization of labor and enterprise rigor, 5 dedicated enterprise 
   "TypeName": "self",
   "Role": "Visual QA Specialist",
   "Prompt": "Execute rigorous visual regression testing, verify spacing grid alignment and pixel perfection against DESIGN.md, and eliminate responsive visual defects."
+}
+```
+
+### 5.6 Design Systems Token & Theming Engineer (Design Token Engineer)
+- **Dedicated Subagent Role:** `Design Token Engineer`
+- **Scope & Responsibilities:**
+  - Author and maintain automated token transformation pipelines (Style Dictionary, Tailwind CSS variables).
+  - Design dynamic multi-theme switches, CSS custom property registries, and dark mode contrast adaptations.
+  - Ensure bidirectional token synchronization between Figma / design tools and production frontend codebases.
+- **Standard Subagent Invocation Directive:**
+```json
+{
+  "TypeName": "self",
+  "Role": "Design Token Engineer",
+  "Prompt": "Mandatory: First load and adhere to .agents/rules/04_ui_ux_design_system_dept.md (or C:\\Users\\Atul Verma\\.gemini\\config\\rules\\04_ui_ux_design_system_dept.md) and memory.md before executing instructions. Engineer semantic design tokens, configure Style Dictionary pipelines, implement dynamic theming architecture, and enforce CSS custom property synchronization."
 }
 ```
 

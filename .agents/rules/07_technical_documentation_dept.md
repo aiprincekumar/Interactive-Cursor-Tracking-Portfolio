@@ -1,4 +1,4 @@
-# Department 07: Technical Documentation & API Specs
+﻿# Department 07: Technical Documentation & API Specs
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
@@ -66,37 +66,47 @@ Every backend API must publish and maintain a complete OpenAPI 3.x specification
      npm run dev
      ```
   4. **Environment Variables Dictionary:** Description, typing, and sample values for all `.env` keys.
-  5. **Verification Commands:** Instructions for running unit tests (`npm test`) and E2E suites.
+  5. **Verification Commands:** Instructions for running unit tests (`npm test` / `task test`) and E2E suites.
 
 ---
 
-## 🔄 4. Living Documentation & Zero-Drift Policy
+## 📦 4. Token-Efficient Context Bundling & Architecture Snapshots (`repomix`)
+
+- **Codebase Packaging for AI Consumption:**
+  - Repositories must utilize `repomix` to package codebase files into clean, token-efficient XML/Markdown snapshot bundles.
+  - Reduces LLM prompt context overhead by ~70% using structured file boundaries, token metrics, and `.gitignore`-aware exclusion filters.
+  - Standardizes multi-file architectural documentation, offline audit reviews, and LLM onboarding context packs without polluting active context.
+
+---
+
+## 🔄 5. Living Documentation & Zero-Drift Policy
 
 - **Zero-Drift Policy:** Whenever code changes alter an API signature, database schema, or configuration parameter, updating corresponding documentation within the same commit/PR is mandatory.
 - Stale or misleading technical documentation must never persist within the repository.
 
 ---
 
-## 🧑‍💼 5. Departmental Roles & Dedicated Subagents
+## 🧑‍💼 6. Departmental Roles & Dedicated Subagents
 
 To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise job roles and their corresponding subagent archetypes are established:
 
-### 5.1 Lead Technical Writer (Technical Documentation Writer)
+### 6.1 Lead Technical Writer (Technical Documentation Writer)
 - **Dedicated Subagent Role:** `Technical Documentation Writer`
 - **Scope & Responsibilities:**
   - Author comprehensive, zero-drift technical documentation.
   - Maintain root guides, system overviews, and architecture walkthroughs.
+  - Generate token-efficient `repomix` codebase snapshots for architectural analysis.
   - Deliver clear, rigorous, and professional technical references for developers and users.
 - **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
   "Role": "Technical Documentation Writer",
-  "Prompt": "Author comprehensive, zero-drift technical documentation, maintain root and module guides, and produce clear developer explanations adhering to Rule 7."
+  "Prompt": "Author comprehensive, zero-drift technical documentation, maintain root and module guides, generate repomix architectural snapshots, and produce clear developer explanations adhering to Rule 7."
 }
 ```
 
-### 5.2 OpenAPI & API Specification Architect (API Specification Specialist)
+### 6.2 OpenAPI & API Specification Architect (API Specification Specialist)
 - **Dedicated Subagent Role:** `API Specification Specialist`
 - **Scope & Responsibilities:**
   - Author authoritative OpenAPI 3.1 specifications in `docs/openapi.yaml`.
@@ -111,7 +121,7 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
 }
 ```
 
-### 5.3 Developer Experience (DX) & Runbook Engineer (Developer Experience Engineer)
+### 6.3 Developer Experience (DX) & Runbook Engineer (Developer Experience Engineer)
 - **Dedicated Subagent Role:** `Developer Experience Engineer`
 - **Scope & Responsibilities:**
   - Design friction-free onboarding flows and author setup runbooks (`README.md`).
@@ -126,7 +136,7 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
 }
 ```
 
-### 5.4 Architecture Decision Record (ADR) Chronicler (ADR Documentation Specialist)
+### 6.4 Architecture Decision Record (ADR) Chronicler (ADR Documentation Specialist)
 - **Dedicated Subagent Role:** `ADR Documentation Specialist`
 - **Scope & Responsibilities:**
   - Chronicler architectural choices in `docs/adr/` using standard MADR conventions.
@@ -143,8 +153,9 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
 
 ---
 
-## 🚦 6. Department Handoff & Verification Gates
+## 🚦 7. Department Handoff & Verification Gates
 
 1. **Gate 7-A (OpenAPI Validation):** `npx @stoplight/spectral-cli lint docs/openapi.yaml` must pass without structural errors.
 2. **Gate 7-B (Runbook Verification):** Clean execution of setup commands confirmed in a clean environment.
-3. **Downstream Handoff:** Upon documentation signoff, deliverables pass to **Dept 08: QA** and **Dept 12: DevOps**.
+3. **Gate 7-C (Context Pack Integrity):** Verify that any generated `repomix` context bundles parse cleanly and respect security exclusion patterns.
+4. **Downstream Handoff:** Upon documentation signoff, deliverables pass to **Dept 08: QA** and **Dept 12: DevOps**.

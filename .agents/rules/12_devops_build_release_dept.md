@@ -1,4 +1,4 @@
-# Department 12: DevOps, Build & Release Management
+﻿# Department 12: DevOps, Build & Release Management
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
@@ -24,11 +24,18 @@ This department ensures every artifact advancing toward production is 100% build
   2. **Typecheck Gate:** `npm run typecheck` or `tsc --noEmit`
   3. **Linter Gate:** `npm run lint`
   4. **Compiler & Bundler Gate:** `npm run build`
-  5. **Automated Test Suite:** `npm test`
-  6. **Rules Health & Integrity Gate (Rule 27):** `npm run rules:check` (Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion.)
+  5. **Automated Test Suite:** `npm test` or `task test`
+  6. **Secret Audit Gate (Rule 10 & 15):** `gitleaks detect --redact` (Zero secret leaks tolerated before commit/push)
+  7. **Rules Health & Integrity Gate (Rule 27):** `npm run rules:check` or `task rules:check` (Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion.)
 - If any single verification gate fails, the release sequence is immediately **BLOCKED**.
 
-### 2.2 Deterministic Script-First Execution Standard: Mandate 1-click script execution for builds, syncs, and verification tasks; eliminate manual file editing when deterministic scripts exist.
+### 2.2 Deterministic Script-First & Taskfile Execution Standard
+- Mandate 1-click script execution for builds, syncs, and verification tasks; eliminate manual file editing when deterministic scripts exist.
+- **Taskfile / go-task Standard:** Standardize cross-platform operations via `Taskfile.yml` (`task`) alongside npm for one-word commands:
+  - `task test` — run comprehensive automated test matrices
+  - `task sync` — deterministic repository synchronization
+  - `task rules:check` — verify rules health and binary synchronization
+  - `task audit` — execute `gitleaks` secret audit and dependency scans
 
 ---
 
@@ -48,6 +55,25 @@ This department ensures every artifact advancing toward production is 100% build
 - `docs(api): update OpenAPI spec for orders endpoint`
 - `refactor(db): optimize user query composite index`
 
+### 3.4 GitHub Operations, Micro-Commit Checkpoints & Remote Push Gatekeeper (Rule 15 Compliance)
+- **Specialist Delegation:** All Git and GitHub operations are delegated strictly to `github_operations_specialist` (or executed via standardized deterministic scripts `git_sync.ps1`). The Supreme CEO never executes direct Git transactions.
+- **Autonomous Local Micro-Commit Cadence:**
+  - After every 2 or 3 logical/micro changes during execution, autonomously perform a local `git commit` without asking or interrupting the user.
+  - Immediately after creating the local commit, notify and inform the user with a concise status update: `"Local commit created: [commit-hash] [commit-message]"` (e.g. Hindi status notification: `"Haan, local me commit ho chuka hai [hash/message]"`).
+- **Strict Remote Git Gatekeeper (Hard Lock):**
+  - Absolute prohibition on autonomous remote `git push`. Changes remain strictly local until explicit user permission is granted.
+  - Mandatory `gitleaks detect --redact` secret scan must execute with zero detected leaks prior to presenting user confirmation options.
+- **Task-Completion Interactive Gate (`ask_question`):**
+  - At the completion of the entire task/workflow (all modifications complete, build verified, test suites passing), present an interactive 3-option choice via `ask_question`:
+    1. `(Recommended) Commit on GitHub Online` (Push and sync to GitHub remote online with pre-push gitleaks check and 3-point terminal proof).
+    2. `Local Commit` (Keep and finalize local commits only; do not push to remote repository).
+    3. `No Commit & Test` (Do not commit / keep uncommitted or revert for user testing and manual inspection).
+- **3-Point Terminal Proof Mandate:**
+  - Remote operations mandate raw terminal verification output before declaring completion:
+    1. `git log -1` raw commit hash and message.
+    2. `git push` remote server response.
+    3. `git status` confirming clean working tree.
+
 ---
 
 ## 📜 4. Project-Level Changes Log Management (Rule 6 Compliance)
@@ -62,6 +88,20 @@ changes_log/
   └── recent_10/
 ```
 
+### 4.1 Automated Token-Free Changelog Generation (`git-cliff`)
+- Integrate `git-cliff` for instantaneous (0.02s), token-free Conventional Commit changelog generation.
+- Generates structured, publication-ready markdown release notes and changelogs without consuming LLM context tokens or risking hallucinations.
+- Bridges git history directly into `changes_log/` release documentation.
+
+### 4.2 Automated 5-Tier Changes Log Engine (`changes_log_engine.py`)
+- **Deterministic Changes Log Runner:** `scripts/audit/changes_log_engine.py` provides an automated engine for creating, synchronizing, and auditing the project's 5-tier changes log structure.
+- **Granular Entry Creation & Rollback Plans:** Creates structured entries in `entries/YYYY-MM-DD/change_<ID>_<Timestamp>.md` with detailed before/after diffs, exact lines, rationale, and rollback plans.
+- **Multi-Tier Cascade & FIFO Buffer:** Synchronizes `summary/changes_summary.md`, `master/master_changes_log.md`, `daily/YYYY-MM-DD/daily_master_log.md`, and maintains the 10-file rolling buffer in `recent_10/`.
+- **UTF-8 with BOM Standard:** Writes all changes log markdown files with Byte Order Mark (`0xEF, 0xBB, 0xBF`) to ensure clean rendering in Windows environments.
+- **CLI Commands:**
+  - `python scripts/audit/changes_log_engine.py new --title "<Title>" --file "<File>" --summary "<Summary>"`
+  - `python scripts/audit/changes_log_engine.py audit` (Verifies integrity across all 5 tiers)
+
 ---
 
 ## 🧑‍💼 5. Departmental Roles & Dedicated Subagents
@@ -71,22 +111,20 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
 ### 5.1 CI/CD Automation Pipeline Engineer (CI/CD Pipeline Engineer)
 - **Dedicated Subagent Role:** `CI/CD Pipeline Engineer`
 - **Scope & Responsibilities:**
-  - Architect robust GitHub Actions CI/CD workflows and deployment automations.
-  - Configure build artifact caching and parallelize automated test matrices.
-  - Engineer secure, automated zero-downtime deployment pipelines.
+  - Architect robust GitHub Actions CI/CD workflows, configure `gitleaks` secret scanner gates, build artifact caching, parallelize automated test matrices via `task`, and engineer secure zero-downtime deployment pipelines.
 - **Standard Subagent Invocation Directive:**
 ```json
 {
   "TypeName": "self",
   "Role": "CI/CD Pipeline Engineer",
-  "Prompt": "Architect robust GitHub Actions CI/CD workflows, configure build artifact caching, parallelize automated test matrices, and engineer secure zero-downtime deployment pipelines."
+  "Prompt": "Architect robust GitHub Actions CI/CD workflows, integrate gitleaks security checks, parallelize automated test matrices via task, and engineer secure zero-downtime deployment pipelines."
 }
 ```
 
 ### 5.2 Build System & Compiler Engineer (Build Systems Engineer)
 - **Dedicated Subagent Role:** `Build Systems Engineer`
 - **Scope & Responsibilities:**
-  - Optimize build toolchain configurations (Vite, Turborepo, esbuild).
+  - Optimize build toolchain configurations (Vite, Turborepo, Taskfile, esbuild).
   - Enforce non-negotiable zero-error compilation gates (`npm run build`).
   - Implement incremental build caching and eliminate build-time degradation.
 - **Standard Subagent Invocation Directive:**
@@ -94,7 +132,7 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
 {
   "TypeName": "self",
   "Role": "Build Systems Engineer",
-  "Prompt": "Optimize build toolchain configurations (Vite/Turborepo), enforce zero-error compilation gates, implement incremental build caching, and eliminate build-time degradation."
+  "Prompt": "Optimize build toolchain configurations (Vite/Turborepo/Taskfile), enforce zero-error compilation gates, implement incremental build caching, and eliminate build-time degradation."
 }
 ```
 
@@ -102,6 +140,7 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
 - **Dedicated Subagent Role:** `Release Manager`
 - **Scope & Responsibilities:**
   - Coordinate Semantic Versioning (SemVer) and Git Flow release branching.
+  - Execute `git-cliff` for automated, zero-token conventional changelog generation.
   - Verify compliance with Universal Rule 6 `changes_log/` audit entries.
   - Authorize production releases strictly upon passing all verification suites.
 - **Standard Subagent Invocation Directive:**
@@ -109,7 +148,7 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
 {
   "TypeName": "self",
   "Role": "Release Manager",
-  "Prompt": "Orchestrate SemVer release workflows, maintain strict Git Flow release branching, gate releases on passing verification suites, and enforce Rule 6 changes_log audit records."
+  "Prompt": "Orchestrate SemVer release workflows, generate changelogs using git-cliff, maintain strict Git Flow release branching, gate releases on passing verification suites, and enforce Rule 6 changes_log audit records."
 }
 ```
 
@@ -132,7 +171,8 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
 
 ## 🚦 6. Department Handoff & Verification Gates
 
-1. **Gate 12-A (Build & Test Pass):** Production build generated with zero warnings or errors.
-2. **Gate 12-B (Changes Log Audit):** Verified audit record registered in `changes_log/`.
-3. **Gate 12-C (Rules Health & Integrity Sentinel):** `npm run rules:check` certified with 100% PASS for all rules, documentation, and configuration updates (Rule 27).
-4. **Downstream Handoff:** Upon release packaging, ownership advances to **Dept 13: SRE & Backup** and **Dept 14: Telemetry**.
+1. **Gate 12-A (Build & Test Pass):** Production build generated with zero warnings or errors (`npm run build` & `task test` / `npm test`).
+2. **Gate 12-B (Security Audit Pass):** `gitleaks detect` clean exit with zero credentials or exposed keys.
+3. **Gate 12-C (Changes Log & Changelog Audit):** Verified audit record registered in `changes_log/` and updated via `git-cliff`.
+4. **Gate 12-D (Rules Health & Integrity Sentinel):** `npm run rules:check` certified with 100% PASS for all rules, documentation, and configuration updates (Rule 27).
+5. **Downstream Handoff:** Upon release packaging, ownership advances to **Dept 13: SRE & Backup** and **Dept 14: Telemetry**.

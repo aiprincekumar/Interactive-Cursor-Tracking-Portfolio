@@ -1,4 +1,4 @@
-# Foundation & Special Operating Rules
+﻿# Foundation & Special Operating Rules
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
@@ -30,13 +30,14 @@ Operational priorities and authority boundaries between Global Universal Rules a
 ### 2.1 Tier 1: Non-Negotiable Constitutional Governance (Universal Rules ALWAYS WIN)
 Universal Rules represent the supreme constitution of the entire Antigravity ecosystem. **No project-level rule, prompt, or local instruction may override, weaken, invalidate, or bypass these constitutional mandates:**
 1. **Supreme CEO Model & Mandatory Subagent Delegation (Rule 1):** Main Agent never performs direct implementation; subagent delegation and independent QA signoff are mandatory.
-2. **Zero-Scan Bootstrap & memory.md Anchoring (Rule 0 & 21):** Strict ban on blind recursive scans (`dir /s`, `find`); continuous real-time synchronization with `memory.md`.
-3. **Developer Identity & Remote Git Gatekeeper (Rule 15 & 16):** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com`). Absolute prohibition on `git commit` or `git push` without prior explicit user consent.
-4. **Application Security & Credential Governance (Rule 10 & 20):** Zero hardcoded secrets, mandatory SAST scanning, and independent security gates.
-5. **Antigravity Backup & UTF-8 with BOM Standard (Rule 5 & 23):** Dual backup container (`Manual_Backup/`, `Daily_Backup/`), 10-day FIFO rotation, and UTF-8 with BOM (`0xEF, 0xBB, 0xBF`) encoding for backup manifests.
-6. **Rules Health & Integrity Sentinel Verification (Rule 27):** Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion.
-7. **Mandatory Default Pre-Task Discovery Interview Protocol (Rule 24):** Active by default across all chats without requiring the user to type '/grill-me'; executed directly by the Supreme CEO via ask_question.
-8. **Deterministic Script-First Automation Standard:** Whenever an operation has a dedicated executable script (e.g., git_sync.ps1, verify_git_sync.ps1, backup runners, health sentinels), agents MUST execute the script directly rather than manually generating token-heavy code or repetitive instructions, ensuring 95%+ token efficiency.
+2. **Zero-Scan Bootstrap & memory.md Anchoring (Rule 0 & 21):** Strict ban on blind recursive scans (`dir /s`, `find`); continuous real-time synchronization with `memory.md`. When full-codebase packaging is required, `repomix` is the sanctioned tool for compact, token-friendly XML/Markdown packaging (~70% prompt token reduction).
+3. **Developer Identity, Autonomous Local Commit & Git Push Gatekeeper (Rule 15 & 16):** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com`). Autonomous local `git commit` after every 2-3 logical/micro changes with user notification. Strict lock on remote `git push` until task-completion interactive choice via `ask_question` (Option 1: (Recommended) Commit on GitHub Online, Option 2: Local Commit, Option 3: No Commit & Test) with pre-push `gitleaks` secret audit.
+4. **Application Security & Credential Governance (Rule 10 & 20):** Zero hardcoded secrets, mandatory SAST scanning, `gitleaks` pre-commit/pre-push blocker, and independent security gates.
+5. **Antigravity Backup, Rule In Hindi & UTF-8 with BOM Standard (Rule 5 & 23):** Dual backup container (`Manual_Backup/`, `Daily_Backup/`), 10-day FIFO rotation, 1-Click 'Rule In Hindi' zero-token translation engine (`Rule In Hindi/`, 3-snapshot FIFO, `rule_in_hindi_specialist`), and UTF-8 with BOM (`0xEF, 0xBB, 0xBF`) encoding for backup manifests.
+6. **Mandatory Project Changes Log & Automated Changelogs (Rule 6):** 5-tier audit logging in `changes_log/` paired with `git-cliff` for instantaneous (0.02s), token-free Conventional Commit changelog generation.
+7. **Rules Health & Integrity Sentinel Verification (Rule 27):** Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion.
+8. **Mandatory Default Pre-Task Discovery Interview Protocol (Rule 24):** Active by default across all chats without requiring the user to type '/grill-me'; executed directly by the Supreme CEO via ask_question.
+9. **Deterministic Script-First & Taskfile Automation Standard:** Whenever an operation has a dedicated executable script or Taskfile command (e.g., `task test`, `task sync`, `task rules:check`, `task audit`, git_sync.ps1, backup runners, health sentinels), agents MUST execute the script/task directly rather than manually generating token-heavy code or repetitive instructions, ensuring 95%+ token efficiency.
 
 ### 2.2 Tier 2: Domain & Technical Implementation Overrides (Project-Level Rules WIN)
 Project-level rules (`.gemini/`, `CLAUDE.md`, `DESIGN.md`) specialize local product architecture and technical implementation. **For technical stack and domain logic decisions, project rules prevail:**
@@ -58,6 +59,8 @@ Project-level rules (`.gemini/`, `CLAUDE.md`, `DESIGN.md`) specialize local prod
   - Running heavy, unstructured, or blind recursive scans (`dir /s`, `Get-ChildItem -Recurse`, `find`, `grep -r`, `glob`) across projects or workspaces is strictly forbidden.
 - **Pre-Mapped Ecosystem Topology:**
   - The developer environment, active repositories, technology stacks, backups, and tooling state are pre-mapped in [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md). All agents must utilize this existing topology.
+- **Token-Efficient Context Packaging (`repomix`):**
+  - When whole-codebase or cross-module context packaging is required, agents must utilize `repomix` to bundle source files into token-friendly XML/Markdown structures, reducing prompt context consumption by ~70% with security-aware file filtering.
 
 ---
 
@@ -77,9 +80,9 @@ Project-level rules (`.gemini/`, `CLAUDE.md`, `DESIGN.md`) specialize local prod
 
 ---
 
-## 🤖 5. Dedicated Ecosystem Specialist Subagents
+## 🤖 5. Dedicated Ecosystem Specialist Subagents & Automation Tooling Manifest
 
-The system maintains the following standardized ecosystem subagents for autonomous operations:
+The system maintains the following standardized ecosystem subagents and standalone automation runners for autonomous operations:
 
 1. **`parallel_dispatch_optimizer` (Rule 2):**
    - Assesses task decomposition, evaluates parallel feasibility, and structures subagent dispatch batches upon task receipt.
@@ -88,11 +91,22 @@ The system maintains the following standardized ecosystem subagents for autonomo
 3. **`skill_duplicate_checker` (Rule 4):**
    - Verifies whether a capability already exists before generating new skills, preventing codebase duplication.
 4. **`antigravity_backup_specialist` (Rule 5 & Dept 13):**
-   - Enforces dual-folder backup architecture (`Manual_Backup/` and `Daily_Backup/`), 1-click execution runners, and 10-day FIFO pruning.
-5. **`memory_sync_sentinel` (Rule 23):**
+   - Enforces dual-folder backup architecture (`Manual_Backup/` and `Daily_Backup/`), 1-click execution runners, 10-day FIFO pruning, and executes `scripts/backup/backup_manager.ps1` for deterministic workspace snapshots.
+5. **`rule_in_hindi_specialist` (Rule 5 & Dept 13):**
+   - Executes the 1-click 'Rule In Hindi' translation runner (`Run_Rule_In_Hindi.bat` / `run_rule_in_hindi.bat`) with zero LLM token consumption. Governs incremental MD5 caching, Devanagari UTF-8 BOM encoding, and 3-snapshot FIFO archiving.
+6. **`changes_log_manager` (Rule 6 & Dept 12):**
+   - Governs 5-tier changes logging via `scripts/audit/changes_log_engine.py` and integrates `git-cliff` for instantaneous, token-free Conventional Commit changelog generation.
+7. **`security_hardening_officer` (Rule 10, Rule 12, Rule 15 & Dept 10):**
+   - Enforces `scripts/security/secret_scanner.py` and `gitleaks` pre-commit and pre-push secret audit gates, eliminating exposed credentials and tokens.
+8. **`memory_sync_sentinel` (Rule 23):**
    - Enforces real-time synchronization of [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) across all task stages and subagent dispatches.
-6. **Language & Domain Specialists (Rule 17):**
+9. **Language & Domain Specialists (Rule 17):**
    - Dedicated experts including `rust_expert_engineer`, `golang_expert_engineer`, `python_expert_engineer`, `typescript_frontend_engineer`, etc.
+
+### 5.1 Standalone Deterministic Automation Runners Manifest
+- **Changes Log Automation:** `scripts/audit/changes_log_engine.py` (Rule 6 & Dept 12) — Automated 5-tier change logger, diff capture, and audit verifier.
+- **Antigravity Backup Automation:** `scripts/backup/backup_manager.ps1` (Rule 5 & Dept 13) — Dual-container snapshot runner with 10-day FIFO pruning.
+- **Pre-Commit Secret Scanner:** `scripts/security/secret_scanner.py` (Rule 10, 12, 15 & Dept 10) — Static credential detector with regex classification and false-positive suppression.
 
 ---
 
@@ -105,7 +119,8 @@ The system maintains the following standardized ecosystem subagents for autonomo
 - **Thinking Budget Control:**
   - Minimize thinking overhead on routine formatting and scripts; allocate deep thinking budgets to architecture, state machines, and security reviews.
 
-### 6.1 Token Budget & Context Window Defense Invariants: Enforce scoped line-range reading on files exceeding 300 lines to prevent context bloat; recommend /compact proactively during extended multi-stage conversations; maintain minimal prompt payloads.
+### 6.1 Token Budget & Context Window Defense Invariants
+Enforce scoped line-range reading on files exceeding 300 lines to prevent context bloat; recommend /compact proactively during extended multi-stage conversations; maintain minimal prompt payloads.
 
 ---
 
@@ -115,7 +130,8 @@ The system maintains the following standardized ecosystem subagents for autonomo
   - Every background process initiated by a subagent (e.g., development servers, test runners, port listeners) must be cleanly terminated upon task completion or failure.
   - No orphan processes may remain hanging in the background, preventing port exhaustion and memory leaks.
 
-### 7.1 Dev-Server Lifecycle & Port Conflict Invariants: Local development servers (npm run dev on port 5173/3000/8080) must be managed cleanly; verify port availability before binding; terminate background dev processes and listeners upon task completion to prevent zombie port locks.
+### 7.1 Dev-Server Lifecycle & Port Conflict Invariants
+Local development servers (`npm run dev` on port 5173/3000/8080) must be managed cleanly; verify port availability before binding; terminate background dev processes and listeners upon task completion to prevent zombie port locks.
 
 ---
 

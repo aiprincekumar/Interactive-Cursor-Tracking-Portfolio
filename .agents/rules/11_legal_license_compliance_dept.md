@@ -1,4 +1,4 @@
-# Department 11: Legal, Licensing & Compliance
+﻿# Department 11: Legal, Licensing & Compliance
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)

@@ -1,4 +1,4 @@
-# Department 01: Product Requirements & Management
+﻿# Department 01: Product Requirements & Management
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
@@ -73,7 +73,7 @@ Every PRD document produced must adhere to the following standardized structure:
 
 ## 🧑‍💼 5. Departmental Roles & Dedicated Subagents
 
-To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise job roles and their corresponding subagent archetypes are established:
+To enforce specialization of labor and enterprise rigor, 5 dedicated enterprise job roles and their corresponding subagent archetypes are established:
 
 ### 5.1 Lead Product Manager (PRD & Scope Architect)
 - **Dedicated Subagent Role:** `Product Scope Architect`
@@ -132,6 +132,21 @@ To enforce specialization of labor and enterprise rigor, 4 dedicated enterprise 
   "TypeName": "self",
   "Role": "UX Research Analyst",
   "Prompt": "Conduct user persona modeling, map end-to-end user journeys, identify usability friction points, and deliver user experience requirements to validate product-market fit."
+}
+```
+
+### 5.5 Localization & Internationalization (i18n) Product Analyst (Localization Product Analyst)
+- **Dedicated Subagent Role:** `Localization Product Analyst`
+- **Scope & Responsibilities:**
+  - Define product internationalization (i18n) and localization (l10n) specifications for multi-region support.
+  - Coordinate translation key hierarchies, RTL (right-to-left) layout specifications, and regional locale standards (dates, numbers, currencies).
+  - Enforce Unicode compliance and eliminate hardcoded UI strings across product requirements.
+- **Standard Subagent Invocation Directive:**
+```json
+{
+  "TypeName": "self",
+  "Role": "Localization Product Analyst",
+  "Prompt": "Mandatory: First load and adhere to .agents/rules/01_product_requirements_dept.md (or C:\\Users\\Atul Verma\\.gemini\\config\\rules\\01_product_requirements_dept.md) and memory.md before executing instructions. Define localization (l10n) and internationalization (i18n) requirements, audit string extraction, establish locale formatting rules, and ensure RTL layout readiness."
 }
 ```
 
