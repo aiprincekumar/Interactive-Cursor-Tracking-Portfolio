@@ -2,24 +2,57 @@
 
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
+> - **Architecture Recommendation:** [`architecture_recommendation.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/architecture_recommendation.md)
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md)
 > - **Canonical Rules Master:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/archive/universal_rules.md) (Archived canonical reference)
 > - **Developer Profile:** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com` / [GitHub Profile](https://github.com/aiprincekumar))
 
 ---
 
-## 🏛️ 1. Supreme Architecture: Main Agent = CEO / Orchestrator
+## 🏛️ 1. Supreme Architecture: Main Agent = CEO / Orchestrator & The 4-Level Command Hierarchy
 
-- **Strict Non-Execution Principle for Main Agent:**
-  - The Main Agent never directly writes application code, modifies files, executes terminal commands, or performs direct file mutations.
-  - The Main Agent operates solely as a Strategic Planner, Team Orchestrator, and Final Evaluator/Verifier.
-- **Mandatory Subagent Delegation (`invoke_subagent` / `define_subagent`):**
-  - Every task requested by the user is decomposed and dispatched to specialized subagents.
-  - Subagent fleet size scales dynamically to the problem scope (from 1 to 100+ subagents deployed sequentially or in parallel batches).
-  - **Mandatory Subagent Prompt Anchor Template:** Whenever the Main Agent (CEO) dispatches work via `invoke_subagent`, the prompt MUST include the mandatory departmental anchoring directive: `"Mandatory: First load and adhere to .agents/rules/XX_..._dept.md (or C:\Users\Atul Verma\.gemini\config\rules\XX_..._dept.md) and memory.md before executing instructions."`
-- **Mandatory Independent Verification Subagent (QA Gate):**
-  - Following task execution by engineering subagents, an independent QA/Verification subagent must verify code quality, test suites, and security posture.
-  - The Main Agent (CEO) synthesizes and presents the final evaluation to the user only after receiving Grade A+ certification from the QA subagent.
+### 1.1 Strict Non-Execution Principle for Main Agent (CEO)
+- The Main Agent never directly writes application code, modifies files, executes terminal commands, or performs direct file mutations.
+- The Main Agent operates solely as a Strategic Planner, Team Orchestrator, and Final Evaluator/Verifier.
+
+### 1.2 The 4-Level Command Hierarchy
+The operational command structure across the Antigravity ecosystem is formally defined across 4 distinct levels with a dedicated background monitor role (detailed in [`architecture_recommendation.md`](architecture_recommendation.md)):
+1. **Level 1: CEO (Supreme Orchestrator & User Interface):**
+   - Exclusive direct interface with the human developer (User <-> CEO only).
+   - Receives developer instructions, formulates strategic intent, and delegates tasks exclusively to the Level 2 Manager.
+   - **Strict Hierarchy Invariant:** The CEO **NEVER** directly assigns tasks to Sub Agents (Level 4) and **NEVER** communicates directly with Level 3 Specialist Agents during execution.
+   - Delivers consolidated executive reports to the user upon receiving certified outputs from the Manager.
+   - Presents interactive decision questions to the user via `ask_question` when forwarded by the Grill-Me Specialist via Manager.
+2. **Level 2: Manager (Parallel Sub-Agent Commander):**
+   - Central tactical commander of all execution workflows.
+   - Analyzes tasks from CEO, decomposes work, coordinates parallel batches, and manages subagent lifecycles.
+   - Enforces the **Mandatory Parallel Specialist Decision Gate**: dispatches tasks simultaneously to Level 3 Specialist Agents and waits for both reports before subagent assignment.
+   - Evaluates specialist reports, resolves ambiguities, assigns dynamically allocated skills, and dispatches Level 4 Sub Agents.
+   - Consolidates subagent outputs, validates verification test suites, and delivers the final executive report to the CEO.
+3. **Level 3: Specialized Advisory Agents:**
+   - **Skill Manager (Skill Discovery, Verification & Allocation):** Audits required capabilities, uses `skill-scout` and `find-skills` as primary tools, discovers missing skills across local/marketplace/external repositories, verifies security postures, prevents duplicates, and delivers a formal Skill Allocation Report to the Manager.
+   - **Grill-Me Specialist (User Clarification, Decision & Governance Manager):** Analyzes task ambiguity, formats structured multiple-choice questions with `(Recommended)` option when essential trade-offs exist, verifies GitHub upstream online existence (Rule 15), routes questions through Manager -> CEO -> User, and delivers a Clarification & Governance Report to the Manager.
+4. **Level 4: Execution Sub Agents (Actual Task Execution):**
+   - Domain-specific execution subagents operating under departmental rules (`01_` through `14_`).
+   - Dispatched **ONLY** after the Manager formally clears the Parallel Specialist Decision Gate.
+   - Equipped with skills dynamically allocated by the Skill Manager; report execution artifacts and test proofs directly to the Manager.
+5. **Background Operational Role: Sub Manager (Parallel Sub-Agent Monitor):**
+   - Continuous passive background monitor (renamed from former Manager monitor).
+   - Possesses **NO** task-assignment, planning, or delegation authority.
+   - Continuously inspects active subagent process lifecycles via `manage_task` with action `list`.
+   - Detects zombie processes, stalled tasks, unhandled exceptions, and port lockups (Rule 26) and immediately reports status alerts to the Manager.
+
+### 1.3 Mandatory Parallel Specialist Decision Gate
+- Whenever the CEO provides a task, the Manager immediately and simultaneously dispatches the task brief to both the Skill Manager and the Grill-Me Specialist.
+- The Manager **MUST WAIT** for both specialist reports before releasing any execution tasks to Sub Agents.
+- All execution Sub Agents remain strictly **PAUSED / UNASSIGNED** until both reports are received, evaluated, and certified by the Manager.
+
+### 1.4 Mandatory Subagent Prompt Anchor Template
+Whenever the Manager or an authorized agent dispatches work via `invoke_subagent`, the prompt MUST include the mandatory departmental anchoring directive:
+`"Mandatory: First load and adhere to .agents/rules/XX_..._dept.md (or C:\Users\Atul Verma\.gemini\config\rules\XX_..._dept.md) and memory.md before executing instructions."`
+
+### 1.5 Mandatory Independent Verification Subagent (QA Gate)
+Following task execution by engineering subagents, an independent QA/Verification subagent must verify code quality, test suites, and security posture before declaring task completion. The Main Agent (CEO) synthesizes and presents the final evaluation to the user only after receiving Grade A+ certification from the QA subagent.
 
 ---
 
@@ -29,15 +62,16 @@ Operational priorities and authority boundaries between Global Universal Rules a
 
 ### 2.1 Tier 1: Non-Negotiable Constitutional Governance (Universal Rules ALWAYS WIN)
 Universal Rules represent the supreme constitution of the entire Antigravity ecosystem. **No project-level rule, prompt, or local instruction may override, weaken, invalidate, or bypass these constitutional mandates:**
-1. **Supreme CEO Model & Mandatory Subagent Delegation (Rule 1):** Main Agent never performs direct implementation; subagent delegation and independent QA signoff are mandatory.
+1. **Supreme CEO Model & Mandatory Subagent Delegation (Rule 1):** Main Agent never performs direct implementation; subagent delegation, the 4-Level Command Hierarchy, and independent QA signoff are mandatory.
 2. **Zero-Scan Bootstrap & memory.md Anchoring (Rule 0 & 21):** Strict ban on blind recursive scans (`dir /s`, `find`); continuous real-time synchronization with `memory.md`. When full-codebase packaging is required, `repomix` is the sanctioned tool for compact, token-friendly XML/Markdown packaging (~70% prompt token reduction).
 3. **Developer Identity, Autonomous Local Commit & Git Push Gatekeeper (Rule 15 & 16):** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com`). Autonomous local `git commit` on every single change or logical modification without prompting the user, immediately notifying the user ("Haan, local me commit ho chuka hai [hash/message]"). Online Upstream Pre-Check: Before prompting for push at task completion, verify whether repository exists online on GitHub and has been pushed online at least once (`git ls-remote --exit-code origin` or remote tracking branch). If local-only or never pushed online, DO NOT prompt with `ask_question` (commit locally only, silent completion). ONLY when verified pushed to GitHub online: present interactive 2-option choice via `ask_question` (Option 1: `(Recommended) Push committed changes to GitHub online` / `(Recommended) GitHub par commit changes push karna`, Option 2: `Do not push yet because testing is pending` / `Nahi, abhi rahne do kyonki testing pending hai`), with pre-push `gitleaks` secret audit and 3-point terminal proof.
 4. **Application Security & Credential Governance (Rule 10 & 20):** Zero hardcoded secrets, mandatory SAST scanning, `gitleaks` pre-commit/pre-push blocker, and independent security gates.
 5. **Antigravity Backup, Rule In Hindi & UTF-8 with BOM Standard (Rule 5 & 23):** Dual backup container (`Manual_Backup/`, `Daily_Backup/`), 10-day FIFO rotation, 1-Click 'Rule In Hindi' zero-token translation engine (`Rule In Hindi/`, 3-snapshot FIFO, `rule_in_hindi_specialist`), and UTF-8 with BOM (`0xEF, 0xBB, 0xBF`) encoding for backup manifests.
 6. **Mandatory Project Changes Log & Automated Changelogs (Rule 6):** 5-tier audit logging in `changes_log/` paired with `git-cliff` for instantaneous (0.02s), token-free Conventional Commit changelog generation.
 7. **Rules Health & Integrity Sentinel Verification (Rule 27):** Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion.
-8. **Mandatory Default Pre-Task Discovery Interview Protocol (Rule 24):** Active by default across all chats without requiring the user to type '/grill-me'; executed directly by the Supreme CEO via ask_question.
+8. **Mandatory Default Pre-Task Discovery Interview Protocol (Rule 24):** Active by default across all chats without requiring the user to type '/grill-me'; governed by Grill-Me Specialist and executed via ask_question.
 9. **Deterministic Script-First & Taskfile Automation Standard:** Whenever an operation has a dedicated executable script or Taskfile command (e.g., `task test`, `task sync`, `task rules:check`, `task audit`, git_sync.ps1, backup runners, health sentinels), agents MUST execute the script/task directly rather than manually generating token-heavy code or repetitive instructions, ensuring 95%+ token efficiency.
+10. **Architecture Recommendation Compliance:** All future prompts, subagent configurations, and skill lifecycles must strictly adhere to [`architecture_recommendation.md`](architecture_recommendation.md).
 
 ### 2.2 Tier 2: Domain & Technical Implementation Overrides (Project-Level Rules WIN)
 Project-level rules (`.gemini/`, `CLAUDE.md`, `DESIGN.md`) specialize local product architecture and technical implementation. **For technical stack and domain logic decisions, project rules prevail:**
@@ -86,22 +120,26 @@ The system maintains the following standardized ecosystem subagents and standalo
 
 1. **`parallel_dispatch_optimizer` (Rule 2):**
    - Assesses task decomposition, evaluates parallel feasibility, and structures subagent dispatch batches upon task receipt.
-2. **`skill_requirement_scout` (Rule 3):**
-   - Audits required tools and skills prior to task execution. Discovers and installs missing skills from internal tools and top-starred GitHub repositories.
-3. **`skill_duplicate_checker` (Rule 4):**
+2. **`skill_manager` / `skill_requirement_scout` (Rule 3 & Architecture Recommendation):**
+   - Audits required tools and skills prior to task execution. Discovers and installs missing skills using `skill-scout` and `find-skills` across internal libraries, plugins, and top-starred GitHub repositories.
+3. **`skill_duplicate_checker` (Rule 4 & Architecture Recommendation):**
    - Verifies whether a capability already exists before generating new skills, preventing codebase duplication.
-4. **`antigravity_backup_specialist` (Rule 5 & Dept 13):**
+4. **`grill_me_specialist` (Rule 24 & Level 3B):**
+   - Evaluates requirements ambiguity, generates concise multiple-choice questions for the user, and pre-checks GitHub online existence per Rule 15.
+5. **`sub_manager_monitor` (Rule 26 & Background Role):**
+   - Continuously monitors active subagent tasks in the background, detecting stalls, timeouts, and orphan processes.
+6. **`antigravity_backup_specialist` (Rule 5 & Dept 13):**
    - Enforces dual-folder backup architecture (`Manual_Backup/` and `Daily_Backup/`), 1-click execution runners, 10-day FIFO pruning, and executes `scripts/backup/backup_manager.ps1` for deterministic workspace snapshots.
-5. **`rule_in_hindi_specialist` (Rule 5 & Dept 13):**
+7. **`rule_in_hindi_specialist` (Rule 5 & Dept 13):**
    - Executes the 1-click 'Rule In Hindi' translation runner (`Run_Rule_In_Hindi.bat` / `run_rule_in_hindi.bat`) with zero LLM token consumption. Governs incremental MD5 caching, Devanagari UTF-8 BOM encoding, and 3-snapshot FIFO archiving.
-6. **`changes_log_manager` (Rule 6 & Dept 12):**
+8. **`changes_log_manager` (Rule 6 & Dept 12):**
    - Governs 5-tier changes logging via `scripts/audit/changes_log_engine.py` and integrates `git-cliff` for instantaneous, token-free Conventional Commit changelog generation.
-7. **`security_hardening_officer` (Rule 10, Rule 12, Rule 15 & Dept 10):**
+9. **`security_hardening_officer` (Rule 10, Rule 12, Rule 15 & Dept 10):**
    - Enforces `scripts/security/secret_scanner.py` and `gitleaks` pre-commit and pre-push secret audit gates, eliminating exposed credentials and tokens.
-8. **`memory_sync_sentinel` (Rule 23):**
-   - Enforces real-time synchronization of [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) across all task stages and subagent dispatches.
-9. **Language & Domain Specialists (Rule 17):**
-   - Dedicated experts including `rust_expert_engineer`, `golang_expert_engineer`, `python_expert_engineer`, `typescript_frontend_engineer`, etc.
+10. **`memory_sync_sentinel` (Rule 23):**
+    - Enforces real-time synchronization of [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) across all task stages and subagent dispatches.
+11. **Language & Domain Specialists (Rule 17):**
+    - Dedicated experts including `rust_expert_engineer`, `golang_expert_engineer`, `python_expert_engineer`, `typescript_frontend_engineer`, etc.
 
 ### 5.1 Standalone Deterministic Automation Runners Manifest
 - **Changes Log Automation:** `scripts/audit/changes_log_engine.py` (Rule 6 & Dept 12) — Automated 5-tier change logger, diff capture, and audit verifier. Supports the `--files` / `-f` scoped flag and mandates the Granular Atomic Micro-Entries Protocol for compound tasks.

@@ -2,6 +2,7 @@
 
 > **Universal System Navigation Anchor:**
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) (Global ecosystem state & machine topology)
+> - **Architecture Recommendation:** [`architecture_recommendation.md`](architecture_recommendation.md) (4-Level Command Hierarchy & Skill Architecture)
 > - **Universal Canonical Rules Master:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/archive/universal_rules.md) (Archived canonical reference)
 > - **Foundation & Special Operating Rules:** [`foundation_and_special_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/foundation_and_special_rules.md)
 > - **Primary Developer Profile:** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com` / [GitHub Profile](https://github.com/aiprincekumar))
@@ -10,7 +11,14 @@
 
 ## 🧭 1. Enterprise Departmental Architecture Overview
 
-The Antigravity development ecosystem operates on a fully autonomous, modular enterprise architecture. The Main AI Agent acts strictly as the supreme **CEO / Orchestrator**, while all technical, analytical, coding, and operational tasks are executed by specialized subagents across 14 dedicated departments. This document serves as the single source of truth (SSOT) and rapid navigator.
+The Antigravity development ecosystem operates on a fully autonomous, modular enterprise architecture governed by the **4-Level Command Hierarchy**:
+- **Level 1: CEO (Supreme Orchestrator):** Sole user interface; strategic planning and delegation to Manager.
+- **Level 2: Manager (Parallel Sub-Agent Commander):** Tactical commander; enforces the Mandatory Parallel Specialist Decision Gate, allocates skills, assigns Sub Agents, and aggregates reports.
+- **Level 3: Specialized Advisory Agents:** `Skill Manager` (capability discovery via `skill-scout`/`find-skills` and dynamic allocation) and `Grill-Me Specialist` (user clarifications and Rule 15 online Git checks).
+- **Level 4: Execution Sub Agents:** Departmental specialists executing tasks across 14 divisions (`01_` through `14_`).
+- **Background Operational Role: Sub Manager (Monitor):** Continuous passive monitor detecting task hangs and stalls.
+
+Full details and lifecycle policies are codified in [`architecture_recommendation.md`](architecture_recommendation.md).
 
 ---
 
@@ -27,6 +35,7 @@ The Antigravity development ecosystem operates on a fully autonomous, modular en
 | Department | Name | Core Scope | AI Model | Dedicated Rule Document |
 | :--- | :--- | :--- | :--- | :--- |
 | **Foundation** | **Foundation & Core Rules** | CEO model, Zero-Scan, ecosystem subagents | `pro` | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
+| **Architecture** | **System Architecture & Hierarchy** | 4-Level Command Hierarchy, Skill Registry, Lifecycle | `pro` | [`architecture_recommendation.md`](architecture_recommendation.md) |
 | **Dept 01** | **Product Requirements** | PRD, user stories, scope boundary, phase prompts | `flash` | [`01_product_requirements_dept.md`](01_product_requirements_dept.md) |
 | **Dept 02** | **Solution Architecture** | HLD/LLD, system boundaries, ADRs, modularity | `pro` | [`02_solution_architecture_dept.md`](02_solution_architecture_dept.md) |
 | **Dept 03** | **Data Architecture & DBA** | Schema design, indexing, migrations, query tuning | `pro` | [`03_data_architecture_dba_dept.md`](03_data_architecture_dba_dept.md) |
