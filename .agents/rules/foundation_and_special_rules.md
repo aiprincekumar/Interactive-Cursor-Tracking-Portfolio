@@ -43,9 +43,21 @@ The operational command structure across the Antigravity ecosystem is formally d
    - Detects zombie processes, stalled tasks, unhandled exceptions, and port lockups (Rule 26) and immediately reports status alerts to the Manager.
 
 ### 1.3 Mandatory Parallel Specialist Decision Gate
-- Whenever the CEO provides a task, the Manager immediately and simultaneously dispatches the task brief to both the Skill Manager and the Grill-Me Specialist.
-- The Manager **MUST WAIT** for both specialist reports before releasing any execution tasks to Sub Agents.
-- All execution Sub Agents remain strictly **PAUSED / UNASSIGNED** until both reports are received, evaluated, and certified by the Manager.
+- **Simultaneous Dispatch:** Whenever the CEO delegates a task, the Manager simultaneously dispatches identical briefs to both Skill Manager and Grill-Me Specialist in parallel.
+- **Enforceable 10-State Lifecycle:** State transitions strictly through 10 deterministic states:
+  1. `WAITING_FOR_SPECIALISTS` (Simultaneous specialist task brief dispatch)
+  2. `SKILL_MANAGER_COMPLETED` (Skill Allocation Report verified)
+  3. `GRILL_ME_COMPLETED` (Clarification & Governance Report verified)
+  4. `WAITING_FOR_BOTH_REPORTS` (Active barrier awaiting second report)
+  5. `READY_FOR_MANAGER_DECISION` (Both reports verified valid by Manager)
+  6. `WAITING_FOR_USER_CLARIFICATION` (Ambiguities held until user response evaluated)
+  7. `APPROVED_FOR_EXECUTION` (Strict Invariant: ONLY Manager can authorize; generates token)
+  8. `EXECUTING` (Sub Agents verify authorization token prior to execution)
+  9. `BLOCKED` (Failed, missing, or timed-out reports transition to blocked)
+  10. `COMPLETED` (Independent QA Grade A+ certification)
+- **Sub Agent Execution Check:** Sub Agents MUST verify state is `APPROVED_FOR_EXECUTION` before running tasks.
+- **Sub Manager Passive Monitor:** Monitors state transitions, timeouts, and blocked states.
+- **Verification Engine:** Automated verification via `npm run test:decision-gate` with state in `.agents/state/decision_gate_state.json`.
 
 ### 1.4 Mandatory Subagent Prompt Anchor Template
 Whenever the Manager or an authorized agent dispatches work via `invoke_subagent`, the prompt MUST include the mandatory departmental anchoring directive:

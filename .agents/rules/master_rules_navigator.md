@@ -17,6 +17,7 @@ The Antigravity development ecosystem operates on a fully autonomous, modular en
 - **Level 3: Specialized Advisory Agents:** `Skill Manager` (capability discovery via `skill-scout`/`find-skills` and dynamic allocation) and `Grill-Me Specialist` (user clarifications and Rule 15 online Git checks).
 - **Level 4: Execution Sub Agents:** Departmental specialists executing tasks across 14 divisions (`01_` through `14_`).
 - **Background Operational Role: Sub Manager (Monitor):** Continuous passive monitor detecting task hangs and stalls.
+- **Enforceable Specialist Decision Gate:** Operates a 10-state machine (`.agents/state/decision_gate_state.json`): 1. `WAITING_FOR_SPECIALISTS`, 2. `SKILL_MANAGER_COMPLETED`, 3. `GRILL_ME_COMPLETED`, 4. `WAITING_FOR_BOTH_REPORTS`, 5. `READY_FOR_MANAGER_DECISION`, 6. `WAITING_FOR_USER_CLARIFICATION`, 7. `APPROVED_FOR_EXECUTION`, 8. `EXECUTING`, 9. `BLOCKED`, 10. `COMPLETED`. Sub Agents require Manager-approved token. Tested via `npm run test:decision-gate`.
 
 Full details and lifecycle policies are codified in [`architecture_recommendation.md`](architecture_recommendation.md).
 

@@ -121,6 +121,26 @@ sequenceDiagram
 3. **Clarification Precedence:** If the Grill-Me Specialist identifies blocking ambiguities, task execution is held while questions are routed through Manager -> CEO to the User via `ask_question`. Subagent dispatch resumes only upon receiving user clarification.
 4. **Tooling Readiness Mandate:** If the Skill Manager determines that a critical skill or tool is missing, subagent dispatch is held until the skill is discovered, verified, and installed.
 
+### 3.2 Enforceable 10-State Execution Machine
+The Specialist Decision Gate operates as a deterministic, enforceable state machine persisted in `.agents/state/decision_gate_state.json`:
+
+| State # | Canonical State Name | Active Role & Trigger Event | Operational Condition & Invariant |
+| :--- | :--- | :--- | :--- |
+| **01** | `WAITING_FOR_SPECIALISTS` | Manager dispatches task brief | Tasks issued simultaneously to Skill Manager and Grill-Me Specialist; execution subagents locked. |
+| **02** | `SKILL_MANAGER_COMPLETED` | Skill Manager submits verified report | Skill Allocation Report validated; Grill-Me Specialist still pending. |
+| **03** | `GRILL_ME_COMPLETED` | Grill-Me submits verified report | Governance Report validated; Skill Manager still pending. |
+| **04** | `WAITING_FOR_BOTH_REPORTS` | System acknowledges first report | Active hold barrier waiting for the second specialist report before decision. |
+| **05** | `READY_FOR_MANAGER_DECISION` | Both reports validated clean | Both reports verified; no pending user ambiguities; awaiting Manager evaluation. |
+| **06** | `WAITING_FOR_USER_CLARIFICATION` | Grill-Me flags essential ambiguity | Execution tasks blocked until user responds via `ask_question` and Manager clears. |
+| **07** | `APPROVED_FOR_EXECUTION` | Manager signs authorization token | **Strict Condition:** ONLY Manager can set this state and generate `AUTH-MGR-*` token. |
+| **08** | `EXECUTING` | Sub Agent verifies authorization | Sub Agent validates state is `APPROVED_FOR_EXECUTION` before executing any task. |
+| **09** | `BLOCKED` | Specialist error, missing report, or timeout | Execution blocked; failed/missing reports never treated as success. Sub Manager flags. |
+| **10** | `COMPLETED` | QA certifies Grade A+ signoff | Final verification passed, changes logged, and state machine closed. |
+
+### 3.3 State Machine Enforcement & Verification
+- **Automated State Ledger:** Persisted at `.agents/state/decision_gate_state.json` and monitored by the Sub Manager.
+- **Verification Command:** Certified via `npm run test:decision-gate`.
+
 ---
 
 ## 🗄️ 4. Central Skill Registry Architecture
