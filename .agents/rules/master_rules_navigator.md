@@ -16,7 +16,7 @@ The Antigravity development ecosystem operates on a fully autonomous, modular en
 
 ## ⚖️ 2. Rule Precedence Hierarchy & Operating Boundary
 
-- **Tier 1: Constitutional Governance (Universal Rules ALWAYS WIN):** CEO model & subagents (Rule 1), Zero-Scan memory anchoring (Rule 0/21), Atul Verma identity & Autonomous Local Commit / Git Push Gatekeeper (Rule 15/16), zero secrets & SAST (Rule 10/12), 10-day FIFO backup & Rule In Hindi (Rule 5), Changes Log 5 tiers (Rule 6), Rules health check `npm run rules:check` (Rule 27), and pre-task /grill-me discovery (Rule 24).
+- **Tier 1: Constitutional Governance (Universal Rules ALWAYS WIN):** CEO model & subagents (Rule 1), Zero-Scan memory anchoring (Rule 0/21), Atul Verma identity & Autonomous Local Commit / Git Push Gatekeeper (Rule 15/16; online-verified repos only), zero secrets & SAST (Rule 10/12), 10-day FIFO backup & Rule In Hindi (Rule 5), Changes Log 5 tiers (Rule 6), Rules health check `npm run rules:check` (Rule 27), and pre-task /grill-me discovery (Rule 24).
 - **Tier 2: Technical Overrides (Project-Level Rules WIN):** Tech stack (React/Vue/Vite), design tokens (`DESIGN.md`), and business schema.
 - **Conflict Resolution:** Governance & security ➔ Universal Rules prevail; Technical implementation ➔ Project rules prevail.
 
@@ -118,7 +118,7 @@ Every subagent must verify and certify the following 7 requirements before compl
 | **Rule 12** | Security Best Practices, OWASP & Pre-Commit SAST | InfoSec Fortification | [`10_application_security_infosec_dept.md`](10_application_security_infosec_dept.md) |
 | **Rule 13** | Test Verification Gates & Automated Quality | QA & Verification Gates | [`08_quality_assurance_testing_dept.md`](08_quality_assurance_testing_dept.md) |
 | **Rule 14** | Technical Documentation & Transparent Reporting | Architecture & Docs | [`07_technical_documentation_dept.md`](07_technical_documentation_dept.md) |
-| **Rule 15** | Dedicated Git Operations, Autonomous Local Commits & Push Gate | Remote VCS Governance | [`12_devops_build_release_dept.md`](12_devops_build_release_dept.md) |
+| **Rule 15** | Dedicated Git Operations, Autonomous Local Commits & Online-Verified Push Gate | Remote VCS Governance | [`12_devops_build_release_dept.md`](12_devops_build_release_dept.md) |
 | **Rule 16** | Developer Identity: Atul Verma (aiprincekumar) | Author Identity | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
 | **Rule 17** | Dedicated Subagent per Programming Language | Language Purity | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
 | **Rule 18** | Mandatory Project Rules Replication & Active Sync | Rules Governance | [`master_rules_navigator.md`](master_rules_navigator.md) |

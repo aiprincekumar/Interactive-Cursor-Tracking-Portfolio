@@ -60,11 +60,17 @@ This department ensures every artifact advancing toward production is 100% build
 - **Autonomous Local Micro-Commit Cadence:**
   - On EVERY SINGLE change or logical modification, autonomously perform a local `git commit` immediately without asking or interrupting the user. Never prompt the user for local commits.
   - Immediately after creating the local commit, notify and inform the user with a concise status update: `"Local commit created: [commit-hash] [commit-message]"` (e.g. Hindi status notification: `"Haan, local me commit ho chuka hai [hash/message]"`).
-- **Strict Remote Git Gatekeeper (Hard Lock):**
-  - Absolute prohibition on autonomous remote `git push`. Changes remain strictly local until explicit user permission is granted.
+- **Online GitHub Upstream & Existence Pre-Check (Zero-Prompt for Local Repos):**
+  - Before prompting the user to push to GitHub at task completion, verify whether the repository exists on GitHub online and has actually been pushed online at least once:
+    1. **Remote Origin URL Verification:** Check if a remote is configured pointing to GitHub (`git config --get remote.origin.url` or `git remote -v`). If no remote is configured or the URL does not point to GitHub, the repository is local-only.
+    2. **Online Existence & Tracking Verification:** Verify remote tracking with `git rev-parse --abbrev-ref --symbolic-full-name @{u}` or `git branch -r`, and check remote reachability/existence via `git ls-remote --exit-code origin` (or GitHub MCP / CLI).
+  - **Local-Only / Never Pushed Repos:** If the repository does NOT exist online on GitHub, has no remote configured, or has never been pushed online (e.g., `git ls-remote origin` fails or returns empty/unreachable), **DO NOT prompt the user with `ask_question`**. Safely commit locally only and complete cleanly without offering remote push.
+  - **Online GitHub Repo Verified:** **ONLY** when the repository has actually been pushed to GitHub online at least once (verified online remote existence and tracking upstream), proceed to the interactive gatekeeper below.
+- **Strict Remote Git Gatekeeper (Hard Lock for Verified Online Repos):**
+  - Absolute prohibition on autonomous remote `git push`. Even for online repos, changes remain strictly local until explicit user permission is granted.
   - Mandatory `gitleaks detect --redact` secret scan must execute with zero detected leaks prior to presenting user confirmation options.
 - **Task-Completion Interactive Gate (`ask_question`):**
-  - At the completion of the entire task/workflow (all modifications complete, build verified, test suites passing), present an interactive 2-option choice via `ask_question` (exactly two options):
+  - For repositories verified to exist online on GitHub, at task completion (all modifications complete, build verified, test suites passing), present an interactive 2-option choice via `ask_question` (exactly two options):
     1. `(Recommended) Push committed changes to GitHub online` (Push committed changes online to GitHub with pre-push gitleaks check and 3-point terminal proof; Hindi equivalent: `(Recommended) GitHub par commit changes push karna`).
     2. `Do not push yet because testing is pending` (Do not push to remote, keep changes local because testing and manual inspection are pending; Hindi equivalent: `Nahi, abhi rahne do kyonki testing pending hai`).
 - **3-Point Terminal Proof Mandate:**
