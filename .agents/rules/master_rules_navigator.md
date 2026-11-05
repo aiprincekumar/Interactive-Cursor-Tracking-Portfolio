@@ -4,8 +4,11 @@
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) (Global ecosystem state & machine topology)
 > - **Architecture Recommendation:** [`architecture_recommendation.md`](architecture_recommendation.md) (4-Level Command Hierarchy & Skill Architecture)
 > - **Prompt Architecture:** [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md) (Phase-wise Prompt Generation Specialist & Workflow)
+> - **Foundation Core:** [`foundation_core.md`](foundation_core.md) (Constitutional rules & CEO Zero-Code Hard Lock)
+> - **Special Operations Guide:** [`special_operations_guide.md`](special_operations_guide.md) (SRE backup, changes log & security)
+> - **Dynamic Routing Matrix:** [`dynamic_departments_matrix.md`](dynamic_departments_matrix.md) (14 Enterprise Departments dynamic router)
+> - **Department Index & Archive:** [`dept_index.md`](dept_index.md) (On-demand departmental playbooks directory)
 > - **Universal Canonical Rules Master:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/archive/universal_rules.md) (Archived canonical reference)
-> - **Foundation & Special Operating Rules:** [`foundation_and_special_rules.md`](foundation_and_special_rules.md)
 > - **Primary Developer Profile:** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com` / [GitHub Profile](https://github.com/aiprincekumar))
 
 ---
@@ -15,18 +18,16 @@
 The Antigravity development ecosystem operates on an autonomous, modular enterprise architecture governed by the **4-Level Command Hierarchy** codified in [`architecture_recommendation.md`](architecture_recommendation.md):
 - **Level 1: CEO (Supreme Orchestrator):** Sole user interface; strategic planning and delegation exclusively to Level 2 Manager.
 - **Level 2: Manager (Parallel Sub-Agent Commander):** Tactical commander; enforces the Mandatory Parallel Specialist Decision Gate, allocates skills, assigns Sub Agents, and aggregates reports.
-- **Level 3: Specialized Advisory Agents:** `Skill Manager` (capability discovery and allocation), `Grill-Me Specialist` (user clarifications and Rule 15 Git checks), and `Phase-wise Prompt Generation Specialist` (governed by [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md); Rule 22 prompt evaluation and phased architecture).
+- **Level 3: Specialized Advisory Agents:** `Skill Manager`, `Grill-Me Specialist`, and `Phase-wise Prompt Generation Specialist` (governed by [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md); Rule 22).
 - **Level 4: Execution Sub Agents:** Departmental specialists executing tasks across 14 divisions (`01_` through `14_`).
-- **Background Operational Role: Sub Manager (Monitor):** Continuous passive monitor detecting task hangs and stalls.
-- **Enforceable Specialist Decision Gate:** Governed by the 10-state machine (`.agents/state/decision_gate_state.json`) and verified via `npm run test:decision-gate`.
-
-Full operational specifications and lifecycle policies are codified in [`architecture_recommendation.md`](architecture_recommendation.md).
+- **Background Operational Role: Sub Manager (Monitor):** Passive monitor detecting task hangs and stalls.
+- **Enforceable Specialist Decision Gate:** Governed by 10-state machine (`.agents/state/decision_gate_state.json`) and verified via `npm run test:decision-gate`.
 
 ---
 
 ## ⚖️ 2. Rule Precedence Hierarchy & Operating Boundary
 
-Operational priorities and boundaries between Global Universal Rules and Project-Level Rules are governed by the Two-Tier Precedence Matrix codified in [`foundation_and_special_rules.md`](foundation_and_special_rules.md):
+Operational priorities and boundaries between Global Universal Rules and Project-Level Rules are governed by the Two-Tier Precedence Matrix codified in [`foundation_core.md`](foundation_core.md):
 - **Tier 1: Constitutional Governance (Universal Rules ALWAYS WIN):** CEO model & subagent delegation (Rule 1), Zero-Scan memory anchoring (Rule 0/21), Developer profile Atul Verma & Autonomous Local Commit / Git Push Gatekeeper (Rule 15/16; online-verified repos only), zero secrets & SAST (Rule 10/12), 10-day FIFO backup & Rule In Hindi (Rule 5), Changes Log 5 tiers (Rule 6), Rules health check `npm run rules:check` (Rule 27), and pre-task discovery (Rule 24).
 - **Tier 2: Technical Overrides (Project-Level Rules WIN):** Tech stack (React/Vue/Vite), design tokens (`DESIGN.md`), and business schema.
 - **Conflict Resolution:** In governance and security conflicts, Universal Rules prevail with 100% authority. In technical implementation or styling conflicts, project rules prevail.
@@ -37,29 +38,32 @@ Operational priorities and boundaries between Global Universal Rules and Project
 
 | Department | Name | Core Scope | AI Model | Dedicated Rule Document |
 | :--- | :--- | :--- | :--- | :--- |
-| **Foundation** | **Foundation & Core Rules** | CEO model, Zero-Scan, ecosystem subagents | `pro` | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
+| **Foundation** | **Foundation Core Rules** | CEO model, Zero-Scan, constitutional governance | `pro` | [`foundation_core.md`](foundation_core.md) |
+| **Operations** | **Special Operations & SRE** | Rule 5 backup, Rule 6 changes log, gitleaks, BOM | `flash_lite` | [`special_operations_guide.md`](special_operations_guide.md) |
 | **Architecture** | **System Architecture & Hierarchy** | 4-Level Command Hierarchy, Skill Registry, Lifecycle | `pro` | [`architecture_recommendation.md`](architecture_recommendation.md) |
-| **Dept 01** | **Product Requirements** | PRD, user stories, scope boundary, phase prompts | `flash` | [`01_product_requirements_dept.md`](01_product_requirements_dept.md) |
-| **Dept 02** | **Solution Architecture** | HLD/LLD, system boundaries, ADRs, modularity | `pro` | [`02_solution_architecture_dept.md`](02_solution_architecture_dept.md) |
-| **Dept 03** | **Data Architecture & DBA** | Schema design, indexing, migrations, query tuning | `pro` | [`03_data_architecture_dba_dept.md`](03_data_architecture_dba_dept.md) |
-| **Dept 04** | **UI/UX Design System** | DESIGN.md, tokens, typography, WCAG A11y | `flash` | [`04_ui_ux_design_system_dept.md`](04_ui_ux_design_system_dept.md) |
-| **Dept 05** | **Frontend Engineering** | React/Vue/Vite, state, V-DOM, SSR boundaries | `flash` | [`05_frontend_engineering_dept.md`](05_frontend_engineering_dept.md) |
-| **Dept 06** | **Backend & API Engineering** | REST/GraphQL APIs, middleware, auth, queues | `flash` / `pro` | [`06_backend_api_engineering_dept.md`](06_backend_api_engineering_dept.md) |
-| **Dept 07** | **Technical Documentation** | OpenAPI/Swagger, ADRs, runbooks, dev guides | `flash_lite` | [`07_technical_documentation_dept.md`](07_technical_documentation_dept.md) |
-| **Dept 08** | **Quality Assurance & Testing** | Unit, integration, E2E (Playwright), TDD gates | `flash` | [`08_quality_assurance_testing_dept.md`](08_quality_assurance_testing_dept.md) |
-| **Dept 09** | **Performance & Web Vitals** | LCP/INP/CLS, heap snapshots, bundle budgets | `pro` | [`09_performance_web_vitals_dept.md`](09_performance_web_vitals_dept.md) |
-| **Dept 10** | **AppSec & InfoSec** | OWASP Top 10, secret scanning, token safety | `pro` | [`10_application_security_infosec_dept.md`](10_application_security_infosec_dept.md) |
-| **Dept 11** | **Legal & License Compliance** | Open-source licenses (MIT/GPL), SPDX, GDPR | `flash_lite` | [`11_legal_license_compliance_dept.md`](11_legal_license_compliance_dept.md) |
-| **Dept 12** | **DevOps, Build & Release** | CI/CD pipelines, build gates, Rule 6 changes log | `flash_lite` | [`12_devops_build_release_dept.md`](12_devops_build_release_dept.md) |
-| **Dept 13** | **SRE & Backup Ops** | Rule 5 backup, 10-day FIFO, Rule 23 memory sync | `flash_lite` | [`13_sre_backup_disaster_recovery_dept.md`](13_sre_backup_disaster_recovery_dept.md) |
-| **Dept 14** | **Telemetry & Flags** | OpenTelemetry, structured logging, feature flags | `flash` | [`14_telemetry_observability_feature_flags_dept.md`](14_telemetry_observability_feature_flags_dept.md) |
+| **Dynamic Matrix** | **14 Departments Dynamic Matrix** | Dynamic skill routing across all 14 divisions | `flash` | [`dynamic_departments_matrix.md`](dynamic_departments_matrix.md) |
+| **Dept Index** | **Department Playbooks Index** | JIT on-demand directory of 14 archived playbooks | `flash_lite` | [`dept_index.md`](dept_index.md) |
+| **Dept 01** | **Product Requirements** | PRD, user stories, scope boundary, phase prompts | `flash` | [`departments_archive/01_product_requirements_dept.md`](departments_archive/01_product_requirements_dept.md) |
+| **Dept 02** | **Solution Architecture** | HLD/LLD, system boundaries, ADRs, modularity | `pro` | [`departments_archive/02_solution_architecture_dept.md`](departments_archive/02_solution_architecture_dept.md) |
+| **Dept 03** | **Data Architecture & DBA** | Schema design, indexing, migrations, query tuning | `pro` | [`departments_archive/03_data_architecture_dba_dept.md`](departments_archive/03_data_architecture_dba_dept.md) |
+| **Dept 04** | **UI/UX Design System** | DESIGN.md, tokens, typography, WCAG A11y | `flash` | [`departments_archive/04_ui_ux_design_system_dept.md`](departments_archive/04_ui_ux_design_system_dept.md) |
+| **Dept 05** | **Frontend Engineering** | React/Vue/Vite, state, V-DOM, SSR boundaries | `flash` | [`departments_archive/05_frontend_engineering_dept.md`](departments_archive/05_frontend_engineering_dept.md) |
+| **Dept 06** | **Backend & API Engineering** | REST/GraphQL APIs, middleware, auth, queues | `flash` / `pro` | [`departments_archive/06_backend_api_engineering_dept.md`](departments_archive/06_backend_api_engineering_dept.md) |
+| **Dept 07** | **Technical Documentation** | OpenAPI/Swagger, ADRs, runbooks, dev guides | `flash_lite` | [`departments_archive/07_technical_documentation_dept.md`](departments_archive/07_technical_documentation_dept.md) |
+| **Dept 08** | **Quality Assurance & Testing** | Unit, integration, E2E (Playwright), TDD gates | `flash` | [`departments_archive/08_quality_assurance_testing_dept.md`](departments_archive/08_quality_assurance_testing_dept.md) |
+| **Dept 09** | **Performance & Web Vitals** | LCP/INP/CLS, heap snapshots, bundle budgets | `pro` | [`departments_archive/09_performance_web_vitals_dept.md`](departments_archive/09_performance_web_vitals_dept.md) |
+| **Dept 10** | **AppSec & InfoSec** | OWASP Top 10, secret scanning, token safety | `pro` | [`departments_archive/10_application_security_infosec_dept.md`](departments_archive/10_application_security_infosec_dept.md) |
+| **Dept 11** | **Legal & License Compliance** | Open-source licenses (MIT/GPL), SPDX, GDPR | `flash_lite` | [`departments_archive/11_legal_license_compliance_dept.md`](departments_archive/11_legal_license_compliance_dept.md) |
+| **Dept 12** | **DevOps, Build & Release** | CI/CD pipelines, build gates, Rule 6 changes log | `flash_lite` | [`departments_archive/12_devops_build_release_dept.md`](departments_archive/12_devops_build_release_dept.md) |
+| **Dept 13** | **SRE & Backup Ops** | Rule 5 backup, 10-day FIFO, Rule 23 memory sync | `flash_lite` | [`departments_archive/13_sre_backup_disaster_recovery_dept.md`](departments_archive/13_sre_backup_disaster_recovery_dept.md) |
+| **Dept 14** | **Telemetry & Flags** | OpenTelemetry, structured logging, feature flags | `flash` | [`departments_archive/14_telemetry_observability_feature_flags_dept.md`](departments_archive/14_telemetry_observability_feature_flags_dept.md) |
 
 ---
 
 ## 🔀 4. Task-Driven Routing Decision Matrix
 
-- **Feature / Project Work:** Dept 01 (Scope/PRD) ➔ Dept 02 (Architecture) ➔ Dept 03/04 (DBA & UI/UX) ➔ Dept 05/06 (Implementation) ➔ Dept 08 (QA/TDD) ➔ Dept 10 (Security) ➔ Dept 12 (Build & Changes Log) ➔ Dept 13 (Memory Sync).
-- **Bug Fix / Refactor:** Dept 08 (Repro QA) ➔ Dept 05/06 (Surgical Fix) ➔ Dept 10 (Security Audit) ➔ Dept 12 (Changes Log & Build Gate) ➔ Dept 13 (Memory Sync & Backup).
+- **Feature Work:** Dept 01 (Scope) ➔ Dept 02 (Arch) ➔ Dept 03/04 (DBA & UI) ➔ Dept 05/06 (Build) ➔ Dept 08 (QA) ➔ Dept 10 (Security) ➔ Dept 12 (Release) ➔ Dept 13 (Sync).
+- **Bug Fix / Refactor:** Dept 08 (Repro QA) ➔ Dept 05/06 (Surgical Fix) ➔ Dept 10 (Security Audit) ➔ Dept 12 (Changes Log) ➔ Dept 13 (Memory Sync).
 
 ---
 
@@ -77,11 +81,11 @@ Operational priorities and boundaries between Global Universal Rules and Project
 
 ## 🧑‍💼 6. Master Enterprise Roles & Subagents Roster
 
-Antigravity operates a specialized 66-role enterprise division across 14 departments:
+Antigravity operates a specialized 67-role enterprise division across 14 departments:
 
 | Department | Key Enterprise Job Roles | Dedicated Subagent Roles | Core Responsibilities & Directives |
 | :--- | :--- | :--- | :--- |
-| **Dept 01: Product Requirements** | Lead Product Manager, Business Systems Analyst, Technical Product Owner, UX Research Analyst, Localization & Internationalization (i18n) Product Analyst | `Product Scope Architect`, `Business Systems Analyst`, `Technical Product Owner`, `UX Research Analyst`, `Localization Product Analyst` | PRD authoring, acceptance criteria, INVEST stories, MoSCoW prioritization, persona mapping, i18n/l10n specs. |
+| **Dept 01: Product Requirements** | Lead Product Manager, Business Systems Analyst, Technical Product Owner, UX Research Analyst, Localization & Internationalization (i18n) Product Analyst | `Product Scope Architect`, `Business Systems Analyst`, `Technical Product Owner`, `UX Research Analyst`, `Localization Product Analyst` | PRD authoring, user stories, acceptance criteria, MoSCoW prioritization, persona mapping, i18n/l10n specs. |
 | **Dept 02: Solution Architecture** | Principal System Architect, Integration Architect, Domain Architecture Specialist, Code Standards Architect | `System Architect`, `Integration Architect`, `Domain Architecture Specialist`, `Code Standards Architect` | HLD/LLD architecture boundaries, MADR decision records, DDD bounded contexts, SOLID/DRY audits. |
 | **Dept 03: Data Architecture & DBA** | Relational DBA, Vector DB Specialist, Data Migration Specialist, Query Performance Tuner | `Database Administrator`, `Vector Database Specialist`, `Data Migration Specialist`, `Query Performance Tuner` | 3NF/BCNF relational modeling, foreign keys, pgvector/Pinecone indexes, zero-downtime migrations, query tuning. |
 | **Dept 04: UI/UX Design System** | Design System Lead, Visual UI Designer, Motion Design Specialist, Accessibility Specialist, Visual QA Specialist, Design Systems Token & Theming Engineer | `Design System Lead`, `Visual UI Designer`, `Motion Design Specialist`, `Accessibility Specialist`, `Visual QA Specialist`, `Design Token Engineer` | Semantic tokens, DESIGN.md specs, typography scales, 60fps spring motion, WCAG 2.1 AA/AAA, pixel audits, theming engine. |
@@ -103,7 +107,7 @@ Antigravity operates a specialized 66-role enterprise division across 14 departm
 Every subagent must verify and certify the following 7 requirements before completing any task:
 - [ ] **Memory Anchoring:** Maintained continuous synchronization with [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) (Rule 23).
 - [ ] **Zero-Scan Compliance:** Avoided blind recursive workspace scans (`dir /s`, `find`, `Get-ChildItem -Recurse`) (Rule 0 / 21).
-- [ ] **Departmental Rule Adherence:** Fully complied with the dedicated rule document for the assigned department.
+- [ ] **Dynamic Skill Adherence:** Fully complied with the dynamic skill bindings assigned for the active department.
 - [ ] **Quality Gate Certification:** Build (`npm run build`) and test suites (`npm test`) passed with zero errors (Rule 12/08).
 - [ ] **Security Audit:** Certified zero hardcoded credentials, API keys, or unescaped injection vulnerabilities (Rule 10).
 - [ ] **Changes Log Audit Entry:** Standardized audit record logged in project `changes_log/` across all 5 tiers (Rule 6).
@@ -115,31 +119,31 @@ Every subagent must verify and certify the following 7 requirements before compl
 
 | Rule | Title | Domain | Dedicated Rule Document |
 | :--- | :--- | :--- | :--- |
-| **Rule 0** | Zero-Scan Bootstrap & Memory Anchoring | Architecture & State | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 1** | Supreme CEO Orchestrator & Subagent Delegation | Delegation & Oversight | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 2** | Pre-Task Parallel Dispatch Optimization | Parallel Orchestration | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 3** | Skill Requirement Discovery & Sourcing | Capability Sourcing | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 4** | Mandatory Skill Duplication Verification | Tooling Hygiene | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 5** | Antigravity Backup, 10-Day FIFO & Rule In Hindi | SRE & DR Continuity | [`13_sre_backup_disaster_recovery_dept.md`](13_sre_backup_disaster_recovery_dept.md) |
-| **Rule 6** | Mandatory Project Changes Log (5-Tier Architecture with Granular Atomic Micro-Entries Protocol) | Forensic Audit Trail | [`12_devops_build_release_dept.md`](12_devops_build_release_dept.md) |
-| **Rule 7** | Autonomous Local Execution vs. Git Push Lock | Execution Autonomy | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 8** | Timestamp Standardization & UTF-8 with BOM | Data & Text Hygiene | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 9** | Code Quality & Clean Architecture (SOLID/DRY) | Code Craftsmanship | [`02_solution_architecture_dept.md`](02_solution_architecture_dept.md) |
-| **Rule 10** | Surgical File Editing Safety & Regressions | Non-Destructive Edits | [`02_solution_architecture_dept.md`](02_solution_architecture_dept.md) |
-| **Rule 11** | Error Handling & Credential-Free Logging | System Robustness | [`06_backend_api_engineering_dept.md`](06_backend_api_engineering_dept.md) |
-| **Rule 12** | Security Best Practices, OWASP & Pre-Commit SAST | InfoSec Fortification | [`10_application_security_infosec_dept.md`](10_application_security_infosec_dept.md) |
-| **Rule 13** | Test Verification Gates & Automated Quality | QA & Verification Gates | [`08_quality_assurance_testing_dept.md`](08_quality_assurance_testing_dept.md) |
-| **Rule 14** | Technical Documentation & Transparent Reporting | Architecture & Docs | [`07_technical_documentation_dept.md`](07_technical_documentation_dept.md) |
-| **Rule 15** | Dedicated Git Operations, Autonomous Local Commits & Online-Verified Push Gate | Remote VCS Governance | [`12_devops_build_release_dept.md`](12_devops_build_release_dept.md) |
-| **Rule 16** | Developer Identity: Atul Verma (aiprincekumar) | Author Identity | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 17** | Dedicated Subagent per Programming Language | Language Purity | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 18** | Mandatory Project Rules Replication & Active Sync | Rules Governance | [`master_rules_navigator.md`](master_rules_navigator.md) |
-| **Rule 19** | Single-Row Section Headings Standard | UI/UX & Responsive | [`04_ui_ux_design_system_dept.md`](04_ui_ux_design_system_dept.md) |
-| **Rule 20** | Feature Memory & 7-Column Diagnostic Matrix | Defect Forensics | [`01_product_requirements_dept.md`](01_product_requirements_dept.md) |
-| **Rule 21** | Zero-Scan Ecosystem Discovery & Memory Anchor | Working Memory | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 22** | Phase-wise Prompt Architecture & Ephemeral Workspace Standard | Phased Isolation | [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md) & [`01_product_requirements_dept.md`](01_product_requirements_dept.md) |
-| **Rule 23** | Stage-by-Stage Working Memory Synchronization | State Continuity | [`13_sre_backup_disaster_recovery_dept.md`](13_sre_backup_disaster_recovery_dept.md) |
-| **Rule 24** | Default /grill-me & Dynamic /teamwork Protocol | Discovery & Fleets | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 25** | Dynamic AI Model Selection & Thinking Budget | Cost & Model Tiers | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 26** | Subagent Background Task Hygiene & Zero-Hang | Process Lifecycle | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 27** | Rules Health & Integrity Sentinel Standard | Rules Governance | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
+| **Rule 0** | Zero-Scan Bootstrap & Memory Anchoring | Architecture | [`foundation_core.md`](foundation_core.md) |
+| **Rule 1** | Supreme CEO Orchestrator & Subagent Delegation | Delegation | [`foundation_core.md`](foundation_core.md) |
+| **Rule 2** | Pre-Task Parallel Dispatch Optimization | Parallelism | [`foundation_core.md`](foundation_core.md) |
+| **Rule 3** | Skill Requirement Discovery & Sourcing | Tooling | [`foundation_core.md`](foundation_core.md) |
+| **Rule 4** | Mandatory Skill Duplication Verification | Tooling | [`foundation_core.md`](foundation_core.md) |
+| **Rule 5** | Antigravity Backup, 10-Day FIFO & Rule In Hindi | SRE & DR | [`special_operations_guide.md`](special_operations_guide.md) |
+| **Rule 6** | Mandatory Project Changes Log (5-Tier Architecture) | Audit Log | [`special_operations_guide.md`](special_operations_guide.md) |
+| **Rule 7** | Autonomous Local Execution vs. Git Push Lock | Autonomy | [`foundation_core.md`](foundation_core.md) |
+| **Rule 8** | Timestamp Standardization & UTF-8 with BOM | Hygiene | [`special_operations_guide.md`](special_operations_guide.md) |
+| **Rule 9** | Code Quality & Clean Architecture (SOLID/DRY) | Architecture | [`dynamic_departments_matrix.md`](dynamic_departments_matrix.md) |
+| **Rule 10** | Surgical File Editing Safety & Regressions | Reliability | [`special_operations_guide.md`](special_operations_guide.md) |
+| **Rule 11** | Error Handling & Credential-Free Logging | Robustness | [`dynamic_departments_matrix.md`](dynamic_departments_matrix.md) |
+| **Rule 12** | Security Best Practices, OWASP & Pre-Commit SAST | InfoSec | [`special_operations_guide.md`](special_operations_guide.md) |
+| **Rule 13** | Test Verification Gates & Automated Quality | QA Gates | [`dynamic_departments_matrix.md`](dynamic_departments_matrix.md) |
+| **Rule 14** | Technical Documentation & Transparent Reporting | Documentation | [`dynamic_departments_matrix.md`](dynamic_departments_matrix.md) |
+| **Rule 15** | Dedicated Git Operations & Online Push Gate | VCS Governance | [`foundation_core.md`](foundation_core.md) |
+| **Rule 16** | Developer Identity: Atul Verma (aiprincekumar) | Author Identity | [`foundation_core.md`](foundation_core.md) |
+| **Rule 17** | Dedicated Subagent per Programming Language | Language | [`foundation_core.md`](foundation_core.md) |
+| **Rule 18** | Mandatory Project Rules Replication & Active Sync | Governance | [`master_rules_navigator.md`](master_rules_navigator.md) |
+| **Rule 19** | Single-Row Section Headings Standard | UI Design | [`dynamic_departments_matrix.md`](dynamic_departments_matrix.md) |
+| **Rule 20** | Feature Memory & 7-Column Diagnostic Matrix | Forensics | [`special_operations_guide.md`](special_operations_guide.md) |
+| **Rule 21** | Zero-Scan Discovery & Memory Anchor | Memory State | [`foundation_core.md`](foundation_core.md) |
+| **Rule 22** | Phase-wise Prompt Architecture Standard | Prompt Arch | [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md) |
+| **Rule 23** | Stage-by-Stage Working Memory Synchronization | Continuity | [`special_operations_guide.md`](special_operations_guide.md) |
+| **Rule 24** | Default /grill-me & Dynamic /teamwork Protocol | Discovery | [`foundation_core.md`](foundation_core.md) |
+| **Rule 25** | Dynamic AI Model Selection & Thinking Budget | Cost & Model | [`foundation_core.md`](foundation_core.md) |
+| **Rule 26** | Subagent Background Task Hygiene & Zero-Hang | Lifecycle | [`foundation_core.md`](foundation_core.md) |
+| **Rule 27** | Rules Health & Integrity Sentinel Standard | Governance | [`foundation_core.md`](foundation_core.md) |

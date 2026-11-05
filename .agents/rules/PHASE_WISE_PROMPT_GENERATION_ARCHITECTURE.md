@@ -1,11 +1,11 @@
-﻿# Phase-wise Prompt Generation Architecture
+﻿﻿﻿# Phase-wise Prompt Generation Architecture
 
 > **Authoritative Specification & Governance:**
 > - **Specialist Role:** Level 3C Phase-wise Prompt Generation Specialist (`prompt_generation_specialist`)
 > - **System Architecture:** [`architecture_recommendation.md`](architecture_recommendation.md)
-> - **Foundation Operating Rules:** [`foundation_and_special_rules.md`](foundation_and_special_rules.md)
+> - **Foundation Operating Rules:** [`foundation_core.md`](foundation_core.md)
 > - **Master Rules Navigator:** [`master_rules_navigator.md`](master_rules_navigator.md)
-> - **Lead Department:** [`01_product_requirements_dept.md`](01_product_requirements_dept.md)
+> - **Lead Department:** [`departments_archive/01_product_requirements_dept.md`](departments_archive/01_product_requirements_dept.md)
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md)
 
 ---

@@ -1,8 +1,8 @@
-﻿# ARCHITECTURE RECOMMENDATION
+﻿﻿﻿# ARCHITECTURE RECOMMENDATION
 
 > **Universal System Architecture Reference:**
 > - **Master Rules Navigator:** [`master_rules_navigator.md`](master_rules_navigator.md)
-> - **Foundation Operating Rules:** [`foundation_and_special_rules.md`](foundation_and_special_rules.md)
+> - **Foundation Operating Rules:** [`foundation_core.md`](foundation_core.md)
 > - **Prompt Architecture:** [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md)
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md)
 > - **Developer Profile:** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com` / [GitHub Profile](https://github.com/aiprincekumar))

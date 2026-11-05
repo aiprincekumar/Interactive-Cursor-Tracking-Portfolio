@@ -48,6 +48,7 @@ function discoverRuleFiles() {
   const localFiles = fs.existsSync(LOCAL_RULES_DIR)
     ? fs.readdirSync(LOCAL_RULES_DIR).filter(file => {
         const fullPath = path.join(LOCAL_RULES_DIR, file);
+        if (file === 'universal_rules.md') return false; // archived canonical pointer
         return file.endsWith('.md') && fs.statSync(fullPath).isFile();
       })
     : [];
@@ -507,8 +508,40 @@ if (!navigatorEntry) {
     });
   }
 
-  // Bi-directional verification for all numbered departmental files
+  // Bi-directional verification: check dynamic_departments_matrix.md or individual departmental files
+  const dynamicMatrixFile = RULE_FILES.find(f => f.includes('dynamic_departments_matrix'));
   const deptFiles = RULE_FILES.filter(f => /^\d\d_/.test(f));
+
+  if (dynamicMatrixFile) {
+    const matrixEntry = parsedCache.get(dynamicMatrixFile);
+    if (matrixEntry) {
+      const matrixRows = matrixEntry.cleanContent.split(/\r?\n/).filter(line => line.startsWith('| **Dept'));
+      const matrixDeptRoles = new Map();
+      matrixRows.forEach(row => {
+        const cols = row.split('|').map(c => c.trim()).filter(Boolean);
+        if (cols.length >= 3) {
+          const deptKeyMatch = cols[0].match(/Dept\s*(\d+)/i);
+          if (deptKeyMatch) {
+            const deptNum = deptKeyMatch[1];
+            const roles = cols[2].split(',').map(r => r.replace(/[`*]/g, '').trim()).filter(Boolean);
+            matrixDeptRoles.set(deptNum, roles);
+          }
+        }
+      });
+
+      for (const [deptNum, expectedRoles] of navigatorDeptRoles.entries()) {
+        const declaredRoles = matrixDeptRoles.get(deptNum) || [];
+        const missingInMatrix = expectedRoles.filter(r => !declaredRoles.includes(r));
+        const missingInNavigator = declaredRoles.filter(r => !expectedRoles.includes(r));
+
+        if (missingInMatrix.length > 0 || missingInNavigator.length > 0) {
+          reportDiagnostic(dynamicMatrixFile, 0, 'PARITY_MISMATCH', 5, `Missing in Matrix: [${missingInMatrix.join(', ')}] | Missing in Navigator: [${missingInNavigator.join(', ')}]`, `Bi-directional role mismatch between Navigator and Dynamic Matrix for Dept ${deptNum}`, 'Synchronize role definitions so both documents align 100%.');
+          totalErrors++;
+          crossSyncPassed = false;
+        }
+      }
+    }
+  }
 
   for (const deptFile of deptFiles) {
     const deptMatch = deptFile.match(/^(\d\d)_/);
