@@ -17,10 +17,22 @@ The Product Requirements & Management Department (Dept 01) serves as the primary
 ## 📜 2. Core Mandates
 
 ### 2.1 Ephemeral Workspace & Phase Prompts Standard (Universal Rule 22 Compliance)
-- For every complex feature or multi-phase initiative, phased prompts must be structured inside an isolated ephemeral directory (`vibe_coding_temp/` or project-specific `temp_prompt/`):
-  - `Phase_01_PRD_and_Requirements.md`: Business requirements, user stories, scope boundaries.
-  - `Phase_02_Technical_Architecture.md`: Technical stack architecture and component interfaces.
-  - `Phase_03_Implementation_Tasks.md`: Granular checklists and code implementation tasks.
+- **Governing Specialist:** Governed by **Level 3C: Phase-wise Prompt Generation Specialist** (`prompt_generation_specialist`), co-equal with Level 3A Skill Manager and Level 3B Grill-Me Specialist.
+- **Mandatory Prompt Requirement Assessment:** On every task delegated by the Manager, the Specialist evaluates `PROMPT_FILES_REQUIRED` (`YES` or `NO`):
+  - `PROMPT_FILES_REQUIRED = NO`: For small, routine, single-module, or low-complexity tasks (e.g., minor bugfixes, copy tweaks, single test updates). The Manager assigns execution directly to Sub Agents without generating unnecessary prompt files or documentation overhead.
+  - `PROMPT_FILES_REQUIRED = YES`: For complex, multi-module, long, or multi-phase tasks requiring sequential coordination or persistent state tracking.
+- **Upgraded Phase-wise Prompt Generation Architecture:**
+  - Container Folder: Ephemeral workspace (`temp_prompt/` or project-convention directory; avoid duplicate naming).
+  - Dynamic Task Subfolder: `temp_prompt/<task_or_feature_name>/`.
+  - Comprehensive Artifact Suite: `INDEX.md` (live tracking board, Problem-Solution Dossier, 7-column Diagnostic Impact Matrix), `SUMMARY.md`, dedicated self-contained phase files (`phase_01_<name>.md`, etc.), PRD (`PRD.md`), Technical Architecture (`TRD.md`), and Design System tokens (`DESIGN.md`).
+  - Standalone Executable Prompts: Each phase file is completely self-contained with explicit objective, prerequisites, technical context, surgical step-by-step instructions, constraints, deliverables, and local verification gates.
+- **Execution Gate During Prompt Generation:** When prompt files are required, Level 4 Sub Agents remain strictly **PAUSED / UNASSIGNED** until prompt files and documentation are fully generated, validated, and evaluated by the Manager.
+- **Execution Strategy Assessment:** Specialist evaluates implementation strategy among 3 standard models:
+  - **Strategy A: Fully Autonomous Phase-wise Execution:** Sequential phase execution from Phase 1 to completion without intermediate user pauses.
+  - **Strategy B: Single User Consultation:** Consult and approve once upfront before Phase 1 start, then execute autonomously to the end.
+  - **Strategy C: Phase-by-Phase User Consultation:** Consult and approve before each individual phase.
+  - Delivers formal recommendation with rationale, risks, dependencies, and autonomy score.
+- **Routing & Final Authority:** Specialist reports directly to the Manager. The Manager decides the execution plan; if user consultation is required (Strategy B/C or clarifications), the Manager routes questions via CEO -> User (`ask_question`). Specialist never contacts user or CEO directly.
 - **Ephemeral Lifecycle & Hygiene:** Upon phase completion and successful QA signoff, key architectural knowledge must be crystallized into [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) and recorded in `changes_log/`, followed by safe pruning of ephemeral task artifacts.
 
 ### 2.2 Pre-Task Alignment & Interview Protocol (Universal Rule 24: /grill-me Standard)

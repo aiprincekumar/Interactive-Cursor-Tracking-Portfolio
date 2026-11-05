@@ -1,21 +1,31 @@
 /**
  * Comprehensive Test Suite for Specialist Decision Gate State Machine
  * 
- * Verifies all 10 states and mandatory transitions:
- * 1. Success transition sequence
- * 2. Skill Manager finishes first -> WAITING_FOR_BOTH_REPORTS
- * 3. Grill-Me finishes first -> WAITING_FOR_BOTH_REPORTS
- * 4. Grill-Me requires user clarification -> WAITING_FOR_USER_CLARIFICATION
- * 5. Sub Agent refuses execution if state != APPROVED_FOR_EXECUTION
- * 6. Specialist failure / timeout -> BLOCKED
- * 7. Only Manager transitions to APPROVED_FOR_EXECUTION
- * 8. Sub Manager monitoring and heartbeat validation
+ * Verifies all 10 states and mandatory transitions across the 3 Level 3 Specialists:
+ * Level 3A: Skill Manager
+ * Level 3B: Grill-Me Specialist
+ * Level 3C: Phase-wise Prompt Generation Specialist
+ * 
+ * Scenarios:
+ * 1. Standard 3-Specialist Success Sequence (PROMPT_FILES_REQUIRED = YES, Strategy A Autonomous)
+ * 2. Routine Task Sequence (PROMPT_FILES_REQUIRED = NO, direct Sub Agent execution)
+ * 3. Skill Manager finishes first -> WAITING_FOR_BOTH_REPORTS
+ * 4. Grill-Me finishes first -> WAITING_FOR_BOTH_REPORTS
+ * 5. Prompt Generation Specialist finishes first -> WAITING_FOR_BOTH_REPORTS
+ * 6. Grill-Me requires user clarification -> WAITING_FOR_USER_CLARIFICATION
+ * 7. Strategy B (Single User Consultation) -> WAITING_FOR_USER_CLARIFICATION
+ * 8. Strategy C (Phase-by-Phase User Consultation) -> WAITING_FOR_USER_CLARIFICATION
+ * 9. Execution Gate Lock: PROMPT_FILES_REQUIRED = YES but files missing -> BLOCKED
+ * 10. Sub Agent refuses execution if state != APPROVED_FOR_EXECUTION
+ * 11. Specialist failure / timeout -> BLOCKED
+ * 12. Only Manager transitions to APPROVED_FOR_EXECUTION
+ * 13. Sub Manager monitoring and heartbeat validation
  */
 
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { DecisionGateStateMachine, GATE_STATES, ROLES } from './gate-state-validator.js';
+import { DecisionGateStateMachine, GATE_STATES, ROLES, EXECUTION_STRATEGIES } from './gate-state-validator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,19 +61,20 @@ try {
   cleanUp();
 
   // -----------------------------------------------------------------------------------------------
-  // SCENARIO 1: Success transition sequence (both finish simultaneously / cleanly)
+  // SCENARIO 1: Standard 3-Specialist Success Sequence (PROMPT_FILES_REQUIRED = YES, Strategy A)
   // -----------------------------------------------------------------------------------------------
-  console.log('\n[Scenario 1] Standard Success Transition Sequence:');
+  console.log('\n[Scenario 1] Standard 3-Specialist Success Transition Sequence:');
   {
     const sm = new DecisionGateStateMachine(tempTestStateFile);
     
     // 1. Initiate task
-    sm.initiateTask({ taskId: 'TASK-001', description: 'Feature Implementation', actor: ROLES.MANAGER });
+    sm.initiateTask({ taskId: 'TASK-001', description: 'Complex Feature Implementation', actor: ROLES.MANAGER });
     assert(sm.state.currentState === GATE_STATES.WAITING_FOR_SPECIALISTS, 'Task starts in WAITING_FOR_SPECIALISTS');
     assert(sm.state.specialists.skillManager.status === 'PENDING', 'Skill Manager is PENDING');
     assert(sm.state.specialists.grillMeSpecialist.status === 'PENDING', 'Grill-Me Specialist is PENDING');
+    assert(sm.state.specialists.promptGenerationSpecialist.status === 'PENDING', 'Prompt Gen Specialist is PENDING');
 
-    // 2. Both specialists submit reports
+    // 2. Specialists submit reports sequentially
     sm.submitSkillManagerReport({
       report: { verified: true, skills: ['react-patterns', 'testing-library'] },
       actor: ROLES.SKILL_MANAGER
@@ -75,7 +86,17 @@ try {
       clarificationRequired: false,
       actor: ROLES.GRILL_ME_SPECIALIST
     });
-    assert(sm.state.currentState === GATE_STATES.READY_FOR_MANAGER_DECISION, 'State moves to READY_FOR_MANAGER_DECISION after both complete');
+    assert(sm.state.currentState === GATE_STATES.WAITING_FOR_BOTH_REPORTS, 'State remains in WAITING_FOR_BOTH_REPORTS while Prompt Gen is pending');
+
+    sm.submitPromptGenerationReport({
+      promptFilesRequired: true,
+      taskSubfolder: 'temp_prompt/complex_feature',
+      generatedFiles: ['temp_prompt/complex_feature/INDEX.md', 'temp_prompt/complex_feature/phase_01_init.md'],
+      executionStrategy: EXECUTION_STRATEGIES.STRATEGY_A_AUTONOMOUS,
+      report: { verified: true, promptFilesReady: true },
+      actor: ROLES.PROMPT_GENERATION_SPECIALIST
+    });
+    assert(sm.state.currentState === GATE_STATES.READY_FOR_MANAGER_DECISION, 'State moves to READY_FOR_MANAGER_DECISION after all 3 complete');
 
     // 3. Manager approves execution
     const approval = sm.approveExecution({
@@ -109,13 +130,38 @@ try {
   }
 
   // -----------------------------------------------------------------------------------------------
-  // SCENARIO 2: Skill Manager finishes first -> WAITING_FOR_BOTH_REPORTS
+  // SCENARIO 2: Routine Task Sequence (PROMPT_FILES_REQUIRED = NO, direct execution)
   // -----------------------------------------------------------------------------------------------
-  console.log('\n[Scenario 2] Skill Manager Finishes First Sequence:');
+  console.log('\n[Scenario 2] Routine Task Sequence (PROMPT_FILES_REQUIRED = NO):');
   {
     cleanUp();
     const sm = new DecisionGateStateMachine(tempTestStateFile);
-    sm.initiateTask({ taskId: 'TASK-002', actor: ROLES.MANAGER });
+    sm.initiateTask({ taskId: 'TASK-002-ROUTINE', description: 'Minor Bugfix', actor: ROLES.MANAGER });
+
+    sm.submitSkillManagerReport({ report: { verified: true, skills: [] }, actor: ROLES.SKILL_MANAGER });
+    sm.submitGrillMeReport({ report: { ambiguitiesResolved: true }, clarificationRequired: false, actor: ROLES.GRILL_ME_SPECIALIST });
+    sm.submitPromptGenerationReport({
+      promptFilesRequired: false,
+      executionStrategy: EXECUTION_STRATEGIES.STRATEGY_A_AUTONOMOUS,
+      report: { verified: true, rationale: 'Routine bugfix requires no ephemeral prompt files' },
+      actor: ROLES.PROMPT_GENERATION_SPECIALIST
+    });
+
+    assert(sm.state.currentState === GATE_STATES.READY_FOR_MANAGER_DECISION, 'Transitions directly to READY_FOR_MANAGER_DECISION for routine task');
+    assert(sm.state.specialists.promptGenerationSpecialist.promptFilesRequired === false, 'PROMPT_FILES_REQUIRED is certified as FALSE');
+
+    const approval = sm.approveExecution({ authorizedSubAgents: ['BugfixEngineer'], actor: ROLES.MANAGER });
+    assert(sm.state.currentState === GATE_STATES.APPROVED_FOR_EXECUTION, 'Manager approves execution directly without prompt files');
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // SCENARIO 3: Skill Manager Finishes First Sequence
+  // -----------------------------------------------------------------------------------------------
+  console.log('\n[Scenario 3] Skill Manager Finishes First Sequence:');
+  {
+    cleanUp();
+    const sm = new DecisionGateStateMachine(tempTestStateFile);
+    sm.initiateTask({ taskId: 'TASK-003', actor: ROLES.MANAGER });
 
     sm.submitSkillManagerReport({
       report: { verified: true, skills: ['node-patterns'] },
@@ -124,27 +170,26 @@ try {
     assert(sm.state.currentState === GATE_STATES.WAITING_FOR_BOTH_REPORTS, 'Skill Manager finishes first -> WAITING_FOR_BOTH_REPORTS');
     assert(sm.state.specialists.skillManager.status === 'COMPLETED', 'Skill Manager is COMPLETED');
     assert(sm.state.specialists.grillMeSpecialist.status === 'PENDING', 'Grill-Me is still PENDING');
+    assert(sm.state.specialists.promptGenerationSpecialist.status === 'PENDING', 'Prompt Gen is still PENDING');
 
     // Sub Agent execution attempt must fail here
     const authCheck = sm.verifyExecutionAuthorization({ subAgentRole: 'AnyAgent' });
-    assert(authCheck.authorized === false, 'Sub Agent execution is locked out while waiting for both reports');
+    assert(authCheck.authorized === false, 'Sub Agent execution is locked out while waiting for reports');
 
-    // Later Grill-Me finishes
-    sm.submitGrillMeReport({
-      report: { ambiguitiesResolved: true },
-      actor: ROLES.GRILL_ME_SPECIALIST
-    });
-    assert(sm.state.currentState === GATE_STATES.READY_FOR_MANAGER_DECISION, 'Transitions to READY_FOR_MANAGER_DECISION when Grill-Me finishes');
+    // Later Grill-Me and Prompt Gen finish
+    sm.submitGrillMeReport({ report: { ambiguitiesResolved: true }, actor: ROLES.GRILL_ME_SPECIALIST });
+    sm.submitPromptGenerationReport({ report: { verified: true }, promptFilesRequired: false, actor: ROLES.PROMPT_GENERATION_SPECIALIST });
+    assert(sm.state.currentState === GATE_STATES.READY_FOR_MANAGER_DECISION, 'Transitions to READY_FOR_MANAGER_DECISION when all finish');
   }
 
   // -----------------------------------------------------------------------------------------------
-  // SCENARIO 3: Grill-Me finishes first -> WAITING_FOR_BOTH_REPORTS
+  // SCENARIO 4: Grill-Me Finishes First Sequence
   // -----------------------------------------------------------------------------------------------
-  console.log('\n[Scenario 3] Grill-Me Finishes First Sequence:');
+  console.log('\n[Scenario 4] Grill-Me Finishes First Sequence:');
   {
     cleanUp();
     const sm = new DecisionGateStateMachine(tempTestStateFile);
-    sm.initiateTask({ taskId: 'TASK-003', actor: ROLES.MANAGER });
+    sm.initiateTask({ taskId: 'TASK-004', actor: ROLES.MANAGER });
 
     sm.submitGrillMeReport({
       report: { ambiguitiesResolved: true },
@@ -154,45 +199,58 @@ try {
     assert(sm.state.specialists.grillMeSpecialist.status === 'COMPLETED', 'Grill-Me is COMPLETED');
     assert(sm.state.specialists.skillManager.status === 'PENDING', 'Skill Manager is still PENDING');
 
-    // Sub Agent execution attempt must fail here
-    const authCheck = sm.verifyExecutionAuthorization({ subAgentRole: 'AnyAgent' });
-    assert(authCheck.authorized === false, 'Sub Agent execution is locked out while waiting for both reports');
-
-    // Later Skill Manager finishes
-    sm.submitSkillManagerReport({
-      report: { verified: true, skills: [] },
-      actor: ROLES.SKILL_MANAGER
-    });
-    assert(sm.state.currentState === GATE_STATES.READY_FOR_MANAGER_DECISION, 'Transitions to READY_FOR_MANAGER_DECISION when Skill Manager finishes');
+    sm.submitSkillManagerReport({ report: { verified: true, skills: [] }, actor: ROLES.SKILL_MANAGER });
+    sm.submitPromptGenerationReport({ report: { verified: true }, promptFilesRequired: false, actor: ROLES.PROMPT_GENERATION_SPECIALIST });
+    assert(sm.state.currentState === GATE_STATES.READY_FOR_MANAGER_DECISION, 'Transitions to READY_FOR_MANAGER_DECISION after all report');
   }
 
   // -----------------------------------------------------------------------------------------------
-  // SCENARIO 4: Grill-Me requires user clarification -> WAITING_FOR_USER_CLARIFICATION
+  // SCENARIO 5: Prompt Generation Specialist Finishes First Sequence
   // -----------------------------------------------------------------------------------------------
-  console.log('\n[Scenario 4] User Clarification Required Sequence:');
+  console.log('\n[Scenario 5] Prompt Generation Specialist Finishes First Sequence:');
   {
     cleanUp();
     const sm = new DecisionGateStateMachine(tempTestStateFile);
-    sm.initiateTask({ taskId: 'TASK-004', actor: ROLES.MANAGER });
+    sm.initiateTask({ taskId: 'TASK-005', actor: ROLES.MANAGER });
 
-    sm.submitSkillManagerReport({
+    sm.submitPromptGenerationReport({
+      promptFilesRequired: false,
       report: { verified: true },
-      actor: ROLES.SKILL_MANAGER
+      actor: ROLES.PROMPT_GENERATION_SPECIALIST
     });
+    assert(sm.state.currentState === GATE_STATES.WAITING_FOR_BOTH_REPORTS, 'Prompt Gen finishes first -> WAITING_FOR_BOTH_REPORTS');
+    assert(sm.state.specialists.promptGenerationSpecialist.status === 'COMPLETED', 'Prompt Gen is COMPLETED');
+    assert(sm.state.specialists.skillManager.status === 'PENDING', 'Skill Manager is still PENDING');
+
+    sm.submitSkillManagerReport({ report: { verified: true, skills: [] }, actor: ROLES.SKILL_MANAGER });
+    sm.submitGrillMeReport({ report: { ambiguitiesResolved: true }, actor: ROLES.GRILL_ME_SPECIALIST });
+    assert(sm.state.currentState === GATE_STATES.READY_FOR_MANAGER_DECISION, 'Transitions to READY_FOR_MANAGER_DECISION');
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // SCENARIO 6: Grill-Me requires user clarification -> WAITING_FOR_USER_CLARIFICATION
+  // -----------------------------------------------------------------------------------------------
+  console.log('\n[Scenario 6] User Clarification Required Sequence (Grill-Me):');
+  {
+    cleanUp();
+    const sm = new DecisionGateStateMachine(tempTestStateFile);
+    sm.initiateTask({ taskId: 'TASK-006', actor: ROLES.MANAGER });
+
+    sm.submitSkillManagerReport({ report: { verified: true }, actor: ROLES.SKILL_MANAGER });
+    sm.submitPromptGenerationReport({ report: { verified: true }, promptFilesRequired: false, actor: ROLES.PROMPT_GENERATION_SPECIALIST });
 
     sm.submitGrillMeReport({
       report: { ambiguitiesResolved: false },
       clarificationRequired: true,
-      questions: ['Should we use Tailwind or vanilla CSS?'],
+      questions: ['Should we use Tailwind CSS v4 or vanilla CSS?'],
       actor: ROLES.GRILL_ME_SPECIALIST
     });
     assert(sm.state.currentState === GATE_STATES.WAITING_FOR_USER_CLARIFICATION, 'Transitions to WAITING_FOR_USER_CLARIFICATION');
 
-    // Sub Agent execution attempt must fail while awaiting clarification
     const authCheck = sm.verifyExecutionAuthorization({ subAgentRole: 'FrontendEngineer' });
     assert(authCheck.authorized === false, 'Sub Agent execution is blocked during WAITING_FOR_USER_CLARIFICATION');
 
-    // User clarifies
+    // User clarifies via Manager
     sm.resolveUserClarification({
       userAnswers: ['Use Tailwind CSS as per DESIGN.md'],
       actor: ROLES.MANAGER
@@ -201,75 +259,135 @@ try {
   }
 
   // -----------------------------------------------------------------------------------------------
-  // SCENARIO 5: Sub Agent refuses execution if state != APPROVED_FOR_EXECUTION
+  // SCENARIO 7: Strategy B (Single User Consultation) Sequence
   // -----------------------------------------------------------------------------------------------
-  console.log('\n[Scenario 5] Sub Agent Refuses Execution When Unauthorized:');
+  console.log('\n[Scenario 7] Strategy B (Single User Consultation) Sequence:');
   {
     cleanUp();
     const sm = new DecisionGateStateMachine(tempTestStateFile);
-    sm.initiateTask({ taskId: 'TASK-005', actor: ROLES.MANAGER });
+    sm.initiateTask({ taskId: 'TASK-007-STRAT-B', actor: ROLES.MANAGER });
 
-    // Try executing when in WAITING_FOR_SPECIALISTS
+    sm.submitSkillManagerReport({ report: { verified: true }, actor: ROLES.SKILL_MANAGER });
+    sm.submitGrillMeReport({ report: { ambiguitiesResolved: true }, clarificationRequired: false, actor: ROLES.GRILL_ME_SPECIALIST });
+    sm.submitPromptGenerationReport({
+      promptFilesRequired: true,
+      taskSubfolder: 'temp_prompt/strat_b_feature',
+      generatedFiles: ['temp_prompt/strat_b_feature/INDEX.md'],
+      executionStrategy: EXECUTION_STRATEGIES.STRATEGY_B_SINGLE_CONSULTATION,
+      strategyRecommendation: {
+        strategy: EXECUTION_STRATEGIES.STRATEGY_B_SINGLE_CONSULTATION,
+        rationale: 'Consult user once upfront before executing 4 phases autonomously',
+        risks: ['Scope drift if user rejects Phase 3'],
+        dependencies: ['Design tokens'],
+        autonomyScore: 0.8
+      },
+      report: { verified: true, promptFilesReady: true },
+      actor: ROLES.PROMPT_GENERATION_SPECIALIST
+    });
+
+    assert(sm.state.currentState === GATE_STATES.WAITING_FOR_USER_CLARIFICATION, 'Strategy B transitions to WAITING_FOR_USER_CLARIFICATION for upfront consultation');
+
+    // Sub Agents locked during consultation
+    assert(sm.verifyExecutionAuthorization({ subAgentRole: 'FrontendEngineer' }).authorized === false, 'Sub Agent locked during Strategy B consultation');
+
+    // Manager obtains user approval via CEO -> ask_question
+    sm.resolveUserClarification({
+      userAnswers: ['User approved: Proceed with all 4 phases autonomously'],
+      actor: ROLES.MANAGER
+    });
+    assert(sm.state.currentState === GATE_STATES.READY_FOR_MANAGER_DECISION, 'Transitions to READY_FOR_MANAGER_DECISION after Strategy B user approval');
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // SCENARIO 8: Execution Gate Lockout: PROMPT_FILES_REQUIRED = YES but files missing -> BLOCKED
+  // -----------------------------------------------------------------------------------------------
+  console.log('\n[Scenario 8] Execution Gate Lockout: Missing Prompt Files -> BLOCKED:');
+  {
+    cleanUp();
+    const sm = new DecisionGateStateMachine(tempTestStateFile);
+    sm.initiateTask({ taskId: 'TASK-008-GATE-FAIL', actor: ROLES.MANAGER });
+
+    sm.submitSkillManagerReport({ report: { verified: true }, actor: ROLES.SKILL_MANAGER });
+    sm.submitGrillMeReport({ report: { ambiguitiesResolved: true }, actor: ROLES.GRILL_ME_SPECIALIST });
+
+    // Specialist claims prompt files are required, but generatedFiles is empty and promptFilesReady is false
+    sm.submitPromptGenerationReport({
+      promptFilesRequired: true,
+      generatedFiles: [],
+      report: { verified: true, promptFilesReady: false },
+      actor: ROLES.PROMPT_GENERATION_SPECIALIST
+    });
+
+    assert(sm.state.currentState === GATE_STATES.BLOCKED, 'Gate transitions to BLOCKED when required prompt files are missing');
+    assert(sm.verifyExecutionAuthorization({ subAgentRole: 'SubAgent' }).authorized === false, 'Sub Agent execution is strictly locked in BLOCKED state');
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // SCENARIO 9: Sub Agent Refuses Execution When Unauthorized
+  // -----------------------------------------------------------------------------------------------
+  console.log('\n[Scenario 9] Sub Agent Refuses Execution When Unauthorized:');
+  {
+    cleanUp();
+    const sm = new DecisionGateStateMachine(tempTestStateFile);
+    sm.initiateTask({ taskId: 'TASK-009', actor: ROLES.MANAGER });
+
     assert(sm.verifyExecutionAuthorization({ subAgentRole: 'SubAgent' }).authorized === false, 'Authorization check fails in WAITING_FOR_SPECIALISTS');
     
     let caughtError = false;
     try {
       sm.startExecution({ subAgentRole: 'SubAgent' });
-    } catch (e) {
+    } catch (_) {
       caughtError = true;
     }
     assert(caughtError === true, 'Sub Agent execution threw error when state was not APPROVED_FOR_EXECUTION');
   }
 
   // -----------------------------------------------------------------------------------------------
-  // SCENARIO 6: Specialist failure / timeout -> BLOCKED
+  // SCENARIO 10: Specialist Failure & Timeout -> BLOCKED
   // -----------------------------------------------------------------------------------------------
-  console.log('\n[Scenario 6] Specialist Failure & Timeout -> BLOCKED:');
+  console.log('\n[Scenario 10] Specialist Failure & Timeout -> BLOCKED:');
   {
     cleanUp();
     const sm = new DecisionGateStateMachine(tempTestStateFile);
-    sm.initiateTask({ taskId: 'TASK-006', actor: ROLES.MANAGER });
+    sm.initiateTask({ taskId: 'TASK-010', actor: ROLES.MANAGER });
 
-    // Specialist reports with FAILED status
     sm.submitSkillManagerReport({
       status: 'FAILED',
-      error: 'Registry unreachable and skill search timed out',
+      error: 'Skill registry unreachable',
       actor: ROLES.SKILL_MANAGER
     });
     assert(sm.state.currentState === GATE_STATES.BLOCKED, 'Failed specialist report transitions gate to BLOCKED');
 
-    // In BLOCKED state, execution is completely locked
     const authCheck = sm.verifyExecutionAuthorization({ subAgentRole: 'SubAgent' });
     assert(authCheck.authorized === false, 'Sub Agent execution is strictly locked out in BLOCKED state');
 
     // Sub Manager timeout test
     cleanUp();
     const sm2 = new DecisionGateStateMachine(tempTestStateFile);
-    sm2.initiateTask({ taskId: 'TASK-006B', actor: ROLES.MANAGER });
-    // Artificially age the transition timestamp
+    sm2.initiateTask({ taskId: 'TASK-010B', actor: ROLES.MANAGER });
     sm2.state.history[0].timestamp = new Date(Date.now() - 700000).toISOString();
     sm2.recordSubManagerHeartbeat({ timeoutSeconds: 600 });
     assert(sm2.state.currentState === GATE_STATES.BLOCKED, 'Sub Manager detects timeout and transitions to BLOCKED');
   }
 
   // -----------------------------------------------------------------------------------------------
-  // SCENARIO 7: Only Manager can transition to APPROVED_FOR_EXECUTION
+  // SCENARIO 11: Strict Manager-Only Authorization Enforcement
   // -----------------------------------------------------------------------------------------------
-  console.log('\n[Scenario 7] Strict Manager-Only Authorization Enforcement:');
+  console.log('\n[Scenario 11] Strict Manager-Only Authorization Enforcement:');
   {
     cleanUp();
     const sm = new DecisionGateStateMachine(tempTestStateFile);
-    sm.initiateTask({ taskId: 'TASK-007', actor: ROLES.MANAGER });
+    sm.initiateTask({ taskId: 'TASK-011', actor: ROLES.MANAGER });
 
     sm.submitSkillManagerReport({ report: { verified: true }, actor: ROLES.SKILL_MANAGER });
     sm.submitGrillMeReport({ report: { ambiguitiesResolved: true }, actor: ROLES.GRILL_ME_SPECIALIST });
+    sm.submitPromptGenerationReport({ report: { verified: true }, promptFilesRequired: false, actor: ROLES.PROMPT_GENERATION_SPECIALIST });
     assert(sm.state.currentState === GATE_STATES.READY_FOR_MANAGER_DECISION, 'State is ready for decision');
 
-    // Non-manager role (e.g. SUB_AGENT) attempts to approve execution
     let unauthorizedBlocked = false;
     try {
       sm.approveExecution({ actor: ROLES.SUB_AGENT });
-    } catch (e) {
+    } catch (_) {
       unauthorizedBlocked = true;
     }
     assert(unauthorizedBlocked === true, 'Unauthorized actor was rejected from approving execution');
@@ -277,13 +395,13 @@ try {
   }
 
   // -----------------------------------------------------------------------------------------------
-  // SCENARIO 8: Sub Manager Monitoring & Heartbeat Tracking
+  // SCENARIO 12: Sub Manager Monitoring & Heartbeat Tracking
   // -----------------------------------------------------------------------------------------------
-  console.log('\n[Scenario 8] Sub Manager Monitoring & Telemetry:');
+  console.log('\n[Scenario 12] Sub Manager Monitoring & Telemetry:');
   {
     cleanUp();
     const sm = new DecisionGateStateMachine(tempTestStateFile);
-    sm.initiateTask({ taskId: 'TASK-008', actor: ROLES.MANAGER });
+    sm.initiateTask({ taskId: 'TASK-012', actor: ROLES.MANAGER });
 
     const heartbeat = sm.recordSubManagerHeartbeat({
       status: 'HEALTHY',

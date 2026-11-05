@@ -51,9 +51,16 @@ export const ROLES = Object.freeze({
   MANAGER: 'MANAGER',
   SKILL_MANAGER: 'SKILL_MANAGER',
   GRILL_ME_SPECIALIST: 'GRILL_ME_SPECIALIST',
+  PROMPT_GENERATION_SPECIALIST: 'PROMPT_GENERATION_SPECIALIST',
   SUB_MANAGER: 'SUB_MANAGER',
   SUB_AGENT: 'SUB_AGENT',
   QA_AGENT: 'QA_AGENT'
+});
+
+export const EXECUTION_STRATEGIES = Object.freeze({
+  STRATEGY_A_AUTONOMOUS: 'STRATEGY_A_AUTONOMOUS',
+  STRATEGY_B_SINGLE_CONSULTATION: 'STRATEGY_B_SINGLE_CONSULTATION',
+  STRATEGY_C_PHASE_CONSULTATION: 'STRATEGY_C_PHASE_CONSULTATION'
 });
 
 export const DEFAULT_STATE_FILE_PATH = path.resolve(projectRoot, '.agents', 'state', 'decision_gate_state.json');
@@ -88,6 +95,18 @@ export class DecisionGateStateMachine {
           clarificationRequired: false,
           clarificationQuestions: [],
           clarificationAnswers: [],
+          report: null,
+          error: null
+        },
+        promptGenerationSpecialist: {
+          status: 'IDLE', // IDLE, PENDING, COMPLETED, FAILED, TIMEOUT
+          dispatchedAt: null,
+          completedAt: null,
+          promptFilesRequired: null, // boolean: true = YES, false = NO
+          taskSubfolder: null,
+          generatedFiles: [],
+          executionStrategy: null, // STRATEGY_A_AUTONOMOUS, STRATEGY_B_SINGLE_CONSULTATION, STRATEGY_C_PHASE_CONSULTATION
+          strategyRecommendation: null, // { strategy, rationale, risks, dependencies, autonomyScore }
           report: null,
           error: null
         }
@@ -153,9 +172,9 @@ export class DecisionGateStateMachine {
   }
 
   /**
-   * Manager initiates task and simultaneously dispatches to both specialists
+   * Manager initiates task and simultaneously dispatches to specialists
    */
-  initiateTask({ taskId, description, actor = ROLES.MANAGER }) {
+  initiateTask({ taskId, description, actor = ROLES.MANAGER, requirePromptSpecialist = true }) {
     if (actor !== ROLES.MANAGER) {
       throw new Error(`Unauthorized: Only ${ROLES.MANAGER} can initiate task execution gate.`);
     }
@@ -180,6 +199,29 @@ export class DecisionGateStateMachine {
       report: null,
       error: null
     };
+    this.state.specialists.promptGenerationSpecialist = requirePromptSpecialist ? {
+      status: 'PENDING',
+      dispatchedAt: now,
+      completedAt: null,
+      promptFilesRequired: null,
+      taskSubfolder: null,
+      generatedFiles: [],
+      executionStrategy: null,
+      strategyRecommendation: null,
+      report: null,
+      error: null
+    } : {
+      status: 'SKIPPED',
+      dispatchedAt: null,
+      completedAt: now,
+      promptFilesRequired: false,
+      taskSubfolder: null,
+      generatedFiles: [],
+      executionStrategy: EXECUTION_STRATEGIES.STRATEGY_A_AUTONOMOUS,
+      strategyRecommendation: null,
+      report: { skipped: true },
+      error: null
+    };
     this.state.authorization = {
       token: null,
       issuedBy: null,
@@ -192,8 +234,85 @@ export class DecisionGateStateMachine {
       previousState,
       GATE_STATES.WAITING_FOR_SPECIALISTS,
       actor,
-      'Simultaneous dispatch to Skill Manager and Grill-Me Specialist'
+      'Simultaneous dispatch to Level 3 Specialists (Skill Manager, Grill-Me Specialist, Prompt Generation Specialist)'
     );
+    this.saveState();
+    return this.state.currentState;
+  }
+
+  /**
+   * Internal evaluator checking if all active specialists have reported
+   */
+  _evaluateSpecialistsCompletion(actor, completedRole) {
+    const sm = this.state.specialists.skillManager;
+    const gm = this.state.specialists.grillMeSpecialist;
+    const pg = this.state.specialists.promptGenerationSpecialist;
+
+    const activeSpecialists = [sm, gm];
+    if (pg && pg.status !== 'IDLE' && pg.status !== 'SKIPPED') {
+      activeSpecialists.push(pg);
+    }
+
+    const allCompleted = activeSpecialists.every(s => s.status === 'COMPLETED');
+    const pendingSpecialists = activeSpecialists.filter(s => s.status === 'PENDING');
+
+    if (!allCompleted) {
+      if (this.state.currentState === GATE_STATES.WAITING_FOR_SPECIALISTS) {
+        let intermediateState = GATE_STATES.WAITING_FOR_BOTH_REPORTS;
+        if (completedRole === ROLES.SKILL_MANAGER) {
+          intermediateState = GATE_STATES.SKILL_MANAGER_COMPLETED;
+        } else if (completedRole === ROLES.GRILL_ME_SPECIALIST) {
+          intermediateState = GATE_STATES.GRILL_ME_COMPLETED;
+        }
+
+        if (intermediateState !== GATE_STATES.WAITING_FOR_BOTH_REPORTS) {
+          this._recordTransition(
+            this.state.currentState,
+            intermediateState,
+            actor,
+            `${completedRole} report submitted successfully while others pending`
+          );
+          this._recordTransition(
+            intermediateState,
+            GATE_STATES.WAITING_FOR_BOTH_REPORTS,
+            ROLES.MANAGER,
+            `Waiting for remaining specialist reports (${pendingSpecialists.length} pending)`
+          );
+        } else {
+          this._recordTransition(
+            this.state.currentState,
+            GATE_STATES.WAITING_FOR_BOTH_REPORTS,
+            ROLES.MANAGER,
+            `Waiting for remaining specialist reports (${pendingSpecialists.length} pending)`
+          );
+        }
+      }
+      this.saveState();
+      return this.state.currentState;
+    }
+
+    // All active specialists completed!
+    const clarificationRequired = gm.clarificationRequired && (!gm.clarificationAnswers || gm.clarificationAnswers.length === 0);
+    const consultationRequired = pg && (pg.executionStrategy === EXECUTION_STRATEGIES.STRATEGY_B_SINGLE_CONSULTATION || pg.executionStrategy === EXECUTION_STRATEGIES.STRATEGY_C_PHASE_CONSULTATION) && (!gm.clarificationAnswers || gm.clarificationAnswers.length === 0);
+
+    if (clarificationRequired || consultationRequired) {
+      this._recordTransition(
+        this.state.currentState,
+        GATE_STATES.WAITING_FOR_USER_CLARIFICATION,
+        ROLES.MANAGER,
+        clarificationRequired
+          ? 'Grill-Me Specialist flagged essential ambiguities; awaiting user clarification via ask_question'
+          : `Prompt Generation Specialist recommended ${pg.executionStrategy}; awaiting user consultation via ask_question`
+      );
+    } else {
+      this._recordTransition(
+        this.state.currentState,
+        GATE_STATES.READY_FOR_MANAGER_DECISION,
+        ROLES.MANAGER,
+        'All specialist reports received and validated; ready for Manager decision'
+      );
+    }
+
     this.saveState();
     return this.state.currentState;
   }
@@ -227,43 +346,7 @@ export class DecisionGateStateMachine {
     }
 
     sm.report = report;
-    const gm = this.state.specialists.grillMeSpecialist;
-
-    if (gm.status === 'PENDING') {
-      // Skill Manager finished first; record completion and set WAITING_FOR_BOTH_REPORTS
-      this._recordTransition(
-        this.state.currentState,
-        GATE_STATES.SKILL_MANAGER_COMPLETED,
-        actor,
-        'Skill Manager report submitted successfully while Grill-Me is pending'
-      );
-      this._recordTransition(
-        GATE_STATES.SKILL_MANAGER_COMPLETED,
-        GATE_STATES.WAITING_FOR_BOTH_REPORTS,
-        ROLES.MANAGER,
-        'Waiting for Grill-Me Specialist report to arrive'
-      );
-    } else if (gm.status === 'COMPLETED') {
-      // Both specialists completed!
-      if (gm.clarificationRequired && (!gm.clarificationAnswers || gm.clarificationAnswers.length === 0)) {
-        this._recordTransition(
-          this.state.currentState,
-          GATE_STATES.WAITING_FOR_USER_CLARIFICATION,
-          ROLES.MANAGER,
-          'Both specialists reported, but Grill-Me user clarification is required'
-        );
-      } else {
-        this._recordTransition(
-          this.state.currentState,
-          GATE_STATES.READY_FOR_MANAGER_DECISION,
-          ROLES.MANAGER,
-          'Both specialist reports received and validated; ready for Manager decision'
-        );
-      }
-    }
-
-    this.saveState();
-    return this.state.currentState;
+    return this._evaluateSpecialistsCompletion(actor, ROLES.SKILL_MANAGER);
   }
 
   /**
@@ -297,43 +380,73 @@ export class DecisionGateStateMachine {
     }
 
     gm.report = report;
-    const sm = this.state.specialists.skillManager;
+    return this._evaluateSpecialistsCompletion(actor, ROLES.GRILL_ME_SPECIALIST);
+  }
 
-    if (sm.status === 'PENDING') {
-      // Grill-Me finished first; record completion and set WAITING_FOR_BOTH_REPORTS
-      this._recordTransition(
-        this.state.currentState,
-        GATE_STATES.GRILL_ME_COMPLETED,
-        actor,
-        'Grill-Me Specialist report submitted successfully while Skill Manager is pending'
-      );
-      this._recordTransition(
-        GATE_STATES.GRILL_ME_COMPLETED,
-        GATE_STATES.WAITING_FOR_BOTH_REPORTS,
-        ROLES.MANAGER,
-        'Waiting for Skill Manager report to arrive'
-      );
-    } else if (sm.status === 'COMPLETED') {
-      // Both specialists completed!
-      if (gm.clarificationRequired && (!gm.clarificationAnswers || gm.clarificationAnswers.length === 0)) {
-        this._recordTransition(
-          this.state.currentState,
-          GATE_STATES.WAITING_FOR_USER_CLARIFICATION,
-          ROLES.MANAGER,
-          'Grill-Me Specialist flagged essential ambiguities; awaiting user clarification via ask_question'
-        );
-      } else {
-        this._recordTransition(
-          this.state.currentState,
-          GATE_STATES.READY_FOR_MANAGER_DECISION,
-          ROLES.MANAGER,
-          'Both specialist reports received and validated; ready for Manager decision'
-        );
-      }
+  /**
+   * Phase-wise Prompt Generation Specialist submits prompt requirement and strategy report
+   */
+  submitPromptGenerationReport({
+    report,
+    promptFilesRequired = false,
+    taskSubfolder = null,
+    generatedFiles = [],
+    executionStrategy = EXECUTION_STRATEGIES.STRATEGY_A_AUTONOMOUS,
+    strategyRecommendation = null,
+    status = 'COMPLETED',
+    error = null,
+    actor = ROLES.PROMPT_GENERATION_SPECIALIST
+  }) {
+    if (this.state.currentState === GATE_STATES.BLOCKED) {
+      throw new Error('Gate is currently in BLOCKED state. Cannot submit report without Manager unblocking.');
     }
 
-    this.saveState();
-    return this.state.currentState;
+    const now = new Date().toISOString();
+    const pg = this.state.specialists.promptGenerationSpecialist;
+    pg.completedAt = now;
+    pg.status = status;
+    pg.error = error;
+    pg.promptFilesRequired = Boolean(promptFilesRequired);
+    pg.taskSubfolder = taskSubfolder;
+    pg.generatedFiles = Array.isArray(generatedFiles) ? generatedFiles : [];
+    pg.executionStrategy = executionStrategy;
+    pg.strategyRecommendation = strategyRecommendation || {
+      strategy: executionStrategy,
+      rationale: promptFilesRequired ? 'Phased modular execution' : 'Direct execution for routine task',
+      risks: [],
+      dependencies: [],
+      autonomyScore: executionStrategy === EXECUTION_STRATEGIES.STRATEGY_A_AUTONOMOUS ? 1.0 : 0.5
+    };
+
+    if (status !== 'COMPLETED' || !report || typeof report !== 'object') {
+      pg.status = 'FAILED';
+      pg.report = null;
+      this._recordTransition(
+        this.state.currentState,
+        GATE_STATES.BLOCKED,
+        actor,
+        `Prompt Generation Specialist report failed or invalid: ${error || 'Missing valid report payload'}`
+      );
+      this.saveState();
+      return this.state.currentState;
+    }
+
+    // Execution Gate check: If prompt files are required, ensure they are generated/ready
+    if (pg.promptFilesRequired && (!pg.generatedFiles || pg.generatedFiles.length === 0) && (!report.promptFilesReady)) {
+      pg.status = 'FAILED';
+      pg.report = null;
+      this._recordTransition(
+        this.state.currentState,
+        GATE_STATES.BLOCKED,
+        actor,
+        'Prompt Generation Specialist reported PROMPT_FILES_REQUIRED = YES but no prompt files were generated'
+      );
+      this.saveState();
+      return this.state.currentState;
+    }
+
+    pg.report = report;
+    return this._evaluateSpecialistsCompletion(actor, ROLES.PROMPT_GENERATION_SPECIALIST);
   }
 
   /**
@@ -351,7 +464,14 @@ export class DecisionGateStateMachine {
     gm.clarificationAnswers = Array.isArray(userAnswers) ? userAnswers : [userAnswers];
 
     const sm = this.state.specialists.skillManager;
-    if (sm.status === 'COMPLETED') {
+    const pg = this.state.specialists.promptGenerationSpecialist;
+    const activeSpecialists = [sm, gm];
+    if (pg && pg.status !== 'IDLE' && pg.status !== 'SKIPPED') {
+      activeSpecialists.push(pg);
+    }
+    const allCompleted = activeSpecialists.every(s => s.status === 'COMPLETED');
+
+    if (allCompleted) {
       this._recordTransition(
         GATE_STATES.WAITING_FOR_USER_CLARIFICATION,
         GATE_STATES.READY_FOR_MANAGER_DECISION,
@@ -363,7 +483,7 @@ export class DecisionGateStateMachine {
         GATE_STATES.WAITING_FOR_USER_CLARIFICATION,
         GATE_STATES.WAITING_FOR_BOTH_REPORTS,
         actor,
-        'User clarification resolved; still awaiting Skill Manager report'
+        'User clarification resolved; still awaiting remaining specialist reports'
       );
     }
 
@@ -399,7 +519,15 @@ export class DecisionGateStateMachine {
 
     const sm = this.state.specialists.skillManager;
     const gm = this.state.specialists.grillMeSpecialist;
-    if (sm.status !== 'COMPLETED' || gm.status !== 'COMPLETED' || !sm.report || !gm.report) {
+    const pg = this.state.specialists.promptGenerationSpecialist;
+
+    const activeSpecialists = [sm, gm];
+    if (pg && pg.status !== 'IDLE' && pg.status !== 'SKIPPED') {
+      activeSpecialists.push(pg);
+    }
+
+    const anyIncomplete = activeSpecialists.some(s => s.status !== 'COMPLETED' || !s.report);
+    if (anyIncomplete) {
       this._recordTransition(
         this.state.currentState,
         GATE_STATES.BLOCKED,
@@ -408,6 +536,20 @@ export class DecisionGateStateMachine {
       );
       this.saveState();
       throw new Error('Specialist reports missing or incomplete. Gate transitions to BLOCKED.');
+    }
+
+    // Execution Gate check: when prompt files are required, ensure they are generated and validated
+    if (pg && pg.status === 'COMPLETED' && pg.promptFilesRequired === true) {
+      if ((!pg.generatedFiles || pg.generatedFiles.length === 0) && (!pg.report?.promptFilesReady)) {
+        this._recordTransition(
+          this.state.currentState,
+          GATE_STATES.BLOCKED,
+          actor,
+          'GATE VIOLATION: Execution gate locked because required prompt files are missing.'
+        );
+        this.saveState();
+        throw new Error('Required prompt files not generated. Gate transitions to BLOCKED.');
+      }
     }
 
     const now = new Date().toISOString();

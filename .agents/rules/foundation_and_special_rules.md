@@ -32,6 +32,7 @@ The operational command structure across the Antigravity ecosystem is formally d
 3. **Level 3: Specialized Advisory Agents:**
    - **Skill Manager (Skill Discovery, Verification & Allocation):** Audits required capabilities, uses `skill-scout` and `find-skills` as primary tools, discovers missing skills across local/marketplace/external repositories, verifies security postures, prevents duplicates, and delivers a formal Skill Allocation Report to the Manager.
    - **Grill-Me Specialist (User Clarification, Decision & Governance Manager):** Analyzes task ambiguity, formats structured multiple-choice questions with `(Recommended)` option when essential trade-offs exist, verifies GitHub upstream online existence (Rule 15), routes questions through Manager -> CEO -> User, and delivers a Clarification & Governance Report to the Manager.
+   - **Phase-wise Prompt Generation Specialist (Phased Architecture & Strategy Governance):** Evaluates prompt requirements (`PROMPT_FILES_REQUIRED` = `YES`/`NO`), architectures self-contained phase prompts in `temp_prompt/<task_name>/`, pauses execution subagents during generation, evaluates 3 implementation strategies (A: Autonomous, B: Single Consultation, C: Phase-by-Phase), and reports directly to the Manager.
 4. **Level 4: Execution Sub Agents (Actual Task Execution):**
    - Domain-specific execution subagents operating under departmental rules (`01_` through `14_`).
    - Dispatched **ONLY** after the Manager formally clears the Parallel Specialist Decision Gate.
@@ -43,14 +44,14 @@ The operational command structure across the Antigravity ecosystem is formally d
    - Detects zombie processes, stalled tasks, unhandled exceptions, and port lockups (Rule 26) and immediately reports status alerts to the Manager.
 
 ### 1.3 Mandatory Parallel Specialist Decision Gate
-- **Simultaneous Dispatch:** Whenever the CEO delegates a task, the Manager simultaneously dispatches identical briefs to both Skill Manager and Grill-Me Specialist in parallel.
+- **Simultaneous Dispatch:** Whenever the CEO delegates a task, the Manager simultaneously dispatches identical briefs to Skill Manager, Grill-Me Specialist, and Prompt Generation Specialist in parallel.
 - **Enforceable 10-State Lifecycle:** State transitions strictly through 10 deterministic states:
   1. `WAITING_FOR_SPECIALISTS` (Simultaneous specialist task brief dispatch)
   2. `SKILL_MANAGER_COMPLETED` (Skill Allocation Report verified)
   3. `GRILL_ME_COMPLETED` (Clarification & Governance Report verified)
-  4. `WAITING_FOR_BOTH_REPORTS` (Active barrier awaiting second report)
-  5. `READY_FOR_MANAGER_DECISION` (Both reports verified valid by Manager)
-  6. `WAITING_FOR_USER_CLARIFICATION` (Ambiguities held until user response evaluated)
+  4. `WAITING_FOR_BOTH_REPORTS` (Active barrier awaiting remaining specialist reports)
+  5. `READY_FOR_MANAGER_DECISION` (All specialist reports validated clean; prompt files ready if required)
+  6. `WAITING_FOR_USER_CLARIFICATION` (Ambiguities held or Strategy B/C user consultation evaluated)
   7. `APPROVED_FOR_EXECUTION` (Strict Invariant: ONLY Manager can authorize; generates token)
   8. `EXECUTING` (Sub Agents verify authorization token prior to execution)
   9. `BLOCKED` (Failed, missing, or timed-out reports transition to blocked)
@@ -152,6 +153,8 @@ The system maintains the following standardized ecosystem subagents and standalo
     - Enforces real-time synchronization of [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) across all task stages and subagent dispatches.
 11. **Language & Domain Specialists (Rule 17):**
     - Dedicated experts including `rust_expert_engineer`, `golang_expert_engineer`, `python_expert_engineer`, `typescript_frontend_engineer`, etc.
+12. **`prompt_generation_specialist` (Rule 22 & Level 3C):**
+    - Evaluates prompt requirements (`PROMPT_FILES_REQUIRED` = `YES`/`NO`), architectures `temp_prompt/<task_name>/`, pauses subagents during generation, evaluates 3 execution strategies (A, B, C), and reports to Manager.
 
 ### 5.1 Standalone Deterministic Automation Runners Manifest
 - **Changes Log Automation:** `scripts/audit/changes_log_engine.py` (Rule 6 & Dept 12) — Automated 5-tier change logger, diff capture, and audit verifier. Supports the `--files` / `-f` scoped flag and mandates the Granular Atomic Micro-Entries Protocol for compound tasks.

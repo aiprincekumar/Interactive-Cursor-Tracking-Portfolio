@@ -20,8 +20,10 @@ flowchart TD
     subgraph ParallelSpecialistGate ["Mandatory Parallel Specialist Decision Gate"]
         Manager -->|Simultaneous Dispatch| SkillMgr["Level 3A: Skill Manager (Discovery and Allocation)"]
         Manager -->|Simultaneous Dispatch| GrillMe["Level 3B: Grill-Me Specialist (Decisions and Clarification)"]
-        SkillMgr -->|Skill Audit Report| GateBarrier{"Manager Gate Barrier (Wait for Both)"}
+        Manager -->|Simultaneous Dispatch| PromptGen["Level 3C: Prompt Gen Specialist (Phased Architecture)"]
+        SkillMgr -->|Skill Audit Report| GateBarrier{"Manager Gate Barrier (Wait for All)"}
         GrillMe -->|Clarification Report| GateBarrier
+        PromptGen -->|Prompt and Strategy Report| GateBarrier
     end
     
     GateBarrier -->|Evaluated Plan and Dynamic Allocation| SubAgents["Level 4: Execution Sub Agents (Task Execution)"]
@@ -48,7 +50,7 @@ flowchart TD
 - **Operational Boundaries:**
   - Receives raw task directives from Level 1 CEO.
   - Analyzes problem scope, decomposed dependencies, and execution risks.
-  - Enforces the **Mandatory Parallel Specialist Decision Gate**: dispatches the task simultaneously to both Level 3 specialists (Skill Manager and Grill-Me Specialist) and **waits for both reports**.
+  - Enforces the **Mandatory Parallel Specialist Decision Gate**: dispatches the task simultaneously to Level 3 specialists (Skill Manager, Grill-Me Specialist, Prompt Generation Specialist) and **waits for all reports**.
   - Evaluates specialist findings, resolves clarifications (via CEO), assigns dynamic skills, and dispatches Level 4 Sub Agents.
   - Monitors execution health using telemetry fed by the Sub Manager (Monitor).
   - Consolidates subagent outputs, validates verification test suites, and submits a unified report to the CEO.
@@ -70,6 +72,12 @@ Level 3 specialists advise the Manager before any code or file mutation occurs. 
   - Routes question payloads up to the Manager -> CEO -> User via `ask_question`.
 - **GitHub Rule 15 Integration:** Pre-checks upstream online existence (`git ls-remote --exit-code origin`). If the repository has never been pushed online, flags remote push questions as inactive (local-only commit cadence). If verified online, prepares the standardized 2-option interactive completion gate.
 - **Reporting Contract:** Delivers a `Clarification & Governance Report` to the Manager confirming either resolution of all ambiguities or a zero-clarification clearance.
+
+#### C. Phase-wise Prompt Generation Specialist (Phased Architecture & Strategy Governance)
+- **Primary Scope:** Evaluates prompt requirements (`PROMPT_FILES_REQUIRED` = `YES` / `NO`), architectures self-contained phase prompts and specifications in `temp_prompt/<task_name>/`, pauses execution subagents during generation, and evaluates implementation strategy.
+- **Mandatory Assessment:** Evaluates on every task. For routine/low-complexity tasks (`PROMPT_FILES_REQUIRED = NO`), advises direct execution without prompt files. For complex/multi-phase tasks (`PROMPT_FILES_REQUIRED = YES`), generates `INDEX.md`, `SUMMARY.md`, `phase_XX_*.md`, `PRD.md`, `TRD.md`, `DESIGN.md`.
+- **Strategy Evaluation:** Evaluates 3 execution models: Strategy A (Fully Autonomous), Strategy B (Single User Consultation upfront), Strategy C (Phase-by-Phase User Consultation). Delivers concrete recommendation with rationale, risks, dependencies, and autonomy score.
+- **Reporting Contract:** Reports directly to the Manager. Never contacts CEO or User directly; Manager routes questions via CEO -> User. Never assigns execution tasks directly to Sub Agents.
 
 ### 2.4 Level 4: Execution Sub Agents (Actual Task Execution)
 - **Primary Scope:** Domain-specific execution subagents (e.g., Frontend Engineers, Backend Engineers, DBA, Test Engineers, Technical Writers) operating under their respective departmental rules (`01_` through `14_`).
@@ -99,6 +107,7 @@ sequenceDiagram
     participant MGR as Level 2: Manager
     participant SKILL as Level 3A: Skill Manager
     participant GRILL as Level 3B: Grill-Me Specialist
+    participant PROMPT as Level 3C: Prompt Gen Specialist
     participant SUB as Level 4: Sub Agents
 
     CEO->>MGR: Task Brief & Context
@@ -106,19 +115,21 @@ sequenceDiagram
     par Parallel Specialist Dispatch
         MGR->>SKILL: Evaluate Capability & Skill Requirements
         MGR->>GRILL: Evaluate Ambiguities & Governance Gates
+        MGR->>PROMPT: Assess Prompt Requirements & Strategy
     end
     SKILL-->>MGR: Skill Allocation Report (Tools Ready / Sourced)
     GRILL-->>MGR: Governance & Clarification Report
-    Note over MGR: Gate Barrier Passed: Both Reports Evaluated
+    PROMPT-->>MGR: Prompt Dossier & Strategy Recommendation
+    Note over MGR: Gate Barrier Passed: All Specialist Reports Evaluated
     MGR->>SUB: Dispatch Sub Agents with Allocated Skills
     SUB-->>MGR: Execution Completed & QA Passed
     MGR-->>CEO: Consolidated Executive Report
 ```
 
 ### 3.1 Gate Execution Rules
-1. **Synchronous Parallel Dispatch:** When the CEO delegates a task, the Manager immediately issues identical contextual briefs to both the Skill Manager and the Grill-Me Specialist in parallel.
-2. **Absolute Subagent Lockout:** No Level 4 Sub Agent may be invoked, queued, or instructed until both Level 3 specialist reports have been received and evaluated by the Manager.
-3. **Clarification Precedence:** If the Grill-Me Specialist identifies blocking ambiguities, task execution is held while questions are routed through Manager -> CEO to the User via `ask_question`. Subagent dispatch resumes only upon receiving user clarification.
+1. **Synchronous Parallel Dispatch:** When the CEO delegates a task, the Manager immediately issues identical contextual briefs to Skill Manager, Grill-Me Specialist, and Prompt Generation Specialist in parallel.
+2. **Absolute Subagent Lockout:** No Level 4 Sub Agent may be invoked, queued, or instructed until all Level 3 specialist reports have been validated and required prompt files are ready.
+3. **Clarification & Strategy Precedence:** If Grill-Me identifies blocking ambiguities or Prompt Gen recommends Strategy B/C user consultation, task execution is held while questions route through Manager -> CEO to User via `ask_question`. Subagent dispatch resumes only upon receiving user clarification.
 4. **Tooling Readiness Mandate:** If the Skill Manager determines that a critical skill or tool is missing, subagent dispatch is held until the skill is discovered, verified, and installed.
 
 ### 3.2 Enforceable 10-State Execution Machine
@@ -126,12 +137,12 @@ The Specialist Decision Gate operates as a deterministic, enforceable state mach
 
 | State # | Canonical State Name | Active Role & Trigger Event | Operational Condition & Invariant |
 | :--- | :--- | :--- | :--- |
-| **01** | `WAITING_FOR_SPECIALISTS` | Manager dispatches task brief | Tasks issued simultaneously to Skill Manager and Grill-Me Specialist; execution subagents locked. |
-| **02** | `SKILL_MANAGER_COMPLETED` | Skill Manager submits verified report | Skill Allocation Report validated; Grill-Me Specialist still pending. |
-| **03** | `GRILL_ME_COMPLETED` | Grill-Me submits verified report | Governance Report validated; Skill Manager still pending. |
-| **04** | `WAITING_FOR_BOTH_REPORTS` | System acknowledges first report | Active hold barrier waiting for the second specialist report before decision. |
-| **05** | `READY_FOR_MANAGER_DECISION` | Both reports validated clean | Both reports verified; no pending user ambiguities; awaiting Manager evaluation. |
-| **06** | `WAITING_FOR_USER_CLARIFICATION` | Grill-Me flags essential ambiguity | Execution tasks blocked until user responds via `ask_question` and Manager clears. |
+| **01** | `WAITING_FOR_SPECIALISTS` | Manager dispatches task brief | Tasks issued simultaneously to Skill Manager, Grill-Me Specialist, and Prompt Gen Specialist; subagents locked. |
+| **02** | `SKILL_MANAGER_COMPLETED` | Skill Manager submits verified report | Skill Allocation Report validated; other specialists still pending. |
+| **03** | `GRILL_ME_COMPLETED` | Grill-Me submits verified report | Governance Report validated; other specialists still pending. |
+| **04** | `WAITING_FOR_BOTH_REPORTS` | System acknowledges first report | Active hold barrier waiting for remaining specialist reports before decision. |
+| **05** | `READY_FOR_MANAGER_DECISION` | All reports validated clean | All specialist reports verified; prompt files ready (if required); awaiting Manager evaluation. |
+| **06** | `WAITING_FOR_USER_CLARIFICATION` | Clarification or consultation required | Execution tasks blocked until user responds via `ask_question` (Grill-Me ambiguity or Strategy B/C consultation). |
 | **07** | `APPROVED_FOR_EXECUTION` | Manager signs authorization token | **Strict Condition:** ONLY Manager can set this state and generate `AUTH-MGR-*` token. |
 | **08** | `EXECUTING` | Sub Agent verifies authorization | Sub Agent validates state is `APPROVED_FOR_EXECUTION` before executing any task. |
 | **09** | `BLOCKED` | Specialist error, missing report, or timeout | Execution blocked; failed/missing reports never treated as success. Sub Manager flags. |
@@ -154,20 +165,16 @@ Skills are indexed across three standardized tiers:
 3. **Built-in System Skills (`C:\Users\Atul Verma\.gemini\antigravity\builtin\skills\`):** Base fallback capabilities provided natively by the Antigravity runtime.
 
 ### 4.2 Central Skill Manifest Schema
-The Skill Manager tracks all available skills using a normalized capability index:
+The Skill Manager tracks available skills using a normalized index:
 ```json
 {
-  "$schema": "https://antigravity.dev/schemas/skill-registry-v1.json",
   "registryVersion": "1.0.0",
-  "lastSynchronized": "2026-11-05T00:00:00Z",
   "skills": {
     "skill-scout": {
       "name": "skill-scout",
       "version": "1.2.0",
       "location": "C:\\Users\\Atul Verma\\.gemini\\config\\plugins\\ecc-skills\\skills\\skill-scout\\SKILL.md",
       "scope": "global",
-      "source": "ecc-skills",
-      "tags": ["discovery", "skills", "marketplace", "search"],
       "verified": true,
       "securityAudit": "passed"
     }
@@ -207,24 +214,24 @@ flowchart TD
 ## 🔒 6. Skill Verification, Security & Governance
 
 Every newly discovered or external skill must pass strict security checks before activation:
-1. **SAST Code Inspection:** Audit bundled scripts (`scripts/`, `bin/`) for arbitrary remote code execution, unescaped shell commands, and unpinned downloads.
-2. **Credential and Secret Scan:** Enforce zero hardcoded tokens, API keys, or remote telemetry endpoints using regex sentinels.
-3. **Least Privilege Action Space:** Verify that the skill requests only necessary filesystem, CLI, or network capabilities.
+1. **SAST Code Inspection:** Audit bundled scripts for arbitrary remote code execution and unpinned downloads.
+2. **Credential & Secret Scan:** Enforce zero hardcoded tokens, API keys, or remote telemetry endpoints.
+3. **Least Privilege:** Verify that the skill requests only necessary filesystem, CLI, or network capabilities.
 4. **Sandbox Compliance:** External scripts must operate strictly within workspace bounds and respect Rule 0 (Zero-Scan).
 
 ---
 
 ## 📦 7. Versioning, Rollback & Lifecycle Governance
 
-### 7.1 Semantic Versioning and Immutability
-- All custom and installed skills must maintain Semantic Versioning (`MAJOR.MINOR.PATCH`) in their `SKILL.md` frontmatter.
-- Breaking skill interface changes mandate a MAJOR version bump and Manager compatibility review.
+### 7.1 Semantic Versioning & Immutability
+- All custom and installed skills must maintain Semantic Versioning (`MAJOR.MINOR.PATCH`) in their `SKILL.md`.
+- Breaking changes mandate a MAJOR version bump and Manager compatibility review.
 
-### 7.2 Rollback and Recovery Policy
-- When a newly installed skill causes subagent execution errors or test regressions, the Manager immediately triggers rollback:
+### 7.2 Rollback Policy
+- When a newly installed skill causes subagent execution errors or test regressions, the Manager rolls back:
   1. Unload faulty skill from active subagent context.
   2. Restore the previous stable version from `Manual_Backup/` or system cache.
-  3. Log incident in `project_feature_memory.md` and alert the Level 1 CEO.
+  3. Log incident in `project_feature_memory.md` and alert Level 1 CEO.
 
 ---
 
@@ -259,18 +266,18 @@ The Manager injects allocated skills directly into subagent dispatch prompts, re
 
 ## 🔮 10. Future Skill Architecture Recommendations
 
-To ensure long-term scalability of the Antigravity agent ecosystem, the following architectural evolutions are recommended:
-1. **Semantic Vector Indexing:** Transition from keyword-based skill discovery to local SQLite-vector embeddings for sub-millisecond intent matching.
-2. **Automated Eval Harnesses:** Implement autonomous synthetic eval suites that execute a test prompt against newly installed skills before releasing them to production tasks.
-3. **Autonomous Garbage Collection:** Implement a 30-day Least-Recently-Used (LRU) skill pruner to archive unused experimental skills and maintain compact registries.
-4. **Agent-to-Skill Compatibility Contracts:** Define formal JSON schema contracts for subagent tool inputs and outputs to guarantee deterministic runtime interoperability.
+Recommended architectural evolutions for ecosystem scalability:
+1. **Semantic Vector Indexing:** Transition to SQLite-vector embeddings for sub-millisecond intent matching.
+2. **Automated Eval Harnesses:** Synthetic eval suites executing test prompts against newly installed skills.
+3. **Autonomous Garbage Collection:** 30-day LRU skill pruner to archive unused experimental skills.
+4. **Agent Compatibility Contracts:** JSON schema contracts for subagent tool inputs/outputs.
 
 ---
 
 ## 📋 11. Mandatory Future Prompt Generation Standard
 
 Whenever any agent, subagent, or engineer generates a system prompt, orchestration prompt, or phase execution deck for future tasks, the prompt **MUST** strictly incorporate and uphold:
-1. **The 4-Level Command Hierarchy:** Level 1 CEO (exclusive user interface) -> Level 2 Manager (central tactical commander) -> Level 3 Specialists (Skill Manager & Grill-Me Specialist) -> Level 4 Sub Agents (execution units), with the Sub Manager as continuous background monitor.
-2. **The Parallel Specialist Decision Gate:** Mandatory simultaneous dispatch to Level 3, manager barrier wait, and total execution subagent hold until both reports are certified.
+1. **The 4-Level Command Hierarchy:** Level 1 CEO (exclusive user interface) -> Level 2 Manager (central tactical commander) -> Level 3 Specialists (Skill Manager, Grill-Me Specialist, Prompt Generation Specialist) -> Level 4 Sub Agents (execution units), with the Sub Manager as continuous background monitor.
+2. **The Parallel Specialist Decision Gate:** Mandatory simultaneous dispatch to Level 3, manager barrier wait, prompt requirements & strategy evaluation, and total execution subagent hold until all reports are certified.
 3. **Rule 15 GitHub Upstream Verification:** Automatic suppression of remote push questions for local-only repositories, and mandatory 2-option interactive gate for online repos.
 4. **Architectural Separation of Concerns:** Strict adherence to `memory.md` (State), `GEMINI.md` / `universal_rules.md` (Governance), and `architecture_recommendation.md` (System Topology).

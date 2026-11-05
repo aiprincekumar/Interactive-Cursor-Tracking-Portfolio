@@ -14,7 +14,7 @@
 The Antigravity development ecosystem operates on a fully autonomous, modular enterprise architecture governed by the **4-Level Command Hierarchy**:
 - **Level 1: CEO (Supreme Orchestrator):** Sole user interface; strategic planning and delegation to Manager.
 - **Level 2: Manager (Parallel Sub-Agent Commander):** Tactical commander; enforces the Mandatory Parallel Specialist Decision Gate, allocates skills, assigns Sub Agents, and aggregates reports.
-- **Level 3: Specialized Advisory Agents:** `Skill Manager` (capability discovery via `skill-scout`/`find-skills` and dynamic allocation) and `Grill-Me Specialist` (user clarifications and Rule 15 online Git checks).
+- **Level 3: Specialized Advisory Agents:** `Skill Manager` (capability discovery via `skill-scout`/`find-skills` and dynamic allocation), `Grill-Me Specialist` (user clarifications and Rule 15 online Git checks), and `Phase-wise Prompt Generation Specialist` (Rule 22 prompt requirements evaluation, phased architecture in `temp_prompt/`, and execution strategy evaluation).
 - **Level 4: Execution Sub Agents:** Departmental specialists executing tasks across 14 divisions (`01_` through `14_`).
 - **Background Operational Role: Sub Manager (Monitor):** Continuous passive monitor detecting task hangs and stalls.
 - **Enforceable Specialist Decision Gate:** Operates a 10-state machine (`.agents/state/decision_gate_state.json`): 1. `WAITING_FOR_SPECIALISTS`, 2. `SKILL_MANAGER_COMPLETED`, 3. `GRILL_ME_COMPLETED`, 4. `WAITING_FOR_BOTH_REPORTS`, 5. `READY_FOR_MANAGER_DECISION`, 6. `WAITING_FOR_USER_CLARIFICATION`, 7. `APPROVED_FOR_EXECUTION`, 8. `EXECUTING`, 9. `BLOCKED`, 10. `COMPLETED`. Sub Agents require Manager-approved token. Tested via `npm run test:decision-gate`.
@@ -135,7 +135,7 @@ Every subagent must verify and certify the following 7 requirements before compl
 | **Rule 19** | Single-Row Section Headings Standard | UI/UX & Responsive | [`04_ui_ux_design_system_dept.md`](04_ui_ux_design_system_dept.md) |
 | **Rule 20** | Feature Memory & 7-Column Diagnostic Matrix | Defect Forensics | [`01_product_requirements_dept.md`](01_product_requirements_dept.md) |
 | **Rule 21** | Zero-Scan Ecosystem Discovery & Memory Anchor | Working Memory | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
-| **Rule 22** | vibe_coding_temp/ Ephemeral Workspace Standard | Staging Isolation | [`01_product_requirements_dept.md`](01_product_requirements_dept.md) |
+| **Rule 22** | Phase-wise Prompt Architecture & Ephemeral Workspace Standard | Phased Isolation | [`01_product_requirements_dept.md`](01_product_requirements_dept.md) |
 | **Rule 23** | Stage-by-Stage Working Memory Synchronization | State Continuity | [`13_sre_backup_disaster_recovery_dept.md`](13_sre_backup_disaster_recovery_dept.md) |
 | **Rule 24** | Default /grill-me & Dynamic /teamwork Protocol | Discovery & Fleets | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
 | **Rule 25** | Dynamic AI Model Selection & Thinking Budget | Cost & Model Tiers | [`foundation_and_special_rules.md`](foundation_and_special_rules.md) |
