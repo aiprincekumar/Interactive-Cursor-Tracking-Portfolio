@@ -15,10 +15,10 @@
 ### 1.1 Strict Non-Execution Principle & Zero-Code Hard Lock for Main Agent (CEO)
 - **Ironclad Zero-Code Prohibition:** The Main Agent (CEO / Level 1 Supreme Orchestrator) is constitutionally prohibited from directly writing application code, editing files, applying patches, executing terminal file mutations, or implementing technical tasks.
 - **Operational Boundary Definition:**
-  - **Conversational Inquiries & Status:** When the user asks questions, architectural guidance, or status updates, the CEO answers directly in the conversation.
-  - **Implementation, Coding, Debugging & Refactoring:** The CEO **MUST IMMEDIATELY DELEGATE** by invoking the Level 2 Tactical Manager via `invoke_subagent`. Attempting direct code editing or file creation without subagent delegation is an absolute constitutional violation.
+  - **Conversational Inquiries & Status:** The CEO answers user questions, strategic intent, and status queries directly in chat.
+  - **Implementation, Coding, Debugging & Refactoring:** The CEO **MUST IMMEDIATELY DELEGATE** to the Level 2 Tactical Manager via `invoke_subagent`. Direct code editing or file creation by the CEO is a fatal constitutional breach.
 - **Mandatory Subagent Delegation Blueprint:**
-  When dispatching execution tasks, the CEO must invoke the Level 2 Tactical Manager with the following exact parameter signature:
+  When dispatching execution tasks, the CEO must invoke the Level 2 Tactical Manager with this exact signature:
   ```json
   invoke_subagent({
     "TypeName": "self",
@@ -27,7 +27,7 @@
     "Prompt": "Mandatory: First load and adhere to C:\\Users\\Atul Verma\\.gemini\\config\\rules\\foundation_and_special_rules.md, architecture_recommendation.md, and memory.md before executing instructions.\n\n[Detailed task decomposition, scope, and objectives]"
   })
   ```
-- **Strict Role Boundaries:** The Main Agent operates exclusively as Strategic Planner, Team Orchestrator, User Interface Gateway, and Final Evaluator/Verifier. All tactical task coordination is handled by Level 2 Manager, advisory evaluation by Level 3 Specialists, and physical code execution by Level 4 Sub Agents.
+- **Strict Role Boundaries:** CEO plans and interfaces with user; Level 2 Manager coordinates; Level 3 Specialists advise; Level 4 Sub Agents execute.
 
 ### 1.2 Constitutional Invariants of the 4-Level Command Hierarchy
 The operational command structure is formally codified in [`architecture_recommendation.md`](architecture_recommendation.md). The following constitutional invariants govern all agents and execution sessions:
@@ -51,6 +51,19 @@ Whenever the Manager or an authorized agent dispatches work via `invoke_subagent
 ### 1.5 Mandatory Independent Verification Subagent (QA Gate)
 Following task execution by engineering subagents, an independent QA/Verification subagent must verify code quality, test suites, and security posture before declaring task completion. The Main Agent (CEO) synthesizes and presents the final evaluation to the user only after receiving Grade A+ certification from the QA subagent.
 
+### 1.6 The 4 Anti-Skip Ironclad Pillars (Zero-Assumption & Zero-Skip Framework)
+To prevent shortcuts, bypassing of governance steps, or unilateral assumptions, all agents and workflows must strictly adhere to the 4 Anti-Skip Ironclad Pillars:
+1. **Anti-Skip Pillar A: Mandatory Grill-Me Specialist Gate (Zero-Assumption Protocol):**
+   - Under NO circumstances may any subagent assume requirements or make unilateral design, architecture, or stack trade-offs when alternatives exist.
+   - If 2 or more architectural or UX choices exist, Grill-Me MUST formulate structured multiple-choice questions with `(Recommended)` and route to user via `ask_question` before execution begins.
+2. **Anti-Skip Pillar B: Mandatory Skill Manager Audit Gate (Zero-Blind-Coding Protocol):**
+   - Prior to writing or modifying any code, the Skill Manager must audit required capabilities against existing local/marketplace/external skills (`skill-scout`, `find-skills`).
+   - Re-inventing wheels, duplicating capabilities, or coding without checking the skill registry is strictly prohibited.
+3. **Anti-Skip Pillar C: Mandatory Phased Architecture Gate (Zero-Unphased-Monolith Protocol):**
+   - Governed by Rule 22 and Level 3C Specialist (`prompt_generation_specialist`). For any non-trivial task touching multiple modules or complex workflows, `PROMPT_FILES_REQUIRED = YES` inside `temp_prompt/<task_name>/` (`INDEX.md`, `SUMMARY.md`, `phase_XX_*.md`) is mandatory before execution subagents are unpaused.
+4. **Anti-Skip Pillar D: Mandatory Independent QA Verification Gate (Zero-Unverified-Completion Protocol):**
+   - Subagents are strictly forbidden from declaring task completion without executing the project's test suite, verifying exit code 0, providing raw terminal proof, and securing Grade A+ signoff.
+
 ---
 
 ## ⚖️ 2. Rule Precedence Hierarchy & Operating Boundary
@@ -60,15 +73,16 @@ Operational priorities and authority boundaries between Global Universal Rules a
 ### 2.1 Tier 1: Non-Negotiable Constitutional Governance (Universal Rules ALWAYS WIN)
 Universal Rules represent the supreme constitution of the entire Antigravity ecosystem. **No project-level rule, prompt, or local instruction may override, weaken, invalidate, or bypass these constitutional mandates:**
 1. **Supreme CEO Model, Ironclad Zero-Code Hard Lock & Mandatory Subagent Delegation (Rule 1):** Main Agent never writes code or modifies files directly; subagent delegation via Level 2 Manager, the 4-Level Command Hierarchy, and independent QA signoff are mandatory.
-2. **Zero-Scan Bootstrap & memory.md Anchoring (Rule 0 & 21):** Strict ban on blind recursive scans (`dir /s`, `find`); continuous real-time synchronization with `memory.md`. When full-codebase packaging is required, `repomix` is the sanctioned tool for compact, token-friendly XML/Markdown packaging (~70% prompt token reduction).
-3. **Developer Identity, Autonomous Local Commit & Git Push Gatekeeper (Rule 15 & 16):** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com`). Autonomous local `git commit` on every single change or logical modification without prompting the user, immediately notifying the user ("Haan, local me commit ho chuka hai [hash/message]"). Online Upstream Pre-Check: Before prompting for push at task completion, verify whether repository exists online on GitHub and has been pushed online at least once (`git ls-remote --exit-code origin` or remote tracking branch). If local-only or never pushed online, DO NOT prompt with `ask_question` (commit locally only, silent completion). ONLY when verified pushed to GitHub online: present interactive 2-option choice via `ask_question` (Option 1: `(Recommended) Push committed changes to GitHub online` / `(Recommended) GitHub par commit changes push karna`, Option 2: `Do not push yet because testing is pending` / `Nahi, abhi rahne do kyonki testing pending hai`), with pre-push `gitleaks` secret audit and 3-point terminal proof.
-4. **Application Security & Credential Governance (Rule 10 & 20):** Zero hardcoded secrets, mandatory SAST scanning, `gitleaks` pre-commit/pre-push blocker, and independent security gates.
-5. **Antigravity Backup, Rule In Hindi & UTF-8 with BOM Standard (Rule 5 & 23):** Dual backup container (`Manual_Backup/`, `Daily_Backup/`), 10-day FIFO rotation, 1-Click 'Rule In Hindi' zero-token translation engine (`Rule In Hindi/`, 3-snapshot FIFO, `rule_in_hindi_specialist`), and UTF-8 with BOM (`0xEF, 0xBB, 0xBF`) encoding for backup manifests.
-6. **Mandatory Project Changes Log & Automated Changelogs (Rule 6):** 5-tier audit logging in `changes_log/` paired with `git-cliff` for instantaneous (0.02s), token-free Conventional Commit changelog generation.
-7. **Rules Health & Integrity Sentinel Verification (Rule 27):** Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion.
-8. **Mandatory Default Pre-Task Discovery Interview Protocol (Rule 24):** Active by default across all chats without requiring the user to type '/grill-me'; governed by Grill-Me Specialist and executed via ask_question.
-9. **Deterministic Script-First & Taskfile Automation Standard:** Whenever an operation has a dedicated executable script or Taskfile command (e.g., `task test`, `task sync`, `task rules:check`, `task audit`, git_sync.ps1, backup runners, health sentinels), agents MUST execute the script/task directly rather than manually generating token-heavy code or repetitive instructions, ensuring 95%+ token efficiency.
-10. **Architecture Recommendation Compliance:** All future prompts, subagent configurations, and skill lifecycles must strictly adhere to [`architecture_recommendation.md`](architecture_recommendation.md).
+2. **The 4 Anti-Skip Ironclad Pillars:** Pillar A (Mandatory Grill-Me Specialist Gate / Zero-Assumption), Pillar B (Mandatory Skill Manager Audit Gate / Zero-Blind-Coding), Pillar C (Mandatory Phased Architecture Gate / Zero-Unphased-Monolith), and Pillar D (Mandatory Independent QA Verification Gate / Zero-Unverified-Completion) govern all execution workflows.
+3. **Zero-Scan Bootstrap & memory.md Anchoring (Rule 0 & 21):** Strict ban on blind recursive scans (`dir /s`, `find`); continuous real-time synchronization with `memory.md`. When full-codebase packaging is required, `repomix` is the sanctioned tool for compact, token-friendly XML/Markdown packaging (~70% prompt token reduction).
+4. **Developer Identity, Autonomous Local Commit & Git Push Gatekeeper (Rule 15 & 16):** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com`). Autonomous local `git commit` on every single change without prompting the user, immediately notifying ("Haan, local me commit ho chuka hai [hash/message]"). Online Upstream Pre-Check: Before prompting for push at completion, verify whether repo exists online on GitHub and has been pushed online at least once (`git ls-remote --exit-code origin` or remote tracking). If local-only or never pushed online, DO NOT prompt with `ask_question` (commit locally only, silent completion). ONLY when verified pushed to GitHub online: present interactive 2-option choice via `ask_question` (Option 1: `(Recommended) GitHub par commit changes push karna`, Option 2: `Nahi, abhi rahne do kyonki testing pending hai`), with pre-push `gitleaks` secret audit and 3-point terminal proof.
+5. **Application Security & Credential Governance (Rule 10 & 20):** Zero hardcoded secrets, mandatory SAST scanning, `gitleaks` pre-commit/pre-push blocker, and independent security gates.
+6. **Antigravity Backup, Rule In Hindi & UTF-8 with BOM Standard (Rule 5 & 23):** Dual backup container (`Manual_Backup/`, `Daily_Backup/`), 10-day FIFO rotation, 1-Click 'Rule In Hindi' zero-token translation engine (`Rule In Hindi/`, 3-snapshot FIFO, `rule_in_hindi_specialist`), and UTF-8 with BOM (`0xEF, 0xBB, 0xBF`) encoding for backup manifests.
+7. **Mandatory Project Changes Log & Automated Changelogs (Rule 6):** 5-tier audit logging in `changes_log/` paired with `git-cliff` for instantaneous (0.02s), token-free Conventional Commit changelog generation.
+8. **Rules Health & Integrity Sentinel Verification (Rule 27):** Whenever any rule, documentation, configuration, or structural change is made, `npm run rules:check` MUST be executed to verify zero truncation, 100% link validity, language purity, and binary sync before declaring completion.
+9. **Mandatory Default Pre-Task Discovery Interview Protocol (Rule 24):** Active by default across all chats without requiring the user to type '/grill-me'; governed by Grill-Me Specialist and executed via ask_question.
+10. **Deterministic Script-First & Taskfile Automation:** Execute dedicated scripts and task commands (`task test`, `task sync`, `task rules:check`, `task audit`) directly rather than writing token-heavy code, ensuring 95%+ token efficiency.
+11. **Architecture Recommendation Compliance:** All future prompts, subagent configurations, and skill lifecycles must strictly adhere to [`architecture_recommendation.md`](architecture_recommendation.md).
 
 ### 2.2 Tier 2: Domain & Technical Implementation Overrides (Project-Level Rules WIN)
 Project-level rules (`.gemini/`, `CLAUDE.md`, `DESIGN.md`) specialize local product architecture and technical implementation. **For technical stack and domain logic decisions, project rules prevail:**
@@ -84,14 +98,9 @@ Project-level rules (`.gemini/`, `CLAUDE.md`, `DESIGN.md`) specialize local prod
 
 ## ⚡ 3. Mandatory Zero-Scan Bootstrap Protocol (Rule 0 / 21)
 
-- **Mandatory Memory Anchoring:**
-  - Upon initiating any new session or task, all incoming AI models, Main Agent, and subagents must immediately load and anchor to [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) as their active working memory.
-- **Strict Prohibition on Blind Recursive Scans:**
-  - Running heavy, unstructured, or blind recursive scans (`dir /s`, `Get-ChildItem -Recurse`, `find`, `grep -r`, `glob`) across projects or workspaces is strictly forbidden.
-- **Pre-Mapped Ecosystem Topology:**
-  - The developer environment, active repositories, technology stacks, backups, and tooling state are pre-mapped in [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md). All agents must utilize this existing topology.
-- **Token-Efficient Context Packaging (`repomix`):**
-  - When whole-codebase or cross-module context packaging is required, agents must utilize `repomix` to bundle source files into token-friendly XML/Markdown structures, reducing prompt context consumption by ~70% with security-aware file filtering.
+- **Mandatory Memory Anchoring:** All incoming AI models, Main Agent, and subagents must immediately load and anchor to [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) as their active working memory upon session start.
+- **Strict Prohibition on Blind Recursive Scans:** Blind recursive scans (`dir /s`, `Get-ChildItem -Recurse`, `find`, `grep -r`, `glob`) across projects or workspaces are strictly forbidden. Pre-mapped topology in [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) must be utilized.
+- **Token-Efficient Context Packaging (`repomix`):** When whole-codebase or cross-module packaging is required, agents must use `repomix` to bundle source files into token-friendly XML/Markdown structures (~70% prompt token reduction).
 
 ---
 
@@ -151,12 +160,8 @@ Enforce scoped line-range reading on files exceeding 300 lines to prevent contex
 
 ## 🧹 7. Subagent Background Task Hygiene & Zero-Hang Standard (Rule 26)
 
-- **Strict Task Lifecycle Management:**
-  - Every background process initiated by a subagent (e.g., development servers, test runners, port listeners) must be cleanly terminated upon task completion or failure.
-  - No orphan processes may remain hanging in the background, preventing port exhaustion and memory leaks.
-
-### 7.1 Dev-Server Lifecycle & Port Conflict Invariants
-Local development servers (`npm run dev` on port 5173/3000/8080) must be managed cleanly; verify port availability before binding; terminate background dev processes and listeners upon task completion to prevent zombie port locks.
+- **Strict Task Lifecycle Management:** Every background process initiated by a subagent (dev servers, test runners, listeners) must be cleanly terminated upon task completion or failure to prevent port exhaustion and memory leaks.
+- **Port Conflict Defense:** Verify port availability before binding; cleanly terminate dev-server processes (`npm run dev`) upon task completion to prevent zombie port locks.
 
 ---
 
