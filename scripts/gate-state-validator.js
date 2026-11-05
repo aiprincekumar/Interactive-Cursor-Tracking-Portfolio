@@ -174,9 +174,20 @@ export class DecisionGateStateMachine {
   /**
    * Manager initiates task and simultaneously dispatches to specialists
    */
-  initiateTask({ taskId, description, actor = ROLES.MANAGER, requirePromptSpecialist = true }) {
+  initiateTask({ taskId, description, actor = ROLES.MANAGER, requirePromptSpecialist = true, userOverrideApproval = false }) {
     if (actor !== ROLES.MANAGER) {
       throw new Error(`Unauthorized: Only ${ROLES.MANAGER} can initiate task execution gate.`);
+    }
+
+    if (!requirePromptSpecialist && !userOverrideApproval) {
+      this._recordTransition(
+        this.state.currentState,
+        GATE_STATES.BLOCKED,
+        actor,
+        'GATE VIOLATION: Phase-wise Prompt Generation Specialist cannot be bypassed without explicit User Approval.'
+      );
+      this.saveState();
+      throw new Error('Bypassing Prompt Generation Specialist requires explicit userOverrideApproval. Gate transitions to BLOCKED.');
     }
 
     const now = new Date().toISOString();
@@ -219,7 +230,7 @@ export class DecisionGateStateMachine {
       generatedFiles: [],
       executionStrategy: EXECUTION_STRATEGIES.STRATEGY_A_AUTONOMOUS,
       strategyRecommendation: null,
-      report: { skipped: true },
+      report: { skipped: true, userOverrideApproved: true },
       error: null
     };
     this.state.authorization = {
@@ -388,7 +399,7 @@ export class DecisionGateStateMachine {
    */
   submitPromptGenerationReport({
     report,
-    promptFilesRequired = false,
+    promptFilesRequired,
     taskSubfolder = null,
     generatedFiles = [],
     executionStrategy = EXECUTION_STRATEGIES.STRATEGY_A_AUTONOMOUS,
@@ -406,7 +417,22 @@ export class DecisionGateStateMachine {
     pg.completedAt = now;
     pg.status = status;
     pg.error = error;
-    pg.promptFilesRequired = Boolean(promptFilesRequired);
+
+    // Strict Rule: Prompt Requirement Assessment (PROMPT_FILES_REQUIRED) cannot be skipped or assumed
+    if (typeof promptFilesRequired !== 'boolean') {
+      pg.status = 'FAILED';
+      pg.report = null;
+      this._recordTransition(
+        this.state.currentState,
+        GATE_STATES.BLOCKED,
+        actor,
+        'Prompt Generation Specialist report failed: Prompt Requirement Assessment (PROMPT_FILES_REQUIRED) is mandatory and cannot be skipped or assumed (must be boolean true or false)'
+      );
+      this.saveState();
+      return this.state.currentState;
+    }
+
+    pg.promptFilesRequired = promptFilesRequired;
     pg.taskSubfolder = taskSubfolder;
     pg.generatedFiles = Array.isArray(generatedFiles) ? generatedFiles : [];
     pg.executionStrategy = executionStrategy;
@@ -426,6 +452,20 @@ export class DecisionGateStateMachine {
         GATE_STATES.BLOCKED,
         actor,
         `Prompt Generation Specialist report failed or invalid: ${error || 'Missing valid report payload'}`
+      );
+      this.saveState();
+      return this.state.currentState;
+    }
+
+    // Explicit decision & justification requirement: cannot be assumed or bypassed
+    if (!report.rationale && !report.verified && !report.promptFilesReady) {
+      pg.status = 'FAILED';
+      pg.report = null;
+      this._recordTransition(
+        this.state.currentState,
+        GATE_STATES.BLOCKED,
+        actor,
+        'Prompt Generation Specialist report failed: Explicit decision justification or verification rationale is required and cannot be omitted'
       );
       this.saveState();
       return this.state.currentState;
@@ -539,16 +579,28 @@ export class DecisionGateStateMachine {
     }
 
     // Execution Gate check: when prompt files are required, ensure they are generated and validated
-    if (pg && pg.status === 'COMPLETED' && pg.promptFilesRequired === true) {
-      if ((!pg.generatedFiles || pg.generatedFiles.length === 0) && (!pg.report?.promptFilesReady)) {
+    if (pg && pg.status === 'COMPLETED') {
+      if (typeof pg.promptFilesRequired !== 'boolean') {
         this._recordTransition(
           this.state.currentState,
           GATE_STATES.BLOCKED,
           actor,
-          'GATE VIOLATION: Execution gate locked because required prompt files are missing.'
+          'GATE VIOLATION: Prompt Requirement Assessment (PROMPT_FILES_REQUIRED) was skipped or assumed.'
         );
         this.saveState();
-        throw new Error('Required prompt files not generated. Gate transitions to BLOCKED.');
+        throw new Error('Prompt Requirement Assessment was skipped or assumed. Gate transitions to BLOCKED.');
+      }
+      if (pg.promptFilesRequired === true) {
+        if ((!pg.generatedFiles || pg.generatedFiles.length === 0) && (!pg.report?.promptFilesReady)) {
+          this._recordTransition(
+            this.state.currentState,
+            GATE_STATES.BLOCKED,
+            actor,
+            'GATE VIOLATION: Execution gate locked because required prompt files are missing.'
+          );
+          this.saveState();
+          throw new Error('Required prompt files not generated. Gate transitions to BLOCKED.');
+        }
       }
     }
 

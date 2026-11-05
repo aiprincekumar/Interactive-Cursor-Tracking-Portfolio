@@ -3,6 +3,7 @@
 > **Navigation Links:**
 > - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
 > - **Foundation Rules:** [`foundation_and_special_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/foundation_and_special_rules.md)
+> - **Prompt Architecture:** [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md)
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md)
 > - **Universal Canonical Rules:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/archive/universal_rules.md) (Archived canonical reference)
 
@@ -17,6 +18,7 @@ The Product Requirements & Management Department (Dept 01) serves as the primary
 ## 📜 2. Core Mandates
 
 ### 2.1 Ephemeral Workspace & Phase Prompts Standard (Universal Rule 22 Compliance)
+- **Authoritative Specification:** Governed and enforced by [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md).
 - **Governing Specialist:** Governed by **Level 3C: Phase-wise Prompt Generation Specialist** (`prompt_generation_specialist`), co-equal with Level 3A Skill Manager and Level 3B Grill-Me Specialist.
 - **Mandatory Prompt Requirement Assessment:** On every task delegated by the Manager, the Specialist evaluates `PROMPT_FILES_REQUIRED` (`YES` or `NO`):
   - `PROMPT_FILES_REQUIRED = NO`: For small, routine, single-module, or low-complexity tasks (e.g., minor bugfixes, copy tweaks, single test updates). The Manager assigns execution directly to Sub Agents without generating unnecessary prompt files or documentation overhead.

@@ -1,8 +1,9 @@
 ﻿# Foundation & Special Operating Rules
 
 > **Navigation Links:**
-> - **Master Navigator:** [`master_rules_navigator.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/master_rules_navigator.md)
-> - **Architecture Recommendation:** [`architecture_recommendation.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/architecture_recommendation.md)
+> - **Master Navigator:** [`master_rules_navigator.md`](master_rules_navigator.md)
+> - **Architecture Recommendation:** [`architecture_recommendation.md`](architecture_recommendation.md)
+> - **Prompt Architecture:** [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md)
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md)
 > - **Canonical Rules Master:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/archive/universal_rules.md) (Archived canonical reference)
 > - **Developer Profile:** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com` / [GitHub Profile](https://github.com/aiprincekumar))
@@ -32,7 +33,7 @@ The operational command structure across the Antigravity ecosystem is formally d
 3. **Level 3: Specialized Advisory Agents:**
    - **Skill Manager (Skill Discovery, Verification & Allocation):** Audits required capabilities, uses `skill-scout` and `find-skills` as primary tools, discovers missing skills across local/marketplace/external repositories, verifies security postures, prevents duplicates, and delivers a formal Skill Allocation Report to the Manager.
    - **Grill-Me Specialist (User Clarification, Decision & Governance Manager):** Analyzes task ambiguity, formats structured multiple-choice questions with `(Recommended)` option when essential trade-offs exist, verifies GitHub upstream online existence (Rule 15), routes questions through Manager -> CEO -> User, and delivers a Clarification & Governance Report to the Manager.
-   - **Phase-wise Prompt Generation Specialist (Phased Architecture & Strategy Governance):** Evaluates prompt requirements (`PROMPT_FILES_REQUIRED` = `YES`/`NO`), architectures self-contained phase prompts in `temp_prompt/<task_name>/`, pauses execution subagents during generation, evaluates 3 implementation strategies (A: Autonomous, B: Single Consultation, C: Phase-by-Phase), and reports directly to the Manager.
+   - **Phase-wise Prompt Generation Specialist (Phased Architecture & Strategy Governance):** Codified in [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md). Evaluates prompt requirements (`PROMPT_FILES_REQUIRED` = `YES`/`NO`), architectures self-contained phase prompts in `temp_prompt/<task_name>/`, pauses execution subagents during generation, evaluates 3 implementation strategies (A: Autonomous, B: Single Consultation, C: Phase-by-Phase), and reports directly to the Manager.
 4. **Level 4: Execution Sub Agents (Actual Task Execution):**
    - Domain-specific execution subagents operating under departmental rules (`01_` through `14_`).
    - Dispatched **ONLY** after the Manager formally clears the Parallel Specialist Decision Gate.
@@ -154,10 +155,10 @@ The system maintains the following standardized ecosystem subagents and standalo
 11. **Language & Domain Specialists (Rule 17):**
     - Dedicated experts including `rust_expert_engineer`, `golang_expert_engineer`, `python_expert_engineer`, `typescript_frontend_engineer`, etc.
 12. **`prompt_generation_specialist` (Rule 22 & Level 3C):**
-    - Evaluates prompt requirements (`PROMPT_FILES_REQUIRED` = `YES`/`NO`), architectures `temp_prompt/<task_name>/`, pauses subagents during generation, evaluates 3 execution strategies (A, B, C), and reports to Manager.
+    - Codified in [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md). Evaluates prompt requirements (`PROMPT_FILES_REQUIRED` = `YES`/`NO`), architectures `temp_prompt/<task_name>/`, pauses subagents during generation, evaluates 3 execution strategies (A, B, C), and reports to Manager.
 
 ### 5.1 Standalone Deterministic Automation Runners Manifest
-- **Changes Log Automation:** `scripts/audit/changes_log_engine.py` (Rule 6 & Dept 12) — Automated 5-tier change logger, diff capture, and audit verifier. Supports the `--files` / `-f` scoped flag and mandates the Granular Atomic Micro-Entries Protocol for compound tasks.
+- **Changes Log Automation:** `scripts/audit/changes_log_engine.py` (Rule 6 & Dept 12) — Automated 5-tier change logger, diff capture, and audit verifier with scoped flag and micro-entries support.
 - **Antigravity Backup Automation:** `scripts/backup/backup_manager.ps1` (Rule 5 & Dept 13) — Dual-container snapshot runner with 10-day FIFO pruning.
 - **Pre-Commit Secret Scanner:** `scripts/security/secret_scanner.py` (Rule 10, 12, 15 & Dept 10) — Static credential detector with regex classification and false-positive suppression.
 

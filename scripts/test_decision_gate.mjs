@@ -413,6 +413,60 @@ try {
     assert(typeof heartbeat.lastMonitoredAt === 'string', 'Sub Manager updates monitoring timestamp');
   }
 
+  // -----------------------------------------------------------------------------------------------
+  // SCENARIO 13: Prompt Requirement Assessment Cannot Be Skipped or Assumed
+  // -----------------------------------------------------------------------------------------------
+  console.log('\n[Scenario 13] Prompt Requirement Assessment Cannot Be Skipped or Assumed:');
+  {
+    cleanUp();
+    const sm = new DecisionGateStateMachine(tempTestStateFile);
+    sm.initiateTask({ taskId: 'TASK-013-PROMPT-MANDATORY', actor: ROLES.MANAGER });
+
+    sm.submitSkillManagerReport({ report: { verified: true }, actor: ROLES.SKILL_MANAGER });
+    sm.submitGrillMeReport({ report: { ambiguitiesResolved: true }, actor: ROLES.GRILL_ME_SPECIALIST });
+
+    // Specialist omits promptFilesRequired (undefined)
+    sm.submitPromptGenerationReport({
+      report: { verified: true },
+      actor: ROLES.PROMPT_GENERATION_SPECIALIST
+    });
+
+    assert(sm.state.currentState === GATE_STATES.BLOCKED, 'Gate transitions to BLOCKED when PROMPT_FILES_REQUIRED is omitted');
+    assert(sm.state.specialists.promptGenerationSpecialist.status === 'FAILED', 'Prompt Gen Specialist is marked FAILED on missing assessment');
+    assert(sm.verifyExecutionAuthorization({ subAgentRole: 'SubAgent' }).authorized === false, 'Sub Agent execution is locked out in BLOCKED state');
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // SCENARIO 14: Prompt Specialist Cannot Be Bypassed Without Explicit User Approval
+  // -----------------------------------------------------------------------------------------------
+  console.log('\n[Scenario 14] Prompt Specialist Cannot Be Bypassed Without Explicit User Approval:');
+  {
+    cleanUp();
+    const sm = new DecisionGateStateMachine(tempTestStateFile);
+
+    // Attempt bypass without user override approval
+    let unauthorizedBypassBlocked = false;
+    try {
+      sm.initiateTask({ taskId: 'TASK-014-UNAUTHORIZED-BYPASS', requirePromptSpecialist: false, actor: ROLES.MANAGER });
+    } catch (_) {
+      unauthorizedBypassBlocked = true;
+    }
+    assert(unauthorizedBypassBlocked === true, 'Unauthorized attempt to bypass Prompt Specialist threw exception');
+    assert(sm.state.currentState === GATE_STATES.BLOCKED, 'Gate transitioned to BLOCKED on unauthorized bypass attempt');
+
+    // Authorized bypass with explicit userOverrideApproval
+    cleanUp();
+    const sm2 = new DecisionGateStateMachine(tempTestStateFile);
+    sm2.initiateTask({
+      taskId: 'TASK-014-AUTHORIZED-BYPASS',
+      requirePromptSpecialist: false,
+      userOverrideApproval: true,
+      actor: ROLES.MANAGER
+    });
+    assert(sm2.state.currentState === GATE_STATES.WAITING_FOR_SPECIALISTS, 'Authorized bypass successfully initiated with user override');
+    assert(sm2.state.specialists.promptGenerationSpecialist.status === 'SKIPPED', 'Prompt Specialist marked SKIPPED under user override');
+  }
+
   cleanUp();
 
   console.log('\n' + '='.repeat(85));
