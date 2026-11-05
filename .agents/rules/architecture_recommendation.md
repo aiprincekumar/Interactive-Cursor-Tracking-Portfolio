@@ -75,9 +75,8 @@ Level 3 specialists advise the Manager before any code or file mutation occurs. 
 
 #### C. Phase-wise Prompt Generation Specialist (Phased Architecture & Strategy Governance)
 - **Authoritative Specification:** Codified and governed by [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md).
-- **Primary Scope:** Evaluates prompt requirements (`PROMPT_FILES_REQUIRED` = `YES` / `NO`), architectures self-contained phase prompts and specifications in `temp_prompt/<task_name>/`, pauses execution subagents during generation, and evaluates implementation strategy.
-- **Mandatory Assessment:** Evaluates on every task. For routine/low-complexity tasks (`PROMPT_FILES_REQUIRED = NO`), advises direct execution without prompt files. For complex/multi-phase tasks (`PROMPT_FILES_REQUIRED = YES`), generates `INDEX.md`, `SUMMARY.md`, `phase_XX_*.md`, `PRD.md`, `TRD.md`, `DESIGN.md`.
-- **Strategy Evaluation:** Evaluates 3 execution models: Strategy A (Fully Autonomous), Strategy B (Single User Consultation upfront), Strategy C (Phase-by-Phase User Consultation). Delivers concrete recommendation with rationale, risks, dependencies, and autonomy score.
+- **Primary Scope:** Evaluates prompt requirements (`PROMPT_FILES_REQUIRED` = `YES` / `NO`), architectures self-contained phase prompts and specifications in `temp_prompt/<task_name>/`, pauses execution subagents during generation, and evaluates implementation strategies (Strategy A, B, C).
+- **Mandatory Assessment:** Evaluates on every task. For routine tasks (`PROMPT_FILES_REQUIRED = NO`), advises direct execution. For complex tasks (`PROMPT_FILES_REQUIRED = YES`), generates the complete ephemeral artifact suite per [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md).
 - **Reporting Contract:** Reports directly to the Manager. Never contacts CEO or User directly; Manager routes questions via CEO -> User. Never assigns execution tasks directly to Sub Agents.
 
 ### 2.4 Level 4: Execution Sub Agents (Actual Task Execution)
@@ -277,8 +276,8 @@ Recommended architectural evolutions for ecosystem scalability:
 
 ## 📋 11. Mandatory Future Prompt Generation Standard
 
-Whenever any agent, subagent, or engineer generates a system prompt, orchestration prompt, or phase execution deck for future tasks, the prompt **MUST** strictly incorporate and uphold:
-1. **The 4-Level Command Hierarchy:** Level 1 CEO (exclusive user interface) -> Level 2 Manager (central tactical commander) -> Level 3 Specialists (Skill Manager, Grill-Me Specialist, Prompt Generation Specialist) -> Level 4 Sub Agents (execution units), with the Sub Manager as continuous background monitor.
-2. **The Parallel Specialist Decision Gate:** Mandatory simultaneous dispatch to Level 3, manager barrier wait, prompt requirements & strategy evaluation, and total execution subagent hold until all reports are certified.
-3. **Rule 15 GitHub Upstream Verification:** Automatic suppression of remote push questions for local-only repositories, and mandatory 2-option interactive gate for online repos.
-4. **Architectural Separation of Concerns:** Strict adherence to `memory.md` (State), [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md) (Prompt Governance), and `architecture_recommendation.md` (System Topology).
+Whenever generating system prompts, orchestration prompts, or phase execution decks, agents must strictly uphold:
+1. **The 4-Level Command Hierarchy:** Level 1 CEO -> Level 2 Manager -> Level 3 Specialists -> Level 4 Sub Agents, with Sub Manager monitor.
+2. **The Parallel Specialist Decision Gate:** Simultaneous dispatch to Level 3, manager barrier wait, and subagent hold until certified.
+3. **Rule 15 GitHub Upstream Verification:** Suppress remote push questions for local-only repos; 2-option interactive gate for online repos.
+4. **Architectural Separation:** Adherence to `memory.md` (State), [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md) (Prompts), and `architecture_recommendation.md` (Topology).

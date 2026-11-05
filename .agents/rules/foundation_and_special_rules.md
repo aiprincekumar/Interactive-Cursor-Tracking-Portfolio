@@ -16,50 +16,20 @@
 - The Main Agent never directly writes application code, modifies files, executes terminal commands, or performs direct file mutations.
 - The Main Agent operates solely as a Strategic Planner, Team Orchestrator, and Final Evaluator/Verifier.
 
-### 1.2 The 4-Level Command Hierarchy
-The operational command structure across the Antigravity ecosystem is formally defined across 4 distinct levels with a dedicated background monitor role (detailed in [`architecture_recommendation.md`](architecture_recommendation.md)):
-1. **Level 1: CEO (Supreme Orchestrator & User Interface):**
-   - Exclusive direct interface with the human developer (User <-> CEO only).
-   - Receives developer instructions, formulates strategic intent, and delegates tasks exclusively to the Level 2 Manager.
-   - **Strict Hierarchy Invariant:** The CEO **NEVER** directly assigns tasks to Sub Agents (Level 4) and **NEVER** communicates directly with Level 3 Specialist Agents during execution.
-   - Delivers consolidated executive reports to the user upon receiving certified outputs from the Manager.
-   - Presents interactive decision questions to the user via `ask_question` when forwarded by the Grill-Me Specialist via Manager.
-2. **Level 2: Manager (Parallel Sub-Agent Commander):**
-   - Central tactical commander of all execution workflows.
-   - Analyzes tasks from CEO, decomposes work, coordinates parallel batches, and manages subagent lifecycles.
-   - Enforces the **Mandatory Parallel Specialist Decision Gate**: dispatches tasks simultaneously to Level 3 Specialist Agents and waits for both reports before subagent assignment.
-   - Evaluates specialist reports, resolves ambiguities, assigns dynamically allocated skills, and dispatches Level 4 Sub Agents.
-   - Consolidates subagent outputs, validates verification test suites, and delivers the final executive report to the CEO.
-3. **Level 3: Specialized Advisory Agents:**
-   - **Skill Manager (Skill Discovery, Verification & Allocation):** Audits required capabilities, uses `skill-scout` and `find-skills` as primary tools, discovers missing skills across local/marketplace/external repositories, verifies security postures, prevents duplicates, and delivers a formal Skill Allocation Report to the Manager.
-   - **Grill-Me Specialist (User Clarification, Decision & Governance Manager):** Analyzes task ambiguity, formats structured multiple-choice questions with `(Recommended)` option when essential trade-offs exist, verifies GitHub upstream online existence (Rule 15), routes questions through Manager -> CEO -> User, and delivers a Clarification & Governance Report to the Manager.
-   - **Phase-wise Prompt Generation Specialist (Phased Architecture & Strategy Governance):** Codified in [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md). Evaluates prompt requirements (`PROMPT_FILES_REQUIRED` = `YES`/`NO`), architectures self-contained phase prompts in `temp_prompt/<task_name>/`, pauses execution subagents during generation, evaluates 3 implementation strategies (A: Autonomous, B: Single Consultation, C: Phase-by-Phase), and reports directly to the Manager.
-4. **Level 4: Execution Sub Agents (Actual Task Execution):**
-   - Domain-specific execution subagents operating under departmental rules (`01_` through `14_`).
-   - Dispatched **ONLY** after the Manager formally clears the Parallel Specialist Decision Gate.
-   - Equipped with skills dynamically allocated by the Skill Manager; report execution artifacts and test proofs directly to the Manager.
-5. **Background Operational Role: Sub Manager (Parallel Sub-Agent Monitor):**
-   - Continuous passive background monitor (renamed from former Manager monitor).
-   - Possesses **NO** task-assignment, planning, or delegation authority.
-   - Continuously inspects active subagent process lifecycles via `manage_task` with action `list`.
-   - Detects zombie processes, stalled tasks, unhandled exceptions, and port lockups (Rule 26) and immediately reports status alerts to the Manager.
+### 1.2 Constitutional Invariants of the 4-Level Command Hierarchy
+The operational command structure is formally codified in [`architecture_recommendation.md`](architecture_recommendation.md). The following constitutional invariants govern all agents and execution sessions:
+1. **Level 1: CEO (Supreme Orchestrator & User Interface):** The exclusive direct interface with the human developer (User <-> CEO only). Formulates strategic intent and delegates tasks exclusively to Level 2 Manager. The CEO **NEVER** writes application code, **NEVER** assigns tasks directly to Sub Agents (Level 4), and **NEVER** communicates directly with Level 3 Specialist Agents during execution.
+2. **Level 2: Manager (Parallel Sub-Agent Commander):** The central tactical commander. Decomposes tasks, coordinates parallel execution batches, enforces the Mandatory Parallel Specialist Decision Gate, assigns dynamically allocated skills, and dispatches Level 4 Sub Agents.
+3. **Level 3: Specialized Advisory Agents:** Advisory specialists (`Skill Manager`, `Grill-Me Specialist`, and `Phase-wise Prompt Generation Specialist`) evaluating capabilities, user clarifications, and phased prompt architecture simultaneously. They report exclusively to the Manager and never execute code or contact the user directly.
+4. **Level 4: Execution Sub Agents (Actual Task Execution):** Domain engineers executing strictly within their departmental rules (`01_` through `14_`). Dispatched **ONLY** after Manager issues authorization.
+5. **Background Operational Role: Sub Manager (Monitor):** Continuous passive background monitor with zero delegation authority. Detects zombie processes, stalled tasks, and port locks via `manage_task`.
 
 ### 1.3 Mandatory Parallel Specialist Decision Gate
-- **Simultaneous Dispatch:** Whenever the CEO delegates a task, the Manager simultaneously dispatches identical briefs to Skill Manager, Grill-Me Specialist, and Prompt Generation Specialist in parallel.
-- **Enforceable 10-State Lifecycle:** State transitions strictly through 10 deterministic states:
-  1. `WAITING_FOR_SPECIALISTS` (Simultaneous specialist task brief dispatch)
-  2. `SKILL_MANAGER_COMPLETED` (Skill Allocation Report verified)
-  3. `GRILL_ME_COMPLETED` (Clarification & Governance Report verified)
-  4. `WAITING_FOR_BOTH_REPORTS` (Active barrier awaiting remaining specialist reports)
-  5. `READY_FOR_MANAGER_DECISION` (All specialist reports validated clean; prompt files ready if required)
-  6. `WAITING_FOR_USER_CLARIFICATION` (Ambiguities held or Strategy B/C user consultation evaluated)
-  7. `APPROVED_FOR_EXECUTION` (Strict Invariant: ONLY Manager can authorize; generates token)
-  8. `EXECUTING` (Sub Agents verify authorization token prior to execution)
-  9. `BLOCKED` (Failed, missing, or timed-out reports transition to blocked)
-  10. `COMPLETED` (Independent QA Grade A+ certification)
-- **Sub Agent Execution Check:** Sub Agents MUST verify state is `APPROVED_FOR_EXECUTION` before running tasks.
+Whenever the CEO delegates a task, the Manager simultaneously dispatches briefs to the Skill Manager, Grill-Me Specialist, and Prompt Generation Specialist in parallel. All Level 4 Sub Agents remain strictly **PAUSED / UNASSIGNED** until all three specialist reports are evaluated and certified by the Manager.
+- **Enforceable 10-State Lifecycle:** Governed by the deterministic state machine defined in [`architecture_recommendation.md`](architecture_recommendation.md) (`WAITING_FOR_SPECIALISTS` through `COMPLETED`).
+- **Authorization Barrier:** Sub Agents MUST verify state is `APPROVED_FOR_EXECUTION` with an active Manager-signed authorization token (`AUTH-MGR-*`) before touching code.
 - **Sub Manager Passive Monitor:** Monitors state transitions, timeouts, and blocked states.
-- **Verification Engine:** Automated verification via `npm run test:decision-gate` with state in `.agents/state/decision_gate_state.json`.
+- **Automated Verification:** Verified via `npm run test:decision-gate` with state ledger in `.agents/state/decision_gate_state.json`.
 
 ### 1.4 Mandatory Subagent Prompt Anchor Template
 Whenever the Manager or an authorized agent dispatches work via `invoke_subagent`, the prompt MUST include the mandatory departmental anchoring directive:
@@ -130,32 +100,20 @@ Project-level rules (`.gemini/`, `CLAUDE.md`, `DESIGN.md`) specialize local prod
 
 ## 🤖 5. Dedicated Ecosystem Specialist Subagents & Automation Tooling Manifest
 
-The system maintains the following standardized ecosystem subagents and standalone automation runners for autonomous operations:
+The system maintains standardized ecosystem specialist subagents and standalone automation runners for autonomous operations:
 
-1. **`parallel_dispatch_optimizer` (Rule 2):**
-   - Assesses task decomposition, evaluates parallel feasibility, and structures subagent dispatch batches upon task receipt.
-2. **`skill_manager` / `skill_requirement_scout` (Rule 3 & Architecture Recommendation):**
-   - Audits required tools and skills prior to task execution. Discovers and installs missing skills using `skill-scout` and `find-skills` across internal libraries, plugins, and top-starred GitHub repositories.
-3. **`skill_duplicate_checker` (Rule 4 & Architecture Recommendation):**
-   - Verifies whether a capability already exists before generating new skills, preventing codebase duplication.
-4. **`grill_me_specialist` (Rule 24 & Level 3B):**
-   - Evaluates requirements ambiguity, generates concise multiple-choice questions for the user, and pre-checks GitHub online existence per Rule 15.
-5. **`sub_manager_monitor` (Rule 26 & Background Role):**
-   - Continuously monitors active subagent tasks in the background, detecting stalls, timeouts, and orphan processes.
-6. **`antigravity_backup_specialist` (Rule 5 & Dept 13):**
-   - Enforces dual-folder backup architecture (`Manual_Backup/` and `Daily_Backup/`), 1-click execution runners, 10-day FIFO pruning, and executes `scripts/backup/backup_manager.ps1` for deterministic workspace snapshots.
-7. **`rule_in_hindi_specialist` (Rule 5 & Dept 13):**
-   - Executes the 1-click 'Rule In Hindi' translation runner (`Run_Rule_In_Hindi.bat` / `run_rule_in_hindi.bat`) with zero LLM token consumption. Governs incremental MD5 caching, Devanagari UTF-8 BOM encoding, and 3-snapshot FIFO archiving.
-8. **`changes_log_manager` (Rule 6 & Dept 12):**
-   - Governs 5-tier changes logging via `scripts/audit/changes_log_engine.py` and integrates `git-cliff` for instantaneous, token-free Conventional Commit changelog generation.
-9. **`security_hardening_officer` (Rule 10, Rule 12, Rule 15 & Dept 10):**
-   - Enforces `scripts/security/secret_scanner.py` and `gitleaks` pre-commit and pre-push secret audit gates, eliminating exposed credentials and tokens.
-10. **`memory_sync_sentinel` (Rule 23):**
-    - Enforces real-time synchronization of [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) across all task stages and subagent dispatches.
-11. **Language & Domain Specialists (Rule 17):**
-    - Dedicated experts including `rust_expert_engineer`, `golang_expert_engineer`, `python_expert_engineer`, `typescript_frontend_engineer`, etc.
-12. **`prompt_generation_specialist` (Rule 22 & Level 3C):**
-    - Codified in [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md). Evaluates prompt requirements (`PROMPT_FILES_REQUIRED` = `YES`/`NO`), architectures `temp_prompt/<task_name>/`, pauses subagents during generation, evaluates 3 execution strategies (A, B, C), and reports to Manager.
+1. **`parallel_dispatch_optimizer` (Rule 2):** Assesses task decomposition, evaluates parallel feasibility, and structures subagent dispatch batches upon task receipt.
+2. **`skill_manager` / `skill_requirement_scout` (Rule 3 & Dept Architecture):** Audits required capabilities prior to execution. Discovers and installs missing skills using `skill-scout` and `find-skills` across internal libraries, plugins, and GitHub repositories per [`architecture_recommendation.md`](architecture_recommendation.md).
+3. **`skill_duplicate_checker` (Rule 4 & Dept Architecture):** Verifies whether a capability already exists before creating new skills, preventing codebase duplication.
+4. **`grill_me_specialist` (Rule 24 & Level 3B):** Evaluates requirements ambiguity, generates concise multiple-choice questions for the user, and pre-checks GitHub online existence per Rule 15.
+5. **`sub_manager_monitor` (Rule 26 & Background Role):** Continuously monitors active subagent tasks in the background via `manage_task`, detecting stalls, timeouts, and orphan processes.
+6. **`antigravity_backup_specialist` (Rule 5 & Dept 13):** Enforces dual-folder backup architecture (`Manual_Backup/` and `Daily_Backup/`), 1-click execution runners, 10-day FIFO pruning, and executes `scripts/backup/backup_manager.ps1`.
+7. **`rule_in_hindi_specialist` (Rule 5 & Dept 13):** Executes the 1-click 'Rule In Hindi' translation runner (`Run_Rule_In_Hindi.bat`) with zero LLM token consumption, incremental MD5 caching, and 3-snapshot FIFO archiving.
+8. **`changes_log_manager` (Rule 6 & Dept 12):** Governs 5-tier changes logging via `scripts/audit/changes_log_engine.py` and integrates `git-cliff` for token-free Conventional Commit changelog generation.
+9. **`security_hardening_officer` (Rule 10, Rule 12, Rule 15 & Dept 10):** Enforces `scripts/security/secret_scanner.py` and `gitleaks` pre-commit and pre-push secret audit gates, eliminating exposed credentials and tokens.
+10. **`memory_sync_sentinel` (Rule 23 & Dept 13):** Enforces real-time synchronization of [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) across all task stages and subagent dispatches.
+11. **Language & Domain Specialists (Rule 17):** Dedicated programming experts including `rust_expert_engineer`, `golang_expert_engineer`, `python_expert_engineer`, `typescript_frontend_engineer`, etc.
+12. **`prompt_generation_specialist` (Rule 22 & Level 3C):** Governed by [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md). Evaluates `PROMPT_FILES_REQUIRED` (`YES`/`NO`), architectures `temp_prompt/<task_name>/`, pauses subagents during generation, evaluates 3 execution strategies (A, B, C), and reports to Manager.
 
 ### 5.1 Standalone Deterministic Automation Runners Manifest
 - **Changes Log Automation:** `scripts/audit/changes_log_engine.py` (Rule 6 & Dept 12) — Automated 5-tier change logger, diff capture, and audit verifier with scoped flag and micro-entries support.

@@ -5,30 +5,31 @@
 > - **Architecture Recommendation:** [`architecture_recommendation.md`](architecture_recommendation.md) (4-Level Command Hierarchy & Skill Architecture)
 > - **Prompt Architecture:** [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md) (Phase-wise Prompt Generation Specialist & Workflow)
 > - **Universal Canonical Rules Master:** [`universal_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/archive/universal_rules.md) (Archived canonical reference)
-> - **Foundation & Special Operating Rules:** [`foundation_and_special_rules.md`](file:///C:/Users/Atul%20Verma/.gemini/config/rules/foundation_and_special_rules.md)
+> - **Foundation & Special Operating Rules:** [`foundation_and_special_rules.md`](foundation_and_special_rules.md)
 > - **Primary Developer Profile:** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com` / [GitHub Profile](https://github.com/aiprincekumar))
 
 ---
 
 ## 🧭 1. Enterprise Departmental Architecture Overview
 
-The Antigravity development ecosystem operates on a fully autonomous, modular enterprise architecture governed by the **4-Level Command Hierarchy**:
-- **Level 1: CEO (Supreme Orchestrator):** Sole user interface; strategic planning and delegation to Manager.
+The Antigravity development ecosystem operates on an autonomous, modular enterprise architecture governed by the **4-Level Command Hierarchy** codified in [`architecture_recommendation.md`](architecture_recommendation.md):
+- **Level 1: CEO (Supreme Orchestrator):** Sole user interface; strategic planning and delegation exclusively to Level 2 Manager.
 - **Level 2: Manager (Parallel Sub-Agent Commander):** Tactical commander; enforces the Mandatory Parallel Specialist Decision Gate, allocates skills, assigns Sub Agents, and aggregates reports.
-- **Level 3: Specialized Advisory Agents:** `Skill Manager` (capability discovery via `skill-scout`/`find-skills` and dynamic allocation), `Grill-Me Specialist` (user clarifications and Rule 15 online Git checks), and `Phase-wise Prompt Generation Specialist` (governed by [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md); Rule 22 prompt requirements evaluation, phased architecture in `temp_prompt/`, and execution strategy evaluation).
+- **Level 3: Specialized Advisory Agents:** `Skill Manager` (capability discovery and allocation), `Grill-Me Specialist` (user clarifications and Rule 15 Git checks), and `Phase-wise Prompt Generation Specialist` (governed by [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md); Rule 22 prompt evaluation and phased architecture).
 - **Level 4: Execution Sub Agents:** Departmental specialists executing tasks across 14 divisions (`01_` through `14_`).
 - **Background Operational Role: Sub Manager (Monitor):** Continuous passive monitor detecting task hangs and stalls.
-- **Enforceable Specialist Decision Gate:** Operates a 10-state machine (`.agents/state/decision_gate_state.json`): 1. `WAITING_FOR_SPECIALISTS`, 2. `SKILL_MANAGER_COMPLETED`, 3. `GRILL_ME_COMPLETED`, 4. `WAITING_FOR_BOTH_REPORTS`, 5. `READY_FOR_MANAGER_DECISION`, 6. `WAITING_FOR_USER_CLARIFICATION`, 7. `APPROVED_FOR_EXECUTION`, 8. `EXECUTING`, 9. `BLOCKED`, 10. `COMPLETED`. Sub Agents require Manager-approved token. Tested via `npm run test:decision-gate`.
+- **Enforceable Specialist Decision Gate:** Governed by the 10-state machine (`.agents/state/decision_gate_state.json`) and verified via `npm run test:decision-gate`.
 
-Full details and lifecycle policies are codified in [`architecture_recommendation.md`](architecture_recommendation.md).
+Full operational specifications and lifecycle policies are codified in [`architecture_recommendation.md`](architecture_recommendation.md).
 
 ---
 
 ## ⚖️ 2. Rule Precedence Hierarchy & Operating Boundary
 
-- **Tier 1: Constitutional Governance (Universal Rules ALWAYS WIN):** CEO model & subagents (Rule 1), Zero-Scan memory anchoring (Rule 0/21), Atul Verma identity & Autonomous Local Commit / Git Push Gatekeeper (Rule 15/16; online-verified repos only), zero secrets & SAST (Rule 10/12), 10-day FIFO backup & Rule In Hindi (Rule 5), Changes Log 5 tiers (Rule 6), Rules health check `npm run rules:check` (Rule 27), and pre-task /grill-me discovery (Rule 24).
+Operational priorities and boundaries between Global Universal Rules and Project-Level Rules are governed by the Two-Tier Precedence Matrix codified in [`foundation_and_special_rules.md`](foundation_and_special_rules.md):
+- **Tier 1: Constitutional Governance (Universal Rules ALWAYS WIN):** CEO model & subagent delegation (Rule 1), Zero-Scan memory anchoring (Rule 0/21), Developer profile Atul Verma & Autonomous Local Commit / Git Push Gatekeeper (Rule 15/16; online-verified repos only), zero secrets & SAST (Rule 10/12), 10-day FIFO backup & Rule In Hindi (Rule 5), Changes Log 5 tiers (Rule 6), Rules health check `npm run rules:check` (Rule 27), and pre-task discovery (Rule 24).
 - **Tier 2: Technical Overrides (Project-Level Rules WIN):** Tech stack (React/Vue/Vite), design tokens (`DESIGN.md`), and business schema.
-- **Conflict Resolution:** Governance & security ➔ Universal Rules prevail; Technical implementation ➔ Project rules prevail.
+- **Conflict Resolution:** In governance and security conflicts, Universal Rules prevail with 100% authority. In technical implementation or styling conflicts, project rules prevail.
 
 ---
 
