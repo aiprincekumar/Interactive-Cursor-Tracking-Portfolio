@@ -16,10 +16,10 @@
 ## 🧭 1. Enterprise Departmental Architecture Overview
 
 The Antigravity development ecosystem operates on an autonomous, modular enterprise architecture governed by the **4-Level Command Hierarchy** codified in [`architecture_recommendation.md`](architecture_recommendation.md):
-- **Level 1: CEO (Supreme Orchestrator):** Sole user interface; strategic planning and delegation exclusively to Level 2 Manager.
-- **Level 2: Manager (Parallel Sub-Agent Commander):** Tactical commander; enforces the Mandatory Parallel Specialist Decision Gate, allocates skills, assigns Sub Agents, and aggregates reports.
+- **Level 1: CEO (Supreme Orchestrator):** Sole user interface; strategic planning and delegation exclusively to Level 2 Manager (Zero-Code Hard Lock).
+- **Level 2: Manager (Parallel Sub-Agent Commander):** Tactical commander; enforces Level 2 Zero-Code Hard Lock, coordinates Specialist Decision Gate, and delegates code execution exclusively to Level 4 Sub Agents.
 - **Level 3: Specialized Advisory Agents:** `Skill Manager`, `Grill-Me Specialist`, and `Phase-wise Prompt Generation Specialist` (governed by [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md); Rule 22).
-- **Level 4: Execution Sub Agents:** Departmental specialists executing tasks across 14 divisions (`01_` through `14_`).
+- **Level 4: Execution Sub Agents:** Exclusive codebase mutation authority; departmental specialists executing tasks across 14 divisions (`01_` through `14_`).
 - **Background Operational Role: Sub Manager (Monitor):** Passive monitor detecting task hangs and stalls.
 - **Enforceable Specialist Decision Gate:** Governed by 10-state machine (`.agents/state/decision_gate_state.json`) and verified via `npm run test:decision-gate`.
 

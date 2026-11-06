@@ -52,3 +52,4 @@ flowchart LR
 1. **Manager Evaluation:** Level 2 Manager inspects task requirements during the Specialist Decision Gate.
 2. **Skill Allocation:** Level 3A Skill Manager allocates matching dynamic skills rather than injecting monolithic rule documents.
 3. **Deep Reference Fallback:** Subagents consult [`dept_index.md`](dept_index.md) and read specific playbooks from `departments_archive/` ONLY when fine-grained departmental edge cases require verification.
+4. **Level 4 Subagent Dispatch:** Manager dispatches Level 4 execution subagents via `invoke_subagent` using the standardized delegation blueprint; Level 2 never edits codebase files directly.
