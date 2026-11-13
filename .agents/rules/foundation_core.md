@@ -80,7 +80,7 @@ Universal Rules represent the supreme constitution of the entire Antigravity eco
 1. **Supreme CEO Model, Level 2 Manager Governance & Mandatory Subagent Delegation:** Main Agent and Level 2 Manager never write direct code; Level 2 coordinates; Level 4 subagents execute; independent QA signoff.
 2. **The 4 Anti-Skip Ironclad Pillars:** Pillar A (Grill-Me), Pillar B (Skill Audit), Pillar C (Phased Architecture), and Pillar D (Independent QA).
 3. **Zero-Scan Bootstrap & memory.md Anchoring (Rule 0 & 21):** Ban on blind recursive scans (`dir /s`, `find`); continuous memory sync; `repomix` for context bundling.
-4. **Developer Identity & Autonomous Local Commit / Remote Push Gatekeeper (Rule 15 & 16):** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com`). Autonomous local `git commit` on every single change without prompting user. Online upstream pre-check before asking for remote push. Two-option interactive gate via `ask_question` for verified online repositories with pre-push `gitleaks` secret audit.
+4. **Developer Identity & Autonomous Git Operations Engine (Rule 15 & 16):** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com`). Autonomous local `git commit` on every single logical change without interrupting user. Autonomous push decision engine: evaluates change magnitude (minor/incremental <= 2 files: stay local offline; significant/feature >= 3 files: autonomous remote push). Zero compulsory `ask_question` interruptions for pushes; mandatory pre-push `gitleaks` secret audit and 3-point terminal proof.
 5. **Application Security & Credential Governance (Rule 10 & 20):** Zero hardcoded secrets, mandatory SAST scanning, `gitleaks` blocker.
 6. **Rules Health Sentinel (Rule 27):** Verification gatekeeper via `npm run rules:check`.
 7. **Deterministic Script-First Automation:** Standardized 1-word task runners (`task test`, `task sync`, `task rules:check`).
@@ -114,16 +114,17 @@ Project rules govern local tech stack (React vs Vue), design system (`DESIGN.md`
 
 ---
 
-## 🚀 5. Autonomous Local Micro-Commit Cadence & Remote Push Gatekeeper (Rule 15)
+## 🚀 5. Autonomous Local Micro-Commit Cadence & Autonomous Remote Push Decision Engine (Rule 15)
 
 - **Autonomous Local Micro-Commit Cadence:** On every single logical change, autonomously execute a local `git commit` immediately without prompting the user. Notify the user immediately after committing locally: "Haan, local me commit ho chuka hai [hash/message]".
-- **Online Upstream Pre-Check (Zero-Prompt for Local Repositories):**
-  - Verify whether repo exists on GitHub online and has been pushed online at least once (`git ls-remote --exit-code origin`).
-  - If local-only or never pushed online: commit locally only, zero user prompts for push.
-  - ONLY when verified pushed online: present interactive 2-option choice via `ask_question`:
-    - Option 1: `(Recommended) Push committed changes to GitHub online`
-    - Option 2: `Keep changes local, testing is pending`
-- **Pre-Push Gate:** Mandatory `gitleaks detect --redact` secret audit and 3-point terminal proof (commit hash, remote push response, clean `git status`).
+- **Online Upstream Pre-Check:**
+  - Verify whether repository exists on GitHub online and has been pushed online at least once (`git ls-remote --exit-code origin`).
+  - If local-only or never pushed online: strictly keep changes offline local, zero remote push.
+- **Autonomous Push Intelligence (Zero User Interruption):**
+  - Eliminates compulsory interactive prompts (`ask_question`) for push decisions. The AI agent autonomously evaluates change magnitude:
+    1. **Minor / Incremental / Single-File Changes (<= 2 files, bug fixes, typo corrections, local config tweaks, partial sub-steps):** Strictly keep offline local commit. DO NOT push to GitHub online.
+    2. **Significant / Multi-File / Major Feature / Architectural Changes (>= 3 files, new features, rule updates, refactors, PRD milestones):** AI agent autonomously pushes to GitHub online without asking the user.
+- **Pre-Push Safety Gate:** Mandatory `gitleaks detect --redact` secret audit (zero leaks tolerated), clean working tree verification, and 3-point terminal proof (commit hash, remote push response, clean `git status`).
 
 ---
 

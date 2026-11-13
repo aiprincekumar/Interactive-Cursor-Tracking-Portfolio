@@ -28,7 +28,7 @@ The Antigravity development ecosystem operates on an autonomous, modular enterpr
 ## ⚖️ 2. Rule Precedence Hierarchy & Operating Boundary
 
 Operational priorities and boundaries between Global Universal Rules and Project-Level Rules are governed by the Two-Tier Precedence Matrix codified in [`foundation_core.md`](foundation_core.md):
-- **Tier 1: Constitutional Governance (Universal Rules ALWAYS WIN):** CEO model & subagent delegation (Rule 1), Zero-Scan memory anchoring (Rule 0/21), Developer profile Atul Verma & Autonomous Local Commit / Git Push Gatekeeper (Rule 15/16; online-verified repos only), zero secrets & SAST (Rule 10/12), 10-day FIFO backup & Rule In Hindi (Rule 5), Changes Log 5 tiers (Rule 6), Rules health check `npm run rules:check` (Rule 27), and pre-task discovery (Rule 24).
+- **Tier 1: Constitutional Governance (Universal Rules ALWAYS WIN):** CEO model & subagent delegation (Rule 1), Zero-Scan memory anchoring (Rule 0/21), Developer profile Atul Verma & Autonomous Local Commit / Autonomous Push Intelligence (Rule 15/16; minor <= 2 files local, significant >= 3 files push online), zero secrets & SAST (Rule 10/12), 10-day FIFO backup & Rule In Hindi (Rule 5), Changes Log 5 tiers (Rule 6), Rules health check `npm run rules:check` (Rule 27), and pre-task discovery (Rule 24).
 - **Tier 2: Technical Overrides (Project-Level Rules WIN):** Tech stack (React/Vue/Vite), design tokens (`DESIGN.md`), and business schema.
 - **Conflict Resolution:** In governance and security conflicts, Universal Rules prevail with 100% authority. In technical implementation or styling conflicts, project rules prevail.
 
@@ -134,7 +134,7 @@ Every subagent must verify and certify the following 7 requirements before compl
 | **Rule 12** | Security Best Practices, OWASP & Pre-Commit SAST | InfoSec | [`special_operations_guide.md`](special_operations_guide.md) |
 | **Rule 13** | Test Verification Gates & Automated Quality | QA Gates | [`dynamic_departments_matrix.md`](dynamic_departments_matrix.md) |
 | **Rule 14** | Technical Documentation & Transparent Reporting | Documentation | [`dynamic_departments_matrix.md`](dynamic_departments_matrix.md) |
-| **Rule 15** | Dedicated Git Operations & Online Push Gate | VCS Governance | [`foundation_core.md`](foundation_core.md) |
+| **Rule 15** | Dedicated Git Operations & Autonomous Push Engine | VCS Governance | [`foundation_core.md`](foundation_core.md) |
 | **Rule 16** | Developer Identity: Atul Verma (aiprincekumar) | Author Identity | [`foundation_core.md`](foundation_core.md) |
 | **Rule 17** | Dedicated Subagent per Programming Language | Language | [`foundation_core.md`](foundation_core.md) |
 | **Rule 18** | Mandatory Project Rules Replication & Active Sync | Governance | [`master_rules_navigator.md`](master_rules_navigator.md) |

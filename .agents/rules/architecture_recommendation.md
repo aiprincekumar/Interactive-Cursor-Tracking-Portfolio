@@ -67,12 +67,12 @@ Level 3 specialists advise the Manager before any code or file mutation occurs. 
 - **Reporting Contract:** Delivers a structured `Skill Allocation Report` to the Manager specifying required skills, verified locations, security audits, and per-subagent assignments.
 
 #### B. Grill-Me Specialist (User Clarification, Decision & Governance Manager)
-- **Primary Scope:** Analyzes user prompts for architectural ambiguities, trade-offs, and implicit edge cases; governs the interactive question gate and Rule 15 Git verification.
+- **Primary Scope:** Analyzes user prompts for architectural ambiguities, trade-offs, and implicit edge cases; governs the interactive question gate and Rule 15 Git push criteria.
 - **Decision Engine:**
   - Evaluates whether user clarification is strictly necessary. For unambiguous or read-only tasks, returns an immediate "Clear to Execute" signal.
   - When essential trade-offs exist, formats concise, high-value multiple-choice questions with a recommended option marked as `(Recommended)`.
   - Routes question payloads up to the Manager -> CEO -> User via `ask_question`.
-- **GitHub Rule 15 Integration:** Pre-checks upstream online existence (`git ls-remote --exit-code origin`). If the repository has never been pushed online, flags remote push questions as inactive (local-only commit cadence). If verified online, prepares the standardized 2-option interactive completion gate.
+- **GitHub Rule 15 Integration:** Pre-checks upstream online existence (`git ls-remote --exit-code origin`). Enforces autonomous push decision logic: minor changes (<= 2 files) stay local offline; significant changes (>= 3 files) trigger autonomous remote push without user interruption.
 - **Reporting Contract:** Delivers a `Clarification & Governance Report` to the Manager confirming either resolution of all ambiguities or a zero-clarification clearance.
 
 #### C. Phase-wise Prompt Generation Specialist (Phased Architecture & Strategy Governance)
@@ -275,5 +275,5 @@ Recommended architectural evolutions for ecosystem scalability:
 Whenever generating system prompts, orchestration prompts, or phase execution decks, agents must strictly uphold:
 1. **The 4-Level Command Hierarchy:** Level 1 CEO (Zero-Code) -> Level 2 Manager (Zero-Code) -> Level 3 Specialists (Parallel Advisory Gate) -> Level 4 Sub Agents (Exclusive Code Execution), with Sub Manager monitor.
 2. **The Parallel Specialist Decision Gate:** Simultaneous dispatch to Level 3, manager barrier wait, and subagent hold until certified.
-3. **Rule 15 GitHub Upstream Verification:** Suppress remote push questions for local-only repos; 2-option interactive gate for online repos.
+3. **Rule 15 GitHub Push Autonomous Intelligence:** Autonomous local commits; autonomous push logic for online repos (minor <= 2 files local, significant >= 3 files push) with pre-push secret scans.
 4. **Architectural Separation:** Adherence to `memory.md` (State), [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md) (Prompts), and `architecture_recommendation.md` (Topology).

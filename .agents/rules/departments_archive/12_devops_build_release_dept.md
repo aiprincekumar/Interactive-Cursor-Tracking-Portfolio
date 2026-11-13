@@ -55,26 +55,23 @@ This department ensures every artifact advancing toward production is 100% build
 - `docs(api): update OpenAPI spec for orders endpoint`
 - `refactor(db): optimize user query composite index`
 
-### 3.4 GitHub Operations, Micro-Commit Checkpoints & Remote Push Gatekeeper (Rule 15 Compliance)
+### 3.4 GitHub Operations, Micro-Commit Checkpoints & Autonomous Push Intelligence (Rule 15 Compliance)
 - **Specialist Delegation:** All Git and GitHub operations are delegated strictly to `github_operations_specialist` (or executed via standardized deterministic scripts `git_sync.ps1`). The Supreme CEO never executes direct Git transactions.
 - **Autonomous Local Micro-Commit Cadence:**
   - On EVERY SINGLE change or logical modification, autonomously perform a local `git commit` immediately without asking or interrupting the user. Never prompt the user for local commits.
-  - Immediately after creating the local commit, notify and inform the user with a concise status update: `"Local commit created: [commit-hash] [commit-message]"` (e.g. Hindi status notification: `"Haan, local me commit ho chuka hai [hash/message]"`).
-- **Online GitHub Upstream & Existence Pre-Check (Zero-Prompt for Local Repos):**
-  - Before prompting the user to push to GitHub at task completion, verify whether the repository exists on GitHub online and has actually been pushed online at least once:
+  - Immediately after creating the local commit, notify and inform the user with a concise status update: `"Local commit created: [commit-hash] [commit-message]"` (e.g. status notification: `"Haan, local me commit ho chuka hai [hash/message]"`).
+- **Online GitHub Upstream & Existence Pre-Check:**
+  - Verify whether the repository exists on GitHub online and has actually been pushed online at least once:
     1. **Remote Origin URL Verification:** Check if a remote is configured pointing to GitHub (`git config --get remote.origin.url` or `git remote -v`). If no remote is configured or the URL does not point to GitHub, the repository is local-only.
     2. **Online Existence & Tracking Verification:** Verify remote tracking with `git rev-parse --abbrev-ref --symbolic-full-name @{u}` or `git branch -r`, and check remote reachability/existence via `git ls-remote --exit-code origin` (or GitHub MCP / CLI).
-  - **Local-Only / Never Pushed Repos:** If the repository does NOT exist online on GitHub, has no remote configured, or has never been pushed online (e.g., `git ls-remote origin` fails or returns empty/unreachable), **DO NOT prompt the user with `ask_question`**. Safely commit locally only and complete cleanly without offering remote push.
-  - **Online GitHub Repo Verified:** **ONLY** when the repository has actually been pushed to GitHub online at least once (verified online remote existence and tracking upstream), proceed to the interactive gatekeeper below.
-- **Strict Remote Git Gatekeeper (Hard Lock for Verified Online Repos):**
-  - Absolute prohibition on autonomous remote `git push`. Even for online repos, changes remain strictly local until explicit user permission is granted.
-  - Mandatory `gitleaks detect --redact` secret scan must execute with zero detected leaks prior to presenting user confirmation options.
-- **Task-Completion Interactive Gate (`ask_question`):**
-  - For repositories verified to exist online on GitHub, at task completion (all modifications complete, build verified, test suites passing), present an interactive 2-option choice via `ask_question` (exactly two options):
-    1. `(Recommended) Push committed changes to GitHub online` (Push committed changes online to GitHub with pre-push gitleaks check and 3-point terminal proof; Hindi equivalent: `(Recommended) GitHub par commit changes push karna`).
-    2. `Do not push yet because testing is pending` (Do not push to remote, keep changes local because testing and manual inspection are pending; Hindi equivalent: `Nahi, abhi rahne do kyonki testing pending hai`).
-- **3-Point Terminal Proof Mandate:**
-  - Remote operations mandate raw terminal verification output before declaring completion:
+  - **Local-Only / Never Pushed Repos:** If the repository does NOT exist online on GitHub, has no remote configured, or has never been pushed online (e.g., `git ls-remote origin` fails or returns empty/unreachable), strictly keep changes local offline. Zero remote push attempts.
+- **Autonomous Remote Push Intelligence (Zero User Interruption):**
+  - Elimination of Compulsory User Interruption: Remove the rule mandating `ask_question` with 2 options ("(Recommended) Push committed changes to GitHub online" vs "Keep changes local") for online GitHub repos. The AI agent itself autonomously evaluates change magnitude and decides:
+    1. **Minor / Incremental / Single-File Changes (<= 2 files, bug fixes, typo corrections, local config tweaks, partial sub-steps):** Strictly keep offline local commit. DO NOT push to GitHub online.
+    2. **Significant / Multi-File / Major Feature / Architectural Changes (>= 3 files, new features, rule updates, refactors, PRD milestones):** AI agent autonomously pushes to GitHub online without asking the user.
+- **Pre-Push Safety Gate & 3-Point Terminal Proof Mandate:**
+  - Mandatory `gitleaks detect --redact` secret audit must execute with zero detected leaks prior to pushing.
+  - Remote push operations mandate raw terminal verification output before declaring completion:
     1. `git log -1` raw commit hash and message.
     2. `git push` remote server response.
     3. `git status` confirming clean working tree.
