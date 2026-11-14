@@ -1,8 +1,8 @@
 {
   "$schema": "https://antigravity.dev/schemas/decision-gate-state-v1.json",
   "version": "1.0.0",
-  "taskId": "TASK-INIT-001",
-  "taskDescription": "Mandatory State-Based Execution Gate Codification",
+  "taskId": "TASK-ANTISKIP-HARDLOCK-001",
+  "taskDescription": "Ironclad Anti-Skip & Anti-Bypass Hard Locks for Level 3 Specialists & Level 4 Subagents",
   "currentState": "COMPLETED",
   "history": [
     {
@@ -56,7 +56,11 @@
       "completedAt": "2026-11-05T04:45:01.000Z",
       "report": {
         "verified": true,
-        "skillsAllocated": ["skill-scout", "find-skills", "agentic-engineering"]
+        "skillsAllocated": [
+          "skill-scout",
+          "find-skills",
+          "agentic-engineering"
+        ]
       },
       "error": null
     },
@@ -87,7 +91,7 @@
         "rationale": "Direct execution for routine governance codification task",
         "risks": [],
         "dependencies": [],
-        "autonomyScore": 1.0
+        "autonomyScore": 1
       },
       "report": {
         "verified": true,
@@ -98,12 +102,12 @@
     }
   },
   "authorization": {
-    "token": "AUTH-MGR-1730760303000-init",
+    "token": "AUTH-MGR-20261115-ANTISKIP-HARDLOCK-001",
     "issuedBy": "MANAGER",
-    "issuedAt": "2026-11-05T04:45:03.000Z",
+    "issuedAt": "2026-11-15T00:25:00.000Z",
     "authorizedSubAgents": [
-      "Lead Systems Architect",
-      "DevOps Governance Subagent"
+      "Dept 02 Solution Architecture",
+      "Dept 12 DevOps"
     ]
   },
   "subManager": {
@@ -114,6 +118,6 @@
   },
   "metadata": {
     "createdAt": "2026-11-05T04:45:00.000Z",
-    "updatedAt": "2026-11-05T04:45:05.000Z"
+    "updatedAt": "2026-11-14T19:09:15.085Z"
   }
 }

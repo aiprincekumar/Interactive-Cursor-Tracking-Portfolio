@@ -17,9 +17,9 @@
 
 The Antigravity development ecosystem operates on an autonomous, modular enterprise architecture governed by the **4-Level Command Hierarchy** codified in [`architecture_recommendation.md`](architecture_recommendation.md):
 - **Level 1: CEO (Supreme Orchestrator):** Sole user interface; strategic planning and delegation exclusively to Level 2 Manager (Zero-Code Hard Lock).
-- **Level 2: Manager (Parallel Sub-Agent Commander):** Tactical commander; enforces Level 2 Zero-Code Hard Lock, coordinates Specialist Decision Gate, and delegates code execution exclusively to Level 4 Sub Agents.
-- **Level 3: Specialized Advisory Agents:** `Skill Manager`, `Grill-Me Specialist`, and `Phase-wise Prompt Generation Specialist` (governed by [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md); Rule 22).
-- **Level 4: Execution Sub Agents:** Exclusive codebase mutation authority; departmental specialists executing tasks across 14 divisions (`01_` through `14_`).
+- **Level 2: Manager (Parallel Sub-Agent Commander):** Tactical commander; enforces Level 2 Zero-Code Hard Lock, coordinates Specialist Decision Gate (Zero-Skip Level 3), and delegates code execution exclusively to Level 4 Sub Agents.
+- **Level 3: Specialized Advisory Agents:** `Skill Manager`, `Grill-Me Specialist`, and `Phase-wise Prompt Generation Specialist` (governed by [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md); Rule 22). Mandatory advisory gate; cannot be bypassed.
+- **Level 4: Execution Sub Agents:** Exclusive codebase mutation authority; departmental specialists executing tasks across 14 divisions (`01_` through `14_`). Level 1/2 direct edits are strictly prohibited. Mandatory independent QA verification.
 - **Background Operational Role: Sub Manager (Monitor):** Passive monitor detecting task hangs and stalls.
 - **Enforceable Specialist Decision Gate:** Governed by 10-state machine (`.agents/state/decision_gate_state.json`) and verified via `npm run test:decision-gate`.
 
@@ -27,10 +27,10 @@ The Antigravity development ecosystem operates on an autonomous, modular enterpr
 
 ## ⚖️ 2. Rule Precedence Hierarchy & Operating Boundary
 
-Operational priorities and boundaries between Global Universal Rules and Project-Level Rules are governed by the Two-Tier Precedence Matrix codified in [`foundation_core.md`](foundation_core.md):
-- **Tier 1: Constitutional Governance (Universal Rules ALWAYS WIN):** CEO model & subagent delegation (Rule 1), Zero-Scan memory anchoring (Rule 0/21), Developer profile Atul Verma & Autonomous Local Commit / Autonomous Push Intelligence (Rule 15/16; minor <= 2 files local, significant >= 3 files push online), zero secrets & SAST (Rule 10/12), 10-day FIFO backup & Rule In Hindi (Rule 5), Changes Log 5 tiers (Rule 6), Rules health check `npm run rules:check` (Rule 27), and pre-task discovery (Rule 24).
+Operational boundaries between Global Universal Rules and Project-Level Rules are governed by the Two-Tier Precedence Matrix in [`foundation_core.md`](foundation_core.md):
+- **Tier 1: Constitutional Governance (Universal Rules ALWAYS WIN):** CEO model & subagent delegation (Rule 1), Level 3 Specialist Gate Hard Lock (Zero-Skip Level 3), Level 4 Execution Subagent Hard Lock (Zero-Code for Level 1/2), Level 4 Independent QA Verification Gate, Zero-Scan memory anchoring (Rule 0/21), Developer profile Atul Verma & Autonomous Local Commit / Autonomous Push Intelligence (Rule 15/16; minor <= 2 files local, significant >= 3 files push online), zero secrets & SAST (Rule 10/12), 10-day FIFO backup & Rule In Hindi (Rule 5), Changes Log 5 tiers (Rule 6), Rules health check `npm run rules:check` (Rule 27), and pre-task discovery (Rule 24).
 - **Tier 2: Technical Overrides (Project-Level Rules WIN):** Tech stack (React/Vue/Vite), design tokens (`DESIGN.md`), and business schema.
-- **Conflict Resolution:** In governance and security conflicts, Universal Rules prevail with 100% authority. In technical implementation or styling conflicts, project rules prevail.
+- **Conflict Resolution:** In governance and security conflicts, Universal Rules prevail with 100% authority. In styling or library choice, project rules prevail within Tier 1 safety limits.
 
 ---
 
