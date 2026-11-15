@@ -89,3 +89,36 @@ Maintain active diagnostic records inside `project_feature_memory.md` and synchr
 - **Pre-Commit Secret Scanner:** `scripts/security/secret_scanner.py` (Rule 10, 12, 15 & Dept 10)
 - **Rules Health Sentinel:** `scripts/check-rules-health.js` (Rule 27)
 - **Decision Gate Validator:** `scripts/test_decision_gate.mjs` (Rule 1 & Architecture)
+
+---
+
+## 🔄 8. SRE Operational Runbook: Server Restart Recovery & Port Hygiene (Rule 26)
+
+Operational procedures for recovering from server restarts, system reloads, and background process interruptions:
+
+### 8.1 Restart Detection & Diagnostics
+1. **Notice Ingestion:** When the system emits a `[Notice]` indicating background tasks were stopped or disconnected, immediately execute `manage_task` with action `list`.
+2. **Process Health Matrix:**
+   - `waiting`: Process is idle on board (healthy; no action needed).
+   - `working`: Active execution in turn (healthy).
+   - `stopped`: Process not loaded due to restart; requires revival.
+   - `killed`: Permanently terminated; do not attempt revival.
+
+### 8.2 Zero-Scan State Reconstruction Procedure
+- **Anchor Working Memory:** Immediately read Section 0 of [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) (`0. Live Agent State & Stateful Handoff Ledger`).
+- **Load Gate Ledger:** Inspect `.agents/state/decision_gate_state.json` to identify:
+  - Active `taskId` and milestone in progress.
+  - State machine phase (`currentState`).
+  - Active authorization token (`AUTH-MGR-*`).
+- **Zero-Scan Prohibition:** Do NOT execute blind scans (`dir /s`, `find`) across the workspace.
+
+### 8.3 Port Conflict Defense & Zombie Clearance
+Before restarting any service or dev server (e.g., Vite on port 5173):
+1. **Check Port State:** Verify whether target ports are occupied by orphaned PIDs.
+2. **Clean Dead Locks:** Terminate stale server processes gracefully before re-binding to prevent `EADDRINUSE` failures.
+3. **PID Lockfile Clearance:** Remove orphaned `.pid` files or lockfiles left in `.agents/state/` or project temp directories.
+
+### 8.4 Deterministic Execution Resumption
+1. **Token Re-Verification:** Verify if existing `AUTH-MGR-*` token remains valid for the uncompleted phase.
+2. **Targeted Subagent Dispatch:** Re-dispatch only the specific subagent responsible for the interrupted phase milestone.
+3. **No Duplicate Execution:** Never re-run already verified milestones or re-execute specialist gates if already recorded as clean.

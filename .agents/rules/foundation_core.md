@@ -155,8 +155,17 @@ Project rules govern local tech stack (React vs Vue), design system (`DESIGN.md`
 
 ## 🧹 7. Subagent Background Task Hygiene & Zero-Hang Standard (Rule 26)
 
-- **Strict Task Lifecycle:** Background processes initiated by subagents must be cleanly terminated upon task completion or failure.
-- **Port Conflict Defense:** Check port availability before binding; terminate dev servers cleanly to prevent zombie port locks.
+- **Strict Task Lifecycle & Hygiene:** All background processes initiated by subagents must be cleanly managed and terminated upon task completion or failure. Stalled tasks, zombie subagents, and dangling listeners are strictly prohibited.
+- **Port Conflict Defense:** Check socket and port availability before binding dev servers or background workers. Never attempt blind retries against bound ports; terminate stale processes gracefully.
+
+### 7.1 Formal 5-Step Server Restart Resumption & Session Recovery Protocol
+Whenever a server restart, connection interruption, or session reload occurs, all agents must adhere to the 5-step recovery lifecycle:
+
+1. **Step 1: Restart Event Detection:** Detect session restart triggers, including system `[Notice]` alerts indicating stopped tasks (`manage_task` status `stopped`), environment resets, or reconnect events.
+2. **Step 2: Zero-Scan State Reconstruction:** Immediately inspect Section 0 (`0. Live Agent State & Stateful Handoff Ledger`) of [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) and `.agents/state/decision_gate_state.json`. Strictly prohibit blind recursive directory scans (`dir /s`, `Get-ChildItem -Recurse`, `find`).
+3. **Step 3: State & Token Reconciliation:** Cross-verify the active `taskId`, the current state machine phase (`currentState`), specialist report completeness, and active `AUTH-MGR-*` token. Confirm which milestone was in-flight versus already certified and completed.
+4. **Step 4: Zombie / PID & Port Conflict Defense:** Query `manage_task` with action `list` to inspect residual task states. Clean dead PID locks, verify target port availability, and terminate stale server processes before spawning replacement tasks.
+5. **Step 5: Seamless Deterministic Resumption:** Revive pending execution from the exact uncompleted milestone with zero duplicated subagent dispatch tokens, zero repeated work, and zero redundant discovery scans.
 
 ---
 
