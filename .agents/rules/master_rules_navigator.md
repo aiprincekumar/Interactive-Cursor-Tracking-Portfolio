@@ -4,6 +4,7 @@
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md) (Global ecosystem state & machine topology)
 > - **Architecture Recommendation:** [`architecture_recommendation.md`](architecture_recommendation.md) (4-Level Command Hierarchy & Skill Architecture)
 > - **Prompt Architecture:** [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md) (Phase-wise Prompt Generation Specialist & Workflow)
+> - **Code Modularity Architecture:** [`CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md`](CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md)
 > - **Foundation Core:** [`foundation_core.md`](foundation_core.md) (Constitutional rules & CEO Zero-Code Hard Lock)
 > - **Special Operations Guide:** [`special_operations_guide.md`](special_operations_guide.md) (SRE backup, changes log & security)
 > - **Dynamic Routing Matrix:** [`dynamic_departments_matrix.md`](dynamic_departments_matrix.md) (14 Enterprise Departments dynamic router)
@@ -18,7 +19,7 @@
 The Antigravity development ecosystem operates on an autonomous, modular enterprise architecture governed by the **4-Level Command Hierarchy** codified in [`architecture_recommendation.md`](architecture_recommendation.md):
 - **Level 1: CEO (Supreme Orchestrator):** Sole user interface; strategic planning and delegation exclusively to Level 2 Manager (Zero-Code Hard Lock).
 - **Level 2: Manager (Parallel Sub-Agent Commander):** Tactical commander; enforces Level 2 Zero-Code Hard Lock, coordinates Specialist Decision Gate (Zero-Skip Level 3), and delegates code execution exclusively to Level 4 Sub Agents.
-- **Level 3: Specialized Advisory Agents:** `Skill Manager`, `Grill-Me Specialist`, `Phase-wise Prompt Generation Specialist` ([`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md); Rule 22), and `Code Modularity & Scalable Architecture Specialist` (Rule 28). Mandatory advisory gate across all 4 specialists; cannot be bypassed.
+- **Level 3: Specialized Advisory Agents:** `Skill Manager`, `Grill-Me Specialist`, `Phase-wise Prompt Generation Specialist` ([`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md); Rule 22), and `Code Modularity & Scalable Architecture Specialist` ([`CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md`](CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md); Rule 28). Mandatory advisory gate across all 4 specialists; cannot be bypassed.
 - **Level 4: Execution Sub Agents:** Exclusive codebase mutation authority; departmental specialists executing tasks across 14 divisions (`01_` through `14_`). Level 1/2 direct edits are strictly prohibited. Mandatory independent QA verification.
 - **Background Operational Role: Sub Manager (Monitor):** Passive monitor detecting task hangs, stalled processes, and port lockups.
 - **Enforceable Specialist Decision Gate:** Governed by 10-state machine (`.agents/state/decision_gate_state.json`) and verified via `npm run test:decision-gate`.
@@ -147,4 +148,4 @@ Every subagent must verify and certify the following 7 requirements before compl
 | **Rule 25** | Dynamic Model Selection & Thinking Budget | Cost & Model | [`foundation_core.md`](foundation_core.md) |
 | **Rule 26** | Subagent Task Hygiene & Zero-Hang Standard | Lifecycle | [`foundation_core.md`](foundation_core.md) |
 | **Rule 27** | Rules Health & Integrity Sentinel Standard | Governance | [`foundation_core.md`](foundation_core.md) |
-| **Rule 28** | Code Modularity & Scalable Architecture Standard | Modularity | [`foundation_core.md`](foundation_core.md) |
+| **Rule 28** | Code Modularity & Scalable Architecture Standard | Modularity | [`CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md`](CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md) |

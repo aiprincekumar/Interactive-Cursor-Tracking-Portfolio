@@ -5,6 +5,7 @@
 > - **System Architecture:** [`architecture_recommendation.md`](architecture_recommendation.md)
 > - **Foundation Operating Rules:** [`foundation_core.md`](foundation_core.md)
 > - **Master Rules Navigator:** [`master_rules_navigator.md`](master_rules_navigator.md)
+> - **Code Modularity Architecture:** [`CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md`](CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md)
 > - **Lead Department:** [`departments_archive/01_product_requirements_dept.md`](departments_archive/01_product_requirements_dept.md)
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md)
 
@@ -12,7 +13,7 @@
 
 ## 🏛️ 1. Executive Authority & Specialist Role
 
-This document establishes the authoritative system architecture and governance protocol for the **Level 3C: Phase-wise Prompt Generation Specialist** (`prompt_generation_specialist`). In accordance with the 4-Level Command Hierarchy, the Prompt Generation Specialist operates as a co-equal specialized advisory agent alongside the Level 3A Skill Manager and Level 3B Grill-Me Specialist within the Mandatory Parallel Specialist Decision Gate.
+This document establishes the authoritative system architecture and governance protocol for the **Level 3C: Phase-wise Prompt Generation Specialist** (`prompt_generation_specialist`). In accordance with the 4-Level Command Hierarchy, the Prompt Generation Specialist operates as a co-equal specialized advisory agent alongside the Level 3A Skill Manager, Level 3B Grill-Me Specialist, and Level 3D Code Modularity Specialist within the Mandatory Parallel Specialist Decision Gate.
 
 ```mermaid
 flowchart TD
@@ -21,9 +22,11 @@ flowchart TD
         Manager -->|Simultaneous Brief| L3A["Level 3A: Skill Manager"]
         Manager -->|Simultaneous Brief| L3B["Level 3B: Grill-Me Specialist"]
         Manager -->|Simultaneous Brief| L3C["Level 3C: Prompt Gen Specialist"]
+        Manager -->|Simultaneous Brief| L3D["Level 3D: Code Modularity Specialist"]
         L3A -->|Skill Allocation Report| Barrier{"Manager Verification Barrier"}
         L3B -->|Clarification Report| Barrier
         L3C -->|Prompt & Strategy Report| Barrier
+        L3D -->|Modularity & Architecture Report| Barrier
     end
     Barrier -->|Manager Issues AUTH-MGR Token| SubAgents["Level 4: Execution Sub Agents"]
     SubManager["Background: Sub Manager Monitor"] -.->|Heartbeat / Hang Telemetry| Manager

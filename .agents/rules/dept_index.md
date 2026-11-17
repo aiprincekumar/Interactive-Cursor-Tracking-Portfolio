@@ -2,6 +2,7 @@
 
 > **Universal Department Playbooks Index:**
 > - **Master Navigator:** [`master_rules_navigator.md`](master_rules_navigator.md)
+> - **Code Modularity Architecture:** [`CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md`](CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md)
 > - **Dynamic Routing Matrix:** [`dynamic_departments_matrix.md`](dynamic_departments_matrix.md)
 > - **Foundation Core:** [`foundation_core.md`](foundation_core.md)
 > - **Special Operations Guide:** [`special_operations_guide.md`](special_operations_guide.md)
@@ -17,7 +18,7 @@ The 14 enterprise departmental rule files are archived for on-demand reference b
 | Department # | Department Name | Preserved Playbook Path | Primary Domain |
 | :--- | :--- | :--- | :--- |
 | **Dept 01** | Product Requirements | [`departments_archive/01_product_requirements_dept.md`](departments_archive/01_product_requirements_dept.md) | PRDs, user stories, INVEST, MoSCoW |
-| **Dept 02** | Solution Architecture | [`departments_archive/02_solution_architecture_dept.md`](departments_archive/02_solution_architecture_dept.md) | HLD/LLD, system boundaries, ADRs |
+| **Dept 02** | Solution Architecture | [`departments_archive/02_solution_architecture_dept.md`](departments_archive/02_solution_architecture_dept.md) | HLD/LLD, system boundaries, ADRs, Rule 28 modularity |
 | **Dept 03** | Data Architecture & DBA | [`departments_archive/03_data_architecture_dba_dept.md`](departments_archive/03_data_architecture_dba_dept.md) | Schema design, migrations, indexing |
 | **Dept 04** | UI/UX Design System | [`departments_archive/04_ui_ux_design_system_dept.md`](departments_archive/04_ui_ux_design_system_dept.md) | DESIGN.md, tokens, WCAG 2.1 AA |
 | **Dept 05** | Frontend Engineering | [`departments_archive/05_frontend_engineering_dept.md`](departments_archive/05_frontend_engineering_dept.md) | React, Vite, state, Three.js canvas |

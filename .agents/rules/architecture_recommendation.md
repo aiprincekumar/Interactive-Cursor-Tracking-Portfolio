@@ -4,6 +4,7 @@
 > - **Master Rules Navigator:** [`master_rules_navigator.md`](master_rules_navigator.md)
 > - **Foundation Operating Rules:** [`foundation_core.md`](foundation_core.md)
 > - **Prompt Architecture:** [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md)
+> - **Code Modularity Architecture:** [`CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md`](CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md)
 > - **Active Working Memory:** [`memory.md`](file:///C:/Users/Atul%20Verma/.gemini/memory.md)
 > - **Developer Profile:** Atul Verma (`aiprincekumar` / `aiprincekumar010100@gmail.com` / [GitHub Profile](https://github.com/aiprincekumar))
 
@@ -75,7 +76,7 @@ Level 3 specialists advise the Manager before any code or file mutation occurs. 
 - **Primary Scope:** Governed by [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md). Assesses prompt requirements (`PROMPT_FILES_REQUIRED` = `YES`/`NO`), architectures self-contained phase prompts in `temp_prompt/<task_name>/`, pauses execution subagents during generation, evaluates 3 implementation strategies (A: Autonomous, B: Single Consultation, C: Phase-by-Phase), and delivers Prompt & Strategy Report to Manager.
 
 #### D. Code Modularity & Scalable Architecture Specialist (Modularity & File Thresholds)
-- **Primary Scope:** Governed by Universal Rule 28. Audits codebases against file length thresholds (target < 500 lines, warning 500–700 lines, mandatory hard split > 700 lines or > 24 KB), enforces function length <= 50 lines and nesting depth <= 4, evaluates architectural modularity (Clean Architecture, DDD, Feature-Sliced modularity), and designs scalable directory topologies for +1,000 future lines.
+- **Primary Scope:** Governed by [`CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md`](CODE_MODULARITY_AND_SCALABLE_ARCHITECTURE.md) and Universal Rule 28. Audits codebases against file length thresholds (target < 500 lines, warning 500–700 lines, mandatory hard split > 700 lines or > 24 KB), enforces function length <= 50 lines and nesting depth <= 4, evaluates architectural modularity (Clean Architecture, DDD, Feature-Sliced modularity), and designs scalable directory topologies for +1,000 future lines.
 - **Output:** Submits formal Modularity & Architecture Assessment Report to Manager before subagent execution.
 
 ### 2.4 Level 4: Execution Sub Agents (Actual Task Execution)
