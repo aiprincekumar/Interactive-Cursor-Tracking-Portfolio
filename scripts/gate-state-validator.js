@@ -14,9 +14,9 @@
  * 10. COMPLETED
  * 
  * Rules:
- * - Skill Manager and Grill-Me Specialist receive tasks simultaneously.
- * - Both must submit valid final reports to Manager.
- * - Manager verifies both reports before decision.
+ * - All 4 Level 3 Specialists (Skill Manager, Grill-Me Specialist, Prompt Generation Specialist, Code Modularity Specialist) receive tasks simultaneously.
+ * - All 4 must submit valid final reports to Manager.
+ * - Manager verifies all 4 reports before decision.
  * - If clarification is required, transitions to WAITING_FOR_USER_CLARIFICATION.
  * - Only Manager can transition to APPROVED_FOR_EXECUTION.
  * - Sub Agents verify execution authorization before starting.
@@ -52,6 +52,7 @@ export const ROLES = Object.freeze({
   SKILL_MANAGER: 'SKILL_MANAGER',
   GRILL_ME_SPECIALIST: 'GRILL_ME_SPECIALIST',
   PROMPT_GENERATION_SPECIALIST: 'PROMPT_GENERATION_SPECIALIST',
+  CODE_MODULARITY_SPECIALIST: 'CODE_MODULARITY_SPECIALIST',
   SUB_MANAGER: 'SUB_MANAGER',
   SUB_AGENT: 'SUB_AGENT',
   QA_AGENT: 'QA_AGENT'
@@ -107,6 +108,16 @@ export class DecisionGateStateMachine {
           generatedFiles: [],
           executionStrategy: null, // STRATEGY_A_AUTONOMOUS, STRATEGY_B_SINGLE_CONSULTATION, STRATEGY_C_PHASE_CONSULTATION
           strategyRecommendation: null, // { strategy, rationale, risks, dependencies, autonomyScore }
+          report: null,
+          error: null
+        },
+        codeModularitySpecialist: {
+          status: 'IDLE', // IDLE, PENDING, COMPLETED, FAILED, TIMEOUT
+          dispatchedAt: null,
+          completedAt: null,
+          modularityCompliant: null, // boolean
+          fileThresholdAudited: null, // boolean
+          modularTopology: null,
           report: null,
           error: null
         }
@@ -233,6 +244,16 @@ export class DecisionGateStateMachine {
       report: { skipped: true, userOverrideApproved: true },
       error: null
     };
+    this.state.specialists.codeModularitySpecialist = {
+      status: 'PENDING',
+      dispatchedAt: now,
+      completedAt: null,
+      modularityCompliant: null,
+      fileThresholdAudited: null,
+      modularTopology: null,
+      report: null,
+      error: null
+    };
     this.state.authorization = {
       token: null,
       issuedBy: null,
@@ -245,7 +266,7 @@ export class DecisionGateStateMachine {
       previousState,
       GATE_STATES.WAITING_FOR_SPECIALISTS,
       actor,
-      'Simultaneous dispatch to Level 3 Specialists (Skill Manager, Grill-Me Specialist, Prompt Generation Specialist)'
+      'Simultaneous dispatch to 4 Level 3 Specialists (Skill Manager, Grill-Me Specialist, Prompt Generation Specialist, Code Modularity Specialist)'
     );
     this.saveState();
     return this.state.currentState;
@@ -258,10 +279,14 @@ export class DecisionGateStateMachine {
     const sm = this.state.specialists.skillManager;
     const gm = this.state.specialists.grillMeSpecialist;
     const pg = this.state.specialists.promptGenerationSpecialist;
+    const cm = this.state.specialists.codeModularitySpecialist;
 
     const activeSpecialists = [sm, gm];
     if (pg && pg.status !== 'IDLE' && pg.status !== 'SKIPPED') {
       activeSpecialists.push(pg);
+    }
+    if (cm && cm.status !== 'IDLE') {
+      activeSpecialists.push(cm);
     }
 
     const allCompleted = activeSpecialists.every(s => s.status === 'COMPLETED');
@@ -490,6 +515,63 @@ export class DecisionGateStateMachine {
   }
 
   /**
+   * Code Modularity & Scalable Architecture Specialist submits assessment report
+   */
+  submitCodeModularityReport({
+    report,
+    modularityCompliant = true,
+    fileThresholdAudited = true,
+    modularTopology = null,
+    status = 'COMPLETED',
+    error = null,
+    actor = ROLES.CODE_MODULARITY_SPECIALIST
+  }) {
+    if (this.state.currentState === GATE_STATES.BLOCKED) {
+      throw new Error('Gate is currently in BLOCKED state. Cannot submit report without Manager unblocking.');
+    }
+
+    const now = new Date().toISOString();
+    const cm = this.state.specialists.codeModularitySpecialist;
+    cm.completedAt = now;
+    cm.status = status;
+    cm.error = error;
+    cm.modularityCompliant = Boolean(modularityCompliant);
+    cm.fileThresholdAudited = Boolean(fileThresholdAudited);
+    cm.modularTopology = modularTopology || 'Clean Architecture & Feature-Sliced Separation of Concerns';
+
+    // Validation check: failed or incomplete report transitions to BLOCKED
+    if (status !== 'COMPLETED' || !report || typeof report !== 'object') {
+      cm.status = 'FAILED';
+      cm.report = null;
+      this._recordTransition(
+        this.state.currentState,
+        GATE_STATES.BLOCKED,
+        actor,
+        `Code Modularity Specialist report failed or invalid: ${error || 'Missing valid report payload'}`
+      );
+      this.saveState();
+      return this.state.currentState;
+    }
+
+    // Rule 28 validation check: modularity assessment and file threshold audit cannot be skipped or assumed
+    if (typeof modularityCompliant !== 'boolean' || typeof fileThresholdAudited !== 'boolean') {
+      cm.status = 'FAILED';
+      cm.report = null;
+      this._recordTransition(
+        this.state.currentState,
+        GATE_STATES.BLOCKED,
+        actor,
+        'Code Modularity Specialist report failed: Modularity compliance and file threshold audits cannot be skipped or assumed'
+      );
+      this.saveState();
+      return this.state.currentState;
+    }
+
+    cm.report = report;
+    return this._evaluateSpecialistsCompletion(actor, ROLES.CODE_MODULARITY_SPECIALIST);
+  }
+
+  /**
    * User clarification resolution handler
    */
   resolveUserClarification({ userAnswers, actor = ROLES.MANAGER }) {
@@ -505,9 +587,13 @@ export class DecisionGateStateMachine {
 
     const sm = this.state.specialists.skillManager;
     const pg = this.state.specialists.promptGenerationSpecialist;
+    const cm = this.state.specialists.codeModularitySpecialist;
     const activeSpecialists = [sm, gm];
     if (pg && pg.status !== 'IDLE' && pg.status !== 'SKIPPED') {
       activeSpecialists.push(pg);
+    }
+    if (cm && cm.status !== 'IDLE') {
+      activeSpecialists.push(cm);
     }
     const allCompleted = activeSpecialists.every(s => s.status === 'COMPLETED');
 
@@ -560,10 +646,14 @@ export class DecisionGateStateMachine {
     const sm = this.state.specialists.skillManager;
     const gm = this.state.specialists.grillMeSpecialist;
     const pg = this.state.specialists.promptGenerationSpecialist;
+    const cm = this.state.specialists.codeModularitySpecialist;
 
     const activeSpecialists = [sm, gm];
     if (pg && pg.status !== 'IDLE' && pg.status !== 'SKIPPED') {
       activeSpecialists.push(pg);
+    }
+    if (cm && cm.status !== 'IDLE') {
+      activeSpecialists.push(cm);
     }
 
     const anyIncomplete = activeSpecialists.some(s => s.status !== 'COMPLETED' || !s.report);
@@ -576,6 +666,20 @@ export class DecisionGateStateMachine {
       );
       this.saveState();
       throw new Error('Specialist reports missing or incomplete. Gate transitions to BLOCKED.');
+    }
+
+    // Code Modularity Assessment check: verify modularity evaluation is complete
+    if (cm && cm.status === 'COMPLETED') {
+      if (typeof cm.modularityCompliant !== 'boolean' || typeof cm.fileThresholdAudited !== 'boolean') {
+        this._recordTransition(
+          this.state.currentState,
+          GATE_STATES.BLOCKED,
+          actor,
+          'GATE VIOLATION: Code Modularity Assessment (Rule 28) was skipped or assumed.'
+        );
+        this.saveState();
+        throw new Error('Code Modularity Assessment was skipped or assumed. Gate transitions to BLOCKED.');
+      }
     }
 
     // Execution Gate check: when prompt files are required, ensure they are generated and validated

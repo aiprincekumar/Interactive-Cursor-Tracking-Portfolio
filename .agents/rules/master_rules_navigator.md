@@ -18,7 +18,7 @@
 The Antigravity development ecosystem operates on an autonomous, modular enterprise architecture governed by the **4-Level Command Hierarchy** codified in [`architecture_recommendation.md`](architecture_recommendation.md):
 - **Level 1: CEO (Supreme Orchestrator):** Sole user interface; strategic planning and delegation exclusively to Level 2 Manager (Zero-Code Hard Lock).
 - **Level 2: Manager (Parallel Sub-Agent Commander):** Tactical commander; enforces Level 2 Zero-Code Hard Lock, coordinates Specialist Decision Gate (Zero-Skip Level 3), and delegates code execution exclusively to Level 4 Sub Agents.
-- **Level 3: Specialized Advisory Agents:** `Skill Manager`, `Grill-Me Specialist`, and `Phase-wise Prompt Generation Specialist` ([`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md); Rule 22). Mandatory advisory gate; cannot be bypassed.
+- **Level 3: Specialized Advisory Agents:** `Skill Manager`, `Grill-Me Specialist`, `Phase-wise Prompt Generation Specialist` ([`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md); Rule 22), and `Code Modularity & Scalable Architecture Specialist` (Rule 28). Mandatory advisory gate across all 4 specialists; cannot be bypassed.
 - **Level 4: Execution Sub Agents:** Exclusive codebase mutation authority; departmental specialists executing tasks across 14 divisions (`01_` through `14_`). Level 1/2 direct edits are strictly prohibited. Mandatory independent QA verification.
 - **Background Operational Role: Sub Manager (Monitor):** Passive monitor detecting task hangs, stalled processes, and port lockups.
 - **Enforceable Specialist Decision Gate:** Governed by 10-state machine (`.agents/state/decision_gate_state.json`) and verified via `npm run test:decision-gate`.
@@ -44,7 +44,7 @@ Operational boundaries between Global Universal Rules and Project-Level Rules ar
 | **Dynamic Matrix** | **14 Departments Dynamic Matrix** | Dynamic skill routing across 14 depts | `flash` | [`dynamic_departments_matrix.md`](dynamic_departments_matrix.md) |
 | **Dept Index** | **Department Playbooks Index** | On-demand directory of 14 playbooks | `flash_lite` | [`dept_index.md`](dept_index.md) |
 | **Dept 01** | **Product Requirements** | PRD authoring, user stories, specs | `flash` | [`departments_archive/01_product_requirements_dept.md`](departments_archive/01_product_requirements_dept.md) |
-| **Dept 02** | **Solution Architecture** | HLD/LLD boundaries, ADRs, modularity | `pro` | [`departments_archive/02_solution_architecture_dept.md`](departments_archive/02_solution_architecture_dept.md) |
+| **Dept 02** | **Solution Architecture** | HLD/LLD boundaries, ADRs, Rule 28 modularity | `pro` | [`departments_archive/02_solution_architecture_dept.md`](departments_archive/02_solution_architecture_dept.md) |
 | **Dept 03** | **Data Architecture & DBA** | Schema design, indexing, migrations | `pro` | [`departments_archive/03_data_architecture_dba_dept.md`](departments_archive/03_data_architecture_dba_dept.md) |
 | **Dept 04** | **UI/UX Design System** | DESIGN.md, tokens, typography, A11y | `flash` | [`departments_archive/04_ui_ux_design_system_dept.md`](departments_archive/04_ui_ux_design_system_dept.md) |
 | **Dept 05** | **Frontend Engineering** | React/Vue/Vite, UI state, rendering | `flash` | [`departments_archive/05_frontend_engineering_dept.md`](departments_archive/05_frontend_engineering_dept.md) |
@@ -81,12 +81,12 @@ Operational boundaries between Global Universal Rules and Project-Level Rules ar
 
 ## 🧑‍💼 6. Master Enterprise Roles & Subagents Roster
 
-Antigravity operates a specialized 67-role enterprise division across 14 departments:
+Antigravity operates a specialized 68-role enterprise division across 14 departments:
 
 | Department | Scope Focus | Dedicated Subagent Roles | Playbook Reference |
 | :--- | :--- | :--- | :--- |
 | **Dept 01: Product Requirements** | PRD, user stories, acceptance criteria, i18n specs. | `Product Scope Architect`, `Business Systems Analyst`, `Technical Product Owner`, `UX Research Analyst`, `Localization Product Analyst` | [`dept_index.md`](dept_index.md) |
-| **Dept 02: Solution Architecture** | HLD/LLD boundaries, MADRs, DDD boundaries. | `System Architect`, `Integration Architect`, `Domain Architecture Specialist`, `Code Standards Architect` | [`dept_index.md`](dept_index.md) |
+| **Dept 02: Solution Architecture** | HLD/LLD boundaries, MADRs, DDD boundaries, Rule 28 modularity. | `System Architect`, `Integration Architect`, `Domain Architecture Specialist`, `Code Standards Architect`, `Code Modularity Architect` | [`dept_index.md`](dept_index.md) |
 | **Dept 03: Data Architecture & DBA** | 3NF/BCNF schemas, migrations, vector indexing. | `Database Administrator`, `Vector Database Specialist`, `Data Migration Specialist`, `Query Performance Tuner` | [`dept_index.md`](dept_index.md) |
 | **Dept 04: UI/UX Design System** | Design tokens, DESIGN.md, 60fps motion, A11y. | `Design System Lead`, `Visual UI Designer`, `Motion Design Specialist`, `Accessibility Specialist`, `Visual QA Specialist`, `Design Token Engineer` | [`dept_index.md`](dept_index.md) |
 | **Dept 05: Frontend Engineering** | React/Vue components, UI state, Three.js canvas. | `Frontend Engineer`, `Frontend State Architect`, `Canvas Motion Specialist`, `Responsive Web Specialist`, `Mobile Native Specialist`, `Micro-Frontend Architect` | [`dept_index.md`](dept_index.md) |
@@ -115,7 +115,7 @@ Every subagent must verify and certify the following 7 requirements before compl
 
 ---
 
-## 📑 8. Canonical Universal Rules Directory (Rules 0–27 Index)
+## 📑 8. Canonical Universal Rules Directory (Rules 0–28 Index)
 
 | Rule | Title | Domain | Dedicated Rule Document |
 | :--- | :--- | :--- | :--- |
@@ -147,3 +147,4 @@ Every subagent must verify and certify the following 7 requirements before compl
 | **Rule 25** | Dynamic Model Selection & Thinking Budget | Cost & Model | [`foundation_core.md`](foundation_core.md) |
 | **Rule 26** | Subagent Task Hygiene & Zero-Hang Standard | Lifecycle | [`foundation_core.md`](foundation_core.md) |
 | **Rule 27** | Rules Health & Integrity Sentinel Standard | Governance | [`foundation_core.md`](foundation_core.md) |
+| **Rule 28** | Code Modularity & Scalable Architecture Standard | Modularity | [`foundation_core.md`](foundation_core.md) |

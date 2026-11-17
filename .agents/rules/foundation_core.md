@@ -48,9 +48,9 @@
 ### 1.3 Absolute Anti-Bypass Hard Lock for Level 3 Specialists & Level 4 Execution Subagents
 - **Level 3 Specialist Decision Gate Hard Lock (Zero-Skip Level 3):**
   - The Level 2 Tactical Manager is constitutionally prohibited from skipping ANY Level 3 Specialist.
-  - For EVERY execution task, the Level 2 Manager MUST simultaneously invoke and dispatch briefs to: Level 3A Skill Manager, Level 3B Grill-Me Specialist, and Level 3C Prompt Generation Specialist.
-  - The Manager MUST WAIT for all three validated specialist reports before issuing an authorization token (`AUTH-MGR-*`).
-  - All Level 4 Execution Subagents remain strictly PAUSED and LOCKED until all three reports are received, certified, and cleared.
+  - For EVERY execution task, the Level 2 Manager MUST simultaneously invoke and dispatch briefs to: Level 3A Skill Manager, Level 3B Grill-Me Specialist, Level 3C Prompt Generation Specialist, and Level 3D Code Modularity Specialist.
+  - The Manager MUST WAIT for all four validated specialist reports before issuing an authorization token (`AUTH-MGR-*`).
+  - All Level 4 Execution Subagents remain strictly PAUSED and LOCKED until all four reports are received, certified, and cleared.
   - Any attempt to bypass Level 3 Specialists, skip the Decision Gate barrier, or issue execution authorization prematurely triggers an immediate `BLOCKED` state and is an automatic fatal constitutional breach.
 - **Level 4 Execution Subagent Hard Lock (Zero-Code for Level 1 CEO & Level 2 Manager):**
   - Direct file edits, code authoring, patch applications, or test suite execution by Level 1 CEO or Level 2 Tactical Manager is an absolute constitutional violation.
@@ -64,12 +64,12 @@
 Codified in [`architecture_recommendation.md`](architecture_recommendation.md):
 1. **Level 1: CEO (Supreme Orchestrator & User Interface):** Direct user interface only. Strategic intent and delegation to Level 2 Manager. Never writes code or assigns tasks directly to Level 4 Sub Agents.
 2. **Level 2: Manager (Parallel Sub-Agent Commander):** Tactical commander. Enforces Level 2 Zero-Code Hard Lock. Decomposes tasks, enforces the Mandatory Parallel Specialist Decision Gate, allocates skills, and dispatches Level 4 Sub Agents. Never mutates application code directly.
-3. **Level 3: Specialized Advisory Agents:** Advisory specialists (`Skill Manager`, `Grill-Me Specialist`, and `Phase-wise Prompt Generation Specialist`) evaluating capabilities, user clarifications, and phased prompt architecture simultaneously. They report exclusively to the Manager and never execute codebase changes.
+3. **Level 3: Specialized Advisory Agents:** Advisory specialists (`Skill Manager`, `Grill-Me Specialist`, `Phase-wise Prompt Generation Specialist`, and `Code Modularity & Scalable Architecture Specialist`) evaluating capabilities, user clarifications, phased prompt architecture, and code modularity thresholds simultaneously. They report exclusively to the Manager and never execute codebase changes.
 4. **Level 4: Execution Sub Agents:** Domain engineers executing strictly within allocated dynamic skills. The SOLE agents authorized to write code, modify files, and run verification suites. Dispatched ONLY after Manager issues authorization.
 5. **Background Operational Role: Sub Manager (Monitor):** Continuous passive monitor with zero delegation authority. Detects zombie processes, stalled tasks, and port locks via `manage_task`.
 
 ### 1.5 Mandatory Parallel Specialist Decision Gate
-When the CEO delegates a task, the Manager simultaneously dispatches briefs to Skill Manager, Grill-Me Specialist, and Prompt Generation Specialist in parallel. All Level 4 Sub Agents remain strictly **PAUSED / UNASSIGNED** until all three specialist reports are evaluated and certified by the Manager.
+When the CEO delegates a task, the Manager simultaneously dispatches briefs to Skill Manager, Grill-Me Specialist, Prompt Generation Specialist, and Code Modularity Specialist in parallel. All Level 4 Sub Agents remain strictly **PAUSED / UNASSIGNED** until all four specialist reports are evaluated and certified by the Manager.
 - **Enforceable 10-State Lifecycle:** Governed by state machine in `.agents/state/decision_gate_state.json` and verified via `npm run test:decision-gate`.
 - **Authorization Barrier:** Sub Agents MUST verify state is `APPROVED_FOR_EXECUTION` with an active Manager token (`AUTH-MGR-*`) before mutating code.
 
@@ -174,3 +174,15 @@ Whenever a server restart, connection interruption, or session reload occurs, al
 - **Pre-Handoff Verification:** Execute `npm run rules:check` whenever rule, documentation, or structural changes occur.
 - **Capacity Headroom:** Every rule document must remain < 20 KB recommended limit (< 24 KB ceiling).
 - **Dual-Directory Binary Parity:** Global rules (`C:\Users\Atul Verma\.gemini\config\rules\`) and project rules (`.agents/rules/`) must remain bit-for-bit MD5 synchronized.
+
+---
+
+## 📐 9. Code Modularity, File Length Thresholds & Scalable Architecture Standard (Rule 28)
+
+- **File Length & Size Thresholds:**
+  - Target: `< 500 lines` per file.
+  - Warning threshold: `500–700 lines`.
+  - Mandatory hard split: `> 700 lines` OR `> 24 KB`.
+- **Function & Nesting Constraints:** Function length `≤ 50 lines`, nesting depth `≤ 4`.
+- **Modular Architecture Standard:** Clean Architecture, Domain-Driven Design (DDD), and Feature-Sliced modularity. Maintain strict Separation of Concerns (UI, domain logic, custom hooks, state, services, types, utilities) designed for `+1,000` future lines without architectural degradation.
+- **Proactive Autonomous Modularity Action:** Agents autonomously choose and execute the optimal industry pattern, informing the user immediately: "Haan, hum is file ko modular architecture me split kar rahe hain aur ye method/directory pattern use kar rahe hain...". Do NOT pause or ask permission when standard industry patterns apply. Route inquiries via `ask_question` ONLY IF genuine architectural ambiguity exists.

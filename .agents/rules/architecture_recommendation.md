@@ -22,9 +22,11 @@ flowchart TD
         Manager -->|Simultaneous Dispatch| SkillMgr["Level 3A: Skill Manager (Discovery & Allocation)"]
         Manager -->|Simultaneous Dispatch| GrillMe["Level 3B: Grill-Me Specialist (Decisions & Clarification)"]
         Manager -->|Simultaneous Dispatch| PromptGen["Level 3C: Prompt Gen Specialist (Phased Architecture)"]
+        Manager -->|Simultaneous Dispatch| Modularity["Level 3D: Code Modularity Specialist (Architecture & Modularity)"]
         SkillMgr -->|Skill Audit Report| GateBarrier{"Manager Gate Barrier (Wait for All)"}
         GrillMe -->|Clarification Report| GateBarrier
         PromptGen -->|Prompt & Strategy Report| GateBarrier
+        Modularity -->|Modularity & Architecture Report| GateBarrier
     end
     
     GateBarrier -->|Evaluated Plan & Dynamic Allocation| SubAgents["Level 4: Execution Sub Agents (Direct Code Execution)"]
@@ -50,8 +52,8 @@ flowchart TD
   - **Zero-Code Prohibition:** Strictly prohibited from mutating application code, editing files, applying patches, or writing test suites directly.
   - **Mandatory Subagent Delegation:** For ANY code writing, file editing, refactoring, bug fixing, test execution, or verification, Level 2 **MUST DELEGATE** to dedicated Level 4 Execution Sub-Agents via `invoke_subagent`. Direct code mutation by Level 2 is a fatal constitutional breach.
 - **Absolute Anti-Bypass Hard Lock (Zero-Skip Level 3):**
-  - Constitutionally prohibited from skipping ANY Level 3 Specialist (Skill Manager, Grill-Me, Prompt Gen).
-  - MUST simultaneously dispatch to all three specialists and wait for all reports before issuing an authorization token (`AUTH-MGR-*`).
+  - Constitutionally prohibited from skipping ANY Level 3 Specialist (Skill Manager, Grill-Me, Prompt Gen, Code Modularity).
+  - MUST simultaneously dispatch to all four specialists and wait for all reports before issuing an authorization token (`AUTH-MGR-*`).
 - **Operational Boundaries:**
   - Enforces the **Mandatory Parallel Specialist Decision Gate**: dispatches task simultaneously to Level 3 specialists and waits for all reports.
   - Evaluates specialist findings, resolves clarifications (via CEO), assigns dynamic skills, issues authorization tokens (`AUTH-MGR-*`), and dispatches Level 4 Sub Agents.
@@ -71,6 +73,10 @@ Level 3 specialists advise the Manager before any code or file mutation occurs. 
 
 #### C. Phase-wise Prompt Generation Specialist (Phased Architecture & Strategy Governance)
 - **Primary Scope:** Governed by [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md). Assesses prompt requirements (`PROMPT_FILES_REQUIRED` = `YES`/`NO`), architectures self-contained phase prompts in `temp_prompt/<task_name>/`, pauses execution subagents during generation, evaluates 3 implementation strategies (A: Autonomous, B: Single Consultation, C: Phase-by-Phase), and delivers Prompt & Strategy Report to Manager.
+
+#### D. Code Modularity & Scalable Architecture Specialist (Modularity & File Thresholds)
+- **Primary Scope:** Governed by Universal Rule 28. Audits codebases against file length thresholds (target < 500 lines, warning 500–700 lines, mandatory hard split > 700 lines or > 24 KB), enforces function length <= 50 lines and nesting depth <= 4, evaluates architectural modularity (Clean Architecture, DDD, Feature-Sliced modularity), and designs scalable directory topologies for +1,000 future lines.
+- **Output:** Submits formal Modularity & Architecture Assessment Report to Manager before subagent execution.
 
 ### 2.4 Level 4: Execution Sub Agents (Actual Task Execution)
 - **Sole Execution Authority:** Dedicated domain specialists operating under [`dynamic_departments_matrix.md`](dynamic_departments_matrix.md).
@@ -104,6 +110,7 @@ sequenceDiagram
     participant SKILL as Level 3A: Skill Manager
     participant GRILL as Level 3B: Grill-Me Specialist
     participant PROMPT as Level 3C: Prompt Gen Specialist
+    participant MODULAR as Level 3D: Code Modularity Specialist
     participant SUB as Level 4: Sub Agents
 
     CEO->>MGR: Task Brief & Context
@@ -112,10 +119,12 @@ sequenceDiagram
         MGR->>SKILL: Evaluate Capability & Skill Requirements
         MGR->>GRILL: Evaluate Ambiguities & Governance Gates
         MGR->>PROMPT: Assess Prompt Requirements & Strategy
+        MGR->>MODULAR: Assess Code Modularity & File Length Thresholds
     end
     SKILL-->>MGR: Skill Allocation Report (Tools Ready / Sourced)
     GRILL-->>MGR: Governance & Clarification Report
     PROMPT-->>MGR: Prompt Dossier & Strategy Recommendation
+    MODULAR-->>MGR: Modularity & Architecture Assessment Report
     Note over MGR: Gate Barrier Passed: All Specialist Reports Evaluated
     MGR->>SUB: Dispatch Sub Agents with Allocated Skills
     SUB-->>MGR: Execution Completed & QA Passed
@@ -123,7 +132,7 @@ sequenceDiagram
 ```
 
 ### 3.1 Gate Execution Rules
-1. **Synchronous Parallel Dispatch:** Manager immediately issues identical contextual briefs to all 3 specialists simultaneously.
+1. **Synchronous Parallel Dispatch:** Manager immediately issues identical contextual briefs to all 4 specialists simultaneously.
 2. **Absolute Subagent Lockout:** No Level 4 Sub Agent may be invoked until all Level 3 reports are validated and required prompt files are ready.
 3. **Clarification Precedence:** Blocking ambiguities or Strategy B/C consultations pause execution while questions route through Manager -> CEO to User via `ask_question`.
 4. **Tooling Readiness Mandate:** Missing skills hold dispatch until discovered, verified, and installed.
@@ -134,11 +143,11 @@ Deterministic state machine persisted in `.agents/state/decision_gate_state.json
 
 | State # | Canonical State Name | Active Role & Trigger Event | Operational Condition & Invariant |
 | :--- | :--- | :--- | :--- |
-| **01** | `WAITING_FOR_SPECIALISTS` | Manager dispatches task brief | Tasks issued simultaneously to all 3 specialists; subagents locked. |
+| **01** | `WAITING_FOR_SPECIALISTS` | Manager dispatches task brief | Tasks issued simultaneously to all 4 specialists; subagents locked. |
 | **02** | `SKILL_MANAGER_COMPLETED` | Skill Manager submits verified report | Skill Allocation Report validated; other specialists pending. |
 | **03** | `GRILL_ME_COMPLETED` | Grill-Me submits verified report | Governance Report validated; other specialists pending. |
 | **04** | `WAITING_FOR_BOTH_REPORTS` | System acknowledges first report | Active hold barrier waiting for remaining specialist reports. |
-| **05** | `READY_FOR_MANAGER_DECISION` | All reports validated clean | All specialist reports verified; prompt files ready; awaiting Manager decision. |
+| **05** | `READY_FOR_MANAGER_DECISION` | All reports validated clean | All 4 specialist reports verified; prompt files ready; awaiting Manager decision. |
 | **06** | `WAITING_FOR_USER_CLARIFICATION` | Clarification or consultation required | Execution tasks blocked until user responds via `ask_question`. |
 | **07** | `APPROVED_FOR_EXECUTION` | Manager signs authorization token | **Strict Condition:** ONLY Manager can set this state and generate `AUTH-MGR-*` token. |
 | **08** | `EXECUTING` | Sub Agent verifies authorization | Sub Agent validates state is `APPROVED_FOR_EXECUTION` before executing any task. |
@@ -253,8 +262,8 @@ Skill Manager verifies global and local directories before creating any skill. I
 ## 📋 11. Mandatory Future Prompt Generation Standard
 
 Whenever generating prompts or phase execution decks, agents must strictly uphold:
-1. **4-Level Hierarchy & Anti-Bypass Invariants:** Level 1 CEO (Zero-Code) -> Level 2 Manager (Zero-Code) -> Level 3 Specialists (Mandatory Zero-Skip Gate) -> Level 4 Sub Agents (Exclusive Code Execution), with Sub Manager monitor.
-2. **Parallel Specialist Decision Gate:** Simultaneous dispatch to all 3 specialists, manager barrier wait, and subagent lockout until certified. Bypassing any specialist is strictly prohibited.
+1. **4-Level Hierarchy & Anti-Bypass Invariants:** Level 1 CEO (Zero-Code) -> Level 2 Manager (Zero-Code) -> Level 3 Specialists (Mandatory Zero-Skip Gate across all 4 specialists) -> Level 4 Sub Agents (Exclusive Code Execution), with Sub Manager monitor.
+2. **Parallel Specialist Decision Gate:** Simultaneous dispatch to all 4 specialists, manager barrier wait, and subagent lockout until certified. Bypassing any specialist is strictly prohibited.
 3. **Level 4 Exclusive Execution & Independent QA:** Exclusive codebase modification by Level 4 Subagents; mandatory independent QA signoff with exit code 0.
 4. **Rule 15 GitHub Push Intelligence:** Autonomous local commits; autonomous push logic for online repos (minor <= 2 files local, significant >= 3 files push) with pre-push secret scans.
 5. **Architectural Separation:** Adherence to `memory.md` (State), [`PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md`](PHASE_WISE_PROMPT_GENERATION_ARCHITECTURE.md) (Prompts), and `architecture_recommendation.md` (Topology).
