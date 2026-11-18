@@ -114,6 +114,7 @@ Project rules govern local tech stack (React vs Vue), design system (`DESIGN.md`
 
 ## 🚀 5. Autonomous Local Micro-Commit Cadence & Autonomous Remote Push Decision Engine (Rule 15)
 
+- **Canonical Rules Repository (`antigravity-universal-rules`):** The global constitutional rule architecture is codified in the private canonical repository `antigravity-universal-rules` (`https://github.com/aiprincekumar/antigravity-universal-rules.git` hosted in `C:\Users\Atul Verma\.gemini\config\rules\`). All constitutional modifications are committed locally and pushed upstream to `antigravity-universal-rules` under Autonomous Push Intelligence.
 - **Autonomous Local Micro-Commit Cadence:** On every single logical change, autonomously execute a local `git commit` immediately without prompting the user, notifying: "Haan, local me commit ho chuka hai [hash/message]".
 - **Online Upstream Pre-Check:** Verify repository online existence (`git ls-remote --exit-code origin`). If local-only or never pushed online: strictly keep changes offline local, zero remote push.
 - **Autonomous Push Intelligence (Zero User Interruption):**
@@ -149,6 +150,7 @@ Whenever a server restart, connection interruption, or session reload occurs, ad
 
 ## 🛡️ 8. Rules Health & Integrity Sentinel Standard (Rule 27)
 
+- **Authoritative Canonical Parity (`antigravity-universal-rules`):** `antigravity-universal-rules` serves as the upstream authoritative truth. Every rule modification verified by `npm run rules:check` must maintain 100% bit-for-bit MD5 parity between global `antigravity-universal-rules` and project `.agents/rules/` before task completion.
 - **Pre-Handoff Verification:** Execute `npm run rules:check` whenever rule, documentation, or structural changes occur.
 - **Capacity Headroom:** Every rule document must remain < 20 KB recommended limit (< 24 KB ceiling).
 - **Dual-Directory Binary Parity:** Global rules (`C:\\Users\\Atul Verma\\.gemini\\config\\rules\\`) and project rules (`.agents/rules/`) must remain bit-for-bit MD5 synchronized.
